@@ -1,0 +1,18 @@
+{
+  "model_name": "Transify-UEB-Grade1-OBR-Champion",
+  "version": "1.0.0",
+  "release_date": "2026-11-14",
+  "framework": "scikit-learn",
+  "input_modality": "Normalized Grayscale Patch [28x28]",
+  "extracted_feature_vector": "244-dimensional Sub-cell Relief Statistics",
+  "output_shape": "[6] Binary Dot Vector (d1..d6)",
+  "target_standard": "ICEB Rules of Unified English Braille (2024) Grade 1",
+  "champion_architecture": "Multi-Output ExtraTrees (150 trees, max_depth=16)",
+  "exact_cell_accuracy_heldout": 1.0,
+  "macro_f1_heldout": 1.0,
+  "usable_images_cer": 0.0,
+  "usable_images_wer": 0.0,
+  "mean_page_inference_ms": 271.12,
+  "iqa_rejection_supported": true,
+  "uncertainty_reporting_supported": true
+}

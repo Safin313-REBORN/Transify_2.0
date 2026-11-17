@@ -1,0 +1,159 @@
+{
+  "random_forest": {
+    "train_time_sec": 0.69,
+    "train_metrics": {
+      "exact_cell_accuracy": 1.0,
+      "mean_dot_accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_dot_accuracy": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "per_dot_f1": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "val_metrics": {
+      "exact_cell_accuracy": 0.931,
+      "mean_dot_accuracy": 0.9885,
+      "macro_f1": 0.9912,
+      "per_dot_accuracy": [
+        0.931,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "per_dot_f1": [
+        0.9474,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  },
+  "extra_trees": {
+    "train_time_sec": 0.48,
+    "train_metrics": {
+      "exact_cell_accuracy": 1.0,
+      "mean_dot_accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_dot_accuracy": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "per_dot_f1": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "val_metrics": {
+      "exact_cell_accuracy": 0.9759,
+      "mean_dot_accuracy": 0.996,
+      "macro_f1": 0.9968,
+      "per_dot_accuracy": [
+        0.9759,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "per_dot_f1": [
+        0.9809,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  },
+  "mlp": {
+    "train_time_sec": 1.82,
+    "train_metrics": {
+      "exact_cell_accuracy": 1.0,
+      "mean_dot_accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_dot_accuracy": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "per_dot_f1": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "val_metrics": {
+      "exact_cell_accuracy": 0.9483,
+      "mean_dot_accuracy": 0.9914,
+      "macro_f1": 0.9933,
+      "per_dot_accuracy": [
+        0.9483,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "per_dot_f1": [
+        0.96,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  },
+  "champion_model": "extra_trees",
+  "test_metrics": {
+    "exact_cell_accuracy": 1.0,
+    "mean_dot_accuracy": 1.0,
+    "macro_f1": 1.0,
+    "per_dot_accuracy": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "per_dot_f1": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  }
+}

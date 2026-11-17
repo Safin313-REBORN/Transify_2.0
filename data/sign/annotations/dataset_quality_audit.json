@@ -1,0 +1,34 @@
+{
+  "total_files_scanned": 1200,
+  "valid_videos": 1200,
+  "corrupted_videos": 0,
+  "classes_found": {
+    "HELLO": 120,
+    "THANK_YOU": 120,
+    "YOURE_WELCOME": 120,
+    "PLEASE": 120,
+    "I_NEED_HELP": 120,
+    "YES": 120,
+    "NO": 120,
+    "OKAY": 120,
+    "STOP": 120,
+    "I_DONT_UNDERSTAND": 120
+  },
+  "signers_found": [
+    "S002",
+    "S008",
+    "S006",
+    "S004",
+    "S005",
+    "S001",
+    "S003",
+    "S007"
+  ],
+  "corrupted_file_list": [],
+  "resolutions": [
+    "640x480"
+  ],
+  "mean_duration_sec": 1.0,
+  "min_duration_sec": 1.0,
+  "max_duration_sec": 1.0
+}

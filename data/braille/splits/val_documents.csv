@@ -1,0 +1,6 @@
+document_id,variation,image_filename,image_path,json_path,condition,total_cells,non_space_cells,lines_count
+DOC005,L1,DOC005_L1.png,data/braille/raw\DOC005_L1.png,data/braille/annotations\DOC005_L1.json,L1_nominal,67,58,2
+DOC005,L2,DOC005_L2.png,data/braille/raw\DOC005_L2.png,data/braille/annotations\DOC005_L2.json,L2_diffuse,67,58,2
+DOC005,P1,DOC005_P1.png,data/braille/raw\DOC005_P1.png,data/braille/annotations\DOC005_P1.json,L1_nominal_perspective,67,58,2
+DOC005,R1,DOC005_R1.png,data/braille/raw\DOC005_R1.png,data/braille/annotations\DOC005_R1.json,L1_nominal_rotate,67,58,2
+DOC005,D1,DOC005_D1.png,data/braille/raw\DOC005_D1.png,data/braille/annotations\DOC005_D1.json,D1_degraded,67,58,2

@@ -1,0 +1,85 @@
+# Environment & Secrets
+.env
+.env.local
+.env.production
+.env.development
+*.env
+!.env.example
+
+# Node / Web artifacts
+node_modules/
+.next/
+
+# Distribution & Build
+dist/
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing & Coverage
+coverage/
+*.log
+
+# Jupyter & IDE
+.ipynb_checkpoints
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+
+# Scratch & Temporary Testing Files
+scratch/
+scratch_test_braille.py
+build_panel_*.py
+data/fontlist-*.json
+
+# Large raw datasets (raw videos and bulk image captures - sample test docs retained)
+data/sign/raw/
+data/braille/raw/DOC00[2-8]*
+data/braille/raw/DOC010*
+
+# Temporary image crops generated during UI verification
+src/frontend/static/*_crop.png
+src/frontend/static/*_pill*.png
+src/frontend/static/*_text*.png
+src/frontend/static/*_check*.png
+src/frontend/static/*_inspect.png
+src/frontend/static/*_top*.png
+src/frontend/static/test_*.png
+src/frontend/static/test-*.png
+src/frontend/static/login-welcome-exact.jpg
+src/frontend/static/welcome-card-bg-clean.*
+src/frontend/static/welcome-hero-artwork.jpg
+src/frontend/static/card_braille_left_half.png
+src/frontend/static/card-braille-clean.png
+src/frontend/static/target_crop_exact.png
+
+# Databases
+*.db-journal
+*.db-wal
+*.db-shm

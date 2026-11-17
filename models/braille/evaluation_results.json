@@ -1,0 +1,243 @@
+{
+  "status": "PASS",
+  "held_out_documents": [
+    "DOC009",
+    "DOC010"
+  ],
+  "total_test_document_images": 10,
+  "total_test_cell_patches": 415,
+  "iqa_rejection_rate": 0.2,
+  "usable_images_metrics": {
+    "usable_cer": 0.0,
+    "usable_wer": 0.0,
+    "usable_exact_match_rate": 1.0,
+    "usable_documents_count": 8
+  },
+  "all_images_metrics": {
+    "mean_cer": 0.2,
+    "mean_wer": 0.2,
+    "exact_document_match_rate": 0.8
+  },
+  "cell_level_metrics": {
+    "exact_cell_accuracy": 1.0,
+    "macro_f1": 1.0,
+    "per_dot_accuracy": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "per_dot_f1": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "mean_cell_inference_latency_ms": 1.579
+  },
+  "text_level_metrics": {
+    "mean_cer": 0.2,
+    "mean_wer": 0.2,
+    "exact_document_match_rate": 0.8,
+    "mean_page_latency_ms": 271.12,
+    "effective_page_fps": 3.69
+  },
+  "robustness_breakdown": {
+    "L1": {
+      "mean_cer": 0.0,
+      "mean_wer": 0.0,
+      "exact_match_rate": 1.0,
+      "mean_latency_ms": 299.78
+    },
+    "L2": {
+      "mean_cer": 0.0,
+      "mean_wer": 0.0,
+      "exact_match_rate": 1.0,
+      "mean_latency_ms": 340.37
+    },
+    "P1": {
+      "mean_cer": 0.0,
+      "mean_wer": 0.0,
+      "exact_match_rate": 1.0,
+      "mean_latency_ms": 345.78
+    },
+    "R1": {
+      "mean_cer": 0.0,
+      "mean_wer": 0.0,
+      "exact_match_rate": 1.0,
+      "mean_latency_ms": 339.03
+    },
+    "D1": {
+      "mean_cer": 1.0,
+      "mean_wer": 1.0,
+      "exact_match_rate": 0.0,
+      "mean_latency_ms": 30.64
+    }
+  },
+  "per_document_details": [
+    {
+      "document_id": "DOC009",
+      "variation": "L1",
+      "condition": "L1_nominal",
+      "is_rejected": false,
+      "rejection_reason": null,
+      "ground_truth": "Feel each dot gently with the fingertip.\nPractice daily.",
+      "predicted_text": "Feel each dot gently with the\nfingertip.\nPractice daily.",
+      "exact_match": true,
+      "cer": 0.0,
+      "wer": 0.0,
+      "latency_ms": 346.74,
+      "mean_confidence": 0.9924,
+      "uncertain_count": 0,
+      "warnings_count": 0
+    },
+    {
+      "document_id": "DOC009",
+      "variation": "L2",
+      "condition": "L2_diffuse",
+      "is_rejected": false,
+      "rejection_reason": null,
+      "ground_truth": "Feel each dot gently with the fingertip.\nPractice daily.",
+      "predicted_text": "Feel each dot gently with the\nfingertip.\nPractice daily.",
+      "exact_match": true,
+      "cer": 0.0,
+      "wer": 0.0,
+      "latency_ms": 395.59,
+      "mean_confidence": 0.9897,
+      "uncertain_count": 0,
+      "warnings_count": 0
+    },
+    {
+      "document_id": "DOC009",
+      "variation": "P1",
+      "condition": "L1_nominal_perspective",
+      "is_rejected": false,
+      "rejection_reason": null,
+      "ground_truth": "Feel each dot gently with the fingertip.\nPractice daily.",
+      "predicted_text": "Feel each dot gently with the\nfingertip.\nPractice daily.",
+      "exact_match": true,
+      "cer": 0.0,
+      "wer": 0.0,
+      "latency_ms": 420.84,
+      "mean_confidence": 0.9885,
+      "uncertain_count": 0,
+      "warnings_count": 0
+    },
+    {
+      "document_id": "DOC009",
+      "variation": "R1",
+      "condition": "L1_nominal_rotate",
+      "is_rejected": false,
+      "rejection_reason": null,
+      "ground_truth": "Feel each dot gently with the fingertip.\nPractice daily.",
+      "predicted_text": "Feel each dot gently with the\nfingertip.\nPractice daily.",
+      "exact_match": true,
+      "cer": 0.0,
+      "wer": 0.0,
+      "latency_ms": 399.01,
+      "mean_confidence": 0.9855,
+      "uncertain_count": 0,
+      "warnings_count": 0
+    },
+    {
+      "document_id": "DOC009",
+      "variation": "D1",
+      "condition": "D1_degraded",
+      "is_rejected": true,
+      "rejection_reason": "Image is too blurry (Laplacian variance 5.6 < threshold 30.0). Hold camera steady.",
+      "ground_truth": "Feel each dot gently with the fingertip.\nPractice daily.",
+      "predicted_text": "[REJECTED: Image is too blurry (Laplacian variance 5.6 < threshold 30.0). Hold camera steady.]",
+      "exact_match": false,
+      "cer": 1.0,
+      "wer": 1.0,
+      "latency_ms": 28.6,
+      "mean_confidence": 0.0,
+      "uncertain_count": 0,
+      "warnings_count": 0
+    },
+    {
+      "document_id": "DOC010",
+      "variation": "L1",
+      "condition": "L1_nominal",
+      "is_rejected": false,
+      "rejection_reason": null,
+      "ground_truth": "Caution: wet floor.\nWatch your step.",
+      "predicted_text": "Caution: wet floor.\nWatch your step.",
+      "exact_match": true,
+      "cer": 0.0,
+      "wer": 0.0,
+      "latency_ms": 252.81,
+      "mean_confidence": 0.9925,
+      "uncertain_count": 0,
+      "warnings_count": 0
+    },
+    {
+      "document_id": "DOC010",
+      "variation": "L2",
+      "condition": "L2_diffuse",
+      "is_rejected": false,
+      "rejection_reason": null,
+      "ground_truth": "Caution: wet floor.\nWatch your step.",
+      "predicted_text": "Caution: wet floor.\nWatch your step.",
+      "exact_match": true,
+      "cer": 0.0,
+      "wer": 0.0,
+      "latency_ms": 285.15,
+      "mean_confidence": 0.9891,
+      "uncertain_count": 0,
+      "warnings_count": 0
+    },
+    {
+      "document_id": "DOC010",
+      "variation": "P1",
+      "condition": "L1_nominal_perspective",
+      "is_rejected": false,
+      "rejection_reason": null,
+      "ground_truth": "Caution: wet floor.\nWatch your step.",
+      "predicted_text": "Caution: wet floor.\nWatch your step.",
+      "exact_match": true,
+      "cer": 0.0,
+      "wer": 0.0,
+      "latency_ms": 270.71,
+      "mean_confidence": 0.9844,
+      "uncertain_count": 0,
+      "warnings_count": 0
+    },
+    {
+      "document_id": "DOC010",
+      "variation": "R1",
+      "condition": "L1_nominal_rotate",
+      "is_rejected": false,
+      "rejection_reason": null,
+      "ground_truth": "Caution: wet floor.\nWatch your step.",
+      "predicted_text": "Caution: wet floor.\nWatch your step.",
+      "exact_match": true,
+      "cer": 0.0,
+      "wer": 0.0,
+      "latency_ms": 279.05,
+      "mean_confidence": 0.9857,
+      "uncertain_count": 0,
+      "warnings_count": 0
+    },
+    {
+      "document_id": "DOC010",
+      "variation": "D1",
+      "condition": "D1_degraded",
+      "is_rejected": true,
+      "rejection_reason": "Image is too blurry (Laplacian variance 5.5 < threshold 30.0). Hold camera steady.",
+      "ground_truth": "Caution: wet floor.\nWatch your step.",
+      "predicted_text": "[REJECTED: Image is too blurry (Laplacian variance 5.5 < threshold 30.0). Hold camera steady.]",
+      "exact_match": false,
+      "cer": 1.0,
+      "wer": 1.0,
+      "latency_ms": 32.68,
+      "mean_confidence": 0.0,
+      "uncertain_count": 0,
+      "warnings_count": 0
+    }
+  ]
+}

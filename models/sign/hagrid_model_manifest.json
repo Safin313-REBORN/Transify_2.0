@@ -1,0 +1,204 @@
+{
+  "dataset": "HaGRID (HAnd Gesture Recognition Image Dataset) & ASL Communicative Vocabulary",
+  "version": "2.0.0",
+  "supported_classes": [
+    "CALL",
+    "DISLIKE",
+    "FIST",
+    "FOUR",
+    "HELLO",
+    "HELP",
+    "I_LOVE_YOU",
+    "LIKE",
+    "MUTE",
+    "NO",
+    "OK",
+    "ONE",
+    "PALM",
+    "PEACE",
+    "PEACE_INVERTED",
+    "ROCK",
+    "STOP",
+    "STOP_INVERTED",
+    "THANK_YOU",
+    "THREE",
+    "THREE2",
+    "TWO_UP",
+    "TWO_UP_INVERTED",
+    "YES"
+  ],
+  "class_count": 24,
+  "test_accuracy": 0.8683,
+  "feature_dimension": 38,
+  "architecture": "Random Forest (100 estimators, 45D geometric features)",
+  "classes_metadata": {
+    "CALL": {
+      "label": "CALL",
+      "display": "Call Me (Phone Gesture)",
+      "meaning": "Please call me / Phone call",
+      "english": "Please call me.",
+      "desc": "Thumb and pinky extended wide, middle three fingers folded."
+    },
+    "DISLIKE": {
+      "label": "DISLIKE",
+      "display": "Dislike (Thumbs Down)",
+      "meaning": "I do not like this / Bad",
+      "english": "I do not like this.",
+      "desc": "Closed fist with thumb extended pointing straight downward."
+    },
+    "FIST": {
+      "label": "FIST",
+      "display": "Fist (Power / Stand Strong)",
+      "meaning": "Fist / Stand strong",
+      "english": "I stand strong.",
+      "desc": "All five fingers curled tight into a solid clenched fist."
+    },
+    "FOUR": {
+      "label": "FOUR",
+      "display": "Four (4 Fingers)",
+      "meaning": "Four / Number 4",
+      "english": "Four.",
+      "desc": "Four fingers extended upright with thumb folded across palm."
+    },
+    "HELLO": {
+      "label": "HELLO",
+      "display": "Hello (Open Wave)",
+      "meaning": "Hello / Greetings",
+      "english": "Hello!",
+      "desc": "Open hand flat salute wave facing camera."
+    },
+    "HELP": {
+      "label": "HELP",
+      "display": "Help (Need Assistance)",
+      "meaning": "Please help / Assistance",
+      "english": "I need help.",
+      "desc": "Fist with thumb upright resting or held steady."
+    },
+    "I_LOVE_YOU": {
+      "label": "I_LOVE_YOU",
+      "display": "I Love You (ASL ILY)",
+      "meaning": "I love you / Affection",
+      "english": "I love you.",
+      "desc": "Thumb, index, and pinky extended upright, middle and ring curled."
+    },
+    "LIKE": {
+      "label": "LIKE",
+      "display": "Like (Thumbs Up)",
+      "meaning": "I like this / Good / Approved",
+      "english": "I like this, good!",
+      "desc": "Closed fist with thumb extended pointing straight upward."
+    },
+    "MUTE": {
+      "label": "MUTE",
+      "display": "Mute (Please Be Quiet)",
+      "meaning": "Please be quiet / Mute",
+      "english": "Please be quiet.",
+      "desc": "Single index finger held vertically near lips or mouth."
+    },
+    "NO": {
+      "label": "NO",
+      "display": "No (Disagreement)",
+      "meaning": "No / Disagree / Negative",
+      "english": "No.",
+      "desc": "Index, middle, and thumb tips touching together, other fingers closed."
+    },
+    "OK": {
+      "label": "OK",
+      "display": "OK (All Good / Understood)",
+      "meaning": "Okay / Understood / Perfect",
+      "english": "Okay, understood.",
+      "desc": "Thumb and index tips touching in an O ring, remaining fingers upright."
+    },
+    "ONE": {
+      "label": "ONE",
+      "display": "One / Point (Look Here)",
+      "meaning": "One / Pointing / Look here",
+      "english": "One, look here.",
+      "desc": "Index finger extended straight upright, other fingers closed."
+    },
+    "PALM": {
+      "label": "PALM",
+      "display": "Palm (Open Hand)",
+      "meaning": "Open hand / Greeting",
+      "english": "Hello, open hand.",
+      "desc": "All five fingers fully extended with open flat palm facing camera."
+    },
+    "PEACE": {
+      "label": "PEACE",
+      "display": "Peace / Victory (V Sign)",
+      "meaning": "Peace / Victory",
+      "english": "Peace and victory!",
+      "desc": "Index and middle fingers extended upright apart in a V shape."
+    },
+    "PEACE_INVERTED": {
+      "label": "PEACE_INVERTED",
+      "display": "Inverted Peace Sign",
+      "meaning": "Peace (inverted)",
+      "english": "Peace.",
+      "desc": "Index and middle fingers in V with back of hand facing camera."
+    },
+    "ROCK": {
+      "label": "ROCK",
+      "display": "Rock On (Horns)",
+      "meaning": "Rock on / Awesome",
+      "english": "Rock on, awesome!",
+      "desc": "Index and pinky extended upright, middle and ring curled under thumb."
+    },
+    "STOP": {
+      "label": "STOP",
+      "display": "Stop (Halt / Please Wait)",
+      "meaning": "Stop / Halt / Please wait",
+      "english": "Please stop and wait.",
+      "desc": "Open flat palm facing camera held upright with stopping gesture."
+    },
+    "STOP_INVERTED": {
+      "label": "STOP_INVERTED",
+      "display": "Stop (Inverted Palm)",
+      "meaning": "Stop (inverted)",
+      "english": "Stop.",
+      "desc": "Back of open flat hand facing camera with fingers upright."
+    },
+    "THANK_YOU": {
+      "label": "THANK_YOU",
+      "display": "Thank You",
+      "meaning": "Thank you / Gratitude",
+      "english": "Thank you.",
+      "desc": "Flat open hand moving outward from chin."
+    },
+    "THREE": {
+      "label": "THREE",
+      "display": "Three (3 Fingers)",
+      "meaning": "Three / Number 3",
+      "english": "Three.",
+      "desc": "Index, middle, and ring fingers extended upright, thumb holding pinky."
+    },
+    "THREE2": {
+      "label": "THREE2",
+      "display": "Three (ASL Variant)",
+      "meaning": "Three (variant)",
+      "english": "Three.",
+      "desc": "Thumb, index, and middle fingers extended, ring and pinky folded."
+    },
+    "TWO_UP": {
+      "label": "TWO_UP",
+      "display": "Two Up (Together)",
+      "meaning": "Two / Attention",
+      "english": "Two.",
+      "desc": "Index and middle fingers extended upright together without spreading."
+    },
+    "TWO_UP_INVERTED": {
+      "label": "TWO_UP_INVERTED",
+      "display": "Two Inverted (Pointing Down)",
+      "meaning": "Two (inverted)",
+      "english": "Two down.",
+      "desc": "Index and middle fingers extended pointing downward."
+    },
+    "YES": {
+      "label": "YES",
+      "display": "Yes (Agreement)",
+      "meaning": "Yes / Agree / Affirmative",
+      "english": "Yes.",
+      "desc": "Closed fist held firmly forward."
+    }
+  }
+}
