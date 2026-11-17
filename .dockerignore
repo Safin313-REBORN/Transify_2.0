@@ -1,0 +1,39 @@
+# Git version control
+.git
+.gitignore
+
+# Android build outputs and local configuration
+android/
+*.apk
+*.aab
+local.properties
+
+# Presentation and documentation panels
+Panel/
+
+# Python caches and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+env/
+venv/
+
+# Local databases and runtime logs
+data/transify.db*
+data/audio_cache/*
+!data/audio_cache/.gitkeep
+*.log
+
+# Raw datasets not needed at runtime
+data/braille/raw/
+data/braille/processed/
+data/sign/raw/
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+

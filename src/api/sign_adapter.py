@@ -8,9 +8,12 @@ and 98% Decision Gateway with MCP / ChatGPT fallback disambiguation.
 import os
 import sys
 import json
+import logging
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple, Union
 import numpy as np
+
+logger = logging.getLogger("transify.sign_adapter")
 
 # Ensure repository root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -57,8 +60,17 @@ class SignLanguageAdapter:
     """
 
     def __init__(self, debounce_window: int = 5):
-        self.predictor = SignPredictor()
-        self.model = self.predictor.torch_model if self.predictor.torch_model is not None else self.predictor.numpy_model
+        self.init_error = None
+        self.predictor = None
+        self.model = None
+        try:
+            self.predictor = SignPredictor()
+            self.model = self.predictor.torch_model if self.predictor.torch_model is not None else self.predictor.numpy_model
+            logger.info(f"SignPredictor successfully initialized. Active backend: {type(self.model).__name__ if self.model else 'None'}")
+        except Exception as e:
+            self.init_error = str(e)
+            logger.error(f"Failed to initialize SignPredictor: {e}", exc_info=True)
+
         self.stabilizer = PredictionStabilizer(window_size=12, required_votes=9, confidence_threshold=0.65)
         self.composer = TextComposer()
         self.mcp_resolver = MCPSignResolver()

@@ -27,6 +27,28 @@ from src.braille.decoder import UEBGrade1Decoder, vector_to_unicode, DecodedDocu
 BUNDLE_PATH = "models/braille/exported/braille_model_bundle.pkl"
 
 
+class SafeUnpickler(pickle.Unpickler):
+    """
+    Pickle Unpickler compatible across NumPy 1.x and 2.x serialization boundaries.
+    Automatically resolves numpy._core <-> numpy.core renames.
+    """
+    def find_class(self, module, name):
+        try:
+            return super().find_class(module, name)
+        except (ModuleNotFoundError, AttributeError):
+            if module.startswith("numpy._core"):
+                alt_module = "numpy.core" + module[len("numpy._core"):]
+                return super().find_class(alt_module, name)
+            elif module.startswith("numpy.core"):
+                alt_module = "numpy._core" + module[len("numpy.core"):]
+                return super().find_class(alt_module, name)
+            raise
+
+
+def safe_pickle_load(file_obj):
+    return SafeUnpickler(file_obj).load()
+
+
 class BrailleTranslatorPipeline:
     """
     End-to-End Optical Braille Recognition & Translation Subsystem.
@@ -39,15 +61,15 @@ class BrailleTranslatorPipeline:
             scaler_path = "models/braille/braille_scaler.pkl"
             if os.path.exists(champ_path) and os.path.exists(scaler_path):
                 with open(champ_path, "rb") as f:
-                    model = pickle.load(f)
+                    model = safe_pickle_load(f)
                 with open(scaler_path, "rb") as f:
-                    scaler = pickle.load(f)
+                    scaler = safe_pickle_load(f)
                 self.wrapper = BrailleClassifierWrapper(model, scaler=scaler)
             else:
                 raise FileNotFoundError(f"Model artifacts missing at {bundle_path}!")
         else:
             with open(bundle_path, "rb") as f:
-                bundle = pickle.load(f)
+                bundle = safe_pickle_load(f)
             self.wrapper = BrailleClassifierWrapper(bundle["model_object"], scaler=bundle.get("scaler"))
 
         self.iqa = ImageQualityAssessment()

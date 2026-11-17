@@ -7,12 +7,15 @@ handles translation history, accessibility preferences, and serves the frontend 
 import os
 import sys
 import time
+import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 # Load environment configuration (.env)
 load_dotenv()
+
+logger = logging.getLogger("transify.server")
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,6 +37,8 @@ from src.sign.live_frame_processor import LiveSignFrameProcessor
 from src.sign.mcp_sign_resolver import MCPSignResolver
 from src.sign.hagrid_recognizer import HAGRID_GESTURES, HAGRID_CLASS_NAMES
 from src.database.db import (
+    get_connection,
+    init_db,
     log_translation,
     get_history,
     clear_history,
@@ -123,17 +128,35 @@ class MCPSignResolveRequest(BaseModel):
 
 @app.get("/api/health", tags=["System"])
 def health_check():
-    """Returns system status, server timestamp, and active environment."""
+    """Returns system status, server timestamp, and active subsystem readiness."""
+    # Check database connectivity
+    db_connected = False
+    try:
+        conn = get_connection()
+        conn.execute("SELECT 1;").fetchone()
+        conn.close()
+        db_connected = True
+    except Exception as e:
+        logger.error(f"Health check database query failed: {e}")
+
+    sign_ready = sign_adapter.model is not None
+    braille_ready = (
+        braille_adapter.pipeline is not None
+        and braille_adapter.pipeline.wrapper.model is not None
+    )
+
+    all_ready = db_connected and sign_ready and braille_ready
+
     return {
-        "status": "healthy",
+        "status": "healthy" if all_ready else "degraded",
         "platform": "Transify Assistive Platform",
         "version": "1.0.0",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "python_version": sys.version.split()[0],
         "subsystems": {
-            "sign_language": "ready",
-            "braille_ocr": "ready",
-            "database": "connected",
+            "sign_language": "ready" if sign_ready else "error",
+            "braille_ocr": "ready" if braille_ready else "error",
+            "database": "connected" if db_connected else "error",
             "tts": "ready"
         }
     }
@@ -142,7 +165,7 @@ def health_check():
 @app.get("/api/models/status", tags=["System"])
 def models_status():
     """Returns live operational status and capability manifests of both recognition modules."""
-    sign_manifest_p = "models/sign/exported/model_manifest.json"
+    sign_manifest_p = "models/sign/hagrid_model_manifest.json"
     braille_manifest_p = "models/braille/exported/model_manifest.json"
 
     import json
@@ -156,8 +179,21 @@ def models_status():
         with open(braille_manifest_p, 'r', encoding='utf-8') as f:
             braille_manifest = json.load(f)
 
-    sign_acc = sign_manifest.get("evaluation_metrics", {}).get("test_accuracy", 0.987)
-    braille_acc = braille_manifest.get("evaluation_metrics", {}).get("test_cell_accuracy", 0.994)
+    # Use genuine manifest values; report None if unavailable, never fabricate fallbacks
+    sign_acc = (
+        sign_manifest.get("test_accuracy")
+        or sign_manifest.get("evaluation_metrics", {}).get("test_accuracy")
+    )
+    braille_acc = (
+        braille_manifest.get("exact_cell_accuracy_heldout")
+        or braille_manifest.get("test_cell_accuracy")
+        or braille_manifest.get("evaluation_metrics", {}).get("test_cell_accuracy")
+    )
+
+    braille_model_loaded = (
+        braille_adapter.pipeline is not None
+        and braille_adapter.pipeline.wrapper.model is not None
+    )
 
     return {
         "sign_language": {
@@ -165,17 +201,17 @@ def models_status():
             "status": "LOADED" if sign_adapter.model is not None else "ERROR",
             "champion_model": "Random Forest",
             "test_accuracy": sign_acc,
-            "supported_classes": 26,
+            "supported_classes": sign_manifest.get("class_count", len(BDSL_CLASSES)),
             "standard": "American Sign Language (ASL) & HaGRID Hand Gestures",
             "output_language": "English Text + Audio Speech",
-            "architecture": "Temporal Moment Statistical Pooling (972D) + Random Forest (150 trees)",
+            "architecture": sign_manifest.get("architecture", "Random Forest (100 estimators, 45D geometric features)"),
             "unknown_rejection_supported": True,
             "manifest": sign_manifest
         },
         "braille_ocr": {
-            "ready": braille_adapter.pipeline.wrapper.model is not None,
-            "status": "LOADED" if braille_adapter.pipeline.wrapper.model is not None else "ERROR",
-            "champion_model": "Extra Trees",
+            "ready": braille_model_loaded,
+            "status": "LOADED" if braille_model_loaded else "ERROR",
+            "champion_model": braille_manifest.get("champion_architecture", "Extra Trees"),
             "test_cell_accuracy": braille_acc,
             "standard": "Unified English Braille (UEB) Grade 1 (ICEB 2024)",
             "output_language": "English Text + Audio Speech",
@@ -186,12 +222,12 @@ def models_status():
         "module_01_sign": {
             "name": "ASL & HaGRID Hand Gesture Live AI Recognizer (Dual Model Architecture)",
             "status": "LOADED" if sign_adapter.model is not None else "ERROR",
-            "vocabulary_size": 26,
+            "vocabulary_size": sign_manifest.get("class_count", len(BDSL_CLASSES)),
             "manifest": sign_manifest
         },
         "module_02_braille": {
             "name": "Optical Braille Recognition & Translation Engine",
-            "status": "LOADED" if braille_adapter.pipeline.wrapper.model is not None else "ERROR",
+            "status": "LOADED" if braille_model_loaded else "ERROR",
             "manifest": braille_manifest
         },
         "module_03_hagrid": {
@@ -509,7 +545,7 @@ def get_sign_sample(class_name: str):
         raise HTTPException(status_code=404, detail=f"No sample found for class {class_clean}")
 
     row = matched.iloc[0]
-    rel_path = row["landmark_filename"]
+    rel_path = str(row["landmark_filename"]).replace("\\", "/")
     npy_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", rel_path))
     if not os.path.exists(npy_path):
         raise HTTPException(status_code=404, detail=f"Landmark file not found: {rel_path}")

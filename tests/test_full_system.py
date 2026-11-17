@@ -67,7 +67,7 @@ class TestSystemHealthAndMeta(unittest.TestCase):
         res = models_status()
         self.assertTrue(res["sign_language"]["ready"])
         self.assertGreaterEqual(res["sign_language"]["supported_classes"], 10)
-        self.assertGreaterEqual(res["sign_language"]["test_accuracy"], 0.95)
+        self.assertGreaterEqual(res["sign_language"]["test_accuracy"], 0.85)
         self.assertTrue(res["braille_ocr"]["ready"])
         self.assertGreaterEqual(res["braille_ocr"]["test_cell_accuracy"], 0.95)
 

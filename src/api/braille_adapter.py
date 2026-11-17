@@ -6,9 +6,12 @@ cell localization, 6-dot classification, and deterministic UEB Grade 1 decoding.
 
 import os
 import sys
+import logging
 from typing import Dict, Any, Optional
 import cv2
 import numpy as np
+
+logger = logging.getLogger("transify.braille_adapter")
 
 # Ensure repository root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -23,13 +26,28 @@ class BrailleRecognitionAdapter:
     """
 
     def __init__(self):
-        self.pipeline = BrailleTranslatorPipeline()
+        self.pipeline = None
+        self.init_error = None
+        try:
+            self.pipeline = BrailleTranslatorPipeline()
+            logger.info("Braille recognition model pipeline initialized successfully.")
+        except Exception as e:
+            self.init_error = str(e)
+            logger.error(f"Failed to initialize BrailleTranslatorPipeline: {e}", exc_info=True)
         self.mcp_resolver = MCPChatbotResolver()
 
     def assess_quality(self, image_bytes: bytes) -> Dict[str, Any]:
         """
         Runs pre-flight Image Quality Assessment on raw bytes.
         """
+        if self.pipeline is None:
+            return {
+                "accepted": False,
+                "rejection_reason": f"Braille recognition model not available: {self.init_error}",
+                "metrics": {},
+                "remediation_guidance": "Server-side Braille model failed to initialize."
+            }
+
         nparr = np.frombuffer(image_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         if img is None or img.size == 0:
@@ -61,6 +79,17 @@ class BrailleRecognitionAdapter:
         """
         Translates raw image bytes into English text with full diagnostics.
         """
+        if self.pipeline is None:
+            return {
+                "success": False,
+                "status_code": 503,
+                "error": {
+                    "code": "MODEL_UNAVAILABLE",
+                    "rejection_reason": f"Braille recognition model not available: {self.init_error}",
+                    "quality_flags": ["MODEL_ERROR"]
+                }
+            }
+
         # Decode byte buffer into OpenCV image
         nparr = np.frombuffer(image_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)

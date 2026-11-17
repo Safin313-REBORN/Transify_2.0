@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Transify</string>
+    <string name="app_tagline">Breaking Communication Barriers</string>
+    
+    <!-- Error State Strings -->
+    <string name="error_connection_title">Unable to Connect</string>
+    <string name="error_connection_desc">Cannot connect to the Transify backend server. Please verify your network connection and ensure the server is online.</string>
+    <string name="btn_retry">Retry Connection</string>
+    <string name="btn_configure_url">Configure URL</string>
+    
+    <!-- Config Error Strings -->
+    <string name="error_missing_url_title">Base URL Not Configured</string>
+    <string name="error_missing_url_desc">The Transify application requires a valid HTTPS deployment URL.\n\nPlease rebuild using:\n./gradlew assembleDebug -PTRANSIFY_BASE_URL=https://your-domain\n\nOr enter your deployed server URL below for this session:</string>
+    <string name="hint_enter_url">https://your-transify-server.com</string>
+    <string name="btn_connect">Connect</string>
+
+    <!-- Permissions Strings -->
+    <string name="perm_camera_rationale">Transify needs camera access for live sign language tracking and recognition.</string>
+    <string name="perm_audio_rationale">Transify needs microphone access for speech-to-text recognition.</string>
+    <string name="perm_storage_rationale">Storage access is required to save translated files.</string>
+    
+    <!-- Accessibility -->
+    <string name="desc_logo">Transify Brand Logo</string>
+    <string name="desc_loading">Loading Transify assistive interface…</string>
+</resources>
+

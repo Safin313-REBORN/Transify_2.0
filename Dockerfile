@@ -30,8 +30,8 @@ RUN mkdir -p data/audio_cache
 EXPOSE 8000
 
 # Health check to ensure service readiness
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+  CMD sh -c 'curl -fsS http://127.0.0.1:${PORT:-8000}/api/health || exit 1'
 
-# Launch the unified server
-CMD ["python", "run_server.py", "--host", "0.0.0.0", "--port", "8000"]
+# Launch the unified server with dynamic port support
+CMD ["sh", "-c", "exec python run_server.py --host 0.0.0.0 --port ${PORT:-8000}"]

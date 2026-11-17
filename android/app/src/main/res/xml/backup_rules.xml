@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude sensitive database and cached assets from legacy Android full backup -->
+    <exclude domain="root" />
+    <exclude domain="database" />
+    <exclude domain="sharedpref" path="custom_base_url" />
+</full-backup-content>
+
