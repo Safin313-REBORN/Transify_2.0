@@ -9,8 +9,9 @@ import json
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 
-DB_DIR = "data"
-DB_PATH = os.path.join(DB_DIR, "transify.db")
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+DB_DIR = os.getenv("TRANSIFY_DATA_DIR", os.path.join(PROJECT_ROOT, "data"))
+DB_PATH = os.getenv("TRANSIFY_DB_PATH", os.path.join(DB_DIR, "transify.db"))
 
 
 def get_connection() -> sqlite3.Connection:

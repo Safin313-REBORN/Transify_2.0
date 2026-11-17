@@ -24,7 +24,8 @@ from src.braille.detector import BrailleCellDetector
 from src.braille.architectures import BrailleClassifierWrapper, extract_subcell_features
 from src.braille.decoder import UEBGrade1Decoder, vector_to_unicode, DecodedDocument
 
-BUNDLE_PATH = "models/braille/exported/braille_model_bundle.pkl"
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+BUNDLE_PATH = os.path.join(PROJECT_ROOT, "models", "braille", "exported", "braille_model_bundle.pkl")
 
 
 class SafeUnpickler(pickle.Unpickler):
@@ -57,8 +58,8 @@ class BrailleTranslatorPipeline:
     def __init__(self, bundle_path: str = BUNDLE_PATH):
         if not os.path.exists(bundle_path):
             # Fallback to unexported champion model
-            champ_path = "models/braille/braille_champion_model.pkl"
-            scaler_path = "models/braille/braille_scaler.pkl"
+            champ_path = os.path.join(PROJECT_ROOT, "models", "braille", "braille_champion_model.pkl")
+            scaler_path = os.path.join(PROJECT_ROOT, "models", "braille", "braille_scaler.pkl")
             if os.path.exists(champ_path) and os.path.exists(scaler_path):
                 with open(champ_path, "rb") as f:
                     model = safe_pickle_load(f)

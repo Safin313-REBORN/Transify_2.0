@@ -24,14 +24,21 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Ensure data directories exist for SQLite and cache
-RUN mkdir -p data/audio_cache
+RUN mkdir -p /app/data /app/data/audio_cache
+
+# Environment variables for SQLite database persistence
+ENV TRANSIFY_DATA_DIR=/app/data \
+    TRANSIFY_DB_PATH=/app/data/transify.db
+
+# Persistent volume for SQLite database
+VOLUME ["/app/data"]
 
 # Expose HTTP port
 EXPOSE 8000
 
 # Health check to ensure service readiness
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
-  CMD sh -c 'curl -fsS http://127.0.0.1:${PORT:-8000}/api/health || exit 1'
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
+  CMD sh -c 'curl -fsS "http://127.0.0.1:${PORT:-8000}/api/health" || exit 1'
 
 # Launch the unified server with dynamic port support
 CMD ["sh", "-c", "exec python run_server.py --host 0.0.0.0 --port ${PORT:-8000}"]

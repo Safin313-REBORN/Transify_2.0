@@ -45,7 +45,7 @@ def main():
         "--port",
         type=int,
         default=int(os.getenv("PORT", "8000")),
-        help="Server port (default: from $PORT env or 8000)"
+        help="Server port"
     )
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
     args = parser.parse_args()

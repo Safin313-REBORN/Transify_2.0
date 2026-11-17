@@ -165,8 +165,9 @@ def health_check():
 @app.get("/api/models/status", tags=["System"])
 def models_status():
     """Returns live operational status and capability manifests of both recognition modules."""
-    sign_manifest_p = "models/sign/hagrid_model_manifest.json"
-    braille_manifest_p = "models/braille/exported/model_manifest.json"
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    sign_manifest_p = os.path.join(project_root, "models/sign/hagrid_model_manifest.json")
+    braille_manifest_p = os.path.join(project_root, "models/braille/exported/model_manifest.json")
 
     import json
     sign_manifest = {}

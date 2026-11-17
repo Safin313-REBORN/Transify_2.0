@@ -124,12 +124,12 @@ class HandTracker:
     def __init__(self, model_path: Optional[str] = None):
         if model_path is None:
             # Check candidate locations
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
             candidates = [
+                Path(os.path.join(project_root, "models/sign/hand_landmarker.task")),
                 Path("models/sign/hand_landmarker.task"),
                 Path("assets/hand_landmarker.task"),
                 Path("scratch/signframe-ai/assets/hand_landmarker.task"),
-                Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../models/sign/hand_landmarker.task"))),
-                Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../assets/hand_landmarker.task"))),
             ]
             for c in candidates:
                 if c.exists():
@@ -198,13 +198,15 @@ class SignPredictor:
         self.torch_model = None
         self.numpy_model = None
 
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+
         # Resolve PTH path
         if pth_path is None:
             pth_candidates = [
+                Path(os.path.join(project_root, "models/sign/feedback_candidate.pth")),
                 Path("models/sign/feedback_candidate.pth"),
                 Path("models/feedback_candidate.pth"),
                 Path("scratch/signframe-ai/models/feedback_candidate.pth"),
-                Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../models/sign/feedback_candidate.pth"))),
             ]
             for c in pth_candidates:
                 if c.exists():
@@ -214,9 +216,9 @@ class SignPredictor:
         # Resolve NPZ path
         if npz_path is None:
             npz_candidates = [
+                Path(os.path.join(project_root, "models/sign/signframe_cnn.npz")),
                 Path("models/sign/signframe_cnn.npz"),
                 Path("models/signframe_cnn.npz"),
-                Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../models/sign/signframe_cnn.npz"))),
             ]
             for c in npz_candidates:
                 if c.exists():
