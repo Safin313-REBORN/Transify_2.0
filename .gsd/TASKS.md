@@ -22,8 +22,8 @@
 - [x] Task 4.3: Execute Android tests `./gradlew testDebugUnitTest` and assemble debug APK `[Done]`
 
 ## Phase 5: Git Push, Railway Redeployment & Production Verification
-- [ ] Task 5.1: Review diffs, stage verified source files, and commit to `main` `[Pending]`
-- [ ] Task 5.2: Push commit to GitHub `origin/main` `[Pending]`
-- [ ] Task 5.3: Trigger Railway redeploy and monitor build and container logs to `SUCCESS` `[Pending]`
-- [ ] Task 5.4: Verify live endpoints on `https://transify20-production.up.railway.app` (`/`, `/api/health`, `/api/ready`, `/api/models/status`) `[Pending]`
-- [ ] Task 5.5: Build final verified Android APK and compile final 20-point report `[Pending]`
+- [x] Task 5.1: Review diffs, stage verified source files, and commit to `main` `[Done]`
+- [x] Task 5.2: Push commit to GitHub `origin/main` `[Done]`
+- [x] Task 5.3: Trigger Railway redeploy and monitor build and container logs to `SUCCESS` `[Done]`
+- [x] Task 5.4: Verify live endpoints on `https://transify20-production.up.railway.app` (`/`, `/api/health`, `/api/ready`, `/api/models/status`) `[Done]`
+- [x] Task 5.5: Build final verified Android APK and compile final 20-point report `[Done]`
