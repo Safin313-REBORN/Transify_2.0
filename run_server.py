@@ -22,8 +22,8 @@ def print_banner(host: str, port: int):
   Assistive Sign Language & Braille AI Translation Platform
 ======================================================================
   [+] Platform Status:  Online & Ready
-  [+] Sign AI Engine:   ASL & HaGRID Gesture AI Engine (98.7% Accuracy)
-  [+] Braille AI Engine: UEB Grade 1 ExtraTrees (99.4% Accuracy)
+  [+] Sign AI Engine:   ASL & HaGRID Gesture AI Engine (HaGRID Test Acc: 86.83%)
+  [+] Braille AI Engine: UEB Grade 1 ExtraTrees (Exact-Cell Test Acc: 100%)
   [+] Database Layer:   SQLite Persistent Storage (Local Privacy)
   [+] Speech Audio:     Web Speech API + PCM Audio Fallback
   [+] Accessibility:    WCAG 2.1 AAA High-Contrast & Screen-Reader Ready

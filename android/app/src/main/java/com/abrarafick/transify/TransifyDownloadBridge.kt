@@ -13,7 +13,6 @@ import android.util.Base64
 import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
-import android.webkit.JavascriptInterface
 import android.webkit.URLUtil
 import android.webkit.WebView
 import android.widget.Toast
@@ -91,8 +90,8 @@ class TransifyDownloadBridge(
 
     /**
      * Saves base64 encoded data URI directly to device storage.
+     * Invoked exclusively by WebMessageListener after origin, frame and payload validation.
      */
-    @JavascriptInterface
     fun saveDataUri(dataUri: String, mimeType: String, filename: String) {
         mainHandler.post {
             if (!isOriginSecure()) {

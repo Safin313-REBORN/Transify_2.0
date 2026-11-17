@@ -133,7 +133,7 @@ class BrailleRecognitionAdapter:
                 result = {
                     "success": True,
                     "text": mcp_res["text"],
-                    "mean_confidence": mcp_res.get("confidence", 0.95),
+                    "mean_confidence": mcp_res.get("confidence"),
                     "total_cells": max(1, len(mcp_res["text"].split())),
                     "uncertain_cells": [],
                     "qa_metrics": result.get("qa_metrics", {})
@@ -153,8 +153,8 @@ class BrailleRecognitionAdapter:
 
         # Multi-Engine Decision Gateway:
         # If model confidence >= 98% (0.98), use custom-trained model directly.
-        # If model confidence < 98%, automatically shift to MCP Server / ChatGPT for 100% accuracy.
-        mean_conf = float(result.get("mean_confidence", 0.0))
+        # If model confidence < 98%, automatically shift to MCP Server / ChatGPT for disambiguation.
+        mean_conf = float(result.get("mean_confidence", 0.0)) if result.get("mean_confidence") is not None else 0.0
         if not self.mcp_resolver.is_low_confidence(mean_conf):
             engine_info = {
                 "engine": "LOCAL_TRAINED_MODEL",
@@ -163,9 +163,11 @@ class BrailleRecognitionAdapter:
                 "confidence": mean_conf,
                 "threshold": self.mcp_resolver.threshold,
                 "badge": "Custom AI Model (>= 98%)",
-                "notes": f"High confidence recognition ({mean_conf * 100:.1f}%) handled directly by custom trained model."
+                "notes": f"High confidence recognition ({mean_conf * 100:.1f}%) handled directly by custom trained model.",
+                "resolver_assisted": False
             }
             final_text = result["text"]
+            reported_conf = mean_conf
         else:
             # Shift to MCP Server / Chatbot (ChatGPT / Gemini / MCP Tool)
             mcp_res = self.mcp_resolver.resolve(
@@ -176,16 +178,19 @@ class BrailleRecognitionAdapter:
                 qa_metrics=result.get("qa_metrics", {})
             )
             final_text = mcp_res.get("text", result["text"])
+            mcp_conf = mcp_res.get("confidence")
             engine_info = {
                 "engine": mcp_res.get("engine", "MCP_RESOLVER"),
                 "source": mcp_res.get("source", "MCP Server / Chatbot"),
                 "is_fallback": True,
-                "confidence": mcp_res.get("confidence", 0.99),
+                "confidence": mcp_conf,
                 "threshold": self.mcp_resolver.threshold,
                 "badge": mcp_res.get("badge", "MCP Resolver (< 98%)"),
-                "notes": mcp_res.get("notes", f"Confidence was {mean_conf * 100:.1f}% (< 98%). Shifted to MCP/Chatbot."),
-                "resolved_by_external_ai": mcp_res.get("resolved_by_external_ai", False)
+                "notes": mcp_res.get("notes", f"Confidence was {mean_conf * 100:.1f}%. Shifted to MCP resolver."),
+                "resolved_by_external_ai": mcp_res.get("resolved_by_external_ai", False),
+                "resolver_assisted": bool(mcp_res.get("resolver_assisted", True))
             }
+            reported_conf = mcp_conf
 
         # Calculate Read Coverage Metrics
         total_cells = result.get("total_cells", 0)
@@ -220,7 +225,9 @@ class BrailleRecognitionAdapter:
                 "text": final_text,
                 "raw_text": result.get("raw_text", result["text"]),
                 "braille_ascii": result.get("braille_ascii", ""),
-                "mean_confidence": result["mean_confidence"],
+                "mean_confidence": reported_conf,
+                "raw_mean_confidence": mean_conf,
+                "resolver_assisted": engine_info.get("resolver_assisted", False),
                 "engine_info": engine_info,
                 "read_coverage": read_coverage,
                 "cell_count": result["total_cells"],

@@ -12,9 +12,12 @@ import numpy as np
 # Ensure repository root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from fastapi import Response
+
 from src.api.server import (
     app,
     health_check,
+    readiness_check,
     models_status,
     get_sign_classes,
     predict_sign_sequence,
@@ -59,17 +62,62 @@ class TestSystemHealthAndMeta(unittest.TestCase):
         res = health_check()
         self.assertEqual(res["status"], "healthy")
         self.assertEqual(res["platform"], "Transify Assistive Platform")
-        self.assertIn("sign_language", res["subsystems"])
-        self.assertIn("braille_ocr", res["subsystems"])
-        self.assertIn("database", res["subsystems"])
+        self.assertIn("timestamp", res)
+        self.assertIn("python_version", res)
+
+    def test_readiness_check(self):
+        resp = Response()
+        res = readiness_check(resp)
+        self.assertEqual(res["status"], "ready")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("subsystems", res)
+        self.assertEqual(res["subsystems"]["database"], "connected")
+        self.assertEqual(res["subsystems"]["sign_language"], "ready")
+        self.assertEqual(res["subsystems"]["braille_ocr"], "ready")
+        self.assertEqual(res["subsystems"]["tts"], "ready")
+
+    def test_readiness_failure_simulation(self):
+        from unittest.mock import patch
+        resp = Response()
+        with patch("src.api.server.get_connection", side_effect=Exception("DB Failure")):
+            res = readiness_check(resp)
+            self.assertEqual(res["status"], "degraded")
+            self.assertEqual(resp.status_code, 503)
+            self.assertEqual(res["subsystems"]["database"], "error")
 
     def test_model_status(self):
         res = models_status()
+        # Verify four separate decomposed components
+        self.assertIn("signframe_asl", res)
+        self.assertEqual(res["signframe_asl"]["supported_classes"], 26)
+        self.assertTrue(res["signframe_asl"]["ready"])
+
+        self.assertIn("hagrid_gestures", res)
+        self.assertEqual(res["hagrid_gestures"]["test_accuracy"], 0.8683)
+        self.assertGreaterEqual(res["hagrid_gestures"]["supported_classes"], 20)
+        self.assertTrue(res["hagrid_gestures"]["ready"])
+
+        self.assertIn("mediapipe_landmarker", res)
+        self.assertEqual(res["mediapipe_landmarker"]["keypoints"], 21)
+
+        self.assertIn("braille_obr", res)
+        self.assertEqual(res["braille_obr"]["test_cell_accuracy"], 1.0)
+        self.assertEqual(res["braille_obr"]["metric_scope"], "cell-level")
+        self.assertTrue(res["braille_obr"]["ready"])
+
+        # Backward compatibility checks
         self.assertTrue(res["sign_language"]["ready"])
-        self.assertGreaterEqual(res["sign_language"]["supported_classes"], 10)
-        self.assertGreaterEqual(res["sign_language"]["test_accuracy"], 0.85)
+        self.assertEqual(res["sign_language"]["test_accuracy"], 0.8683)
         self.assertTrue(res["braille_ocr"]["ready"])
-        self.assertGreaterEqual(res["braille_ocr"]["test_cell_accuracy"], 0.95)
+        self.assertEqual(res["braille_ocr"]["test_cell_accuracy"], 1.0)
+
+    def test_cors_middleware_configuration(self):
+        from fastapi.middleware.cors import CORSMiddleware
+        cors_middlewares = [m for m in app.user_middleware if m.cls == CORSMiddleware]
+        self.assertTrue(len(cors_middlewares) > 0)
+        cors_options = cors_middlewares[0].kwargs
+        self.assertIn("https://transify20-production.up.railway.app", cors_options["allow_origins"])
+        self.assertNotIn("*", cors_options["allow_origins"])
 
     def test_sign_classes(self):
         res = get_sign_classes()
@@ -473,7 +521,8 @@ class TestSignFrameAIEngine(unittest.TestCase):
         )
         self.assertTrue(mcp_res["success"])
         self.assertEqual(mcp_res["label"], "B")
-        self.assertGreaterEqual(mcp_res["confidence"], 0.98)
+        self.assertIsNone(mcp_res["confidence"])
+        self.assertTrue(mcp_res["resolver_assisted"])
         self.assertTrue(mcp_res["is_fallback"])
         self.assertIn("MCP", mcp_res["badge"])
 

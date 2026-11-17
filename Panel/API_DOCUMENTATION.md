@@ -33,15 +33,26 @@
 - **Response `200 OK`:**
 ```json
 {
-  "sign_language": {
-    "champion_model": "Random Forest",
-    "test_accuracy": 0.987,
-    "supported_classes": 24
+  "signframe_asl": {
+    "architecture": "SignFrame CNN",
+    "supported_classes": 26,
+    "status": "LOADED"
   },
-  "braille_ocr": {
-    "champion_model": "Extra Trees",
-    "test_cell_accuracy": 0.994,
-    "standard": "UEB Grade 1"
+  "hagrid_gestures": {
+    "test_accuracy": 0.8683,
+    "supported_classes": 24,
+    "status": "LOADED"
+  },
+  "mediapipe_landmarker": {
+    "keypoints": 21,
+    "status": "LOADED"
+  },
+  "braille_obr": {
+    "champion_model": "Multi-Output ExtraTrees",
+    "test_cell_accuracy": 1.0,
+    "metric_scope": "cell-level",
+    "standard": "UEB Grade 1",
+    "status": "LOADED"
   }
 }
 ```

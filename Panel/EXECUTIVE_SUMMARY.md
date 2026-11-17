@@ -39,9 +39,9 @@ All video streams, landmark extractions, Braille scans, and SQLite database audi
 
 | Subsystem | Underlying Architecture | Benchmark Accuracy | Inference Latency | Supported Vocabulary / Formats |
 | :--- | :--- | :--- | :--- | :--- |
-| **Sign Language** | MediaPipe Holistic + Random Forest | **98.7%** (ASL) | ~28 ms / frame | 24 Expressive & Gesture Classes |
-| **HaGRID Gestures** | 21 Landmark Geometric Classifier | **98.2%** | ~18 ms / frame | 18 HaGRID Gesture Classes |
-| **Optical Braille** | Adaptive Thresholding + ExtraTrees | **99.4%** cell accuracy | ~180 ms / full page | UEB Grade 1 (Letters, Numbers, Punctuation) |
+| **Sign Language** | MediaPipe Holistic + Random Forest | **86.83%** (HaGRID test set) | ~28 ms / frame | 24 Expressive & Gesture Classes |
+| **HaGRID Gestures** | 21 Landmark Geometric Classifier | **86.83%** test accuracy | ~18 ms / frame | 24 HaGRID Gesture Classes |
+| **Optical Braille** | Adaptive Thresholding + ExtraTrees | **100%** exact-cell accuracy | ~180 ms / full page | UEB Grade 1 (Letters, Numbers, Punctuation) |
 | **Speech-to-Text** | Web Speech API Continuous Engine | Real-time stream | $< 120$ ms interim delay | English (US/UK) & Bengali |
 | **Text-to-Speech** | SpeechSynthesis + PCM Tone Fallback | 100% availability | $< 15$ ms initiation | Adjustable speed (0.8x, 1.0x, 1.2x) |
 | **Automated Tests** | Python `unittest` full suite | **34/34 Passing (100%)** | 2.85s execution | End-to-end integration & unit testing |

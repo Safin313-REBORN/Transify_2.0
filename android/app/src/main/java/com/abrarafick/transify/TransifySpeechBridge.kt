@@ -11,7 +11,6 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
-import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -70,11 +69,9 @@ class TransifySpeechBridge(
 
                         if (window.transifyNativeBridge && typeof window.transifyNativeBridge.postMessage === 'function') {
                             window.transifyNativeBridge.postMessage(payload);
-                        } else if (window.TransifySpeechBridge) {
-                            window.TransifySpeechBridge.startListening(this.lang, this.interimResults, this.continuous);
                         } else {
                             if (this.onerror) {
-                                this.onerror({ error: 'service-not-allowed', message: 'Native bridge unavailable' });
+                                this.onerror({ error: 'service-not-allowed', message: 'Native WebMessageListener bridge unavailable' });
                             }
                         }
                     }
@@ -83,8 +80,6 @@ class TransifySpeechBridge(
                         const payload = JSON.stringify({ action: 'stt_stop' });
                         if (window.transifyNativeBridge && typeof window.transifyNativeBridge.postMessage === 'function') {
                             window.transifyNativeBridge.postMessage(payload);
-                        } else if (window.TransifySpeechBridge) {
-                            window.TransifySpeechBridge.stopListening();
                         }
                     }
 
@@ -92,8 +87,6 @@ class TransifySpeechBridge(
                         const payload = JSON.stringify({ action: 'stt_abort' });
                         if (window.transifyNativeBridge && typeof window.transifyNativeBridge.postMessage === 'function') {
                             window.transifyNativeBridge.postMessage(payload);
-                        } else if (window.TransifySpeechBridge) {
-                            window.TransifySpeechBridge.abortListening();
                         }
                     }
                 }
@@ -114,9 +107,10 @@ class TransifySpeechBridge(
                             const event = {
                                 resultIndex: parsed.resultIndex || 0,
                                 results: parsed.results.map(r => {
+                                    const genuineConf = (typeof r.confidence === 'number' && !isNaN(r.confidence)) ? r.confidence : undefined;
                                     const alt = [{
                                         transcript: r.transcript,
-                                        confidence: (r.confidence !== null && r.confidence !== undefined) ? r.confidence : 1.0
+                                        confidence: genuineConf
                                     }];
                                     alt.isFinal = !!r.isFinal;
                                     return alt;
@@ -205,9 +199,8 @@ class TransifySpeechBridge(
     }
 
     /**
-     * Primary entry point invoked via WebMessageListener or fallback JavascriptInterface.
+     * Primary entry point invoked exclusively via WebMessageListener.
      */
-    @JavascriptInterface
     fun startListening(lang: String?, interim: Boolean, continuous: Boolean) {
         mainHandler.post {
             if (!isOriginSecure()) {
@@ -251,7 +244,6 @@ class TransifySpeechBridge(
         }
     }
 
-    @JavascriptInterface
     fun stopListening() {
         mainHandler.post {
             if (!isOriginSecure()) return@post
@@ -267,7 +259,6 @@ class TransifySpeechBridge(
         }
     }
 
-    @JavascriptInterface
     fun abortListening() {
         mainHandler.post {
             if (!isOriginSecure()) return@post

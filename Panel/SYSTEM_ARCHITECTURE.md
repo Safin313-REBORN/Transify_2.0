@@ -64,14 +64,14 @@ Transify adopts a **Layered Multi-Tier Architecture** engineered for high-concur
 - **Landmark Extraction:** Extracts 21 3D hand coordinates for left and right hands, plus selected upper-body pose keypoints ($21 \times 3 \times 2 + 12 \times 3 = 162$ feature dimensions).
 - **Geometric Normalization:** Landmarks are scaled relative to palm width ($d(\text{wrist}, \text{middle\_mcp})$) to achieve scale invariance across variable user distances from the webcam.
 - **Dual Classification Hierarchy:**
-  1. *ASL Finger & Word Recognition:* 98.7% test accuracy on canonical alphabet and communicative phrases.
-  2. *HaGRID Dynamic Classifier:* 98.2% test accuracy on 18 universal gesture classes (`CALL`, `LIKE`, `DISLIKE`, `OK`, `STOP`, `PEACE`, `FIST`, `PALM`, etc.).
+  1. *ASL Finger & Word Recognition:* 26-class ASL alphabet fingerspelling predictor and expressive vocabulary.
+  2. *HaGRID Dynamic Classifier:* 86.83% test accuracy on 24 universal gesture classes (`CALL`, `LIKE`, `DISLIKE`, `OK`, `STOP`, `PEACE`, `FIST`, `PALM`, etc.).
 - **Debounce & Smoothing Filter:** A 3-to-12 frame moving consensus buffer prevents jitter and accidental sign transitions.
 
 ### 2.2 Module 02: Optical Braille Recognition (OBR)
 - **Pre-Flight Image Quality Assessment (IQA):** Computes Laplacian variance sharpness score ($\ge 25.0$) and grayscale histogram brightness. Blurry or illegible photos are intercepted before classification with actionable user remediation tips.
 - **Relief Feature Extraction:** Segments the image into canonical 6-dot matrix cells (2 columns $\times$ 3 rows). Computes 244-dimensional spatial dot luminance profiles.
-- **Classifier:** ExtraTrees Ensemble (100 estimators) achieving 99.4% cell-level accuracy.
+- **Classifier:** ExtraTrees Ensemble (150 trees) achieving 100% exact-cell level accuracy on held-out test data.
 - **Deterministic Decoder:** An ICEB 2024 Unified English Braille (UEB) Grade 1 state machine decodes dot bitmasks into standard English characters, capitalized indicators, numbers, and punctuation.
 
 ### 2.3 Module 03 & 04: Real-Time Audio (STT & TTS)

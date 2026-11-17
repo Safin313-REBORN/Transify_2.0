@@ -243,18 +243,23 @@ class MainActivity : AppCompatActivity() {
                     handleWebMessage(message, sourceOrigin, isMainFrame)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error adding WebMessageListener, falling back to JavascriptInterface", e)
-                registerFallbackJavascriptInterfaces()
+                Log.e(TAG, "Error adding WebMessageListener; privileged native operations disabled for security", e)
+                showUnsupportedBridgeNotice()
             }
         } else {
-            Log.w(TAG, "WEB_MESSAGE_LISTENER not supported on this WebView; registering secure fallback bridge")
-            registerFallbackJavascriptInterfaces()
+            Log.w(TAG, "WEB_MESSAGE_LISTENER not supported on this WebView provider; privileged native operations disabled for security")
+            showUnsupportedBridgeNotice()
         }
     }
 
-    private fun registerFallbackJavascriptInterfaces() {
-        binding.webView.addJavascriptInterface(speechBridge, TransifySpeechBridge.INTERFACE_NAME)
-        binding.webView.addJavascriptInterface(downloadBridge, TransifyDownloadBridge.INTERFACE_NAME)
+    private fun showUnsupportedBridgeNotice() {
+        runOnUiThread {
+            android.widget.Toast.makeText(
+                this,
+                "Please update Android System WebView to enable speech recognition and download features.",
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+        }
     }
 
     private fun handleWebMessage(message: WebMessageCompat, sourceOrigin: Uri, isMainFrame: Boolean) {

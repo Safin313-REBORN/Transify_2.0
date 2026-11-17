@@ -145,10 +145,11 @@ class MCPChatbotResolver:
                     "text": content,
                     "engine": "MCP_CHATGPT_VISION",
                     "source": f"ChatGPT ({self.chatgpt_model}) via MCP Resolver",
-                    "confidence": 0.998,
-                    "badge": f"ChatGPT ({self.chatgpt_model}) 99.8%",
-                    "notes": f"Local model confidence was {mean_confidence * 100:.1f}% (< 98%). Resolved via ChatGPT Vision.",
-                    "resolved_by_external_ai": True
+                    "confidence": None,
+                    "badge": f"ChatGPT ({self.chatgpt_model}) Resolver",
+                    "notes": f"Local model confidence was {mean_confidence * 100:.1f}%. Resolved via ChatGPT Vision.",
+                    "resolved_by_external_ai": True,
+                    "resolver_assisted": True
                 }
             else:
                 logger.warning(f"ChatGPT API returned status {resp.status_code}: {resp.text}")
@@ -176,7 +177,7 @@ class MCPChatbotResolver:
                                 "text": (
                                     f"Transcribe this Unified English Braille (UEB) Grade 1 image into English text. "
                                     f"Preliminary local OCR was '{raw_text}' (confidence {mean_confidence:.2f} < 0.98). "
-                                    f"Output ONLY the verified, 100% accurate English text."
+                                    f"Output ONLY the verified English text."
                                 )
                             },
                             {
@@ -199,10 +200,11 @@ class MCPChatbotResolver:
                     "text": text,
                     "engine": "MCP_GEMINI_VISION",
                     "source": "Gemini 1.5 Flash via MCP Resolver",
-                    "confidence": 0.995,
-                    "badge": "Gemini 1.5 Flash 99.5%",
-                    "notes": f"Local model confidence was {mean_confidence * 100:.1f}% (< 98%). Resolved via Gemini Vision.",
-                    "resolved_by_external_ai": True
+                    "confidence": None,
+                    "badge": "Gemini 1.5 Flash Resolver",
+                    "notes": f"Local model confidence was {mean_confidence * 100:.1f}%. Resolved via Gemini Vision.",
+                    "resolved_by_external_ai": True,
+                    "resolver_assisted": True
                 }
             return None
         except Exception as ex:
@@ -239,10 +241,11 @@ class MCPChatbotResolver:
                     "text": text,
                     "engine": "MCP_SERVER_CUSTOM",
                     "source": "External MCP Server Tool",
-                    "confidence": 0.99,
-                    "badge": "MCP Server 99.0%",
+                    "confidence": None,
+                    "badge": "MCP Server Resolver",
                     "notes": f"Resolved by custom MCP Server (local confidence was {mean_confidence * 100:.1f}%).",
-                    "resolved_by_external_ai": True
+                    "resolved_by_external_ai": True,
+                    "resolver_assisted": True
                 }
             return None
         except Exception as ex:
@@ -268,11 +271,12 @@ class MCPChatbotResolver:
             "text": cleaned,
             "engine": "MCP_LOCAL_HEURISTIC",
             "source": "MCP Fallback Resolver (Set OPENAI_API_KEY in .env for live ChatGPT)",
-            "confidence": 0.95,
-            "badge": "MCP Resolver (< 98%)",
+            "confidence": None,
+            "badge": "MCP Lexicon Resolver",
             "notes": (
-                f"Confidence was {mean_confidence * 100:.1f}% (< 98%). Switched to MCP Resolver. "
+                f"Confidence was {mean_confidence * 100:.1f}%. Polished with MCP lexical grammar rules. "
                 f"Configure OPENAI_API_KEY in .env to activate live ChatGPT Vision."
             ),
-            "resolved_by_external_ai": False
+            "resolved_by_external_ai": False,
+            "resolver_assisted": True
         }

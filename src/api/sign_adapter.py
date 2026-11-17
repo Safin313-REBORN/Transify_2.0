@@ -102,6 +102,7 @@ class SignLanguageAdapter:
             }
             final_letter = letter
             final_conf = raw_conf
+            resolver_assisted = False
         else:
             top_3 = sorted(probs.items(), key=lambda kv: kv[1], reverse=True)[:3]
             top_candidates = [{"label": k, "confidence": v} for k, v in top_3]
@@ -112,25 +113,32 @@ class SignLanguageAdapter:
                 motion_energy=0.1
             )
             final_letter = mcp_res.get("label", letter)
-            final_conf = mcp_res.get("confidence", 0.99)
+            mcp_conf = mcp_res.get("confidence")
+            final_conf = mcp_conf if mcp_conf is not None else raw_conf
+            resolver_assisted = bool(mcp_res.get("resolver_assisted", True))
             engine_info = {
                 "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
                 "source": mcp_res.get("source", "MCP Server / Chatbot"),
                 "is_fallback": True,
-                "confidence": final_conf,
+                "confidence": mcp_conf,
                 "threshold": self.mcp_resolver.threshold,
                 "badge": mcp_res.get("badge", "MCP Resolver (< 98%)"),
-                "notes": mcp_res.get("notes", f"SignFrame AI confidence was {raw_conf * 100:.1f}% (< 98%). Shifted to MCP resolver."),
-                "latency_ms": mcp_res.get("latency_ms", 3.0)
+                "notes": mcp_res.get("notes", f"SignFrame AI confidence was {raw_conf * 100:.1f}%. Shifted to MCP resolver."),
+                "latency_ms": mcp_res.get("latency_ms", 3.0),
+                "resolver_assisted": resolver_assisted
             }
 
-        confirmed_letter, votes, req_votes = self.stabilizer.update(final_letter, final_conf)
+        # Feed genuine raw_conf to stabilizer to prevent false debounce inflation
+        stabilizer_conf = float(raw_conf) if raw_conf is not None else 0.0
+        confirmed_letter, votes, req_votes = self.stabilizer.update(final_letter, stabilizer_conf)
 
         return {
             "letter": final_letter,
             "label": final_letter,
             "display_text": f"Letter {final_letter}",
-            "confidence": round(final_conf, 4),
+            "confidence": round(final_conf, 4) if final_conf is not None else None,
+            "raw_confidence": round(raw_conf, 4) if raw_conf is not None else None,
+            "resolver_assisted": resolver_assisted,
             "status": "CONFIRMED" if confirmed_letter else "DEBOUNCING",
             "is_committed": bool(confirmed_letter),
             "is_confirmed": bool(confirmed_letter),
@@ -207,6 +215,7 @@ class SignLanguageAdapter:
             }
             final_label = class_meta["label"]
             final_conf = raw_conf
+            resolver_assisted = False
         else:
             top_candidates = [{"label": class_meta["label"], "confidence": raw_conf}]
             mcp_res = self.mcp_resolver.resolve(
@@ -217,16 +226,19 @@ class SignLanguageAdapter:
                 gloss_hint=class_meta["gloss"]
             )
             final_label = mcp_res.get("label", class_meta["label"])
-            final_conf = mcp_res.get("confidence", 0.99)
+            mcp_conf = mcp_res.get("confidence")
+            final_conf = mcp_conf if mcp_conf is not None else raw_conf
+            resolver_assisted = bool(mcp_res.get("resolver_assisted", True))
             engine_info = {
                 "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
                 "source": mcp_res.get("source", "MCP Server / Chatbot"),
                 "is_fallback": True,
-                "confidence": final_conf,
+                "confidence": mcp_conf,
                 "threshold": self.mcp_resolver.threshold,
                 "badge": mcp_res.get("badge", "MCP Fallback (< 98%)"),
-                "notes": mcp_res.get("notes", f"{active_lang.upper()} confidence was {raw_conf * 100:.1f}% (< 98%). Shifted to MCP."),
-                "latency_ms": mcp_res.get("latency_ms", 3.0)
+                "notes": mcp_res.get("notes", f"{active_lang.upper()} confidence was {raw_conf * 100:.1f}%. Shifted to MCP."),
+                "latency_ms": mcp_res.get("latency_ms", 3.0),
+                "resolver_assisted": resolver_assisted
             }
 
         # Debounce buffer
@@ -259,7 +271,9 @@ class SignLanguageAdapter:
             "unified_translation": unified_translation,
             "language_mode": active_lang,
             "model_name": model_name,
-            "confidence": round(final_conf, 4),
+            "confidence": round(final_conf, 4) if final_conf is not None else None,
+            "raw_confidence": round(raw_conf, 4) if raw_conf is not None else None,
+            "resolver_assisted": resolver_assisted,
             "status": "CONFIRMED" if is_consensus else "DEBOUNCING",
             "is_committed": is_consensus,
             "engine_info": engine_info,

@@ -111,16 +111,22 @@ class MCPSignResolver:
                 data = resp.json()
                 result = data.get("result", data)
                 resolved_label = result.get("label", candidate_label)
-                resolved_conf = float(result.get("confidence", 0.99))
+                resolved_conf = result.get("confidence")
+                if resolved_conf is not None:
+                    try:
+                        resolved_conf = float(resolved_conf)
+                    except (ValueError, TypeError):
+                        resolved_conf = None
                 return {
                     "success": True,
                     "label": resolved_label,
                     "confidence": resolved_conf,
                     "engine": "MCP_SERVER_RESOLVER",
                     "source": "External MCP Server Tool Resolver",
-                    "badge": "MCP Server (< 98%)",
-                    "notes": f"Custom model accuracy was {confidence * 100:.1f}% (< 98%). MCP Server resolved gesture to '{resolved_label}'.",
-                    "is_fallback": True
+                    "badge": "MCP Server Resolver",
+                    "notes": f"Model confidence was {confidence * 100:.1f}%. External MCP Server assisted to resolve '{resolved_label}'.",
+                    "is_fallback": True,
+                    "resolver_assisted": True
                 }
             return None
         except Exception as ex:
@@ -149,7 +155,7 @@ class MCPSignResolver:
                 f"Local model confidence was {confidence:.2f} (< 0.98). "
                 f"Top predictions: [{candidates_str}]. Motion energy: {motion_energy:.2f}. "
                 f"Valid expressions: HELLO, THANK_YOU, YOURE_WELCOME, PLEASE, I_NEED_HELP, YES, NO, OKAY, STOP, I_DONT_UNDERSTAND. "
-                f"Pick the exact intended expression. Reply ONLY in JSON: {{\"label\": \"EXPRESSION\", \"confidence\": 0.99}}"
+                f"Pick the exact intended expression. Reply ONLY in JSON: {{\"label\": \"EXPRESSION\"}}"
             )
 
             payload = {
@@ -171,16 +177,22 @@ class MCPSignResolver:
                     json_str = raw_txt[raw_txt.find("{"):raw_txt.rfind("}") + 1]
                     parsed = json.loads(json_str)
                     label = parsed.get("label", candidate_label).upper()
-                    conf = float(parsed.get("confidence", 0.99))
+                    conf = parsed.get("confidence")
+                    if conf is not None:
+                        try:
+                            conf = float(conf)
+                        except (ValueError, TypeError):
+                            conf = None
                     return {
                         "success": True,
                         "label": label,
                         "confidence": conf,
                         "engine": "MCP_CHATGPT_RESOLVER",
                         "source": f"ChatGPT ({self.chatgpt_model}) via MCP Resolver",
-                        "badge": f"ChatGPT ({self.chatgpt_model}) 99%",
-                        "notes": f"Local model confidence was {confidence * 100:.1f}% (< 98%). Resolved via ChatGPT in ultra-fast time.",
-                        "is_fallback": True
+                        "badge": f"ChatGPT ({self.chatgpt_model}) Resolver",
+                        "notes": f"Local model confidence was {confidence * 100:.1f}%. Resolved via ChatGPT disambiguation.",
+                        "is_fallback": True,
+                        "resolver_assisted": True
                     }
             return None
         except requests.Timeout:
@@ -216,12 +228,13 @@ class MCPSignResolver:
                 return {
                     "success": True,
                     "label": label,
-                    "confidence": 0.99,
+                    "confidence": None,
                     "engine": "MCP_GEMINI_RESOLVER",
                     "source": "Gemini 1.5 Flash via MCP Resolver",
-                    "badge": "Gemini 1.5 Flash 99%",
-                    "notes": f"Local model confidence was {confidence * 100:.1f}% (< 98%). Resolved via Gemini.",
-                    "is_fallback": True
+                    "badge": "Gemini 1.5 Flash Resolver",
+                    "notes": f"Local model confidence was {confidence * 100:.1f}%. Resolved via Gemini disambiguation.",
+                    "is_fallback": True,
+                    "resolver_assisted": True
                 }
             return None
         except Exception as ex:
@@ -247,15 +260,16 @@ class MCPSignResolver:
         return {
             "success": True,
             "label": best_label,
-            "confidence": 0.99,
+            "confidence": None,
             "engine": "MCP_SERVER_AGENT",
             "source": "MCP Server Fallback Agent (< 98%)",
-            "badge": "MCP Server (< 98%)",
+            "badge": "MCP Agent Resolver",
             "notes": (
-                f"Custom model confidence was {confidence * 100:.1f}% (< 98%). "
-                f"MCP Server assisted to resolve '{best_label}' with 99% certainty."
+                f"Local model confidence was {confidence * 100:.1f}%. "
+                f"MCP agent assisted to resolve '{best_label}'."
             ),
-            "is_fallback": True
+            "is_fallback": True,
+            "resolver_assisted": True
         }
 
     # Backward compatibility alias

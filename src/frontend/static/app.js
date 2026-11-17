@@ -658,13 +658,13 @@ var DashboardPage = window.DashboardPage = {
         const badgeClass = isSign ? 'badge-info' : 'badge-warning';
         const icon = isSign ? '🤟' : '⠃';
         const dateStr = new Date(rec.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const confPercent = (rec.confidence * 100).toFixed(1);
+        const confPercent = (typeof rec.confidence === 'number' && !isNaN(rec.confidence)) ? `${(rec.confidence * 100).toFixed(1)}%` : 'N/A';
 
         return `
           <div class="card" style="margin-bottom: var(--space-3); padding: var(--space-4);" data-id="${rec.id}">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2);">
               <span class="badge ${badgeClass}">${icon} ${rec.module.toUpperCase()}</span>
-              <span style="font-size: var(--text-xs); color: var(--text-muted);">${dateStr} • Conf: ${confPercent}%</span>
+              <span style="font-size: var(--text-xs); color: var(--text-muted);">${dateStr} • Conf: ${confPercent}</span>
             </div>
             <div style="font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-2);">
               "${rec.recognized_text}"
@@ -791,11 +791,11 @@ var SignPage = window.SignPage = window.TransifySign = {
     fetch('/api/sign/reset', { method: 'POST' }).catch(() => {});
   },
 
-  setDetectionFeedback(label, confidence = 0.95) {
+  setDetectionFeedback(label, confidence = null) {
     this.detectionState = {
       isDetected: true,
       label: label,
-      confidence: confidence,
+      confidence: (typeof confidence === 'number' && !isNaN(confidence)) ? confidence : null,
       timestamp: Date.now()
     };
     if (this.isStreaming) {
@@ -1407,7 +1407,7 @@ var SignPage = window.SignPage = window.TransifySign = {
 
           if (data.hand_detected && data.status === 'CONFIRMED' && data.label && data.label !== 'IDLE' && data.label !== 'ANALYZING') {
             // DECISION CONFIRMED AFTER ANALYSIS! Turn camera box vibrant GREEN!
-            this.setDetectionFeedback(data.label, data.confidence || 0.98);
+            this.setDetectionFeedback(data.label, (typeof data.confidence === 'number' && !isNaN(data.confidence)) ? data.confidence : null);
 
             // Update Recognized Word card with finalized translation
             this.updatePredictionUI({
@@ -1545,7 +1545,8 @@ var SignPage = window.SignPage = window.TransifySign = {
 
       // Top Detected Header Badge
       const modelTag = (this.detectionState && this.detectionState.model_name && this.detectionState.model_name.includes('HaGRID')) ? 'HaGRID' : 'ASL';
-      const badgeText = `✓ [${modelTag}] DETECTED: ${this.detectionState.label} (${Math.round(this.detectionState.confidence * 100)}%)`;
+      const confDisplay = (typeof this.detectionState.confidence === 'number' && !isNaN(this.detectionState.confidence)) ? ` (${Math.round(this.detectionState.confidence * 100)}%)` : '';
+      const badgeText = `✓ [${modelTag}] DETECTED: ${this.detectionState.label}${confDisplay}`;
       this._drawPillBadge(boxX + 12, boxY + 12, badgeText, '#22c55e', '#ffffff');
 
       // Bottom confirmation ribbon inside target box
@@ -1817,12 +1818,17 @@ var SignPage = window.SignPage = window.TransifySign = {
       return;
     }
 
-    const confPct = (result.confidence * 100).toFixed(1);
     if (labelEl) labelEl.textContent = result.label;
     if (glossEl) glossEl.textContent = `[ASL: ${result.gloss || defaultGloss || result.label}]`;
     if (confEl) {
-      confEl.textContent = `${confPct}% Confidence`;
-      confEl.className = result.confidence > 0.85 ? 'badge badge-success' : 'badge badge-warning';
+      if (typeof result.confidence === 'number' && !isNaN(result.confidence)) {
+        const confPct = (result.confidence * 100).toFixed(1);
+        confEl.textContent = `${confPct}% Confidence`;
+        confEl.className = result.confidence > 0.85 ? 'badge badge-success' : 'badge badge-warning';
+      } else {
+        confEl.textContent = 'Confidence Unavailable';
+        confEl.className = 'badge badge-info';
+      }
     }
 
     // Unified Translation Layer display
@@ -1854,7 +1860,7 @@ var SignPage = window.SignPage = window.TransifySign = {
     }
 
     // Trigger GREEN BOX on camera overlay whenever word / sign is detected
-    this.setDetectionFeedback(result.label, result.confidence || 0.95);
+    this.setDetectionFeedback(result.label, (typeof result.confidence === 'number' && !isNaN(result.confidence)) ? result.confidence : null);
 
     // Update consensus debounce progress bar
     if (progressFill) {
@@ -2220,10 +2226,16 @@ var BraillePage = window.BraillePage = {
         const engineBadge = engine.is_fallback
           ? `<span class="badge badge-warning" title="${engine.source || 'MCP'}">🤖 ${engine.badge || 'MCP Resolver'}</span>`
           : `<span class="badge badge-success" title="${engine.source || 'Local AI'}">🎯 ${engine.badge || 'AI Model ≥98%'}</span>`;
+        const confDisplay = (typeof result.mean_confidence === 'number' && !isNaN(result.mean_confidence))
+          ? `Conf: ${(result.mean_confidence * 100).toFixed(1)}%`
+          : 'Conf: Unavailable';
+        const confBadgeClass = (typeof result.mean_confidence === 'number' && !isNaN(result.mean_confidence) && result.mean_confidence > 0.85)
+          ? 'badge-success'
+          : 'badge-info';
         statsBadge.innerHTML = `
           ${engineBadge}
           <span class="badge ${cov.percentage >= 95 ? 'badge-success' : 'badge-warning'}">📖 ${cov.percentage}% Read</span>
-          <span class="badge badge-success">Conf: ${(result.mean_confidence * 100).toFixed(1)}%</span>
+          <span class="badge ${confBadgeClass}">${confDisplay}</span>
           <span class="badge badge-info">${result.cell_count || 0} Cells</span>
           <span class="badge badge-info">${result.line_count || 1} Lines</span>
         `;

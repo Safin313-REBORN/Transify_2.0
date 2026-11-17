@@ -11,7 +11,7 @@
 
 Transify 2.0 integrates **four dedicated AI modules** with zero external cloud lock-in:
 1. **Live Hand Sign & Gesture Translator (ASL & HaGRID):** Real-time computer vision engine recognizing 24+ communicative sign language words and gestures with strict Camera Target Box containment, 3-frame rolling consensus analysis, and an ultra-fast 98% Decision Gateway.
-2. **Optical Braille Translator (UEB Grade 1):** Optical Braille Recognition (OBR) pipeline powered by a 99.4% accuracy ExtraTrees classifier, CLAHE contrast normalizer, and strict compliance with the **ICEB Rules of Unified English Braille (2024)**.
+2. **Optical Braille Translator (UEB Grade 1):** Optical Braille Recognition (OBR) pipeline powered by an ExtraTrees classifier (100% exact-cell test accuracy on heldout data), CLAHE contrast normalizer, and strict compliance with the **ICEB Rules of Unified English Braille (2024)**.
 3. **Real-Time Speech-to-Text (STT):** Live continuous microphone voice captioning with real-time interim display and one-click copy or speech playback.
 4. **Natural Text-to-Speech (TTS):** Instant multi-lingual speech synthesis via Web Speech API with automatic audio fallback.
 

@@ -12,7 +12,7 @@
 **Answer:**  
 1. **Edge Latency & CPU Feasibility:** Deep CNNs or Transformers require discrete GPUs (CUDA) and consume several hundred milliseconds per frame. Transify operates directly on consumer student laptops at 30 FPS with $< 30\text{ ms}$ latency on pure CPU.
 2. **Compact Feature Representation:** By using MediaPipe Holistic landmarks (162-D normalized coordinates) and spatial dot luminance profiles (244-D), high-dimensional pixel arrays are reduced to robust geometric vectors.
-3. **Data Efficiency & Zero Overfitting:** Random Forest and ExtraTrees construct uncorrelated decision trees that achieve 98.7% and 99.4% test accuracy without requiring millions of training images or experiencing catastrophic forgetting.
+3. **Data Efficiency & Zero Overfitting:** Random Forest and ExtraTrees construct uncorrelated decision trees that achieve 86.83% HaGRID test accuracy and 100% Braille exact-cell test accuracy without requiring millions of training images or experiencing catastrophic forgetting.
 
 ### Q2: How does the 98% Decision Gateway operate in real-time?
 **Answer:**  

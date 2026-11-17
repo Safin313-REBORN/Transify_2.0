@@ -34,6 +34,15 @@ from src.sign.fingerspelling import FingerspellingRecognizer
 from src.sign.mcp_sign_resolver import MCPSignResolver
 from src.sign.hagrid_recognizer import HaGRIDRecognizer, HAGRID_GESTURES
 
+
+def _safe_round(val: Optional[float], decimals: int = 4) -> Optional[float]:
+    if val is None:
+        return None
+    try:
+        return round(float(val), decimals)
+    except (ValueError, TypeError):
+        return None
+
 # Bangladesh Sign Language (BdSL) Authentic Expressions
 BDSL_EXPRESSIONS: Dict[str, Dict[str, str]] = {
     "HELLO": {
@@ -410,12 +419,12 @@ class LiveSignFrameProcessor:
                 "engine": "LOCAL_CUSTOM_MODEL",
                 "source": f"{model_name} (Trained AI Model)",
                 "is_fallback": False,
-                "confidence": max(top1_conf, 0.985),
+                "confidence": top1_conf,
                 "threshold": self.mcp_resolver.threshold,
-                "badge": f"{model_name} (>= 98%)",
+                "badge": f"{model_name}",
                 "notes": f"Trained model recognized '{top1_label}' with clear margin ({top1_conf * 100:.1f}%)."
             }
-            return top1_label, max(top1_conf, 0.985), engine_info
+            return top1_label, top1_conf, engine_info
 
         # Case 2: Ambiguity / Clash between two candidates with similar accuracy -> Engage MCP Server Agent
         self.ambiguity_counter += 1
@@ -427,7 +436,7 @@ class LiveSignFrameProcessor:
             gloss_hint=gloss_hint
         )
         resolved_label = mcp_res.get("label", top1_label)
-        resolved_conf = mcp_res.get("confidence", 0.99)
+        resolved_conf = mcp_res.get("confidence")
         engine_info = {
             "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
             "source": mcp_res.get("source", "MCP Server Disambiguation Agent"),
@@ -436,9 +445,10 @@ class LiveSignFrameProcessor:
             "threshold": self.mcp_resolver.threshold,
             "badge": "🤖 MCP Agent (Tie-Breaker)",
             "notes": f"Model faced ambiguity between '{top1_label}' ({top1_conf*100:.0f}%) and '{top2_label}' ({top2_conf*100:.0f}%). MCP Server agent resolved the tie.",
-            "latency_ms": mcp_res.get("latency_ms", 3.0)
+            "latency_ms": mcp_res.get("latency_ms", 3.0),
+            "resolver_assisted": bool(mcp_res.get("resolver_assisted", True))
         }
-        return resolved_label, resolved_conf, engine_info
+        return resolved_label, resolved_conf if resolved_conf is not None else top1_conf, engine_info
 
     def process_frame(
         self,
@@ -619,7 +629,7 @@ class LiveSignFrameProcessor:
                         gloss_hint=gloss_str
                     )
                     final_word = mcp_res.get("label", sign_label)
-                    final_conf = mcp_res.get("confidence", 0.99)
+                    final_conf = mcp_res.get("confidence")
                     engine_info = {
                         "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
                         "source": mcp_res.get("source", "MCP Server / Chatbot"),
@@ -627,11 +637,12 @@ class LiveSignFrameProcessor:
                         "confidence": final_conf,
                         "threshold": self.mcp_resolver.threshold,
                         "badge": mcp_res.get("badge", "MCP Fallback (< 98%)"),
-                        "notes": mcp_res.get("notes", f"BdSL model confidence was {raw_conf * 100:.1f}% (< 98%). Shifted to MCP resolver."),
-                        "latency_ms": mcp_res.get("latency_ms", 3.0)
+                        "notes": mcp_res.get("notes", f"BdSL model confidence was {raw_conf * 100:.1f}%. Shifted to MCP resolver."),
+                        "latency_ms": mcp_res.get("latency_ms", 3.0),
+                        "resolver_assisted": bool(mcp_res.get("resolver_assisted", True))
                     }
 
-                confirmed_word, votes, req_votes = self.stabilizer.update(final_word, final_conf)
+                confirmed_word, votes, req_votes = self.stabilizer.update(final_word, raw_conf if raw_conf is not None else 0.0)
 
                 unified_translation = {
                     "source_language": "BdSL",
@@ -655,7 +666,7 @@ class LiveSignFrameProcessor:
                     "gloss": gloss_str,
                     "english_text": english_str,
                     "unified_translation": unified_translation,
-                    "confidence": round(final_conf, 4),
+                    "confidence": _safe_round(final_conf) if final_conf is not None else _safe_round(raw_conf),
                     "status": "CONFIRMED" if confirmed_word else "DEBOUNCING",
                     "is_committed": bool(confirmed_word),
                     "is_confirmed": bool(confirmed_word),
@@ -664,7 +675,7 @@ class LiveSignFrameProcessor:
                     "consensus_progress": f"{votes}/{req_votes}",
                     "hand_bbox": [int(v) for v in hand_bbox],
                     "engine_info": engine_info,
-                    "probabilities": {final_word: round(final_conf, 4)},
+                    "probabilities": {final_word: _safe_round(final_conf) or (_safe_round(raw_conf) or 0.0)},
                     "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
 
@@ -698,15 +709,15 @@ class LiveSignFrameProcessor:
             if hand_landmarks is not None:
                 pts = np.array([[p.x, p.y, p.z] for p in hand_landmarks], dtype=np.float32)
                 rec = self.fingerspelling.classify_hand(pts)
-                predicted_letter = rec.get("letter", "A")
-                raw_conf = rec.get("confidence", 0.982)
+                predicted_letter = rec.get("letter", "UNKNOWN")
+                raw_conf = float(rec.get("confidence", 0.0))
             else:
                 input_tensor = preprocess_hand(frame, hand_bbox)
                 if input_tensor is not None:
                     predicted_letter, raw_conf, _ = self.predictor.predict(input_tensor)
                 else:
-                    predicted_letter = "A"
-                    raw_conf = 0.98
+                    predicted_letter = "UNKNOWN"
+                    raw_conf = 0.0
 
             # 98% Decision Gateway for BdSL Letters
             if not self.mcp_resolver.is_low_confidence(raw_conf):
@@ -729,7 +740,7 @@ class LiveSignFrameProcessor:
                     motion_energy=0.1
                 )
                 final_letter = mcp_res.get("label", predicted_letter)
-                final_conf = mcp_res.get("confidence", 0.99)
+                final_conf = mcp_res.get("confidence")
                 engine_info = {
                     "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
                     "source": mcp_res.get("source", "MCP Server / Chatbot"),
@@ -737,11 +748,12 @@ class LiveSignFrameProcessor:
                     "confidence": final_conf,
                     "threshold": self.mcp_resolver.threshold,
                     "badge": mcp_res.get("badge", "MCP Fallback (< 98%)"),
-                    "notes": mcp_res.get("notes", f"BdSL confidence was {raw_conf * 100:.1f}% (< 98%). Shifted to MCP resolver."),
-                    "latency_ms": mcp_res.get("latency_ms", 3.0)
+                    "notes": mcp_res.get("notes", f"BdSL confidence was {raw_conf * 100:.1f}%. Shifted to MCP resolver."),
+                    "latency_ms": mcp_res.get("latency_ms", 3.0),
+                    "resolver_assisted": bool(mcp_res.get("resolver_assisted", True))
                 }
 
-            confirmed_letter, votes, req_votes = self.stabilizer.update(final_letter, final_conf)
+            confirmed_letter, votes, req_votes = self.stabilizer.update(final_letter, raw_conf if raw_conf is not None else 0.0)
             if confirmed_letter and confirmed_letter != self.last_confirmed_letter:
                 self.last_confirmed_letter = confirmed_letter
                 self.composer.append_letter(confirmed_letter)
@@ -769,7 +781,7 @@ class LiveSignFrameProcessor:
                 "gloss": f"BdSL Alphabet {final_letter}",
                 "english_text": english_letter_text,
                 "unified_translation": unified_translation,
-                "confidence": round(final_conf, 4),
+                "confidence": _safe_round(final_conf) if final_conf is not None else _safe_round(raw_conf),
                 "status": "CONFIRMED" if confirmed_letter else "DEBOUNCING",
                 "is_committed": bool(confirmed_letter),
                 "is_confirmed": bool(confirmed_letter),
@@ -778,7 +790,7 @@ class LiveSignFrameProcessor:
                 "consensus_progress": f"{votes}/{req_votes}",
                 "hand_bbox": [int(v) for v in hand_bbox],
                 "engine_info": engine_info,
-                "probabilities": {final_letter: round(final_conf, 4)},
+                "probabilities": {final_letter: _safe_round(final_conf) or (_safe_round(raw_conf) or 0.0)},
                 "latency_ms": round((time.time() - t0) * 1000, 2)
             }
 
@@ -836,7 +848,7 @@ class LiveSignFrameProcessor:
                     "analysis_pct": analysis_pct,
                     "votes": votes,
                     "required_votes": req_votes,
-                    "confidence": round(final_conf, 4),
+                    "confidence": _safe_round(final_conf),
                     "status": "ANALYZING",
                     "is_committed": False,
                     "is_confirmed": False,
@@ -873,7 +885,7 @@ class LiveSignFrameProcessor:
                 "gloss": gloss_str,
                 "english_text": english_str,
                 "unified_translation": unified_translation,
-                "confidence": round(final_conf, 4),
+                "confidence": _safe_round(final_conf),
                 "status": "CONFIRMED",
                 "is_committed": True,
                 "is_confirmed": True,
@@ -932,7 +944,7 @@ class LiveSignFrameProcessor:
                     "analysis_pct": analysis_pct,
                     "votes": votes,
                     "required_votes": req_votes,
-                    "confidence": round(final_conf, 4),
+                    "confidence": _safe_round(final_conf),
                     "status": "ANALYZING",
                     "is_committed": False,
                     "is_confirmed": False,
@@ -941,7 +953,7 @@ class LiveSignFrameProcessor:
                     "consensus_progress": f"{votes}/{req_votes}",
                     "hand_bbox": [int(v) for v in hand_bbox],
                     "engine_info": engine_info,
-                    "probabilities": {final_word: round(final_conf, 4)},
+                    "probabilities": {final_word: _safe_round(final_conf) or 0.0},
                     "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
 
@@ -968,7 +980,7 @@ class LiveSignFrameProcessor:
                 "gloss": gloss_str,
                 "english_text": english_str,
                 "unified_translation": unified_translation,
-                "confidence": round(final_conf, 4),
+                "confidence": _safe_round(final_conf),
                 "status": "CONFIRMED",
                 "is_committed": True,
                 "is_confirmed": True,
@@ -978,7 +990,7 @@ class LiveSignFrameProcessor:
                 "consensus_progress": f"{votes}/{req_votes}",
                 "hand_bbox": [int(v) for v in hand_bbox],
                 "engine_info": engine_info,
-                "probabilities": {final_word: round(final_conf, 4)},
+                "probabilities": {final_word: _safe_round(final_conf) or 0.0},
                 "latency_ms": round((time.time() - t0) * 1000, 2)
             }
 
@@ -1095,7 +1107,7 @@ class LiveSignFrameProcessor:
                 "analysis_pct": analysis_pct,
                 "votes": votes,
                 "required_votes": req_votes,
-                "confidence": round(final_conf, 4),
+                "confidence": _safe_round(final_conf),
                 "status": "ANALYZING",
                 "is_committed": False,
                 "is_confirmed": False,
@@ -1136,7 +1148,7 @@ class LiveSignFrameProcessor:
             "gloss": f"ASL Letter {final_letter}",
             "english_text": english_letter_text,
             "unified_translation": unified_translation,
-            "confidence": round(final_conf, 4),
+            "confidence": _safe_round(final_conf),
             "status": "CONFIRMED",
             "is_committed": True,
             "is_confirmed": True,
