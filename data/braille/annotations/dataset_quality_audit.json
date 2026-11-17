@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "total_documents": 50,
+  "total_cell_patches": 2470,
+  "corrupted_images": 0,
+  "corrupted_patches": 0,
+  "annotation_errors": 0,
+  "total_lines_audited": 125,
+  "patch_shapes": [
+    [
+      28,
+      28
+    ]
+  ],
+  "unique_6dot_classes": 33,
+  "dot_activity_percentages": {
+    "d1_active_pct": 68.42,
+    "d2_active_pct": 47.37,
+    "d3_active_pct": 47.37,
+    "d4_active_pct": 43.52,
+    "d5_active_pct": 55.67,
+    "d6_active_pct": 17.61
+  }
+}

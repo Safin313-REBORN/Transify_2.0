@@ -1,0 +1,2312 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Transify — Assistive AI Platform</title>
+  <meta name="description" content="AI-Powered Assistive Communication Platform for Hand Signal and Braille Language Recognition.">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
+  <link rel="apple-touch-icon" href="/static/icon-192.png">
+  <meta name="theme-color" content="#b075fe">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="/static/styles.css?v=20261116_allfix_v8">
+  <script>
+    // Immediate bulletproof auth handler
+    window.openAuthSheet = function(mode) {
+      if (window.TransifyApp && typeof window.TransifyApp.openAuthSheet === 'function' && window.TransifyApp._fullLoaded) {
+        return window.TransifyApp.openAuthSheet(mode);
+      }
+      var sheet = document.getElementById('auth-sheet-container');
+      if (sheet) sheet.classList.add('active');
+    };
+    window.closeAuthSheet = function() {
+      if (window.TransifyApp && typeof window.TransifyApp.closeAuthSheet === 'function' && window.TransifyApp._fullLoaded) {
+        return window.TransifyApp.closeAuthSheet();
+      }
+      var sheet = document.getElementById('auth-sheet-container');
+      if (sheet) sheet.classList.remove('active');
+    };
+    window.handleDirectLogin = function() {
+      if (window.TransifyApp && typeof window.TransifyApp.handleDirectLogin === 'function' && window.TransifyApp._fullLoaded) {
+        return window.TransifyApp.handleDirectLogin();
+      }
+      try {
+        localStorage.setItem('transify_auth_user', JSON.stringify({ name: 'Sarah Ahmed', email: 'demo@transify.ai' }));
+        localStorage.setItem('transify_auth_token', 'jwt_' + Date.now());
+      } catch(e) {}
+      var overlay = document.getElementById('transify-auth-screen');
+      if (overlay) {
+        overlay.style.display = 'none';
+        overlay.style.pointerEvents = 'none';
+        overlay.style.zIndex = '-99999';
+      }
+      var splash = document.getElementById('transify-splash-screen');
+      if (splash) {
+        splash.style.display = 'none';
+        splash.classList.add('splash-hidden');
+      }
+      if (window.location.hash) {
+        var hash = window.location.hash;
+        var sId = hash === '#braille' ? 'slide-braille' : (hash === '#sign' ? 'slide-hand-signal' : (hash === '#stt' ? 'slide-stt' : (hash === '#tts' ? 'slide-tts' : '')));
+        if (sId && typeof openSlide === 'function') openSlide(sId);
+      }
+    };
+    window.handleDemoLogin = window.handleDirectLogin;
+    window.handleAuthSubmit = function(e) {
+      if (e) e.preventDefault();
+      window.handleDirectLogin();
+    };
+    var TransifyApp = window.TransifyApp = window.TransifyApp || {};
+    TransifyApp.openAuthSheet = window.openAuthSheet;
+    TransifyApp.closeAuthSheet = window.closeAuthSheet;
+    TransifyApp.handleDirectLogin = window.handleDirectLogin;
+    TransifyApp.handleDemoLogin = window.handleDirectLogin;
+    TransifyApp.handleAuthSubmit = window.handleAuthSubmit;
+    TransifyApp.togglePasswordVisibility = function() {};
+    TransifyApp.handleForgotPassword = function(e) { if (e) e.preventDefault(); alert('Password reset link sent to demo@transify.ai'); };
+    TransifyApp.handleGoogleLogin = window.handleDirectLogin;
+    TransifyApp.switchAuthTab = function(mode) { window.openAuthSheet(mode); };
+    TransifyApp.logoutUser = function() {
+      try { localStorage.clear(); } catch(e) {}
+      window.location.reload();
+    };
+    TransifyApp.closeProfileModal = function() {
+      var modal = document.getElementById('profile-modal');
+      if (modal) modal.classList.remove('active');
+    };
+  </script>
+  <style>
+    /* -------------------------------------------------------------
+       Modern Segmented Canvas & Sliding Panels matching Reference Mockup
+       ------------------------------------------------------------- */
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    body.planner-canvas {
+      background-color: #ede9fe;
+      background-image: radial-gradient(circle at 15% 25%, #f5f3ff 0%, #ede9fe 60%, #f3e8ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 10px;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      position: relative;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Outer Device Container (Home Frame) */
+    .planner-card-frame {
+      width: 100%;
+      max-width: 460px;
+      min-height: min(860px, 92vh);
+      max-height: min(94vh, 920px);
+      background: #f7f4fc;
+      background-image: radial-gradient(circle at 50% 0%, #fdfbff 0%, #f7f4fc 65%, #f2ecf9 100%);
+      border-radius: 36px;
+      box-shadow: 0 16px 48px rgba(131, 56, 236, 0.12), 0 4px 16px rgba(131, 56, 236, 0.04);
+      border: 1px solid rgba(131, 56, 236, 0.10);
+      padding: 24px 20px 28px 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      isolation: isolate;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transform-origin: center top;
+      transition: background-color 0.25s ease, transform 0.46s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.38s ease, filter 0.38s ease;
+      will-change: transform, opacity, filter;
+      z-index: 10;
+    }
+    .planner-card-frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url('/static/slide-bg-waves-blurred.jpg');
+      background-size: cover;
+      background-position: center top;
+      opacity: 0.16;
+      filter: blur(3px);
+      transform: scale(1.04);
+      pointer-events: none;
+      z-index: -1;
+      border-radius: 36px;
+    }
+    .planner-card-frame.sheet-scaled {
+      transform: scale(0.938) translateY(12px);
+      opacity: 0.82;
+      filter: blur(1.5px);
+      pointer-events: none;
+    }
+
+    /* Top Bar: Menu & Avatar */
+    .frame-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .frame-icon-btn {
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .frame-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.96);
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 6px 18px rgba(131, 56, 236, 0.14);
+      border-color: rgba(131, 56, 236, 0.35);
+    }
+    .frame-icon-btn:active {
+      transform: scale(0.96);
+    }
+    .frame-icon-btn span {
+      display: block;
+      width: 18px;
+      height: 2.5px;
+      background: #2b2b36;
+      border-radius: 2px;
+      transition: background 0.2s ease;
+    }
+    .frame-icon-btn:hover span {
+      background: #8338ec;
+    }
+
+    .frame-avatar-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #ffcb3d;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 14px rgba(255, 193, 7, 0.38), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .frame-avatar-btn:hover {
+      transform: translateY(-2px) scale(1.08);
+      box-shadow: 0 8px 20px rgba(255, 193, 7, 0.5);
+    }
+    .frame-avatar-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Greeting Header */
+    .frame-greeting-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #17171d;
+      line-height: 1.15;
+      margin: 0 0 3px 0;
+      letter-spacing: -0.6px;
+    }
+    .frame-greeting-sub {
+      font-size: 23px;
+      font-weight: 800;
+      color: #17171d;
+      line-height: 1.2;
+      margin: 0 0 4px 0;
+      letter-spacing: -0.5px;
+    }
+
+    /* Main Segment Cards */
+    .main-segment-card {
+      border-radius: 28px;
+      padding: 22px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-decoration: none;
+      color: #ffffff;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 16px;
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+      cursor: pointer;
+      border: none;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: left;
+    }
+    .main-segment-card:hover {
+      transform: translateY(-4px) scale(1.015);
+    }
+
+    .segment-card-image-wrap {
+      padding: 0 !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      min-height: auto !important;
+      margin-bottom: 14px;
+      display: block;
+      width: 100%;
+    }
+    .segment-card-cover-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 26px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.10);
+      transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .segment-card-image-wrap:hover .segment-card-cover-img {
+      box-shadow: 0 16px 36px rgba(131, 56, 236, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-3px) scale(1.015);
+    }
+
+    /* Segment 1: Hand Signal (Purple Lavender gradient matching reference Card 1) */
+    .segment-hand-signal {
+      background: linear-gradient(135deg, #9f67fe 0%, #8338ec 100%);
+      box-shadow: 0 16px 32px rgba(131, 56, 236, 0.32);
+      min-height: 142px;
+    }
+
+    /* Segment 2: Braille Language (Coral Salmon gradient matching reference Card 2) */
+    .segment-braille {
+      background: linear-gradient(135deg, #ff6c64 0%, #f73859 100%);
+      box-shadow: 0 16px 32px rgba(247, 56, 89, 0.30);
+      min-height: 154px;
+    }
+
+    .segment-text-col {
+      z-index: 2;
+      max-width: 62%;
+    }
+    .segment-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 0 0 4px 0;
+      letter-spacing: -0.4px;
+    }
+    .segment-sub {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0 0 12px 0;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .segment-tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: rgba(255, 255, 255, 0.24);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #ffffff;
+      transition: all 0.2s ease;
+    }
+    .main-segment-card:hover .segment-tag-pill {
+      background: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
+    }
+
+    /* Artwork Positioning inside cards */
+    .segment-art-zone {
+      position: absolute;
+      right: 12px;
+      bottom: 0;
+      top: 0;
+      width: 42%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    /* Bottom 2 Smaller Segments (Side-by-Side Box Tiles with subtle Glassmorphism) */
+    .bottom-segments-row {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 12px !important;
+      margin-top: 2px;
+      width: 100% !important;
+      box-sizing: border-box;
+    }
+
+    .mini-sub-card {
+      border-radius: 22px;
+      padding: 15px 13px;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 114px;
+      aspect-ratio: 1 / 0.88;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      text-align: left;
+      box-sizing: border-box;
+      transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mini-sub-card:active {
+      transform: scale(0.96) !important;
+    }
+
+    .mini-peach {
+      background: linear-gradient(135deg, rgba(254, 209, 199, 0.90) 0%, rgba(253, 195, 183, 0.76) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: #4b1a11;
+      box-shadow: 0 8px 20px rgba(254, 209, 199, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.85);
+    }
+    .mini-peach:hover {
+      background: linear-gradient(135deg, rgba(254, 209, 199, 0.98) 0%, rgba(253, 195, 183, 0.88) 100%);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 28px rgba(254, 180, 165, 0.6), inset 0 1px 1px rgba(255, 255, 255, 1);
+      border-color: rgba(255, 255, 255, 0.9);
+    }
+
+    .mini-purple {
+      background: linear-gradient(135deg, rgba(159, 103, 254, 0.92) 0%, rgba(131, 56, 236, 0.85) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: #ffffff;
+      box-shadow: 0 8px 22px rgba(131, 56, 236, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+    .mini-purple:hover {
+      background: linear-gradient(135deg, rgba(168, 115, 255, 0.98) 0%, rgba(142, 68, 245, 0.92) 100%);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 14px 30px rgba(131, 56, 236, 0.48), inset 0 1px 1px rgba(255, 255, 255, 0.7);
+      border-color: rgba(255, 255, 255, 0.65);
+    }
+
+    .mini-title {
+      font-size: clamp(13px, 3.8vw, 15.5px);
+      font-weight: 800;
+      margin: 0 0 2px 0;
+      letter-spacing: -0.2px;
+      line-height: 1.25;
+    }
+    .mini-subtitle {
+      font-size: clamp(10px, 2.7vw, 11px);
+      font-weight: 600;
+      opacity: 0.88;
+      margin: 0;
+      line-height: 1.2;
+    }
+    .mini-art-icon {
+      align-self: flex-end;
+      margin-top: auto;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+    }
+    .mini-art-icon svg {
+      width: clamp(50px, 14vw, 68px);
+      height: auto;
+      display: block;
+    }
+
+    /* =============================================================
+       SLIDING PANELS ARCHITECTURE (GLASSMORPHISM & FLOATING SEGMENTS)
+       ============================================================= */
+
+    .slide-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1000;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: rgba(18, 12, 34, 0.44);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+      transition: transform 0.48s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.36s ease, visibility 0.48s;
+      will-change: transform, opacity;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Hand Signal & STT Slides: Slide in from the LEFT with Glassmorphism */
+    .slide-screen.slide-from-left {
+      transform: translate3d(-100%, 0, 0);
+    }
+    .slide-screen.slide-from-left.active {
+      transform: translate3d(0, 0, 0);
+      opacity: 1;
+      pointer-events: auto;
+      visibility: visible;
+    }
+
+    /* Braille & TTS Slides: Slide in from the RIGHT with Glassmorphism */
+    .slide-screen.slide-from-right {
+      transform: translate3d(100%, 0, 0);
+    }
+    .slide-screen.slide-from-right.active {
+      transform: translate3d(0, 0, 0);
+      opacity: 1;
+      pointer-events: auto;
+      visibility: visible;
+    }
+
+    /* Inner Slide Content Box with Soft Blurred Ambient Background */
+    .slide-inner-frame {
+      width: 100%;
+      max-width: 860px;
+      min-height: 100vh;
+      background-color: #f8f5fc;
+      box-shadow: 0 24px 64px rgba(131, 56, 236, 0.20);
+      display: flex;
+      flex-direction: column;
+      margin: 0 auto;
+      position: relative;
+      isolation: isolate;
+      overflow-x: hidden;
+      border-radius: 0 !important;
+      border-top-left-radius: 0 !important;
+      border-top-right-radius: 0 !important;
+    }
+
+    /* Ambient Soft Wavy Background (Blurred & Reduced Opacity for Executive Professional UI) */
+    .slide-inner-frame::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('/static/slide-bg-waves-blurred.jpg');
+      background-size: cover;
+      background-position: center top;
+      background-repeat: no-repeat;
+      opacity: 0.22;
+      filter: blur(3.5px);
+      transform: scale(1.05);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Full-Bleed Top Banner Segment (3 sides filled: top, left, right edge-to-edge) */
+    .slide-banner-segment-wrap {
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box;
+      position: relative;
+      z-index: 10;
+      will-change: transform, opacity;
+      border-top-left-radius: 0 !important;
+      border-top-right-radius: 0 !important;
+      overflow: hidden !important;
+    }
+
+    /* Edge-to-Edge Hero Banner with curved bottom display */
+    .slide-actor-banner,
+    .slide-top-banner {
+      width: 100% !important;
+      height: clamp(235px, 35vh, 290px);
+      position: relative;
+      overflow: hidden;
+      border-radius: 0 0 36px 36px !important;
+      border-top-left-radius: 0 !important;
+      border-top-right-radius: 0 !important;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+      background-repeat: no-repeat !important;
+      background-position: center top !important;
+      background-size: cover !important;
+      background-color: #fb7077 !important;
+      display: flex;
+      box-sizing: border-box;
+      border: none !important;
+      outline: none !important;
+      margin: 0 !important;
+    }
+
+    .banner-handsign-bg {
+      background-image: url('/static/banner-handsign.png?v=20261116b');
+    }
+
+    .banner-braille-bg {
+      background-image: url('/static/banner-braille.png?v=20261116_useractor_v2');
+    }
+
+    .banner-stt-bg {
+      background-image: url('/static/banner-stt.png?v=20261116b');
+    }
+
+    .banner-tts-bg {
+      background-image: url('/static/banner-tts.png?v=20261116b');
+    }
+
+    .slide-actor-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 2;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.02) 42%, rgba(0, 0, 0, 0.35) 100%);
+    }
+
+    .slide-actor-top-row {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .slide-actor-titles {
+      color: #ffffff;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+    }
+    .slide-actor-h2 {
+      font-size: 29px;
+      font-weight: 800;
+      margin: 0 0 2px 0;
+      letter-spacing: -0.4px;
+      color: #ffffff;
+    }
+    .slide-actor-sub {
+      font-size: 13.5px;
+      font-weight: 700;
+      opacity: 0.95;
+      margin: 0;
+      color: #ffffff;
+    }
+
+    /* Glassmorphism Back Button */
+    .slide-back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.28);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 20px;
+      padding: 8px 18px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.16);
+      transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 5;
+      user-select: none;
+    }
+    .slide-back-button:hover {
+      background: rgba(255, 255, 255, 0.44);
+      transform: translate3d(0, -2px, 0) scale(1.02);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+    }
+    .slide-back-button:active {
+      transform: scale(0.95);
+    }
+
+    .slide-body-padding {
+      padding: 14px 20px 48px 20px;
+      background: transparent !important;
+      position: relative;
+      z-index: 2;
+      flex: 1;
+    }
+
+    .slide-screen.active .slide-body-padding {
+      animation: slideBodyFadeUp 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: 0.06s;
+    }
+
+    @keyframes slideBodyFadeUp {
+      from {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0);
+      }
+      to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+
+    .stt-mic-button {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      border: 4px solid #fed1c7;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(249, 115, 22, 0.35);
+      transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+      outline: none;
+    }
+    .stt-mic-button:hover {
+      transform: scale(1.08) translateY(-2px);
+      box-shadow: 0 12px 32px rgba(249, 115, 22, 0.45);
+    }
+    .stt-mic-button:active {
+      transform: scale(0.96);
+    }
+    .stt-mic-button.listening {
+      background: #dc2626;
+      border-color: #fca5a5;
+      animation: pulse-mic 1.4s infinite;
+    }
+    @keyframes pulse-mic {
+      0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); }
+      70% { box-shadow: 0 0 0 18px rgba(220, 38, 38, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+    }
+
+    /* Subtle Glassmorphism Touches on Option Elements */
+    .tts-quick-chip {
+      background: rgba(255, 255, 255, 0.72) !important;
+      backdrop-filter: blur(10px) !important;
+      -webkit-backdrop-filter: blur(10px) !important;
+      border: 1px solid rgba(131, 56, 236, 0.16) !important;
+      border-radius: 18px !important;
+      padding: 6px 14px !important;
+      font-size: 12.5px !important;
+      font-weight: 600 !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.7) !important;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      color: var(--text-primary) !important;
+    }
+    .tts-quick-chip:hover {
+      background: rgba(131, 56, 236, 0.09) !important;
+      border-color: #8338ec !important;
+      color: #8338ec !important;
+      transform: translateY(-2px) scale(1.02) !important;
+      box-shadow: 0 6px 16px rgba(131, 56, 236, 0.15) !important;
+    }
+    .tts-quick-chip:active {
+      transform: scale(0.96) !important;
+    }
+
+    .tts-speed-btn {
+      border-radius: 14px !important;
+      padding: 4px 12px !important;
+      font-size: 11.5px !important;
+      font-weight: 700 !important;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .tts-speed-btn:hover {
+      transform: translateY(-1.5px) !important;
+      box-shadow: 0 4px 12px rgba(131, 56, 236, 0.15) !important;
+    }
+
+    #stt-lang-select,
+    #tts-lang-select {
+      background: rgba(255, 255, 255, 0.8) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border: 1px solid rgba(131, 56, 236, 0.22) !important;
+      border-radius: 14px !important;
+      padding: 5px 12px !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+      transition: all 0.2s ease !important;
+      outline: none !important;
+    }
+    #stt-lang-select:hover,
+    #tts-lang-select:hover {
+      background: #ffffff !important;
+      border-color: #8338ec !important;
+      transform: translateY(-1.5px) !important;
+      box-shadow: 0 4px 14px rgba(131, 56, 236, 0.12) !important;
+    }
+
+    #mode-expressions-btn,
+    #mode-fingerspell-btn,
+    #mode-sentence-btn {
+      border-radius: 20px !important;
+      padding: 6px 16px !important;
+      font-weight: 700 !important;
+      font-size: 12.5px !important;
+      backdrop-filter: blur(10px) !important;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    #mode-expressions-btn:hover,
+    #mode-fingerspell-btn:hover,
+    #mode-sentence-btn:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 16px rgba(131, 56, 236, 0.14) !important;
+    }
+
+    .auto-speak-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+    .auto-speak-pill:hover {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: rgba(131, 56, 236, 0.3);
+      transform: translateY(-1.5px);
+      box-shadow: 0 4px 14px rgba(131, 56, 236, 0.12);
+    }
+
+    .letter-btn {
+      border-radius: 12px !important;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .letter-btn:hover {
+      background: rgba(131, 56, 236, 0.12) !important;
+      border-color: #8338ec !important;
+      color: #8338ec !important;
+      transform: translateY(-2px) scale(1.06) !important;
+      box-shadow: 0 4px 12px rgba(131, 56, 236, 0.15) !important;
+    }
+
+    .token-chip {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(131, 56, 236, 0.22);
+      border-radius: 16px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .token-chip:hover {
+      background: rgba(131, 56, 236, 0.1);
+      border-color: #8338ec;
+      transform: translateY(-1.5px);
+    }
+
+    /* =============================================================
+       THEME OVERRIDE: 100% PURE PURPLE PALETTE (ZERO BLUE)
+       ============================================================= */
+    :root {
+      --bg-primary: #f7f4fc !important;
+      --bg-surface: #ffffff !important;
+      --bg-surface-elevated: #fbf9fe !important;
+      --border-subtle: rgba(131, 56, 236, 0.12) !important;
+      --border-strong: rgba(131, 56, 236, 0.24) !important;
+      --brand-primary: #8338ec !important;
+      --brand-primary-hover: #7226d9 !important;
+      --brand-secondary: #9f67fe !important;
+      --focus-ring: #8338ec !important;
+    }
+
+    /* All Primary Action Buttons: Pure Theme Purple Gradient */
+    .btn-primary {
+      background: linear-gradient(135deg, #8a42f0 0%, #7226d9 100%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.28) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(131, 56, 236, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #9652f4 0%, #7d33e0 100%) !important;
+      border-color: rgba(255, 255, 255, 0.45) !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 8px 24px rgba(131, 56, 236, 0.40), inset 0 1px 1px rgba(255, 255, 255, 0.5) !important;
+    }
+
+    /* Info Badges & Buttons: Pure Theme Purple Tint */
+    .badge-info,
+    .btn-info {
+      background: rgba(131, 56, 236, 0.12) !important;
+      color: #8338ec !important;
+      border: 1px solid rgba(131, 56, 236, 0.30) !important;
+    }
+    .btn-info:hover {
+      background: rgba(131, 56, 236, 0.22) !important;
+      border-color: #8338ec !important;
+      color: #7226d9 !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 16px rgba(131, 56, 236, 0.18) !important;
+    }
+
+    /* Sign Prediction Banner & Components: Pure Purple */
+    .prediction-banner {
+      background: rgba(131, 56, 236, 0.04) !important;
+      backdrop-filter: blur(14px) saturate(160%) !important;
+      -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+      border: 2px solid rgba(131, 56, 236, 0.32) !important;
+      box-shadow: 0 6px 20px rgba(131, 56, 236, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.7) !important;
+    }
+    .prediction-banner:hover {
+      border-color: #8338ec !important;
+      box-shadow: 0 10px 28px rgba(131, 56, 236, 0.14) !important;
+    }
+
+    .pred-gloss {
+      color: #8338ec !important;
+      font-weight: 700 !important;
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, #a855f7 0%, #8338ec 100%) !important;
+    }
+
+    /* Input focus and Checkbox Accent: Pure Theme Purple */
+    input[type="checkbox"], input[type="radio"] {
+      accent-color: #8338ec !important;
+    }
+    :focus-visible {
+      outline: 3px solid #8338ec !important;
+      outline-offset: 2px !important;
+    }
+
+    /* Dark Mode Theme Adjustments */
+    [data-theme="dark"] .planner-card-frame,
+    [data-theme="dark"] .slide-inner-frame {
+      background: #171720;
+    }
+    [data-theme="dark"] .frame-greeting-title,
+    [data-theme="dark"] .frame-greeting-sub {
+      color: #f5f5f7;
+    }
+    [data-theme="dark"] .frame-icon-btn {
+      background: rgba(37, 37, 51, 0.75);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    [data-theme="dark"] .frame-icon-btn span {
+      background: #eaeaf0;
+    }
+    [data-theme="dark"] .mini-peach {
+      background: #3d231e;
+      color: #ffd0c7;
+    }
+    [data-theme="dark"] .mini-purple {
+      background: linear-gradient(135deg, #8338ec 0%, #6d28d9 100%);
+    }
+    [data-theme="dark"] .slide-body-padding {
+      background: #171720;
+    }
+    [data-theme="dark"] .tts-quick-chip {
+      background: rgba(35, 35, 52, 0.72) !important;
+      border-color: rgba(168, 85, 247, 0.22) !important;
+      color: #f1f5f9 !important;
+    }
+    [data-theme="dark"] .tts-quick-chip:hover {
+      background: rgba(168, 85, 247, 0.18) !important;
+      border-color: #a855f7 !important;
+      color: #c084fc !important;
+    }
+
+    /* Subtle custom scrollbars for Home Frame */
+    .planner-card-frame::-webkit-scrollbar {
+      width: 6px;
+    }
+    .planner-card-frame::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .planner-card-frame::-webkit-scrollbar-thumb {
+      background: rgba(131, 56, 236, 0.22);
+      border-radius: 10px;
+    }
+    .planner-card-frame::-webkit-scrollbar-thumb:hover {
+      background: rgba(131, 56, 236, 0.45);
+    }
+
+    /* Full-Bleed Slide Panels: 0px scrollbar gutter so the banner touches the right edge completely with ZERO gap */
+    .slide-screen {
+      scrollbar-width: none !important; /* Firefox */
+      -ms-overflow-style: none !important; /* IE 10+ and Edge */
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+    }
+    .slide-screen::-webkit-scrollbar {
+      display: none !important; /* Chrome, Safari, Edge, WebKit */
+      width: 0 !important;
+      height: 0 !important;
+    }
+
+    /* =============================================================
+       COMPREHENSIVE RESPONSIVE DESIGN (LAPTOP, TABLET & MOBILE)
+       Ensures zero UI/UX breakages across all device viewports.
+       ============================================================= */
+
+    /* Global fluid safeguards */
+    img, video, canvas, svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* 1. Tablets & iPads (641px - 1024px) */
+    @media (min-width: 641px) and (max-width: 1024px) {
+      .planner-card-frame {
+        max-width: min(520px, 92vw) !important;
+        border-radius: 32px !important;
+      }
+      .slide-inner-frame {
+        max-width: min(760px, 96vw) !important;
+        margin: 0 auto !important;
+      }
+      .slide-actor-banner,
+      .slide-top-banner {
+        height: clamp(200px, 26vh, 250px) !important;
+        border-radius: 0 0 34px 34px !important;
+        border-top-left-radius: 0 !important;
+        border-top-right-radius: 0 !important;
+        margin: 0 !important;
+      }
+      .bottom-segments-row {
+        gap: 14px !important;
+      }
+    }
+
+    /* 2. Laptop & Low-Height Desktop Displays (e.g. 1366x768, 1440x900, 1920x1080 scaled) */
+    @media (min-width: 641px) and (max-height: 860px) {
+      body.planner-canvas {
+        padding: 10px 14px !important;
+        align-items: center !important;
+      }
+      .planner-card-frame {
+        max-height: min(92vh, 800px) !important;
+        min-height: auto !important;
+        overflow-y: auto !important;
+        padding: 18px 20px 20px 20px !important;
+      }
+      .frame-top-row {
+        margin-bottom: 12px !important;
+      }
+      .frame-greeting-title {
+        font-size: 26px !important;
+        margin-bottom: 2px !important;
+      }
+      .main-segment-card {
+        margin-bottom: 10px !important;
+      }
+      .slide-actor-banner,
+      .slide-top-banner {
+        height: clamp(165px, 22vh, 205px) !important;
+        border-radius: 0 0 32px 32px !important;
+        border-top-left-radius: 0 !important;
+        border-top-right-radius: 0 !important;
+        margin: 0 !important;
+      }
+      .slide-actor-overlay {
+        padding: 16px 20px 14px 20px !important;
+      }
+      .slide-actor-h2 {
+        font-size: 25px !important;
+      }
+      .slide-actor-sub {
+        font-size: 12px !important;
+      }
+      .webcam-container {
+        max-height: clamp(230px, 36vh, 290px) !important;
+        max-width: 560px !important;
+        margin: 0 auto !important;
+      }
+      .slide-body-padding {
+        padding: 10px 22px 30px 22px !important;
+      }
+      .drop-zone {
+        padding: 18px 12px !important;
+        min-height: 120px !important;
+      }
+      .stt-mic-button {
+        width: 70px !important;
+        height: 70px !important;
+      }
+      .splash-content-container {
+        max-height: min(92vh, 820px) !important;
+      }
+    }
+
+    /* 3. Mobile Devices (<= 640px) */
+    @media (max-width: 640px) {
+      body.planner-canvas {
+        padding: 0 !important;
+        background: #f7f4fc !important;
+        background-image: radial-gradient(circle at 50% 0%, #fdfbff 0%, #f7f4fc 65%, #f2ecf9 100%) !important;
+        min-height: 100dvh !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        overflow-x: hidden !important;
+      }
+      .planner-card-frame {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 100dvh !important;
+        max-height: none !important;
+        background: #f7f4fc !important;
+        background-image: radial-gradient(circle at 50% 0%, #fdfbff 0%, #f7f4fc 65%, #f2ecf9 100%) !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)) 16px !important;
+        flex: 1;
+        overflow-y: visible !important;
+      }
+      .transify-auth-overlay {
+        padding: 0 !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+      }
+      .auth-single-frame {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+      .auth-welcome-action-tray {
+        padding: 0 20px max(24px, env(safe-area-inset-bottom)) 20px !important;
+      }
+      .auth-sheet-card {
+        border-radius: 28px 28px 0 0 !important;
+        padding: 18px 20px max(28px, env(safe-area-inset-bottom)) 20px !important;
+      }
+      .slide-screen {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        background: #f7f4fc !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+      }
+      .slide-screen::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+      .slide-inner-frame {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 100dvh !important;
+        background: #f7f4fc !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        border: none !important;
+        padding: 0 !important;
+      }
+      .slide-banner-segment-wrap {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        border: none !important;
+      }
+      .slide-actor-banner,
+      .slide-top-banner {
+        width: 100% !important;
+        height: clamp(180px, 26vh, 220px) !important;
+        border-radius: 0 0 28px 28px !important;
+        border-top-left-radius: 0 !important;
+        border-top-right-radius: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+      }
+      .slide-actor-overlay {
+        padding: max(16px, env(safe-area-inset-top)) 16px 14px 16px !important;
+      }
+      .slide-actor-h2 {
+        font-size: clamp(22px, 5.5vw, 26px) !important;
+      }
+      .slide-actor-sub {
+        font-size: 12px !important;
+      }
+      .slide-back-button {
+        padding: 7px 14px !important;
+        font-size: 13px !important;
+        min-height: 38px !important;
+      }
+      .slide-body-padding {
+        padding: 12px 14px max(32px, env(safe-area-inset-bottom)) 14px !important;
+        background: #f7f4fc !important;
+        background-image: radial-gradient(circle at 50% 0%, #fdfbff 0%, #f7f4fc 65%, #f2ecf9 100%) !important;
+      }
+      .webcam-container {
+        border-radius: 18px !important;
+        max-height: clamp(240px, 44vh, 340px) !important;
+      }
+      .drop-zone {
+        padding: 22px 12px !important;
+        min-height: 125px !important;
+      }
+      .stt-mic-button {
+        width: 72px !important;
+        height: 72px !important;
+      }
+      .bottom-segments-row {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+      }
+      .mini-sub-card {
+        padding: 12px 10px !important;
+        border-radius: 20px !important;
+        min-height: 105px !important;
+      }
+      /* Hand Signal Controls Responsive Flow */
+      #mode-expressions-btn, #mode-fingerspell-btn, #mode-sentence-btn {
+        flex: 1 1 calc(50% - 6px) !important;
+        font-size: 12px !important;
+        padding: 6px 8px !important;
+        text-align: center;
+        justify-content: center;
+      }
+      #spell-space-btn, #spell-backspace-btn, #spell-send-to-sentence-btn, #spell-clear-btn {
+        flex: 1 1 calc(50% - 4px) !important;
+        font-size: 11px !important;
+        padding: 6px 6px !important;
+        text-align: center;
+        justify-content: center;
+      }
+      #speak-sentence-btn, #smooth-sentence-btn, #copy-sentence-btn, #clear-sentence-btn {
+        flex: 1 1 calc(50% - 4px) !important;
+        font-size: 12px !important;
+        padding: 8px 8px !important;
+        text-align: center;
+        justify-content: center;
+      }
+      /* Prevent iOS auto-zoom on form inputs */
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
+      textarea,
+      select {
+        font-size: 16px !important;
+      }
+      .btn {
+        min-height: 40px;
+        touch-action: manipulation;
+      }
+      .splash-content-container {
+        max-width: 100vw !important;
+        max-height: 100dvh !important;
+        height: 100dvh !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+      }
+    }
+
+    /* 4. Extra Narrow Mobile Devices (<= 380px, e.g. iPhone SE, Fold external screen) */
+    @media (max-width: 380px) {
+      .bottom-segments-row {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+      }
+      .mini-sub-card {
+        padding: 10px 8px !important;
+        border-radius: 18px !important;
+        min-height: 96px !important;
+      }
+      .mini-title {
+        font-size: 12px !important;
+      }
+      .mini-subtitle {
+        font-size: 9px !important;
+      }
+      .mini-art-icon svg {
+        width: 44px !important;
+        max-height: 28px !important;
+      }
+      .frame-greeting-title {
+        font-size: 22px !important;
+      }
+      .btn {
+        padding: 6px 10px !important;
+        font-size: 12.5px !important;
+      }
+      .tts-quick-chip {
+        font-size: 11px !important;
+        padding: 5px 8px !important;
+      }
+      .main-segment-card {
+        padding: 16px 14px !important;
+      }
+      .auth-welcome-title {
+        font-size: 22px !important;
+      }
+      .auth-welcome-sub {
+        font-size: 12.5px !important;
+      }
+      .auth-btn-register, .auth-btn-login {
+        height: 46px !important;
+        font-size: 14px !important;
+      }
+    }
+
+    /* 5. Mobile Landscape Orientation (max-height: 520px) */
+    @media (max-height: 520px) and (orientation: landscape) {
+      .slide-actor-banner,
+      .slide-top-banner {
+        height: clamp(120px, 28vh, 150px) !important;
+        border-radius: 0 0 24px 24px !important;
+      }
+      .slide-body-padding {
+        padding: 8px 16px 24px 16px !important;
+      }
+      .webcam-container {
+        max-height: 220px !important;
+      }
+      .auth-single-frame {
+        max-height: 100vh !important;
+        overflow-y: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="planner-canvas">
+
+  <!-- Accessible Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Live Screen Reader Announcements Region -->
+  <div id="sr-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- =============================================================
+       APP AUTHENTICATION / LOGIN & REGISTRATION SCREEN (Before Loading)
+       ============================================================= -->
+  <div id="transify-auth-screen" class="transify-auth-overlay" role="dialog" aria-modal="true" aria-label="Transify Authentication Gateway">
+    <!-- Ambient Glowing Background Shapes -->
+    <div class="auth-ambient-shape auth-shape-pink"></div>
+    <div class="auth-ambient-shape auth-shape-yellow-top"></div>
+    <div class="auth-ambient-shape auth-shape-purple"></div>
+    <div class="auth-ambient-shape auth-shape-yellow-bottom"></div>
+
+    <!-- Unified Centered Device Frame with 2-Step Onboarding (User Design) -->
+    <div class="auth-single-frame">
+
+      <!-- =========================================================
+           VIEW 1: Welcome Screen (Exact Match to User Uploaded Mockup)
+           ========================================================= -->
+      <div class="auth-welcome-view" id="auth-welcome-view">
+        <div class="auth-welcome-exact-card">
+          <img 
+            src="/static/login-welcome-exact.jpg?v=20261116_usercard_v3" 
+            alt="Transify — Breaking Communication Barriers" 
+            class="auth-welcome-exact-artwork"
+          >
+          <div class="auth-hotspots-layer">
+            <button 
+              type="button" 
+              class="auth-exact-hotspot auth-hotspot-register" 
+              id="btn-open-register" 
+              onclick="window.TransifyApp.openAuthSheet('signup')" 
+              aria-label="Register - Create a new account"
+              title="Register - Create a new account"
+            ></button>
+
+            <button 
+              type="button" 
+              class="auth-exact-hotspot auth-hotspot-login" 
+              id="btn-open-login" 
+              onclick="window.TransifyApp.handleDirectLogin()" 
+              aria-label="Login - Sign in to your account"
+              title="Login - Sign in to your account"
+            ></button>
+
+            <button 
+              type="button" 
+              class="auth-exact-hotspot auth-hotspot-guest" 
+              id="btn-demo-guest" 
+              onclick="window.TransifyApp.handleDemoLogin()" 
+              aria-label="Continue without registration as Guest"
+              title="Continue without registration as Guest"
+            ></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           VIEW 2: Slide-up Bottom Sheet (Glassmorphism & Spring Physics)
+           ========================================================= -->
+      <div class="auth-sheet-container" id="auth-sheet-container">
+        <!-- Dimmed backdrop (clicking it closes the sheet) -->
+        <div class="auth-sheet-backdrop" id="auth-sheet-backdrop" onclick="window.TransifyApp.closeAuthSheet()"></div>
+
+        <!-- Slide-up Frosted Glass Card -->
+        <div class="auth-sheet-card" id="auth-sheet-card">
+          <!-- Sheet Top Navigation: Clean Back Button -->
+          <div class="auth-sheet-top-bar">
+            <button type="button" class="auth-sheet-back-btn" id="auth-back-btn" onclick="window.TransifyApp.closeAuthSheet()" aria-label="Back to welcome screen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              <span>Back</span>
+            </button>
+          </div>
+
+          <!-- Dynamic Header -->
+          <div class="auth-heading-wrap" style="margin-bottom: 16px;">
+            <h2 class="auth-heading-main" id="auth-heading-title" style="font-size: 24px;">Welcome Back!</h2>
+            <p class="auth-heading-sub" id="auth-heading-subtitle">Login to your Transify account</p>
+          </div>
+
+          <!-- Feedback Alert Container -->
+          <div id="auth-alert" class="auth-status-alert" role="alert" aria-live="polite"></div>
+
+          <!-- Interactive Form -->
+          <form class="auth-form-body" id="auth-form" onsubmit="event.preventDefault(); window.TransifyApp.handleAuthSubmit(event);">
+
+            <!-- Full Name Field (Displayed conditionally in Sign Up mode) -->
+            <div class="auth-input-row" id="group-fullname" style="display: none;">
+              <div class="auth-field-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+              <input 
+                type="text" 
+                class="auth-text-input" 
+                id="input-fullname" 
+                placeholder="Full Name" 
+                value="Sarah Ahmed"
+                autocomplete="name"
+              >
+            </div>
+
+            <!-- Email Field -->
+            <div class="auth-input-row">
+              <div class="auth-field-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="20" height="16" x="2" y="4" rx="2"/>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                </svg>
+              </div>
+              <input 
+                type="email" 
+                class="auth-text-input" 
+                id="input-email" 
+                placeholder="Email" 
+                value="demo@transify.ai" 
+                required
+                autocomplete="email"
+              >
+            </div>
+
+            <!-- Password Field with Interactive Eye Toggle -->
+            <div class="auth-input-row">
+              <div class="auth-field-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </div>
+              <input 
+                type="password" 
+                class="auth-text-input" 
+                id="input-password" 
+                placeholder="Password" 
+                value="transify2026" 
+                required
+                autocomplete="current-password"
+              >
+              <button 
+                type="button" 
+                class="auth-eye-btn" 
+                id="toggle-pwd-btn" 
+                aria-label="Toggle password visibility"
+                onclick="window.TransifyApp.togglePasswordVisibility()"
+              >
+                <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;">
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Utility Options Row: Remember Me & Forgot Password -->
+            <div class="auth-sub-row" id="auth-options-row">
+              <label class="auth-check-label" for="input-remember">
+                <input type="checkbox" id="input-remember" checked>
+                <span id="remember-label-text">Remember me</span>
+              </label>
+              <a href="#" class="auth-pwd-link" id="forgot-password-link" onclick="window.TransifyApp.handleForgotPassword(event)">Forgot password?</a>
+            </div>
+
+            <!-- Primary Submit Button -->
+            <button type="submit" class="auth-submit-action" id="auth-submit-btn">
+              <span id="btn-text">Login</span>
+              <span class="btn-arrow" style="font-size: 1.1rem; line-height: 1;">→</span>
+            </button>
+
+            <!-- Quick Direct Entry to Slides -->
+            <button type="button" class="auth-guest-link" style="width: 100%; justify-content: center; margin-top: 6px; padding: 10px 0; font-size: 13.5px; border: none; background: transparent; cursor: pointer;" onclick="window.TransifyApp.handleDemoLogin()">
+              <span>⚡ One-Click Instant Access & Open Slides</span>
+              <span class="auth-guest-arrow">→</span>
+            </button>
+
+            <!-- Divider -->
+            <div class="auth-split-line">
+              <span>or</span>
+            </div>
+
+            <!-- Continue with Google Social Button -->
+            <button type="button" class="auth-google-action" id="google-login-btn" onclick="window.TransifyApp.handleGoogleLogin()">
+              <svg viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+
+            <!-- Bottom Prompt to Switch Mode inside Sheet -->
+            <p class="auth-switch-prompt" id="auth-switch-prompt">
+              <span id="switch-prompt-text">Don't have an account?</span>
+              <a href="#" id="switch-prompt-link" onclick="window.TransifyApp.switchAuthTab(window.TransifyApp.activeAuthMode === 'login' ? 'signup' : 'login'); return false;">Sign Up</a>
+            </p>
+
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =============================================================
+       APP LAUNCH SPLASH / LOADING SCREEN (3.5s Animated Experience)
+       ============================================================= -->
+  <div id="transify-splash-screen" class="transify-splash-overlay" role="dialog" aria-modal="true" aria-label="Loading Transify Application">
+    <div class="splash-content-container">
+      <img src="/static/splash-bg.jpg" alt="Transify Accessible AI Platform" class="splash-background-artwork">
+      
+      <!-- Interactive Animated Progress Bar Section matching User Design -->
+      <div class="splash-progress-section">
+        <div class="splash-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="splash-progressbar" aria-label="Loading Application">
+          <div id="splash-progress-fill" class="splash-progress-fill"></div>
+        </div>
+        <div class="splash-status-text">
+          <span>Loading<span class="loading-dots">...</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================================
+       HOME SCREEN: SEGMENTED PLANNER CARD FRAME
+       ============================================================= -->
+  <main id="main-content" class="planner-card-frame" role="main" aria-label="Transify Assistive Services Planner">
+
+    <!-- Top Navigation Bar (Official Transify Logo & Profile Avatar) -->
+    <header class="frame-top-row">
+      <a href="/" class="frame-logo-wrap" aria-label="Transify Home" style="display: flex; align-items: center; justify-content: flex-start; text-decoration: none;">
+        <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 38px; width: auto; object-fit: contain;">
+      </a>
+
+      <div class="frame-avatar-btn" id="frame-avatar-btn" role="img" aria-label="User Profile" title="User Profile">
+        <span role="img" aria-label="User Avatar">👩‍🦰</span>
+      </div>
+    </header>
+
+    <!-- Greeting Headline -->
+    <div>
+      <h1 class="frame-greeting-title" style="margin-bottom: 6px;">Hello, Mates!</h1>
+      <p style="font-size: 11px; color: #8e8e9e; margin: 0 0 20px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Breaking Communication Barriers</p>
+    </div>
+
+    <!-- Segment 1: Hand Signal Card (Clicking slides in from LEFT) -->
+    <button type="button" class="main-segment-card segment-card-image-wrap segment-hand-signal" id="btn-open-hand-signal" onclick="openSlide('slide-hand-signal')" aria-label="Open Hand Signal Translator">
+      <img src="/static/card-handsign.png?v=20261116_noschedule_v12" alt="Hand Signal Translator" class="segment-card-cover-img">
+    </button>
+
+    <!-- Segment 2: Braille Language Card (Clicking slides in from RIGHT) -->
+    <button type="button" class="main-segment-card segment-card-image-wrap segment-braille" id="btn-open-braille" onclick="openSlide('slide-braille')" aria-label="Open Braille Language Translator">
+      <img src="/static/card-braille.png?v=20261116_noschedule_v12" alt="Braille Language Translator" class="segment-card-cover-img">
+    </button>
+
+    <!-- Bottom Row (Speech to Text & Text to Speech Segments) -->
+    <div class="bottom-segments-row">
+      <button type="button" class="mini-sub-card mini-peach" id="btn-open-stt" onclick="openSlide('slide-stt')" aria-label="Open Speech to Text">
+        <div>
+          <h4 class="mini-title">Speech to Text</h4>
+          <p class="mini-subtitle">Voice to Text • STT</p>
+        </div>
+        <div class="mini-art-icon">
+          <!-- Voice to Text Icon (Pic 2: Mic -> Text Document) -->
+          <svg width="72" height="38" viewBox="0 0 72 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="2" y="5" width="26" height="28" rx="8" fill="#F97316" fill-opacity="0.18"/>
+            <rect x="11" y="9" width="8" height="12" rx="4" fill="#C2410C"/>
+            <path d="M7 15C7 20 10.5 22 15 22C19.5 22 23 20 23 15" stroke="#C2410C" stroke-width="2" stroke-linecap="round"/>
+            <line x1="15" y1="22" x2="15" y2="27" stroke="#C2410C" stroke-width="2" stroke-linecap="round"/>
+            <path d="M31 19H38M38 19L35 16M38 19L35 22" stroke="#EA580C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="43" y="6" width="26" height="26" rx="6" fill="#F97316"/>
+            <line x1="48" y1="12" x2="63" y2="12" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+            <line x1="48" y1="18" x2="63" y2="18" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+            <line x1="48" y1="24" x2="57" y2="24" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </button>
+
+      <button type="button" class="mini-sub-card mini-purple" id="btn-open-tts" onclick="openSlide('slide-tts')" aria-label="Open Text to Speech">
+        <div>
+          <h4 class="mini-title">Text to Speech</h4>
+          <p class="mini-subtitle">Text to Voice • TTS</p>
+        </div>
+        <div class="mini-art-icon">
+          <!-- Text to Voice Icon (Pic 1: Text Document -> Speaker) -->
+          <svg width="72" height="38" viewBox="0 0 72 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="3" y="7" width="24" height="24" rx="6" fill="#FFFFFF" fill-opacity="0.95"/>
+            <line x1="8" y1="13" x2="21" y2="13" stroke="#8338EC" stroke-width="2" stroke-linecap="round"/>
+            <line x1="8" y1="19" x2="21" y2="19" stroke="#8338EC" stroke-width="2" stroke-linecap="round"/>
+            <line x1="8" y1="25" x2="17" y2="25" stroke="#8338EC" stroke-width="2" stroke-linecap="round"/>
+            <path d="M30 19H37M37 19L34 16M37 19L34 22" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M42 14H47L54 9V29L47 24H42V14Z" fill="#FDE047"/>
+            <path d="M58 14C61 16.5 61 21.5 58 24" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+            <path d="M63 11C68 14.5 68 23.5 63 27" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </button>
+    </div>
+
+  </main>
+
+
+  <!-- =============================================================
+       SLIDE 1: HAND SIGNAL TRANSLATOR (SLIDES IN FROM LEFT)
+       ============================================================= -->
+  <div id="slide-hand-signal" class="slide-screen slide-from-left" role="dialog" aria-modal="true" aria-label="Hand Signal Translator Slide">
+    <div class="slide-inner-frame">
+      
+      <!-- Floating Actor Banner Segment for Hand Signal -->
+      <div class="slide-banner-segment-wrap">
+        <div class="slide-actor-banner banner-handsign-bg">
+          <div class="slide-actor-overlay">
+            <div class="slide-actor-top-row">
+              <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">
+                <span>←</span>
+                <span>Home</span>
+              </button>
+            </div>
+            <div class="slide-actor-titles">
+              <h2 class="slide-actor-h2">Hand Signal</h2>
+              <p class="slide-actor-sub">Real-Time ASL Camera AI Recognition</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-body-padding">
+        
+        <!-- Live Webcam Viewport -->
+        <div class="webcam-container" aria-label="Webcam feed and landmark tracking area">
+          <video id="sign-video" class="webcam-video" autoplay playsinline muted></video>
+          <canvas id="sign-canvas" class="webcam-canvas"></canvas>
+
+          <div id="camera-placeholder" class="camera-placeholder">
+            <span style="font-size: 3rem;">📹</span>
+            <p style="font-size: var(--text-lg); font-weight: 600;">Camera is currently inactive</p>
+            <p style="max-width: 460px; font-size: var(--text-sm);">
+              Click <strong>Start Camera</strong> below to enable live video gesture recognition.
+            </p>
+          </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-4); flex-wrap: wrap; gap: var(--space-3);">
+          <div style="display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap;">
+            <button id="toggle-camera-btn" class="btn btn-primary"><span style="font-size: 15px;">📹</span> Start Camera</button>
+            <button id="reset-sign-btn" class="btn btn-secondary"><span style="color: #8338ec; font-size: 16px; font-weight: 800; line-height: 1;">↻</span> Reset</button>
+            <button id="speak-pred-btn" class="btn btn-secondary"><span style="color: #8338ec; font-size: 15px;">🔊</span> Speak</button>
+            <div class="roi-position-selector" title="Choose Target Guide Box Position">
+              <span class="roi-selector-label">🎯 Box:</span>
+              <button id="roi-pos-right" type="button" class="btn-roi active" onclick="TransifySign.setRoiPosition('right')">👉 Right</button>
+              <button id="roi-pos-center" type="button" class="btn-roi" onclick="TransifySign.setRoiPosition('center')">🎯 Center</button>
+              <button id="roi-pos-left" type="button" class="btn-roi" onclick="TransifySign.setRoiPosition('left')">👈 Left</button>
+            </div>
+          </div>
+
+          <div class="auto-speak-pill">
+            <input type="checkbox" id="auto-speak-toggle" checked style="width: 1.1rem; height: 1.1rem; cursor: pointer; accent-color: #8338ec;">
+            <label for="auto-speak-toggle" style="font-weight: 600; font-size: var(--text-sm); cursor: pointer; margin: 0;">
+              Auto-Speak
+            </label>
+          </div>
+        </div>
+
+        <!-- Mode Switcher Tabs for Hand Signal Panel -->
+        <div style="display: flex; gap: 8px; margin-top: var(--space-3); flex-wrap: wrap; align-items: center;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Mode:</span>
+          <button id="mode-expressions-btn" type="button" class="btn btn-primary btn-sm">🖐️ Live Expressions</button>
+          <button id="mode-fingerspell-btn" type="button" class="btn btn-secondary btn-sm">✋ A–Z Alphabet Speller</button>
+          <button id="mode-sentence-btn" type="button" class="btn btn-secondary btn-sm">📚 Common Vocabulary</button>
+        </div>
+
+        <!-- 1. Real-Time Recognized Word Card -->
+        <section id="sign-prediction-banner" class="prediction-banner card" aria-live="assertive" aria-atomic="true" style="margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; flex-wrap: wrap; gap: var(--space-2);">
+            <div>
+              <div style="font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 2px; letter-spacing: 0.5px;">
+                🖐️ Recognized Sign / Word (Voice for Mute Communication)
+              </div>
+              <div id="pred-label-text" class="pred-primary" style="font-size: 1.85rem; font-weight: 800; color: #1e1b4b; line-height: 1.2;">Waiting for hand sign...</div>
+              <div id="pred-gloss-text" class="pred-gloss" style="font-size: var(--text-sm); color: #64748b; margin-top: 3px;">Show hand signs or spell letters to form words</div>
+              <div id="pred-status-note" class="pred-desc" style="font-size: var(--text-xs); color: #94a3b8; margin-top: 2px;">SignFrame AI verification ready (12-frame consensus)</div>
+              <div id="sign-engine-note" style="display: none; font-size: 11px; margin-top: 6px; padding: 3px 8px; border-radius: 6px; width: fit-content;"></div>
+
+              <!-- Unified Translation Layer: Recognized Meaning -> English Text -->
+              <div id="unified-translation-banner" style="margin-top: 8px; background: rgba(34, 197, 94, 0.08); border: 1.5px solid rgba(34, 197, 94, 0.28); border-radius: var(--radius-sm); padding: 8px 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; flex-wrap: wrap; gap: 4px;">
+                  <span style="font-size: 10.5px; font-weight: 800; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px;">
+                    🌐 Unified Translation Layer (Meaning → English Text):
+                  </span>
+                  <span id="trans-source-model-tag" class="badge" style="background: rgba(131, 56, 236, 0.15); color: #8338ec; font-size: 10px; font-weight: 700;">
+                    SignFrame AI (ASL)
+                  </span>
+                </div>
+                <div id="unified-english-output" style="font-size: 1.1rem; font-weight: 800; color: #064e3b; line-height: 1.3;">
+                  Waiting for sign gesture...
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align: right; min-width: 130px;">
+              <span id="pred-confidence-badge" class="badge badge-info" style="font-size: var(--text-sm); font-weight: 700;">Ready</span>
+              <div style="margin-top: var(--space-2); width: 140px; margin-left: auto;">
+                <div style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 3px;">Consensus Buffer</div>
+                <div class="progress-container" style="height: 6px; border-radius: 999px; background: rgba(0,0,0,0.06); overflow: hidden;">
+                  <div id="debounce-progress-fill" class="progress-fill" style="width: 0%; height: 100%; background: #8338ec; transition: width 0.15s ease;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spelled Word in Progress Sub-Tray -->
+          <div style="background: rgba(131, 56, 236, 0.04); border: 1.5px dashed rgba(131, 56, 236, 0.28); border-radius: var(--radius-md); padding: 10px 14px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #8338ec; text-transform: uppercase; letter-spacing: 0.5px;">Word Assembling (Letters Spelled):</div>
+              <div id="spelled-word-display" style="font-size: 1.25rem; font-weight: 800; font-family: var(--font-mono); color: #8338ec; letter-spacing: 1.5px; margin-top: 2px;">(Waiting for letters...)</div>
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button id="spell-space-btn" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 4px 8px;">␣ Space</button>
+              <button id="spell-backspace-btn" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 4px 8px;">⌫ Backspace</button>
+              <button id="spell-send-to-sentence-btn" class="btn btn-primary btn-sm" style="font-size: 11.5px; padding: 4px 10px;">➕ Add to Sentence</button>
+              <button id="spell-clear-btn" class="btn btn-danger btn-sm" style="font-size: 11.5px; padding: 4px 8px;">🗑️ Clear Word</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Continuous Natural Sentence Builder Stream (Always Visible Underneath) -->
+        <section id="sentence-builder-panel" class="card" style="margin-top: var(--space-4); display: block;" aria-labelledby="builder-heading">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: var(--space-2);">
+            <div>
+              <h2 id="builder-heading" class="card-title" style="margin-bottom: 2px; font-size: 15px; font-weight: 800; color: #1e1b4b;">💬 Live Sentence Stream (Voice for Mute Communication)</h2>
+              <span style="font-size: var(--text-xs); color: var(--text-secondary);">Words signed above automatically assemble below into fluent spoken sentences for hearing listeners.</span>
+            </div>
+            <div id="sentence-engine-badge">
+              <span class="badge badge-info" style="font-size: 11px;">🎯 AI Natural Speech Synthesizer</span>
+            </div>
+          </div>
+
+          <!-- Accumulated Words Chips Stream -->
+          <div style="margin-bottom: var(--space-2);">
+            <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 4px; text-transform: uppercase;">Accumulated Word Signs:</div>
+            <div id="sentence-token-chips" style="min-height: 44px; padding: 8px 12px; background: rgba(255,255,255,0.7); border: 1.5px solid rgba(226, 232, 240, 0.9); border-radius: var(--radius-md); display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+              <span style="color: var(--text-muted); font-size: var(--text-xs);">Signed words will appear here as you communicate...</span>
+            </div>
+          </div>
+
+          <!-- Spoken Natural English Sentence Box -->
+          <div style="padding: 12px 16px; background: rgba(34, 197, 94, 0.08); border: 1.5px solid rgba(34, 197, 94, 0.3); border-radius: var(--radius-md); margin-bottom: var(--space-3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <div style="font-size: 11px; font-weight: 700; color: #15803d; text-transform: uppercase; letter-spacing: 0.5px;">🔊 Spoken English Output (Voice for Mute):</div>
+              <span style="font-size: 11px; color: #15803d; font-weight: 600;">Full Fluent Thought</span>
+            </div>
+            <div id="smooth-sentence-text" style="font-size: 1.05rem; font-weight: 700; color: #0f172a; line-height: 1.4;">(Waiting for words to assemble sentence...)</div>
+          </div>
+
+          <!-- Action Buttons for Sentence -->
+          <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+            <button id="speak-sentence-btn" class="btn btn-primary btn-sm" style="font-weight: 700;"><span style="font-size: 14px;">🔊</span> Speak Sentence</button>
+            <button id="smooth-sentence-btn" class="btn btn-secondary btn-sm"><span style="font-size: 14px;">✨</span> Synthesize Thought</button>
+            <button id="copy-sentence-btn" class="btn btn-secondary btn-sm"><span style="font-size: 14px;">📋</span> Copy</button>
+            <button id="clear-sentence-btn" class="btn btn-danger btn-sm"><span style="font-size: 14px;">🗑️</span> Clear Sentence</button>
+          </div>
+        </section>
+
+        <!-- 3. Expandable A–Z Fingerspelling Panel (Collapsible Drawer) -->
+        <section id="fingerspelling-panel" class="card" style="display: none; margin-top: var(--space-4);" aria-labelledby="speller-heading">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: var(--space-2);">
+            <div>
+              <h2 id="speller-heading" class="card-title" style="margin-bottom: 2px; font-size: 15px;">✋ A–Z Manual Alphabet Speller Grid</h2>
+              <span style="font-size: var(--text-xs); color: var(--text-secondary);">Click any letter to spell out words or names directly into the sentence.</span>
+            </div>
+            <div id="fingerspell-live-badge">
+              <span class="badge badge-info">Active Letter: <strong id="current-letter-badge">—</strong></span>
+            </div>
+          </div>
+
+          <div id="alphabet-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 6px;"></div>
+        </section>
+
+        <!-- 4. Expandable Common Expressive Vocabulary Panel -->
+        <section id="sign-vocab-section" class="card" style="display: none; margin-top: var(--space-4);">
+          <div style="margin-bottom: var(--space-3);">
+            <h2 class="card-title" style="margin-bottom: 2px; font-size: 15px; font-weight: 800;">📚 Common Signs & Words for Mute Communication</h2>
+            <span style="font-size: var(--text-xs); color: var(--text-secondary);">Tap any essential word or emergency sign to instantly speak and add it to the sentence.</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+            <!-- Emergency -->
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #dc2626; text-transform: uppercase; margin-bottom: 6px;">🚨 Emergency & Healthcare:</div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="I_NEED_HELP" style="font-size: 12px; border-color: rgba(239, 68, 68, 0.3);">🆘 I Need Help</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="STOP" style="font-size: 12px;">✋ Stop</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="PAIN" style="font-size: 12px;">⚡ Pain</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="DOCTOR" style="font-size: 12px;">🩺 Doctor</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="RESTROOM" style="font-size: 12px;">🚻 Restroom</button>
+              </div>
+            </div>
+
+            <!-- Daily Needs -->
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #ea580c; text-transform: uppercase; margin-bottom: 6px;">🍞 Daily Needs:</div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="WATER" style="font-size: 12px;">💧 Water</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="FOOD" style="font-size: 12px;">🍽️ Food</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="SLEEP" style="font-size: 12px;">🛏️ Sleep</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="HOME" style="font-size: 12px;">🏠 Home</button>
+              </div>
+            </div>
+
+            <!-- Courtesy -->
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin-bottom: 6px;">🤝 Social Courtesy:</div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="HELLO" style="font-size: 12px;">👋 Hello</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="THANK_YOU" style="font-size: 12px;">🙏 Thank You</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="PLEASE" style="font-size: 12px;">✨ Please</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="YES" style="font-size: 12px;">✅ Yes</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="NO" style="font-size: 12px;">❌ No</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-word-btn" data-word="OKAY" style="font-size: 12px;">👌 Okay</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =============================================================
+       SLIDE 2: BRAILLE LANGUAGE TRANSLATOR (SLIDES IN FROM RIGHT)
+       ============================================================= -->
+  <div id="slide-braille" class="slide-screen slide-from-right" role="dialog" aria-modal="true" aria-label="Braille Language Translator Slide">
+    <div class="slide-inner-frame">
+      
+      <!-- Floating Actor Banner Segment for Braille -->
+      <div class="slide-banner-segment-wrap">
+        <div class="slide-actor-banner banner-braille-bg">
+          <div class="slide-actor-overlay">
+            <div class="slide-actor-top-row">
+              <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">
+                <span>←</span>
+                <span>Home</span>
+              </button>
+            </div>
+            <div class="slide-actor-titles">
+              <h2 class="slide-actor-h2">Braille</h2>
+              <p class="slide-actor-sub">Optical Document Translation</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-body-padding">
+        
+        <!-- Braille Image Upload Zone -->
+        <div class="card" style="padding: var(--space-4); margin-bottom: var(--space-4);">
+          <!-- Upload Dropzone -->
+          <div id="braille-dropzone" tabindex="0" role="button"
+               style="border: 2px dashed var(--brand-secondary); border-radius: var(--radius-lg); padding: var(--space-5) var(--space-4); text-align: center; cursor: pointer; background: rgba(131, 56, 236, 0.04); transition: all 0.2s; outline: none;"
+               aria-label="Drop Braille image here or click to browse">
+            <div style="font-size: 2.4rem; margin-bottom: 8px;">📷</div>
+            <p id="dropzone-text" style="font-size: var(--text-md); font-weight: 700; margin: 0 0 4px 0; color: var(--text-primary);">
+              Tap here or drop a Braille photo to translate
+            </p>
+            <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 0;">
+              Supports PNG, JPG, BMP, WebP · Max 20MB
+            </p>
+            <input type="file" id="braille-file-input" accept="image/*" style="display:none;" aria-label="Choose Braille image file">
+          </div>
+
+          <!-- Image preview (shown after selection) -->
+          <div id="braille-preview-wrapper" style="display:none; margin-top: var(--space-3); text-align: center;">
+            <img id="braille-preview-img" alt="Braille document preview"
+                 style="max-width: 100%; max-height: 220px; border-radius: var(--radius-md); border: 2px solid var(--border-color); object-fit: contain;">
+          </div>
+
+          <!-- Translate Button -->
+          <div style="margin-top: var(--space-3);">
+            <button type="button" id="translate-braille-btn" class="btn btn-primary" style="width: 100%;">
+              ✨ Translate Braille Image
+            </button>
+          </div>
+        </div>
+
+        <!-- IQA Diagnostic Alert Banner -->
+        <div id="braille-iqa-banner" style="display: none; margin-bottom: var(--space-4);"></div>
+
+        <!-- Translation Results Section -->
+        <div id="braille-results-section" style="display: none;">
+
+          <!-- English Text Output Textarea -->
+          <div class="card" style="border: 2px solid var(--brand-secondary); padding: var(--space-4);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-2); flex-wrap: wrap; gap: 8px;">
+              <div>
+                <h3 style="font-size: var(--text-md); font-weight: 700; margin: 0 0 2px 0;">📝 Translated English Text</h3>
+                <div id="braille-ascii-banner" style="font-family: var(--font-mono); font-size: 11.5px; color: var(--brand-secondary); display: none;">
+                  Braille ASCII: (Ready for input)
+                </div>
+                <div id="braille-engine-note" style="display: none; font-size: 11.5px; margin-top: 4px; padding: 4px 8px; border-radius: 6px;"></div>
+              </div>
+              <div id="braille-stats-badge" style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                <span class="badge badge-success">UEB Grade 1</span>
+              </div>
+            </div>
+
+            <!-- Braille Document Read Coverage Meter -->
+            <div id="braille-coverage-container" style="display: none; margin-bottom: var(--space-3); padding: 8px 12px; background: rgba(131, 56, 236, 0.04); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                  <span>📖</span>
+                  <span>Braille Recognition Coverage:</span>
+                </span>
+                <span id="braille-coverage-label" style="font-size: 11px; font-weight: 700; color: var(--brand-secondary);">100% Read</span>
+              </div>
+              <div style="height: 6px; width: 100%; background: rgba(0,0,0,0.06); border-radius: 3px; overflow: hidden;">
+                <div id="braille-coverage-bar" style="height: 100%; width: 100%; background: var(--brand-secondary); transition: width 0.4s ease;"></div>
+              </div>
+              <div id="braille-coverage-details" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;"></div>
+            </div>
+
+            <textarea id="braille-text-output" rows="5" readonly
+                      style="width: 100%; font-size: var(--text-md); font-weight: 600; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: var(--space-3); resize: vertical; background: rgba(0,0,0,0.02); box-sizing: border-box; font-family: inherit; color: var(--text-primary);"
+                      placeholder="Translation will appear here..."></textarea>
+            <div style="display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap;">
+              <button id="speak-braille-btn" class="btn btn-primary btn-sm">🔊 Speak Text</button>
+              <button id="copy-braille-btn" class="btn btn-secondary btn-sm">📋 Copy</button>
+              <button id="download-braille-btn" class="btn btn-secondary btn-sm">⬇️ Download</button>
+            </div>
+          </div>
+
+        </div><!-- end braille-results-section -->
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =============================================================
+       SLIDE 3: SPEECH TO TEXT (STT) - SLIDES IN FROM LEFT
+       ============================================================= -->
+  <div id="slide-stt" class="slide-screen slide-from-left" role="dialog" aria-modal="true" aria-label="Speech to Text Slide">
+    <div class="slide-inner-frame">
+      
+      <!-- Floating Actor Banner Segment for Speech to Text (Pic 2) -->
+      <div class="slide-banner-segment-wrap">
+        <div class="slide-actor-banner banner-stt-bg">
+          <div class="slide-actor-overlay">
+            <div class="slide-actor-top-row">
+              <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">
+                <span>←</span>
+                <span>Home</span>
+              </button>
+            </div>
+            <div class="slide-actor-titles">
+              <h2 class="slide-actor-h2">Speech to Text</h2>
+              <p class="slide-actor-sub">Real-Time Voice Captions</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-body-padding">
+        
+        <!-- Controls Bar: Language + Mic Status -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="stt-lang-select" style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">Language:</label>
+            <select id="stt-lang-select" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-weight: 600;">
+              <option value="en-US" selected>English (US)</option>
+              <option value="en-GB">English (UK)</option>
+              <option value="bn-BD">Bengali (BD)</option>
+            </select>
+          </div>
+
+          <div id="stt-status-pill" class="badge badge-info" style="font-size: 11px;">
+            🎙️ Ready to Listen
+          </div>
+        </div>
+
+        <!-- Big Real-Time Live Caption Box -->
+        <div class="card" style="padding: var(--space-4); margin-bottom: var(--space-4); border: 2px solid #fed1c7; min-height: 180px; position: relative;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #f97316;">
+              Live Captions:
+            </span>
+            <div style="display: flex; gap: 4px;">
+              <button type="button" class="btn btn-sm btn-secondary" id="stt-font-toggle" style="font-size: 11px; padding: 2px 8px;" title="Toggle Large Caption Font">
+                🔍 Font: <span id="stt-font-label">Large</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="stt-live-caption-box" style="font-size: 20px; font-weight: 600; line-height: 1.6; min-height: 100px; color: #1e1b4b; word-wrap: break-word;">
+            <span id="stt-placeholder" style="color: #9ca3af; font-weight: 500; font-size: 16px;">
+              Click microphone to start listening and speak...
+            </span>
+            <span id="stt-final-text"></span>
+            <span id="stt-interim-text" style="color: #f97316; opacity: 0.85; font-style: italic;"></span>
+          </div>
+        </div>
+
+        <!-- Big Microphone Toggle Button -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: var(--space-4);">
+          <button type="button" id="stt-toggle-btn" class="stt-mic-button" aria-label="Start Voice Listening">
+            <span id="stt-mic-icon" style="font-size: 32px;">🎙️</span>
+          </button>
+          <span id="stt-mic-hint" style="font-size: 13px; font-weight: 700; margin-top: 8px; color: #4b1a11;">
+            Tap to Speak
+          </span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+          <button type="button" id="stt-copy-btn" class="btn btn-secondary btn-sm">📋 Copy Text</button>
+          <button type="button" id="stt-clear-btn" class="btn btn-danger btn-sm">🗑️ Clear</button>
+          <button type="button" id="stt-send-to-tts-btn" class="btn btn-primary btn-sm">🔊 Speak Back (TTS)</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =============================================================
+       SLIDE 4: TEXT TO SPEECH (TTS) - SLIDES IN FROM RIGHT
+       ============================================================= -->
+  <div id="slide-tts" class="slide-screen slide-from-right" role="dialog" aria-modal="true" aria-label="Text to Speech Slide">
+    <div class="slide-inner-frame">
+      
+      <!-- Floating Actor Banner Segment for Text to Speech (Pic 1) -->
+      <div class="slide-banner-segment-wrap">
+        <div class="slide-actor-banner banner-tts-bg">
+          <div class="slide-actor-overlay">
+            <div class="slide-actor-top-row">
+              <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">
+                <span>←</span>
+                <span>Home</span>
+              </button>
+            </div>
+            <div class="slide-actor-titles">
+              <h2 class="slide-actor-h2">Text to Speech</h2>
+              <p class="slide-actor-sub">Natural Voice Synthesis</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-body-padding">
+        
+        <!-- Text Input Card -->
+        <div class="card" style="padding: var(--space-4); margin-bottom: var(--space-4); border: 2px solid rgba(131, 56, 236, 0.3);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label for="tts-input-text" style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #8338ec;">
+              Type Message to Speak:
+            </label>
+            <span id="tts-char-count" style="font-size: 11px; color: var(--text-muted);">0 chars</span>
+          </div>
+
+          <textarea id="tts-input-text" 
+                    class="translation-textarea" 
+                    style="min-height: 110px; font-size: 17px; line-height: 1.5;"
+                    placeholder="Type your message here to synthesize clear, natural speech..."></textarea>
+
+          <!-- Voice Options Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="tts-lang-select" style="font-size: 12px; font-weight: 600;">Voice:</label>
+              <select id="tts-lang-select" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 12px;">
+                <option value="en-US" selected>English Voice (US)</option>
+                <option value="en-GB">English Voice (UK)</option>
+                <option value="bn-BD">Bengali Voice</option>
+              </select>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 12px; font-weight: 600;">Speed:</span>
+              <button type="button" class="btn btn-secondary btn-sm tts-speed-btn" data-speed="0.8">0.8x</button>
+              <button type="button" class="btn btn-primary btn-sm tts-speed-btn active" data-speed="1.0">1.0x</button>
+              <button type="button" class="btn btn-secondary btn-sm tts-speed-btn" data-speed="1.2">1.2x</button>
+            </div>
+          </div>
+
+          <!-- Speak / Stop / Clear Controls -->
+          <div style="display: flex; gap: 10px; margin-top: var(--space-4); flex-wrap: wrap;">
+            <button type="button" id="tts-speak-btn" class="btn btn-primary" style="flex: 2; font-size: 16px; padding: 12px 20px;">
+              🔊 Speak Voice
+            </button>
+            <button type="button" id="tts-stop-btn" class="btn btn-secondary" style="flex: 1;">
+              ⏹️ Stop
+            </button>
+            <button type="button" id="tts-clear-btn" class="btn btn-danger btn-sm" style="padding: 10px 14px;">
+              🗑️ Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Communication Cards / Non-Speaking Presets -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); margin: 0;">
+              ⚡ Quick Phrases:
+            </h3>
+            <span class="badge badge-info" style="font-size: 10px;">1-Tap Speak</span>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <button type="button" class="btn btn-secondary btn-sm tts-quick-chip" data-phrase="Hello, how are you?">👋 Hello, how are you?</button>
+            <button type="button" class="btn btn-secondary btn-sm tts-quick-chip" data-phrase="I need assistance, please.">🆘 Need assistance</button>
+            <button type="button" class="btn btn-secondary btn-sm tts-quick-chip" data-phrase="Thank you very much.">🙏 Thank you</button>
+            <button type="button" class="btn btn-secondary btn-sm tts-quick-chip" data-phrase="Yes, that works for me.">✅ Yes, that works</button>
+            <button type="button" class="btn btn-secondary btn-sm tts-quick-chip" data-phrase="No, thank you.">❌ No, thank you</button>
+            <button type="button" class="btn btn-secondary btn-sm tts-quick-chip" data-phrase="Please give me a moment.">⏳ One moment, please</button>
+            <button type="button" class="btn btn-secondary btn-sm tts-quick-chip" data-phrase="Where is the restroom?">🚻 Where is the restroom?</button>
+            <button type="button" class="btn btn-secondary btn-sm tts-quick-chip" data-phrase="I communicate using this device.">💬 I communicate with this device</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Application Script -->
+  <script src="/static/app.js?v=20261116_allfix_v8"></script>
+
+  <!-- Slide Control Logic with smooth Left/Right slide transitions -->
+  <script>
+    function openSlide(slideId) {
+      const slide = document.getElementById(slideId);
+      if (!slide) return;
+
+      // Close other slides
+      document.querySelectorAll('.slide-screen').forEach(s => s.classList.remove('active'));
+
+      slide.classList.add('active');
+      slide.scrollTop = 0;
+      const wrap = slide.querySelector('.slide-banner-segment-wrap');
+      if (wrap) {
+        wrap.style.transform = 'translate3d(0, 0, 0)';
+        wrap.style.opacity = '1';
+      }
+
+      // Senior UX: Scale down main planner card like Apple iOS modal sheet
+      const mainCard = document.getElementById('main-content');
+      if (mainCard) {
+        mainCard.classList.add('sheet-scaled');
+      }
+
+      document.body.style.overflow = 'hidden';
+
+      if (slideId === 'slide-hand-signal') {
+        if (window.SignPage && window.SignPage.init) {
+          window.SignPage.init();
+        }
+        if (history.pushState) history.pushState({ slide: 'sign' }, '', '#sign');
+      } else if (slideId === 'slide-braille') {
+        if (window.BraillePage && window.BraillePage.init) {
+          window.BraillePage.init();
+        }
+        if (history.pushState) history.pushState({ slide: 'braille' }, '', '#braille');
+      } else if (slideId === 'slide-stt') {
+        if (window.TransifySTT && window.TransifySTT.init) {
+          window.TransifySTT.init();
+        }
+        if (history.pushState) history.pushState({ slide: 'stt' }, '', '#stt');
+      } else if (slideId === 'slide-tts') {
+        if (window.TransifyTTSPage && window.TransifyTTSPage.init) {
+          window.TransifyTTSPage.init();
+        }
+        if (history.pushState) history.pushState({ slide: 'tts' }, '', '#tts');
+      }
+    }
+
+    function closeAllSlides() {
+      document.querySelectorAll('.slide-screen').forEach(s => {
+        s.classList.remove('active');
+        const wrap = s.querySelector('.slide-banner-segment-wrap');
+        if (wrap) {
+          wrap.style.transform = 'translate3d(0, 0, 0)';
+          wrap.style.opacity = '1';
+        }
+      });
+
+      // Restore main planner card
+      const mainCard = document.getElementById('main-content');
+      if (mainCard) {
+        mainCard.classList.remove('sheet-scaled');
+      }
+
+      document.body.style.overflow = '';
+      if (window.SignPage && window.SignPage.isStreaming) {
+        window.SignPage.stopCamera();
+      }
+      if (window.TransifySTT && window.TransifySTT.isListening) {
+        window.TransifySTT.stop();
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      if (history.pushState) history.pushState(null, '', window.location.pathname);
+    }
+
+    // Expose globally
+    window.openSlide = openSlide;
+    window.closeAllSlides = closeAllSlides;
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', (e) => {
+      if (e.state && e.state.slide === 'sign') {
+        openSlide('slide-hand-signal');
+      } else if (e.state && e.state.slide === 'braille') {
+        openSlide('slide-braille');
+      } else if (e.state && e.state.slide === 'stt') {
+        openSlide('slide-stt');
+      } else if (e.state && e.state.slide === 'tts') {
+        openSlide('slide-tts');
+      } else {
+        closeAllSlides();
+      }
+    });
+
+    // Dismiss active slide on ESC key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const active = document.querySelector('.slide-screen.active');
+        if (active) closeAllSlides();
+      }
+    });
+
+    // Check URL hash on initial load & bind 120fps rAF scroll physics
+    window.addEventListener('DOMContentLoaded', () => {
+      // Floating banner scroll reaction: butter-smooth GPU hardware accelerated glide
+      document.querySelectorAll('.slide-screen').forEach(screen => {
+        // Dismiss slide when clicking translucent backdrop outside inner frame
+        screen.addEventListener('click', (e) => {
+          if (e.target === screen) {
+            closeAllSlides();
+          }
+        });
+
+        let ticking = false;
+        screen.addEventListener('scroll', () => {
+          if (!ticking) {
+            window.requestAnimationFrame(() => {
+              const wrap = screen.querySelector('.slide-banner-segment-wrap');
+              if (wrap) {
+                const st = screen.scrollTop;
+                // Fluid parallax glide: banner slides up gently with content
+                const shift = Math.min(st * 0.42, 54);
+                const opacity = Math.max(1 - (st / 380), 0.78);
+                wrap.style.transform = `translate3d(0, -${shift}px, 0)`;
+                wrap.style.opacity = opacity.toFixed(3);
+              }
+              ticking = false;
+            });
+            ticking = true;
+          }
+        }, { passive: true });
+      });
+
+      if (window.location.hash === '#sign') {
+        openSlide('slide-hand-signal');
+      } else if (window.location.hash === '#braille') {
+        openSlide('slide-braille');
+      } else if (window.location.hash === '#stt') {
+        openSlide('slide-stt');
+      } else if (window.location.hash === '#tts') {
+        openSlide('slide-tts');
+      }
+    });
+  </script>
+
+  <!-- User Profile Popover Modal -->
+  <div id="profile-modal-overlay" class="profile-modal-overlay" role="dialog" aria-modal="true" aria-label="User Profile Details">
+    <div class="profile-modal-card">
+      <div style="font-size: 3rem; margin-bottom: 8px;">👩‍🦰</div>
+      <h3 id="profile-name-text" style="font-size: 18px; font-weight: 800; color: #1e1b4b; margin: 0 0 4px 0;">Sarah Ahmed</h3>
+      <p id="profile-email-text" style="font-size: 13px; color: #64748b; margin: 0 0 14px 0;">demo@transify.ai</p>
+      <div style="display: inline-block; padding: 4px 12px; background: rgba(34, 197, 94, 0.12); color: #15803d; border-radius: 9999px; font-size: 12px; font-weight: 700; margin-bottom: 20px;">
+        Active • Accessible AI Enabled
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" id="profile-logout-btn" style="flex: 1; padding: 10px; background: rgba(239, 68, 68, 0.1); color: #b91c1c; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; font-weight: 700; cursor: pointer;" onclick="window.TransifyApp.logoutUser()">
+          Sign Out
+        </button>
+        <button type="button" id="profile-close-btn" style="flex: 1; padding: 10px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 12px; font-weight: 700; cursor: pointer;" onclick="window.TransifyApp.closeProfileModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

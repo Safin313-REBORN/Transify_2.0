@@ -1,0 +1,34 @@
+{
+  "strategy": "Document-Independent Anti-Leakage Partitioning",
+  "train": {
+    "documents": [
+      "DOC001",
+      "DOC002",
+      "DOC003",
+      "DOC004",
+      "DOC006",
+      "DOC007",
+      "DOC008"
+    ],
+    "document_images": 35,
+    "cell_patches": 1765,
+    "percentage_cells": 71.46
+  },
+  "validation": {
+    "documents": [
+      "DOC005"
+    ],
+    "document_images": 5,
+    "cell_patches": 290,
+    "percentage_cells": 11.74
+  },
+  "test": {
+    "documents": [
+      "DOC009",
+      "DOC010"
+    ],
+    "document_images": 10,
+    "cell_patches": 415,
+    "percentage_cells": 16.8
+  }
+}
