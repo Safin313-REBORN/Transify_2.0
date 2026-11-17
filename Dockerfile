@@ -30,9 +30,6 @@ RUN mkdir -p /app/data /app/data/audio_cache
 ENV TRANSIFY_DATA_DIR=/app/data \
     TRANSIFY_DB_PATH=/app/data/transify.db
 
-# Persistent volume for SQLite database
-VOLUME ["/app/data"]
-
 # Expose HTTP port
 EXPOSE 8000
 

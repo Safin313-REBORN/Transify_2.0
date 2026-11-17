@@ -50,11 +50,15 @@ def main():
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
     args = parser.parse_args()
 
-    print_banner(args.host, args.port)
+    # Dynamic port override: if Railway injects PORT but CLI passes legacy 8000, prioritize PORT
+    env_port = os.getenv("PORT")
+    port = int(env_port) if env_port and args.port == 8000 else args.port
+
+    print_banner(args.host, port)
     uvicorn.run(
         "src.api.server:app",
         host=args.host,
-        port=args.port,
+        port=port,
         reload=args.reload,
         log_level="info"
     )
