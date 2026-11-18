@@ -16,11 +16,39 @@
   <script>
     // Immediate bulletproof auth handler
     window.openAuthSheet = function(mode) {
+      mode = mode || 'login';
       if (window.TransifyApp && typeof window.TransifyApp.openAuthSheet === 'function' && window.TransifyApp._fullLoaded) {
         return window.TransifyApp.openAuthSheet(mode);
       }
       var sheet = document.getElementById('auth-sheet-container');
       if (sheet) sheet.classList.add('active');
+      var tLogin = document.getElementById('tab-login');
+      var tSignup = document.getElementById('tab-signup');
+      var title = document.getElementById('auth-heading-title');
+      var subtitle = document.getElementById('auth-heading-subtitle');
+      var groupFullname = document.getElementById('group-fullname');
+      var btnText = document.getElementById('btn-text');
+      var switchPromptText = document.getElementById('switch-prompt-text');
+      var switchPromptLink = document.getElementById('switch-prompt-link');
+      if (mode === 'signup') {
+        if (tSignup) { tSignup.classList.add('active'); tSignup.setAttribute('aria-selected', 'true'); }
+        if (tLogin) { tLogin.classList.remove('active'); tLogin.setAttribute('aria-selected', 'false'); }
+        if (title) title.textContent = 'Join Transify!';
+        if (subtitle) subtitle.textContent = 'Create your account to start communicating';
+        if (groupFullname) groupFullname.style.display = 'flex';
+        if (btnText) btnText.textContent = 'Register & Open Slides';
+        if (switchPromptText) switchPromptText.textContent = "Already have an account?";
+        if (switchPromptLink) switchPromptLink.textContent = "Login";
+      } else {
+        if (tLogin) { tLogin.classList.add('active'); tLogin.setAttribute('aria-selected', 'true'); }
+        if (tSignup) { tSignup.classList.remove('active'); tSignup.setAttribute('aria-selected', 'false'); }
+        if (title) title.textContent = 'Welcome Back!';
+        if (subtitle) subtitle.textContent = 'Login to your Transify account';
+        if (groupFullname) groupFullname.style.display = 'none';
+        if (btnText) btnText.textContent = 'Login';
+        if (switchPromptText) switchPromptText.textContent = "Don't have an account?";
+        if (switchPromptLink) switchPromptLink.textContent = "Sign Up";
+      }
     };
     window.closeAuthSheet = function() {
       if (window.TransifyApp && typeof window.TransifyApp.closeAuthSheet === 'function' && window.TransifyApp._fullLoaded) {
@@ -29,6 +57,13 @@
       var sheet = document.getElementById('auth-sheet-container');
       if (sheet) sheet.classList.remove('active');
     };
+    window.switchAuthTab = function(mode) {
+      if (window.TransifyApp && typeof window.TransifyApp.switchAuthTab === 'function') {
+        return window.TransifyApp.switchAuthTab(mode);
+      }
+      window.openAuthSheet(mode);
+    };
+    window.setMode = window.switchAuthTab;
     window.handleDirectLogin = function() {
       if (window.TransifyApp && typeof window.TransifyApp.handleDirectLogin === 'function' && window.TransifyApp._fullLoaded) {
         return window.TransifyApp.handleDirectLogin();
@@ -55,20 +90,29 @@
       }
     };
     window.handleDemoLogin = window.handleDirectLogin;
+    window.handleDemoGuest = window.handleDirectLogin;
     window.handleAuthSubmit = function(e) {
       if (e) e.preventDefault();
+      if (window.TransifyApp && typeof window.TransifyApp.handleAuthSubmit === 'function' && window.TransifyApp._fullLoaded) {
+        return window.TransifyApp.handleAuthSubmit(e);
+      }
       window.handleDirectLogin();
     };
     var TransifyApp = window.TransifyApp = window.TransifyApp || {};
     TransifyApp.openAuthSheet = window.openAuthSheet;
     TransifyApp.closeAuthSheet = window.closeAuthSheet;
+    TransifyApp.switchAuthTab = window.switchAuthTab;
+    TransifyApp.setMode = window.switchAuthTab;
     TransifyApp.handleDirectLogin = window.handleDirectLogin;
-    TransifyApp.handleDemoLogin = window.handleDirectLogin;
+    TransifyApp.handleDemoLogin = window.handleDemoLogin;
+    TransifyApp.handleDemoGuest = window.handleDemoGuest;
     TransifyApp.handleAuthSubmit = window.handleAuthSubmit;
-    TransifyApp.togglePasswordVisibility = function() {};
-    TransifyApp.handleForgotPassword = function(e) { if (e) e.preventDefault(); alert('Password reset link sent to demo@transify.ai'); };
+    TransifyApp.togglePasswordVisibility = function() {
+      var pwd = document.getElementById('input-password');
+      if (pwd) pwd.type = pwd.type === 'password' ? 'text' : 'password';
+    };
+    TransifyApp.handleForgotPassword = function(e) { if (e) e.preventDefault(); alert('Password reset link sent to your email.'); };
     TransifyApp.handleGoogleLogin = window.handleDirectLogin;
-    TransifyApp.switchAuthTab = function(mode) { window.openAuthSheet(mode); };
     TransifyApp.logoutUser = function() {
       try { localStorage.clear(); } catch(e) {}
       window.location.reload();
@@ -1334,7 +1378,7 @@
       <div class="auth-welcome-view" id="auth-welcome-view">
         <div class="auth-welcome-exact-card">
           <img 
-            src="/static/login-welcome-exact.jpg?v=20261118_exact_v1" 
+            src="/static/login-welcome-exact.jpg?v=20261118_exact_v2" 
             alt="Transify — Breaking Communication Barriers" 
             class="auth-welcome-exact-artwork"
             onerror="this.onerror=null; this.src='/static/login-hero-exact.png';"
@@ -1353,7 +1397,7 @@
               type="button" 
               class="auth-exact-hotspot auth-hotspot-login" 
               id="btn-open-login" 
-              onclick="window.TransifyApp.handleDirectLogin()" 
+              onclick="window.TransifyApp.openAuthSheet('login')" 
               aria-label="Login - Sign in to your account"
               title="Login - Sign in to your account"
             ></button>
@@ -1379,14 +1423,31 @@
 
         <!-- Slide-up Frosted Glass Card -->
         <div class="auth-sheet-card" id="auth-sheet-card">
-          <!-- Sheet Top Navigation: Clean Back Button -->
-          <div class="auth-sheet-top-bar">
+          <!-- Sheet Top Navigation: Clean Back Button & Dual Tab Switcher -->
+          <div class="auth-sheet-top-bar" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 12px;">
             <button type="button" class="auth-sheet-back-btn" id="auth-back-btn" onclick="window.TransifyApp.closeAuthSheet()" aria-label="Back to welcome screen">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
               <span>Back</span>
             </button>
+
+            <!-- Dual Pill Tab Switcher: Login / Sign Up -->
+            <div class="auth-tab-bar" role="tablist" aria-label="Authentication mode selection" style="margin-bottom: 0;">
+              <button type="button" class="tab-btn active" id="tab-login" role="tab" aria-selected="true" aria-controls="auth-form" onclick="window.TransifyApp.switchAuthTab('login')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px;">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Login</span>
+              </button>
+              <button type="button" class="tab-btn" id="tab-signup" role="tab" aria-selected="false" aria-controls="auth-form" onclick="window.TransifyApp.switchAuthTab('signup')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px;">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                  <line x1="19" x2="19" y1="8" x2="14"/><line x1="22" x2="16" y1="11" y2="11"/>
+                </svg>
+                <span>Sign Up</span>
+              </button>
+            </div>
           </div>
 
           <!-- Dynamic Header -->

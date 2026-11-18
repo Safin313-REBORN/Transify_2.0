@@ -1392,9 +1392,59 @@ button:active, a.btn:active, .main-segment-card:active, .mini-sub-card:active, .
 .auth-sheet-top-bar {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   margin-bottom: 12px;
   width: 100%;
+}
+
+.auth-tab-bar {
+  display: flex;
+  background: #f3f0fa;
+  border-radius: 9999px;
+  padding: 4px;
+  position: relative;
+  border: 1px solid rgba(131, 56, 236, 0.08);
+  gap: 4px;
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-btn svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.2s ease;
+}
+
+.tab-btn:hover:not(.active) {
+  color: #7c3aed;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+}
+
+.tab-btn.active svg {
+  stroke: #ffffff;
 }
 
 .auth-sheet-back-btn {

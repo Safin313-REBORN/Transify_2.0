@@ -903,5 +903,96 @@ class TestLiveBdSLTemporalInferenceIntegration(unittest.TestCase):
         self.assertEqual(len(live_sign_processor.get_session_buffer(sess_id)), 0)
 
 
+class TestAuthButtonFunctionalityAndLoginIntegrity(unittest.TestCase):
+    """Verifies that all buttons on the login page and index auth gateway operate correctly."""
+
+    @classmethod
+    def setUpClass(cls):
+        from fastapi.testclient import TestClient
+        from src.api.server import app
+        cls.client = TestClient(app)
+
+    def test_login_page_button_handlers(self):
+        """Verifies /login contains correct openAuthSheet handlers, tab buttons, and artwork fallbacks."""
+        res = self.client.get("/login")
+        self.assertEqual(res.status_code, 200)
+        html = res.text
+
+        # 1. Verify login button opens auth sheet in login mode (NOT handleDirectLogin bypass)
+        self.assertIn('id="btn-open-login"', html)
+        self.assertIn('onclick="openAuthSheet(\'login\')"', html)
+        self.assertNotIn('id="btn-open-login"\n            onclick="handleDirectLogin()"', html)
+
+        # 2. Verify register button opens auth sheet in signup mode
+        self.assertIn('id="btn-open-register"', html)
+        self.assertIn('onclick="openAuthSheet(\'signup\')"', html)
+
+        # 3. Verify guest button operates
+        self.assertIn('id="btn-demo-guest"', html)
+        self.assertIn('onclick="handleDemoGuest()"', html)
+
+        # 4. Verify dual tabs exist
+        self.assertIn('id="tab-login"', html)
+        self.assertIn('id="tab-signup"', html)
+        self.assertIn('id="auth-submit-btn"', html)
+        self.assertIn('id="google-login-btn"', html)
+
+        # 5. Verify image sources
+        self.assertIn('login-welcome-exact.jpg', html)
+        self.assertIn('login-hero-exact.png', html)
+
+    def test_index_page_auth_screen_button_handlers(self):
+        """Verifies index.html auth screen contains correct openAuthSheet handlers and tab switchers."""
+        res = self.client.get("/")
+        self.assertEqual(res.status_code, 200)
+        html = res.text
+
+        # 1. Verify login button opens auth sheet in login mode
+        self.assertIn('id="btn-open-login"', html)
+        self.assertIn('onclick="window.TransifyApp.openAuthSheet(\'login\')"', html)
+
+        # 2. Verify register button opens auth sheet in signup mode
+        self.assertIn('id="btn-open-register"', html)
+        self.assertIn('onclick="window.TransifyApp.openAuthSheet(\'signup\')"', html)
+
+        # 3. Verify guest button operates
+        self.assertIn('id="btn-demo-guest"', html)
+        self.assertIn('onclick="window.TransifyApp.handleDemoLogin()"', html)
+
+        # 4. Verify dual tabs exist in top bar
+        self.assertIn('id="tab-login"', html)
+        self.assertIn('id="tab-signup"', html)
+        self.assertIn('id="auth-submit-btn"', html)
+
+    def test_static_assets_and_script_integrity(self):
+        """Verifies static assets load with HTTP 200 and script exposes required auth functions."""
+        # 1. Welcome artwork JPEG
+        res_jpg = self.client.get("/static/login-welcome-exact.jpg")
+        self.assertEqual(res_jpg.status_code, 200)
+        self.assertGreater(len(res_jpg.content), 50000)
+
+        # 2. Hero PNG fallback
+        res_png = self.client.get("/static/login-hero-exact.png")
+        self.assertEqual(res_png.status_code, 200)
+        self.assertGreater(len(res_png.content), 50000)
+
+        # 3. App.js contains logout restoration and function exposures
+        res_js = self.client.get("/static/app.js")
+        self.assertEqual(res_js.status_code, 200)
+        js_text = res_js.text
+        self.assertIn("authOverlay.style.pointerEvents = 'auto'", js_text)
+        self.assertIn("authOverlay.style.zIndex = '1000000'", js_text)
+        self.assertIn("window.openAuthSheet", js_text)
+        self.assertIn("window.switchAuthTab", js_text)
+        self.assertIn("window.handleDemoGuest", js_text)
+
+        # 4. Styles.css contains tab button definitions
+        res_css = self.client.get("/static/styles.css")
+        self.assertEqual(res_css.status_code, 200)
+        css_text = res_css.text
+        self.assertIn(".auth-tab-bar", css_text)
+        self.assertIn(".tab-btn", css_text)
+
+
 if __name__ == "__main__":
     unittest.main()

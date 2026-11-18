@@ -249,12 +249,22 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     }
 
     setTimeout(() => {
-      this.showAuthAlert(mode === 'login' ? 'Login successful! Opening Transify...' : 'Account registered! Opening Transify...', true);
-      this.completeAuthentication({
-        name: name,
-        email: email,
-        provider: 'password'
-      });
+      try {
+        this.showAuthAlert(mode === 'login' ? 'Login successful! Opening Transify...' : 'Account registered! Opening Transify...', true);
+        this.completeAuthentication({
+          name: name,
+          email: email,
+          provider: 'password'
+        });
+      } catch (err) {
+        this.showAuthAlert('Authentication error. Please try again.', false);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+          const label = submitBtn.querySelector('#btn-text');
+          if (label) label.textContent = mode === 'login' ? 'Login' : 'Register & Open Slides';
+        }
+      }
     }, 200);
   },
 
@@ -349,6 +359,8 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     if (authOverlay) {
       authOverlay.style.display = 'flex';
       authOverlay.classList.remove('auth-hidden');
+      authOverlay.style.pointerEvents = 'auto';
+      authOverlay.style.zIndex = '1000000';
       this.bindAuthEvents();
       this.hideAuthAlert();
       const submitBtn = document.getElementById('auth-submit-btn');
@@ -572,9 +584,15 @@ TransifyApp._fullLoaded = true;
 window.TransifyApp = TransifyApp;
 window.openAuthSheet = (m) => TransifyApp.openAuthSheet(m);
 window.closeAuthSheet = () => TransifyApp.closeAuthSheet();
+window.switchAuthTab = (m) => TransifyApp.switchAuthTab(m);
+window.setMode = (m) => TransifyApp.switchAuthTab(m);
 window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
 window.handleDemoLogin = () => TransifyApp.handleDemoLogin();
+window.handleDemoGuest = () => TransifyApp.handleDemoLogin();
 window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
+window.handleGoogleLogin = () => TransifyApp.handleGoogleLogin();
+window.handleForgotPassword = (e) => TransifyApp.handleForgotPassword(e);
+window.togglePasswordVisibility = () => TransifyApp.togglePasswordVisibility();
 
 // ==========================================
 // 3. Central Assistive Dashboard Logic
@@ -2767,9 +2785,15 @@ function initTransifyAllModules() {
   window.TransifyTTS = TransifyTTS;
   window.openAuthSheet = (m) => TransifyApp.openAuthSheet(m);
   window.closeAuthSheet = () => TransifyApp.closeAuthSheet();
+  window.switchAuthTab = (m) => TransifyApp.switchAuthTab(m);
+  window.setMode = (m) => TransifyApp.switchAuthTab(m);
   window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
   window.handleDemoLogin = () => TransifyApp.handleDemoLogin();
+  window.handleDemoGuest = () => TransifyApp.handleDemoLogin();
   window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
+  window.handleGoogleLogin = () => TransifyApp.handleGoogleLogin();
+  window.handleForgotPassword = (e) => TransifyApp.handleForgotPassword(e);
+  window.togglePasswordVisibility = () => TransifyApp.togglePasswordVisibility();
 }
 
 if (document.readyState === 'loading') {

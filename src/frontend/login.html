@@ -774,7 +774,7 @@
     <div class="auth-welcome-view" id="auth-welcome-view">
       <div class="auth-welcome-exact-card">
         <img 
-          src="/static/login-welcome-exact.jpg?v=20261118_exact_v1" 
+          src="/static/login-welcome-exact.jpg?v=20261118_exact_v2" 
           alt="Transify — Breaking Communication Barriers" 
           class="auth-welcome-exact-artwork"
           onerror="this.onerror=null; this.src='/static/login-hero-exact.png';"
@@ -793,7 +793,7 @@
             type="button" 
             class="auth-exact-hotspot auth-hotspot-login" 
             id="btn-open-login" 
-            onclick="handleDirectLogin()" 
+            onclick="openAuthSheet('login')" 
             aria-label="Login - Sign in to your account"
             title="Login - Sign in to your account"
           ></button>
@@ -1089,29 +1089,49 @@
 
     // Handle Form Submit
     function handleAuthSubmit(e) {
-      e.preventDefault();
-      const email = document.getElementById('input-email').value.trim();
-      const password = document.getElementById('input-password').value;
+      if (e) e.preventDefault();
+      const emailInput = document.getElementById('input-email');
+      const pwdInput = document.getElementById('input-password');
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = pwdInput ? pwdInput.value : '';
       const fullname = inputFullname && inputFullname.value.trim() ? inputFullname.value.trim() : 'Sarah Ahmed';
 
       if (!email || !password) {
         showAlert('Please fill in both email and password.', false);
+        const submitBtn = document.getElementById('auth-submit-btn');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+        }
         return;
       }
 
       const submitBtn = document.getElementById('auth-submit-btn');
-      submitBtn.disabled = true;
-      submitBtn.style.opacity = '0.75';
-      submitBtn.querySelector('#btn-text').textContent = activeMode === 'login' ? 'Authenticating...' : 'Registering...';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.75';
+        const label = submitBtn.querySelector('#btn-text');
+        if (label) label.textContent = activeMode === 'login' ? 'Authenticating...' : 'Registering...';
+      }
 
       setTimeout(() => {
-        showAlert(activeMode === 'login' ? 'Login successful! Redirecting...' : 'Account created! Redirecting...', true);
-        completeAuthentication({
-          name: fullname,
-          email: email,
-          provider: 'password'
-        });
-      }, 550);
+        try {
+          showAlert(activeMode === 'login' ? 'Login successful! Redirecting...' : 'Account created! Redirecting...', true);
+          completeAuthentication({
+            name: fullname,
+            email: email,
+            provider: 'password'
+          });
+        } catch (err) {
+          showAlert('Authentication failed. Please try again.', false);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            const label = submitBtn.querySelector('#btn-text');
+            if (label) label.textContent = activeMode === 'login' ? 'Login' : 'Register & Open Slides';
+          }
+        }
+      }, 400);
     }
 
     // Handle Google Login
