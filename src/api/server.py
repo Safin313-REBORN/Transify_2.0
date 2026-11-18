@@ -24,6 +24,8 @@ from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from pydantic import BaseModel, Field
 import numpy as np
 import time
+import hmac
+import secrets
 import threading
 from collections import defaultdict
 
@@ -54,7 +56,12 @@ from src.database.db import (
     create_session,
     get_user_by_session,
     revoke_session,
-    get_user_by_email
+    get_user_by_email,
+    is_production,
+    record_failed_login,
+    is_login_rate_limited,
+    clear_failed_logins,
+    count_legacy_history
 )
 
 # Initialize FastAPI App
@@ -65,10 +72,7 @@ app = FastAPI(
 )
 
 # Configure secure CORS: Allow production origin in production; loopback in development
-is_prod = (
-    os.getenv("ENVIRONMENT", "").lower() == "production"
-    or os.getenv("RAILWAY_ENVIRONMENT", "").lower() == "production"
-)
+is_prod = is_production()
 allowed_origins = ["https://transify20-production.up.railway.app"]
 if not is_prod:
     allowed_origins.extend([
@@ -174,41 +178,6 @@ class RegisterRequest(BaseModel):
 
 # --- Security: Rate Limiting, CSRF Protection & Auth Dependencies ---
 
-_FAILED_LOGINS = defaultdict(list)
-_RATE_LIMIT_LOCK = threading.Lock()
-
-
-def check_login_rate_limit(client_ip: str, email: str = ""):
-    now = time.time()
-    with _RATE_LIMIT_LOCK:
-        keys = [client_ip]
-        if email:
-            keys.append(f"email:{email.lower()}")
-        for k in keys:
-            _FAILED_LOGINS[k] = [t for t in _FAILED_LOGINS[k] if now - t < 300]
-            if len(_FAILED_LOGINS[k]) >= 5:
-                logger.warning(f"Rate limit exceeded for {k}: {len(_FAILED_LOGINS[k])} failed attempts.")
-                raise HTTPException(
-                    status_code=429,
-                    detail="Too many failed login attempts. Please wait 5 minutes before trying again."
-                )
-
-
-def record_failed_login(client_ip: str, email: str = ""):
-    now = time.time()
-    with _RATE_LIMIT_LOCK:
-        _FAILED_LOGINS[client_ip].append(now)
-        if email:
-            _FAILED_LOGINS[f"email:{email.lower()}"].append(now)
-
-
-def clear_failed_logins(client_ip: str, email: str = ""):
-    with _RATE_LIMIT_LOCK:
-        _FAILED_LOGINS.pop(client_ip, None)
-        if email:
-            _FAILED_LOGINS.pop(f"email:{email.lower()}", None)
-
-
 def is_request_secure(request: Request) -> bool:
     if is_prod:
         return True
@@ -217,12 +186,8 @@ def is_request_secure(request: Request) -> bool:
 
 
 def get_authenticated_user(request: Request) -> Dict[str, Any]:
-    """FastAPI dependency: enforces valid authenticated session via secure HttpOnly cookie or bearer header."""
+    """FastAPI dependency: enforces valid authenticated session strictly via secure HttpOnly cookie."""
     token = request.cookies.get("transify_session")
-    if not token:
-        auth_header = request.headers.get("authorization", "")
-        if auth_header.lower().startswith("bearer "):
-            token = auth_header[7:].strip()
     if not token:
         raise HTTPException(status_code=401, detail="Authentication required.")
     user = get_user_by_session(token)
@@ -232,12 +197,8 @@ def get_authenticated_user(request: Request) -> Dict[str, Any]:
 
 
 def get_optional_user(request: Request) -> Optional[Dict[str, Any]]:
-    """FastAPI dependency: resolves current user if session exists; returns None for guests."""
+    """FastAPI dependency: resolves current user strictly if session cookie exists; returns None for guests."""
     token = request.cookies.get("transify_session")
-    if not token:
-        auth_header = request.headers.get("authorization", "")
-        if auth_header.lower().startswith("bearer "):
-            token = auth_header[7:].strip()
     if not token:
         return None
     return get_user_by_session(token)
@@ -251,25 +212,73 @@ async def csrf_and_origin_protection_middleware(request: Request, call_next):
         referer = request.headers.get("referer")
         host = request.headers.get("host")
         
+        # 1. Strictly reject null origin
+        if origin is not None and origin.strip().lower() == "null":
+            logger.warning("Blocked state-changing request with Origin: null")
+            return JSONResponse(
+                status_code=403,
+                content={"detail": "CSRF validation failed: null origin rejected."}
+            )
+
+        allowed_hosts = {
+            "transify20-production.up.railway.app",
+            "localhost",
+            "127.0.0.1",
+            "0.0.0.0",
+            "testserver"
+        }
+        if host:
+            allowed_hosts.add(host.split(":")[0].lower())
+
         check_url = origin or referer
         if check_url:
             from urllib.parse import urlparse
             parsed = urlparse(check_url)
-            allowed_hosts = {
-                "transify20-production.up.railway.app",
-                "localhost",
-                "127.0.0.1",
-                "0.0.0.0"
-            }
-            if host:
-                allowed_hosts.add(host.split(":")[0])
-            if parsed.hostname and parsed.hostname not in allowed_hosts:
+            if not parsed.hostname or parsed.hostname.lower() not in allowed_hosts:
                 logger.warning(f"Blocked cross-origin CSRF attempt from {check_url}")
                 return JSONResponse(
                     status_code=403,
                     content={"detail": "CSRF validation failed: cross-origin request rejected."}
                 )
-    return await call_next(request)
+        else:
+            # Both origin and referer are missing!
+            csrf_token_header = request.headers.get("x-csrf-token")
+            csrf_token_cookie = request.cookies.get("transify_csrf")
+            has_valid_csrf = bool(
+                csrf_token_header
+                and csrf_token_cookie
+                and hmac.compare_digest(csrf_token_header.strip(), csrf_token_cookie.strip())
+            )
+            is_verified_same_origin = request.headers.get("sec-fetch-site") == "same-origin"
+            
+            enforce_strict = is_prod or os.getenv("TRANSIFY_ENFORCE_CSRF") == "1"
+            if enforce_strict and not has_valid_csrf and not is_verified_same_origin:
+                logger.warning("Blocked state-changing request missing both Origin and Referer headers.")
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "CSRF validation failed: missing origin and referer headers."}
+                )
+            elif not enforce_strict:
+                if host and host.split(":")[0].lower() not in allowed_hosts:
+                    return JSONResponse(
+                        status_code=403,
+                        content={"detail": "CSRF validation failed: unverified host on state-changing request."}
+                    )
+
+    response = await call_next(request)
+
+    if "transify_csrf" not in request.cookies:
+        csrf_token = secrets.token_hex(16)
+        response.set_cookie(
+            key="transify_csrf",
+            value=csrf_token,
+            httponly=False,
+            samesite="lax",
+            secure=is_request_secure(request),
+            path="/"
+        )
+
+    return response
 
 
 # --- API Routes ---
@@ -996,7 +1005,11 @@ def register_user(req: RegisterRequest, response: Response, request: Request):
     Never returns raw session tokens in the JSON response.
     """
     client_ip = request.client.host if request.client else "unknown"
-    check_login_rate_limit(client_ip, req.email)
+    if is_login_rate_limited(f"ip:{client_ip}") or (req.email and is_login_rate_limited(f"email:{req.email.lower()}")):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many attempts. Please wait 5 minutes before trying again."
+        )
 
     try:
         user = create_user(req.name, req.email, req.password)
@@ -1022,7 +1035,7 @@ def register_user(req: RegisterRequest, response: Response, request: Request):
         path="/"
     )
 
-    clear_failed_logins(client_ip, req.email)
+    clear_failed_logins(f"ip:{client_ip}", req.email)
     return {
         "status": "success",
         "message": "Account created successfully.",
@@ -1038,14 +1051,21 @@ def login_user(req: LoginRequest, response: Response, request: Request):
     Delivers session token exclusively through secure HttpOnly cookie.
     """
     client_ip = request.client.host if request.client else "unknown"
-    check_login_rate_limit(client_ip, req.email)
+    if is_login_rate_limited(f"ip:{client_ip}") or (req.email and is_login_rate_limited(f"email:{req.email.lower()}")):
+        logger.warning(f"Rate limit exceeded for client_ip={client_ip}, email={req.email}")
+        raise HTTPException(
+            status_code=429,
+            detail="Too many failed login attempts. Please wait 5 minutes before trying again."
+        )
 
     user = authenticate_user(req.email, req.password)
     if not user:
-        record_failed_login(client_ip, req.email)
+        record_failed_login(f"ip:{client_ip}")
+        if req.email:
+            record_failed_login(f"email:{req.email.lower()}")
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
-    clear_failed_logins(client_ip, req.email)
+    clear_failed_logins(f"ip:{client_ip}", req.email)
 
     session_token = create_session(user["id"])
     secure_cookie = is_request_secure(request)
@@ -1089,16 +1109,10 @@ def guest_login(response: Response):
 @app.get("/api/auth/me", tags=["Authentication"])
 def get_current_user(request: Request = None):
     """
-    Verifies session validity from HttpOnly cookie or Authorization Bearer header.
+    Verifies session validity strictly from HttpOnly cookie.
     Returns authenticated user profile or unauthenticated status.
     """
-    token = None
-    if request:
-        token = request.cookies.get("transify_session")
-        if not token:
-            auth_header = request.headers.get("authorization", "")
-            if auth_header.lower().startswith("bearer "):
-                token = auth_header[7:].strip()
+    token = request.cookies.get("transify_session") if request else None
 
     if not token:
         return {"authenticated": False, "user": None}
@@ -1115,14 +1129,7 @@ def logout_user(response: Response, request: Request = None):
     """
     Revokes the current session in database and clears the session cookie.
     """
-    token = None
-    if request:
-        token = request.cookies.get("transify_session")
-        if not token:
-            auth_header = request.headers.get("authorization", "")
-            if auth_header.lower().startswith("bearer "):
-                token = auth_header[7:].strip()
-
+    token = request.cookies.get("transify_session") if request else None
     if token:
         revoke_session(token)
 

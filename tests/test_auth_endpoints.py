@@ -18,41 +18,42 @@ from src.database.db import (
     create_user,
     get_connection,
     log_translation,
-    get_history
+    get_history,
+    clear_failed_logins
 )
 
 @pytest.fixture
 def client():
+    clear_failed_logins("ip:testclient")
     with TestClient(app) as test_client:
         test_client.cookies.clear()
         yield test_client
+    clear_failed_logins("ip:testclient")
 
-def test_default_demo_account_exists():
-    """Verifies that demo@transify.ai exists and password authenticates correctly."""
-    user = get_user_by_email("demo@transify.ai")
-    assert user is not None
-    assert user["email"] == "demo@transify.ai"
-    
-    # Verify authentication with correct password
+def test_demo_account_is_disabled_from_password_auth():
+    """Verifies that demo@transify.ai cannot authenticate via password in hardened mode."""
     auth_user = authenticate_user("demo@transify.ai", "transify2026")
-    assert auth_user is not None
-    assert auth_user["email"] == "demo@transify.ai"
+    assert auth_user is None
     
-    # Verify wrong password rejected
+    # Verify wrong password also rejected
     wrong_user = authenticate_user("demo@transify.ai", "wrongpassword")
     assert wrong_user is None
 
-def test_demo_login_cookie_only(client):
+def test_user_login_cookie_only(client):
     """Verifies login sets HttpOnly session cookie and does NOT expose raw token in JSON body."""
+    email = f"cookie_test_{int(time.time()*1000)}@test.com"
+    pwd = "StrongPassword123!_2026"
+    create_user("Cookie Tester", email, pwd)
+
     res = client.post("/api/auth/login", json={
-        "email": "demo@transify.ai",
-        "password": "transify2026"
+        "email": email,
+        "password": pwd
     })
     assert res.status_code == 200
     data = res.json()
     assert data["status"] == "success"
-    assert data["user"]["email"] == "demo@transify.ai"
-    assert data["user"]["name"] == "Sarah Ahmed"
+    assert data["user"]["email"] == email.lower()
+    assert data["user"]["name"] == "Cookie Tester"
     
     # Strict Cookie-Only Authentication: Raw token MUST NOT be in response JSON
     assert "token" not in data
@@ -60,8 +61,12 @@ def test_demo_login_cookie_only(client):
 
 def test_login_invalid_password(client):
     """Verifies login rejects incorrect password with HTTP 401 Unauthorized."""
+    email = f"invalid_pwd_{int(time.time()*1000)}@test.com"
+    pwd = "CorrectPassword123!_2026"
+    create_user("Invalid Pwd Tester", email, pwd)
+
     res = client.post("/api/auth/login", json={
-        "email": "demo@transify.ai",
+        "email": email,
         "password": "wrong_password_123"
     })
     assert res.status_code == 401
@@ -121,9 +126,13 @@ def test_registration_password_length_enforcement(client):
 
 def test_database_stores_session_hash_not_raw_token(client):
     """Verifies SQLite user_sessions table stores SHA-256 hash, never the raw token."""
+    email = f"hash_test_{int(time.time()*1000)}@test.com"
+    pwd = "HashTestPassword123!_2026"
+    create_user("Hash Tester", email, pwd)
+
     login_res = client.post("/api/auth/login", json={
-        "email": "demo@transify.ai",
-        "password": "transify2026"
+        "email": email,
+        "password": pwd
     })
     assert login_res.status_code == 200
     raw_token = client.cookies.get("transify_session")
@@ -197,9 +206,13 @@ def test_session_verification_and_logout(client):
     assert unauth_res.json()["authenticated"] is False
 
     # 2. Login to obtain session cookie
+    email = f"session_test_{int(time.time()*1000)}@test.com"
+    pwd = "SessionTestPassword123!_2026"
+    create_user("Session Tester", email, pwd)
+
     login_res = client.post("/api/auth/login", json={
-        "email": "demo@transify.ai",
-        "password": "transify2026"
+        "email": email,
+        "password": pwd
     })
     assert login_res.status_code == 200
     assert "transify_session" in client.cookies
@@ -209,7 +222,7 @@ def test_session_verification_and_logout(client):
     assert auth_res.status_code == 200
     auth_data = auth_res.json()
     assert auth_data["authenticated"] is True
-    assert auth_data["user"]["email"] == "demo@transify.ai"
+    assert auth_data["user"]["email"] == email.lower()
 
     # 4. Logout
     logout_res = client.post("/api/auth/logout")

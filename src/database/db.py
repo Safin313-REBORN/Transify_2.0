@@ -32,6 +32,14 @@ except ImportError:
     HAS_ARGON2 = False
 
 
+def is_production() -> bool:
+    """Unified check for production deployment environment."""
+    return (
+        os.getenv("RAILWAY_ENVIRONMENT") == "production"
+        or os.getenv("TRANSIFY_ENV") == "production"
+    )
+
+
 def get_connection() -> sqlite3.Connection:
     """Creates and returns a connection to the SQLite database with WAL mode and busy timeout."""
     os.makedirs(DB_DIR, exist_ok=True)
@@ -72,6 +80,16 @@ def init_db():
     seed_data_if_needed()
     conn = get_connection()
     cursor = conn.cursor()
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+        version INTEGER PRIMARY KEY,
+        applied_at TEXT NOT NULL,
+        description TEXT
+    );
+    """)
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS translation_history (
@@ -122,8 +140,18 @@ def init_db():
     );
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS login_rate_limits (
+        limit_key TEXT PRIMARY KEY,
+        attempts INTEGER NOT NULL DEFAULT 1,
+        first_attempt_at REAL NOT NULL,
+        last_attempt_at REAL NOT NULL
+    );
+    """)
+
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(session_token);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_rate_limits_key ON login_rate_limits(limit_key);")
 
     # Safe Schema Migrations for existing tables
     # 1. Add user_id column to translation_history if missing
@@ -134,12 +162,41 @@ def init_db():
         logger.info("Migrated translation_history: added user_id column.")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_history_user_id ON translation_history(user_id);")
 
-    # 2. Add user_id column to user_preferences if missing
+    # 2. Transactional Table Rebuild for user_preferences composite primary key (pref_key, user_id)
     cursor.execute("PRAGMA table_info(user_preferences);")
-    pref_cols = [r["name"] for r in cursor.fetchall()]
-    if "user_id" not in pref_cols:
-        cursor.execute("ALTER TABLE user_preferences ADD COLUMN user_id INTEGER DEFAULT 0;")
-        logger.info("Migrated user_preferences: added user_id column.")
+    pref_info = cursor.fetchall()
+    pref_cols = {r["name"]: r for r in pref_info}
+    user_id_is_pk = "user_id" in pref_cols and pref_cols["user_id"]["pk"] > 0
+
+    if not user_id_is_pk:
+        logger.info("Rebuilding user_preferences table with composite primary key (pref_key, user_id)...")
+        cursor.execute("""
+        CREATE TABLE user_preferences_migrated (
+            pref_key TEXT NOT NULL,
+            user_id INTEGER NOT NULL DEFAULT 0,
+            pref_value TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (pref_key, user_id)
+        );
+        """)
+        if "user_id" in pref_cols:
+            cursor.execute("""
+            INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
+            SELECT pref_key, COALESCE(user_id, 0), pref_value, updated_at FROM user_preferences;
+            """)
+        else:
+            cursor.execute("""
+            INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
+            SELECT pref_key, 0, pref_value, updated_at FROM user_preferences;
+            """)
+        cursor.execute("DROP TABLE user_preferences;")
+        cursor.execute("ALTER TABLE user_preferences_migrated RENAME TO user_preferences;")
+        cursor.execute("""
+        INSERT OR REPLACE INTO schema_migrations (version, applied_at, description)
+        VALUES (2, ?, 'Composite PK (pref_key, user_id) for user_preferences');
+        """, (now_iso,))
+        logger.info("Rebuilt user_preferences with composite primary key.")
+
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_prefs_user_id ON user_preferences(user_id);")
 
     # 3. Populate default preferences (user_id = 0 for system defaults)
@@ -152,30 +209,32 @@ def init_db():
         "screen_reader_optimizations": "true"
     }
 
-    now_iso = datetime.now(timezone.utc).isoformat()
     for k, v in defaults.items():
         cursor.execute("""
         INSERT OR IGNORE INTO user_preferences (pref_key, user_id, pref_value, updated_at)
         VALUES (?, 0, ?, ?);
         """, (k, v, now_iso))
 
-    # 4. Security: Revoke any old plaintext session tokens stored prior to token hashing
-    # In the old implementation, raw tokens were stored in session_token.
-    # We revoke all sessions so affected users authenticate cleanly with SHA-256 hashed sessions.
-    # Note: Only sessions are cleared; user accounts and history are 100% preserved.
-    cursor.execute("DELETE FROM user_sessions;")
+    # 4. Versioned Migration 1: Revoke legacy plaintext sessions once only
+    cursor.execute("SELECT 1 FROM schema_migrations WHERE version = 1;")
+    if not cursor.fetchone():
+        cursor.execute("DELETE FROM user_sessions;")
+        cursor.execute("""
+        INSERT INTO schema_migrations (version, applied_at, description)
+        VALUES (1, ?, 'Revoke legacy plaintext sessions prior to token hashing');
+        """, (now_iso,))
+        logger.info("Applied migration 1: revoked legacy plaintext sessions.")
+    else:
+        # On normal startup, ONLY prune expired sessions, preserving active valid sessions
+        cursor.execute("DELETE FROM user_sessions WHERE expires_at < ?;", (now_iso,))
 
-    # 5. Production Protection: DO NOT automatically seed publicly known accounts in production.
-    # Only in local development / explicit testing environments can a dev demo account exist.
-    is_prod = os.getenv("RAILWAY_ENVIRONMENT") == "production" or os.getenv("TRANSIFY_ENV") == "production"
-    if not is_prod:
-        cursor.execute("SELECT id FROM users WHERE email = 'demo@transify.ai' COLLATE NOCASE;")
-        if not cursor.fetchone():
-            demo_hash, demo_salt = hash_password("transify2026_dev_only_passphrase")
-            cursor.execute("""
-            INSERT INTO users (name, email, password_hash, salt, role, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?);
-            """, ("Demo User", "demo@transify.ai", demo_hash, demo_salt, "demo", now_iso, now_iso))
+    # 5. Production & Demo Hardening: Ensure demo account cannot authenticate
+    cursor.execute("UPDATE users SET role = 'disabled' WHERE email = 'demo@transify.ai' COLLATE NOCASE;")
+    cursor.execute("""
+    DELETE FROM user_sessions WHERE user_id IN (
+        SELECT id FROM users WHERE email = 'demo@transify.ai' COLLATE NOCASE
+    );
+    """)
 
     conn.commit()
     conn.close()
@@ -260,14 +319,30 @@ def get_history(limit: int = 50, module: Optional[str] = None, user_id: Optional
     return results
 
 
-def clear_history(user_id: Optional[int] = None) -> int:
-    """Clears translation history records strictly for the requesting authenticated user (or all if user_id is None)."""
+def count_legacy_history() -> int:
+    """Returns the total number of legacy translation history records where user_id IS NULL."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM translation_history WHERE user_id IS NULL;")
+    count = cursor.fetchone()[0]
+    conn.close()
+    return count
+
+
+def clear_history(user_id: Optional[int] = None, preserve_legacy: bool = True) -> int:
+    """
+    Clears translation history records strictly for the requesting authenticated user (or all if user_id is None).
+    Preserves legacy rows where user_id IS NULL unless preserve_legacy is explicitly False.
+    """
     conn = get_connection()
     cursor = conn.cursor()
     if user_id is not None:
         cursor.execute("DELETE FROM translation_history WHERE user_id = ?;", (user_id,))
     else:
-        cursor.execute("DELETE FROM translation_history;")
+        if preserve_legacy:
+            cursor.execute("DELETE FROM translation_history WHERE user_id IS NOT NULL;")
+        else:
+            cursor.execute("DELETE FROM translation_history;")
     deleted = cursor.rowcount
     conn.commit()
     conn.close()
@@ -331,17 +406,17 @@ def get_preferences(user_id: Optional[int] = None) -> Dict[str, str]:
 
 
 def update_preference(key: str, value: str, user_id: Optional[int] = None) -> bool:
-    """Updates a preference for the user (or default user_id=0)."""
+    """Updates a preference for the user (or default user_id=0) using atomic UPSERT on composite PK."""
     uid = user_id if user_id is not None else 0
     conn = get_connection()
     cursor = conn.cursor()
     now_iso = datetime.now(timezone.utc).isoformat()
     try:
-        cursor.execute("SELECT 1 FROM user_preferences WHERE pref_key = ? AND (user_id = ? OR (user_id IS NULL AND ? = 0));", (key, uid, uid))
-        if cursor.fetchone():
-            cursor.execute("UPDATE user_preferences SET pref_value = ?, updated_at = ? WHERE pref_key = ? AND (user_id = ? OR (user_id IS NULL AND ? = 0));", (str(value), now_iso, key, uid, uid))
-        else:
-            cursor.execute("INSERT OR REPLACE INTO user_preferences (pref_key, user_id, pref_value, updated_at) VALUES (?, ?, ?, ?);", (key, uid, str(value), now_iso))
+        cursor.execute("""
+        INSERT INTO user_preferences (pref_key, user_id, pref_value, updated_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(pref_key, user_id) DO UPDATE SET pref_value = excluded.pref_value, updated_at = excluded.updated_at;
+        """, (key, uid, str(value), now_iso))
         conn.commit()
     finally:
         conn.close()
@@ -469,6 +544,10 @@ def authenticate_user(email: str, password: str) -> Optional[Dict[str, Any]]:
     row = cursor.fetchone()
 
     if not row:
+        conn.close()
+        return None
+
+    if row["role"] == "disabled" or (row["email"].lower() == "demo@transify.ai" and is_production()):
         conn.close()
         return None
 
@@ -623,6 +702,83 @@ def revoke_all_sessions(user_id: Optional[int] = None) -> int:
     conn.commit()
     conn.close()
     return deleted
+
+
+# --- Persistent SQLite-Backed Login Rate Limiting ---
+
+def record_failed_login(key: str, window_seconds: float = 300.0) -> int:
+    """
+    Atomically records a failed login attempt for a key (IP or normalized email).
+    Returns the current number of failed attempts within the active window.
+    Survives application restarts and functions identically across multiple worker processes.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now(timezone.utc).timestamp()
+    
+    try:
+        cursor.execute("SELECT attempts, first_attempt_at FROM login_rate_limits WHERE limit_key = ?;", (key,))
+        row = cursor.fetchone()
+        if not row:
+            cursor.execute("""
+            INSERT INTO login_rate_limits (limit_key, attempts, first_attempt_at, last_attempt_at)
+            VALUES (?, 1, ?, ?);
+            """, (key, now, now))
+            attempts = 1
+        else:
+            first_at = row["first_attempt_at"]
+            if (now - first_at) >= window_seconds:
+                cursor.execute("""
+                UPDATE login_rate_limits 
+                SET attempts = 1, first_attempt_at = ?, last_attempt_at = ?
+                WHERE limit_key = ?;
+                """, (now, now, key))
+                attempts = 1
+            else:
+                attempts = row["attempts"] + 1
+                cursor.execute("""
+                UPDATE login_rate_limits 
+                SET attempts = ?, last_attempt_at = ?
+                WHERE limit_key = ?;
+                """, (attempts, now, key))
+        conn.commit()
+    finally:
+        conn.close()
+    return attempts
+
+
+def is_login_rate_limited(key: str, max_attempts: int = 5, window_seconds: float = 300.0) -> bool:
+    """
+    Checks if a key (IP or normalized email) currently exceeds the maximum allowed failed attempts.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now(timezone.utc).timestamp()
+    try:
+        cursor.execute("SELECT attempts, first_attempt_at FROM login_rate_limits WHERE limit_key = ?;", (key,))
+        row = cursor.fetchone()
+        if not row:
+            return False
+        if (now - row["first_attempt_at"]) >= window_seconds:
+            return False
+        return row["attempts"] >= max_attempts
+    finally:
+        conn.close()
+
+
+def clear_failed_logins(key: str, email: Optional[str] = None):
+    """
+    Clears failed login attempts for a key (and optional email) upon successful authentication.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM login_rate_limits WHERE limit_key = ?;", (key,))
+        if email:
+            cursor.execute("DELETE FROM login_rate_limits WHERE limit_key = ?;", (f"email:{email.lower()}",))
+        conn.commit()
+    finally:
+        conn.close()
 
 
 # Initialize database automatically on module import

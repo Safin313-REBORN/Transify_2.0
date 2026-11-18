@@ -11,6 +11,7 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 from src.api.server import app
+from src.database.db import create_user
 
 def get_free_port():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -51,6 +52,13 @@ def browser_instance():
         )
         yield browser
         browser.close()
+
+@pytest.fixture(scope="module")
+def browser_test_user():
+    email = f"browser_e2e_{int(time.time()*1000)}@transify.test"
+    pwd = "BrowserE2EPassword123!_2026"
+    create_user("Browser Tester", email, pwd)
+    return {"email": email, "password": pwd}
 
 def test_welcome_screen_renders_without_errors(live_server, browser_instance):
     """Verifies welcome card and hotspots render cleanly on desktop."""
@@ -123,17 +131,17 @@ def test_early_interaction_before_app_js(live_server, browser_instance):
     
     page.close()
 
-def test_real_login_flow(live_server, browser_instance):
-    """Verifies genuine login with demo credentials authenticates, sets session, and opens dashboard."""
+def test_real_login_flow(live_server, browser_instance, browser_test_user):
+    """Verifies genuine login authenticates, sets session, and opens dashboard."""
     page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     # Open Login sheet
     page.click("#btn-open-login")
     
-    # Fill demo credentials
-    page.fill("#input-email", "demo@transify.ai")
-    page.fill("#input-password", "transify2026")
+    # Fill user credentials
+    page.fill("#input-email", browser_test_user["email"])
+    page.fill("#input-password", browser_test_user["password"])
     page.click("#auth-submit-btn")
     
     # Wait for auth screen to close
@@ -145,7 +153,7 @@ def test_real_login_flow(live_server, browser_instance):
     guest_mode = page.evaluate("() => localStorage.getItem('transify_guest_mode')")
     
     assert user_data is not None
-    assert "demo@transify.ai" in user_data
+    assert browser_test_user["email"] in user_data
     assert session_token is None
     assert guest_mode is None
 
@@ -218,15 +226,15 @@ def test_guest_mode_flow(live_server, browser_instance):
     assert page.evaluate("() => localStorage.getItem('transify_session_token')") is None
     page.close()
 
-def test_session_persistence_on_reload(live_server, browser_instance):
+def test_session_persistence_on_reload(live_server, browser_instance, browser_test_user):
     """Verifies that an active session persists on reload without re-prompting login."""
     page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     # Login
     page.click("#btn-open-login")
-    page.fill("#input-email", "demo@transify.ai")
-    page.fill("#input-password", "transify2026")
+    page.fill("#input-email", browser_test_user["email"])
+    page.fill("#input-password", browser_test_user["password"])
     page.click("#auth-submit-btn")
     page.wait_for_selector("#transify-auth-screen", state="hidden", timeout=5000)
     
@@ -253,7 +261,7 @@ def test_responsive_mobile_viewport(live_server, browser_instance):
     assert "active" in sheet.get_attribute("class")
     page.close()
 
-def test_login_html_standalone_page(live_server, browser_instance):
+def test_login_html_standalone_page(live_server, browser_instance, browser_test_user):
     """Verifies standalone /login page operates with the same robust database authentication."""
     page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
     page.goto(f"{live_server}/login")
@@ -262,8 +270,8 @@ def test_login_html_standalone_page(live_server, browser_instance):
     assert card.is_visible()
     
     page.click("#btn-open-login")
-    page.fill("#input-email", "demo@transify.ai")
-    page.fill("#input-password", "transify2026")
+    page.fill("#input-email", browser_test_user["email"])
+    page.fill("#input-password", browser_test_user["password"])
     page.click("#auth-submit-btn")
     
     # Verify redirection to /?auth_completed=1

@@ -185,8 +185,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   },
 
   handleDirectLogin() {
-    this.showAuthAlert('Logging in as Verified Demo account...', true);
-    this.handleAuthSubmit(null, 'demo@transify.ai', 'transify2026', 'login');
+    this.handleDemoLogin();
   },
 
   async handleDemoLogin() {
