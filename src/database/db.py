@@ -34,20 +34,47 @@ except ImportError:
 
 def is_production() -> bool:
     """
-    Unified check for production deployment environment.
+    Fail-safe check for production deployment environment.
     Evaluates RAILWAY_ENVIRONMENT, TRANSIFY_ENV, and ENVIRONMENT.
-    Normalizes values using lowercase and whitespace trimming.
-    Explicitly ensures that testing and local development environments are never treated as production.
+    Normalizes values using whitespace trimming and lowercase conversion.
+
+    Precedence & Safety Rules:
+    1. If any authoritative variable explicitly indicates production, production mode is enabled.
+    2. RAILWAY_ENVIRONMENT=production must never be overridden by TRANSIFY_ENV=testing.
+    3. If production and development indicators conflict, fail closed by enforcing production
+       security settings and logging a prominent configuration warning.
+    4. If no production indicator exists and the environment explicitly identifies testing/development,
+       returns False so that local and CI testing function normally.
+    5. Returns False if all environment variables are unset.
     """
-    for var in ("TRANSIFY_ENV", "ENVIRONMENT", "RAILWAY_ENVIRONMENT"):
-        val = (os.getenv(var) or "").strip().lower()
-        if val in ("test", "testing", "development", "dev", "local", "staging"):
-            return False
+    prod_indicators = []
+    dev_indicators = []
 
     for var in ("RAILWAY_ENVIRONMENT", "TRANSIFY_ENV", "ENVIRONMENT"):
-        val = (os.getenv(var) or "").strip().lower()
-        if val == "production":
-            return True
+        raw = os.getenv(var)
+        if raw is None:
+            continue
+        val = raw.strip().lower()
+        if not val:
+            continue
+        if val in ("production", "prod"):
+            prod_indicators.append((var, val))
+        elif val in ("test", "testing", "development", "dev", "local", "staging"):
+            dev_indicators.append((var, val))
+
+    # Any authoritative production indicator triggers production mode (fail closed on conflict)
+    if prod_indicators:
+        if dev_indicators:
+            logger.warning(
+                f"[SECURITY FAIL-CLOSED] Conflicting environment variables detected! "
+                f"Production indicators: {prod_indicators}; Development indicators: {dev_indicators}. "
+                f"Enforcing strict production security settings."
+            )
+        return True
+
+    # If no production indicator exists, testing/dev indicators return False
+    if dev_indicators:
+        return False
 
     return False
 
@@ -731,7 +758,13 @@ def record_failed_login(key: str, window_seconds: float = 300.0) -> int:
     Atomically records a failed login attempt for a key (IP or normalized email).
     Uses SQLite BEGIN IMMEDIATE transaction with WAL mode and busy timeout
     to guarantee atomic increments without lost updates under high concurrency.
-    Returns the current number of failed attempts within the active sliding window.
+
+    Rate Limiting Policy:
+    Fixed-window policy of 5 failed attempts within 300 seconds (5 minutes)
+    anchored at `first_attempt_at`. Once `now - first_attempt_at >= window_seconds`,
+    the attempt counter automatically resets to 1.
+
+    Returns the current number of failed attempts within the active fixed window.
     """
     conn = get_connection()
     now = datetime.now(timezone.utc).timestamp()
@@ -780,6 +813,8 @@ def record_failed_login(key: str, window_seconds: float = 300.0) -> int:
 def is_login_rate_limited(key: str, max_attempts: int = 5, window_seconds: float = 300.0) -> bool:
     """
     Checks if a key (IP or normalized email) currently exceeds the maximum allowed failed attempts.
+    Evaluates against the fixed window of `window_seconds` (default 300s / 5 minutes)
+    anchored at `first_attempt_at`. Returns True if attempts >= max_attempts within the window.
     """
     conn = get_connection()
     cursor = conn.cursor()

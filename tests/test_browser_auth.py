@@ -3,6 +3,7 @@ Playwright End-to-End Browser Tests for Transify 2.0 Authentication & Welcome Sc
 Tests real browser interaction, image fallback resilience, guest mode,
 database authentication, validation, session persistence, and responsive viewports.
 """
+import os
 import socket
 import threading
 import time
@@ -45,11 +46,30 @@ def live_server():
 @pytest.fixture(scope="module")
 def browser_instance():
     with sync_playwright() as p:
-        browser = p.chromium.launch(
-            executable_path="/usr/bin/google-chrome",
-            headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage"]
-        )
+        launch_args = ["--no-sandbox", "--disable-dev-shm-usage"]
+        executable = None
+        for candidate in ["/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser"]:
+            if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+                executable = candidate
+                break
+        
+        try:
+            if executable:
+                browser = p.chromium.launch(
+                    executable_path=executable,
+                    headless=True,
+                    args=launch_args
+                )
+            else:
+                browser = p.chromium.launch(
+                    headless=True,
+                    args=launch_args
+                )
+        except Exception:
+            browser = p.chromium.launch(
+                headless=True,
+                args=launch_args
+            )
         yield browser
         browser.close()
 

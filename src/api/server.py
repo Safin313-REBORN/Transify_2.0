@@ -76,31 +76,63 @@ from urllib.parse import urlparse
 # Configure secure CORS: Allow production origin in production; loopback in development
 is_prod = is_production()
 
-def normalize_origin(url_str: Optional[str]) -> Optional[str]:
+def normalize_origin(url_str: Optional[str], is_origin_header: bool = False) -> Optional[str]:
     """
-    Parses and normalizes an Origin or Referer URL to 'scheme://hostname[:port]'.
+    Parses and normalizes an Origin or Referer URL to canonical 'scheme://hostname[:port]'.
     Normalizes default ports (http: 80, https: 443 -> omitted).
-    Returns None if empty, malformed, or missing required scheme/host.
+    Safely formats IPv6 addresses as [::1].
+
+    Strict Validation Rules:
+    1. Returns 'null' for literal 'null' string (caller rejects explicitly).
+    2. Rejects user information (user@host or user:pass@host).
+    3. Rejects non-HTTP / non-HTTPS schemes.
+    4. Rejects malformed ports and port numbers outside 1..65535.
+    5. For Origin headers (is_origin_header=True): rejects any paths, query strings, or fragments.
+    6. For Referer headers (is_origin_header=False): extracts origin while safely ignoring path/query/fragment.
+    7. Returns None for empty, malformed, or invalid authorities.
     """
     if not url_str or not isinstance(url_str, str):
         return None
     url_str = url_str.strip()
     if url_str.lower() == "null":
         return "null"
+
     try:
         parsed = urlparse(url_str)
         scheme = (parsed.scheme or "").lower()
         if scheme not in ("http", "https"):
             return None
-        hostname = (parsed.hostname or "").lower()
+
+        # 1. Reject credentials/userinfo in authority
+        if parsed.username is not None or parsed.password is not None or "@" in (parsed.netloc or ""):
+            return None
+
+        # 2. Strict Origin Header validation: Origin must not have path, query, or fragment
+        if is_origin_header:
+            if parsed.path not in ("", "/") or parsed.query or parsed.fragment:
+                return None
+
+        hostname = (parsed.hostname or "").lower().strip()
         if not hostname:
             return None
-        port = parsed.port
+
+        # 3. Validate port range if port is present
+        port = None
+        if parsed.port is not None:
+            if not (1 <= parsed.port <= 65535):
+                return None
+            port = parsed.port
+
+        # Normalize default ports
         if (scheme == "http" and port == 80) or (scheme == "https" and port == 443):
             port = None
+
+        # 4. Safe IPv6 host formatting
+        host_repr = f"[{hostname}]" if ":" in hostname and not hostname.startswith("[") else hostname
+
         if port is not None:
-            return f"{scheme}://{hostname}:{port}"
-        return f"{scheme}://{hostname}"
+            return f"{scheme}://{host_repr}:{port}"
+        return f"{scheme}://{host_repr}"
     except Exception:
         return None
 
@@ -116,9 +148,21 @@ def get_trusted_origins(is_production_mode: bool) -> set[str]:
     custom_origins = os.getenv("TRANSIFY_ALLOWED_ORIGINS", os.getenv("ALLOWED_ORIGINS", ""))
     if custom_origins:
         for domain in custom_origins.split(","):
-            norm = normalize_origin(domain.strip())
+            raw_domain = domain.strip()
+            if not raw_domain:
+                continue
+            norm = normalize_origin(raw_domain, is_origin_header=True)
             if norm and norm != "null":
-                trusted.add(norm)
+                # In production mode, custom origins must be strict HTTPS
+                if is_production_mode:
+                    if norm.startswith("https://"):
+                        trusted.add(norm)
+                    else:
+                        logger.warning(
+                            f"[SECURITY] Disallowed non-HTTPS custom origin in production mode: {raw_domain}"
+                        )
+                else:
+                    trusted.add(norm)
 
     if not is_production_mode:
         dev_origins = [
@@ -134,9 +178,11 @@ def get_trusted_origins(is_production_mode: bool) -> set[str]:
             "https://testserver",
             "http://localhost",
             "http://127.0.0.1",
+            "http://[::1]:8000",
+            "http://[::1]",
         ]
         for dev in dev_origins:
-            norm = normalize_origin(dev)
+            norm = normalize_origin(dev, is_origin_header=True)
             if norm:
                 trusted.add(norm)
 
@@ -284,13 +330,13 @@ async def csrf_and_origin_protection_middleware(request: Request, call_next):
                 return True
             if not current_prod:
                 parsed = urlparse(normalized)
-                if parsed.hostname in ("localhost", "127.0.0.1", "0.0.0.0", "testserver"):
+                if parsed.hostname in ("localhost", "127.0.0.1", "0.0.0.0", "testserver", "::1"):
                     return True
             return False
 
         # 2. If Origin header is present, validate exact normalized origin
         if origin_header is not None:
-            norm_origin = normalize_origin(origin_header)
+            norm_origin = normalize_origin(origin_header, is_origin_header=True)
             if not is_origin_allowed(norm_origin):
                 logger.warning(f"Blocked cross-origin CSRF attempt with invalid origin: {origin_header}")
                 return JSONResponse(
@@ -299,7 +345,7 @@ async def csrf_and_origin_protection_middleware(request: Request, call_next):
                 )
         # 3. If Origin is absent, validate Referer if present
         elif referer_header is not None:
-            norm_referer = normalize_origin(referer_header)
+            norm_referer = normalize_origin(referer_header, is_origin_header=False)
             if not is_origin_allowed(norm_referer):
                 logger.warning(f"Blocked cross-origin CSRF attempt with invalid referer: {referer_header}")
                 return JSONResponse(
@@ -327,7 +373,7 @@ async def csrf_and_origin_protection_middleware(request: Request, call_next):
             elif not enforce_strict:
                 host = request.headers.get("host")
                 host_norm = f"http://{host}" if host else None
-                norm_h = normalize_origin(host_norm) if host_norm else None
+                norm_h = normalize_origin(host_norm, is_origin_header=False) if host_norm else None
                 if not is_origin_allowed(norm_h):
                     return JSONResponse(
                         status_code=403,
