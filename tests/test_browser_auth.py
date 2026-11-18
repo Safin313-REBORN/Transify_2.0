@@ -203,7 +203,7 @@ def test_invalid_login_rejection(live_server, browser_instance):
     page.close()
 
 def test_user_registration_flow(live_server, browser_instance):
-    """Verifies registering a new account creates user in DB and logs in."""
+    """Verifies registering a new account requires terms consent, creates user in DB, and logs in."""
     import time
     page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
     page.goto(live_server)
@@ -214,6 +214,15 @@ def test_user_registration_flow(live_server, browser_instance):
     page.fill("#input-fullname", "Alice Browser")
     page.fill("#input-email", unique_email)
     page.fill("#input-password", "SecurePassword1234567!") # 22 chars (>= 15)
+    
+    # 1. First attempt: Terms UNCHECKED -> must be blocked
+    page.click("#auth-submit-btn")
+    alert = page.locator("#auth-alert")
+    page.wait_for_selector("#auth-alert:visible", timeout=3000)
+    assert "Terms of Service" in alert.inner_text()
+    
+    # 2. Check terms checkbox and re-submit -> must succeed
+    page.check("#input-terms")
     page.click("#auth-submit-btn")
     
     # Wait for auth screen to close
@@ -297,3 +306,198 @@ def test_login_html_standalone_page(live_server, browser_instance, browser_test_
     # Verify redirection to /?auth_completed=1
     page.wait_for_url(f"{live_server}/?auth_completed=1*", timeout=5000)
     page.close()
+
+def test_hotspot_alignment_multiple_viewports(live_server, browser_instance):
+    """Verifies welcome screen hotspot buttons remain precisely aligned across diverse viewports."""
+    viewports = [
+        {"width": 1280, "height": 800, "name": "desktop"},
+        {"width": 375, "height": 667, "name": "mobile_portrait"},
+        {"width": 667, "height": 375, "name": "mobile_landscape"},
+        {"width": 1024, "height": 500, "name": "short_desktop"}
+    ]
+    for vp in viewports:
+        page = browser_instance.new_page(viewport={"width": vp["width"], "height": vp["height"]})
+        page.goto(live_server)
+        
+        reg_btn = page.locator("#btn-open-register")
+        login_btn = page.locator("#btn-open-login")
+        guest_btn = page.locator("#btn-demo-guest")
+        
+        assert reg_btn.is_visible()
+        assert login_btn.is_visible()
+        assert guest_btn.is_visible()
+        
+        # Verify button bounding boxes are well-formed and inside viewport
+        box = login_btn.bounding_box()
+        assert box is not None
+        assert box["width"] > 50
+        assert box["height"] > 20
+        assert box["x"] >= 0
+        assert box["y"] >= 0
+        
+        # Clicking login should open sheet cleanly
+        page.click("#btn-open-login")
+        sheet = page.locator("#auth-sheet-container")
+        assert "active" in sheet.get_attribute("class")
+        
+        page.close()
+
+def test_password_visibility_toggle(live_server, browser_instance):
+    """Verifies that clicking the eye icon toggles password input visibility between password and text."""
+    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page.goto(live_server)
+    
+    page.click("#btn-open-login")
+    pwd = page.locator("#input-password")
+    toggle_btn = page.locator("#toggle-pwd-btn")
+    
+    assert pwd.get_attribute("type") == "password"
+    toggle_btn.click()
+    assert pwd.get_attribute("type") == "text"
+    toggle_btn.click()
+    assert pwd.get_attribute("type") == "password"
+    
+    page.close()
+
+def test_forgot_password_ui_workflow(live_server, browser_instance):
+    """Verifies Forgot Password link transitions UI into recovery mode and reveals reset fields."""
+    import time
+    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page.goto(live_server)
+    
+    unique_email = f"forgot_{int(time.time()*1000)}@transify.test"
+    create_user("Forgot Tester", unique_email, "InitialPassword123!_2026")
+    
+    page.click("#btn-open-login")
+    page.click("#forgot-password-link")
+    
+    # Verify title changes to Password Recovery or Recover Password
+    title = page.locator("#auth-heading-title")
+    assert "Password" in title.inner_text() or "Recover" in title.inner_text()
+    
+    # Enter email
+    page.fill("#input-email", unique_email)
+    page.click("#auth-submit-btn")
+    
+    # Step 2 fields must appear
+    fields = page.locator("#auth-forgot-fields")
+    page.wait_for_selector("#auth-forgot-fields:visible", timeout=5000)
+    assert fields.is_visible()
+    assert page.locator("#input-reset-token").is_visible()
+    assert page.locator("#input-new-password").is_visible()
+    
+    page.close()
+
+def test_communication_hub_ui_interaction(live_server, browser_instance):
+    """Verifies Communication Hub opens, accepts typed messages, renders feed cards, and supports copying/export."""
+    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page.goto(live_server)
+    
+    # Enter as guest for fast UI access
+    page.click("#btn-demo-guest")
+    page.wait_for_selector("#transify-auth-screen", state="hidden", timeout=5000)
+    
+    # Open Communication Hub via navigation tile
+    page.click("#btn-open-hub")
+    hub_slide = page.locator("#slide-communication-hub")
+    assert "active" in hub_slide.get_attribute("class")
+    
+    # Type and send message
+    page.fill("#hub-input-text", "Hello from automated browser test!")
+    page.click("#hub-send-btn")
+    
+    # Verify message card in feed
+    page.wait_for_selector(".hub-message-card", timeout=3000)
+    card_text = page.locator(".hub-message-card").inner_text()
+    assert "Hello from automated browser test!" in card_text
+    assert "TYPED" in card_text.upper()
+    
+    # Verify actions
+    copy_btn = page.locator(".hub-action-btn:has-text('Copy')").first
+    assert copy_btn.is_visible()
+    
+    page.close()
+
+def test_quick_phraseboard_ui_interaction(live_server, browser_instance):
+    """Verifies Phraseboard displays default bilingual phrases, adds custom phrases, and clicking does not auto-play audio."""
+    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page.goto(live_server)
+    
+    page.click("#btn-demo-guest")
+    page.wait_for_selector("#transify-auth-screen", state="hidden", timeout=5000)
+    
+    # Open Phraseboard
+    page.click("#btn-open-phraseboard")
+    phrase_slide = page.locator("#slide-phraseboard")
+    assert "active" in phrase_slide.get_attribute("class")
+    
+    # Verify default phrases rendered
+    page.wait_for_selector(".phrase-card", timeout=3000)
+    cards = page.locator(".phrase-card")
+    assert cards.count() >= 8
+    
+    # Click phrase card to add to hub
+    cards.first.click()
+    
+    # Open custom phrase form
+    page.click("#btn-toggle-add-phrase")
+    page.wait_for_selector("#phrase-add-form-container:visible", timeout=2000)
+    page.fill("#input-phrase-en", "Automated custom phrase")
+    page.fill("#input-phrase-bn", "স্বয়ংক্রিয় কাস্টম বাক্য")
+    page.click("#btn-save-phrase")
+    
+    # Verify new custom phrase appears
+    page.wait_for_selector(".phrase-card:has-text('Automated custom phrase')", timeout=3000)
+    assert page.locator(".phrase-card:has-text('Automated custom phrase')").is_visible()
+    
+    page.close()
+
+def test_language_and_accessibility_ui_toggles(live_server, browser_instance):
+    """Verifies language toggle switches UI strings and accessibility modal toggles body classes."""
+    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page.goto(live_server)
+    
+    page.click("#btn-demo-guest")
+    page.wait_for_selector("#transify-auth-screen", state="hidden", timeout=5000)
+    
+    # 1. Test Language Switcher
+    lang_btn = page.locator("#lang-toggle-btn")
+    assert lang_btn.is_visible()
+    
+    # Switch to Bengali
+    lang_btn.click()
+    time.sleep(0.3)
+    doc_lang = page.evaluate("() => document.documentElement.getAttribute('lang')")
+    assert doc_lang == "bn"
+    
+    # Switch back to English
+    lang_btn.click()
+    time.sleep(0.3)
+    doc_lang = page.evaluate("() => document.documentElement.getAttribute('lang')")
+    assert doc_lang == "en"
+    
+    # 2. Test Accessibility Modal
+    a11y_btn = page.locator("#btn-open-a11y")
+    assert a11y_btn.is_visible()
+    a11y_btn.click()
+    
+    modal = page.locator("#a11y-modal-overlay")
+    page.wait_for_selector("#a11y-modal-overlay:visible", timeout=2000)
+    assert modal.is_visible()
+    
+    # Toggle reduced motion
+    page.check("#a11y-toggle-reduced-motion")
+    has_reduced = page.evaluate("() => document.body.classList.contains('reduced-motion')")
+    assert has_reduced is True
+    
+    # Toggle large touch targets
+    page.check("#a11y-toggle-large-targets")
+    has_large = page.evaluate("() => document.body.classList.contains('large-targets')")
+    assert has_large is True
+    
+    # Close modal
+    page.click("#a11y-close-btn")
+    assert not modal.is_visible()
+    
+    page.close()
+

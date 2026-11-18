@@ -275,7 +275,104 @@ def init_db():
         # On normal startup, ONLY prune expired sessions, preserving active valid sessions
         cursor.execute("DELETE FROM user_sessions WHERE expires_at < ?;", (now_iso,))
 
-    # 5. Production & Demo Hardening: Ensure demo account cannot authenticate
+    # 5. Versioned Migrations 3 to 7: Hardened tables and columns
+    # Migration 3: Add consent_terms & consented_at to users
+    cursor.execute("PRAGMA table_info(users);")
+    user_cols = [r["name"] for r in cursor.fetchall()]
+    if "consent_terms" not in user_cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN consent_terms INTEGER DEFAULT 0;")
+        logger.info("Migrated users: added consent_terms column.")
+    if "consented_at" not in user_cols:
+        cursor.execute("ALTER TABLE users ADD COLUMN consented_at REAL DEFAULT NULL;")
+        logger.info("Migrated users: added consented_at column.")
+    cursor.execute("""
+    INSERT OR IGNORE INTO schema_migrations (version, applied_at, description)
+    VALUES (3, ?, 'Add consent_terms and consented_at columns to users table');
+    """, (now_iso,))
+
+    # Migration 4: password_reset_tokens table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        token_hash TEXT NOT NULL UNIQUE,
+        expires_at REAL NOT NULL,
+        used_at REAL DEFAULT NULL,
+        created_at REAL NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_reset_token_hash ON password_reset_tokens(token_hash);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_reset_user_id ON password_reset_tokens(user_id);")
+    cursor.execute("""
+    INSERT OR IGNORE INTO schema_migrations (version, applied_at, description)
+    VALUES (4, ?, 'Create password_reset_tokens table');
+    """, (now_iso,))
+
+    # Migration 5: Communication Hub tables
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS hub_conversations (
+        id TEXT PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        created_at REAL NOT NULL,
+        updated_at REAL NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS hub_messages (
+        id TEXT PRIMARY KEY,
+        conversation_id TEXT NOT NULL,
+        user_id INTEGER NOT NULL,
+        source TEXT NOT NULL,
+        content TEXT NOT NULL,
+        timestamp REAL NOT NULL,
+        FOREIGN KEY(conversation_id) REFERENCES hub_conversations(id) ON DELETE CASCADE
+    );
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_hub_conv_user ON hub_conversations(user_id);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_hub_msg_conv ON hub_messages(conversation_id);")
+    cursor.execute("""
+    INSERT OR IGNORE INTO schema_migrations (version, applied_at, description)
+    VALUES (5, ?, 'Create hub_conversations and hub_messages tables');
+    """, (now_iso,))
+
+    # Migration 6: Phraseboard user_phrases table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_phrases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        text_en TEXT NOT NULL,
+        text_bn TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'General',
+        is_favorite INTEGER NOT NULL DEFAULT 0,
+        created_at REAL NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_phrases_user ON user_phrases(user_id);")
+    cursor.execute("""
+    INSERT OR IGNORE INTO schema_migrations (version, applied_at, description)
+    VALUES (6, ?, 'Create user_phrases table for Phraseboard');
+    """, (now_iso,))
+
+    # Migration 7: Translation history is_favorite column
+    cursor.execute("PRAGMA table_info(translation_history);")
+    hist_cols = [r["name"] for r in cursor.fetchall()]
+    if "is_favorite" not in hist_cols:
+        cursor.execute("ALTER TABLE translation_history ADD COLUMN is_favorite INTEGER DEFAULT 0;")
+        logger.info("Migrated translation_history: added is_favorite column.")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_history_favorite ON translation_history(is_favorite);")
+    cursor.execute("""
+    INSERT OR IGNORE INTO schema_migrations (version, applied_at, description)
+    VALUES (7, ?, 'Add is_favorite column to translation_history');
+    """, (now_iso,))
+
+    # Strictly enforce: audio must never play automatically across any session/preference
+    cursor.execute("UPDATE user_preferences SET pref_value = 'false' WHERE pref_key IN ('tts_auto_play', 'auto_speech');")
+
+    # 6. Production & Demo Hardening: Ensure demo account cannot authenticate
     cursor.execute("UPDATE users SET role = 'disabled' WHERE email = 'demo@transify.ai' COLLATE NOCASE;")
     cursor.execute("""
     DELETE FROM user_sessions WHERE user_id IN (
@@ -319,9 +416,17 @@ def log_translation(
     return record_id
 
 
-def get_history(limit: int = 50, module: Optional[str] = None, user_id: Optional[int] = None) -> List[Dict[str, Any]]:
+def get_history(
+    limit: int = 50,
+    module: Optional[str] = None,
+    user_id: Optional[int] = None,
+    search: Optional[str] = None,
+    date_filter: Optional[str] = None,
+    favorites_only: bool = False
+) -> List[Dict[str, Any]]:
     """
-    Retrieves recent translation history records.
+    Retrieves recent translation history records with optional search, module,
+    date, and favorites filtering.
     If user_id is provided, only that user's records are returned.
     If user_id is None, retrieves records matching module/limit (for internal/admin queries).
     """
@@ -335,9 +440,27 @@ def get_history(limit: int = 50, module: Optional[str] = None, user_id: Optional
         conditions.append("user_id = ?")
         params.append(user_id)
 
-    if module:
-        conditions.append("module = ?")
-        params.append(module)
+    if module and module.lower() not in ("all", ""):
+        conditions.append("LOWER(module) = ?")
+        params.append(module.lower())
+
+    if search and search.strip():
+        conditions.append("recognized_text LIKE ?")
+        params.append(f"%{search.strip()}%")
+
+    if favorites_only:
+        conditions.append("is_favorite = 1")
+
+    if date_filter == "today":
+        # Records created within last 24 hours
+        yesterday_iso = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+        conditions.append("created_at >= ?")
+        params.append(yesterday_iso)
+    elif date_filter == "week":
+        # Records created within last 7 days
+        week_ago_iso = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        conditions.append("created_at >= ?")
+        params.append(week_ago_iso)
 
     where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
     query = f"SELECT * FROM translation_history {where_clause} ORDER BY id DESC LIMIT ?;"
@@ -359,11 +482,30 @@ def get_history(limit: int = 50, module: Optional[str] = None, user_id: Optional
             "diagnostics": json.loads(r["diagnostics"]) if r["diagnostics"] else {},
             "feedback_rating": r["feedback_rating"],
             "feedback_comments": r["feedback_comments"],
+            "is_favorite": bool(r["is_favorite"]) if "is_favorite" in r.keys() else False,
             "created_at": r["created_at"]
         })
 
     conn.close()
     return results
+
+
+def toggle_history_favorite(record_id: int, user_id: int) -> Optional[bool]:
+    """Toggles the favorite flag on a user's translation history record."""
+    if not record_id or not user_id:
+        return None
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT is_favorite FROM translation_history WHERE id = ? AND user_id = ?;", (record_id, user_id))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return None
+    new_fav = 0 if row["is_favorite"] else 1
+    cursor.execute("UPDATE translation_history SET is_favorite = ? WHERE id = ? AND user_id = ?;", (new_fav, record_id, user_id))
+    conn.commit()
+    conn.close()
+    return bool(new_fav)
 
 
 def count_legacy_history() -> int:
@@ -525,10 +667,11 @@ def verify_password(password: str, password_hash: str, salt: str) -> bool:
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
 
-def create_user(name: str, email: str, password: str, role: str = "user") -> Dict[str, Any]:
+def create_user(name: str, email: str, password: str, role: str = "user", consent_terms: bool = True) -> Dict[str, Any]:
     """
     Validates and registers a new user in the SQLite database with securely hashed credentials.
     Enforces a minimum password length of 15 characters without arbitrary character-composition rules.
+    Requires explicit consent to Terms of Service and Privacy Policy.
     Raises ValueError on invalid input or duplicate email.
     """
     name = (name or "").strip()
@@ -541,6 +684,8 @@ def create_user(name: str, email: str, password: str, role: str = "user") -> Dic
         raise ValueError("A valid email address is required.")
     if not password or len(password) < 15:
         raise ValueError("Password must be at least 15 characters long.")
+    if not consent_terms:
+        raise ValueError("Consent to Terms of Service and Privacy Policy is required to create an account.")
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -552,11 +697,12 @@ def create_user(name: str, email: str, password: str, role: str = "user") -> Dic
 
     pwd_hash, salt = hash_password(password)
     now_iso = datetime.now(timezone.utc).isoformat()
+    now_ts = datetime.now(timezone.utc).timestamp()
 
     cursor.execute("""
-    INSERT INTO users (name, email, password_hash, salt, role, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?);
-    """, (name, email, pwd_hash, salt, role, now_iso, now_iso))
+    INSERT INTO users (name, email, password_hash, salt, role, consent_terms, consented_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    """, (name, email, pwd_hash, salt, role, 1 if consent_terms else 0, now_ts, now_iso, now_iso))
 
     user_id = cursor.lastrowid
     conn.commit()
@@ -567,6 +713,8 @@ def create_user(name: str, email: str, password: str, role: str = "user") -> Dic
         "name": name,
         "email": email,
         "role": role,
+        "consent_terms": bool(consent_terms),
+        "consented_at": now_ts,
         "created_at": now_iso
     }
 
@@ -746,6 +894,280 @@ def revoke_all_sessions(user_id: Optional[int] = None) -> int:
     else:
         cursor.execute("DELETE FROM user_sessions;")
     deleted = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return deleted
+
+
+# --- Password Recovery Workflow (Cryptographic Tokens) ---
+
+def create_password_reset_token(user_id: int, expires_in_seconds: float = 1800.0) -> tuple[str, str]:
+    """
+    Generates a cryptographically secure, single-use reset token.
+    Stores ONLY the SHA-256 hash in the password_reset_tokens table.
+    Returns (raw_token, token_hash).
+    """
+    raw_token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+    now = datetime.now(timezone.utc).timestamp()
+    expires_at = now + expires_in_seconds
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO password_reset_tokens (user_id, token_hash, expires_at, created_at)
+    VALUES (?, ?, ?, ?);
+    """, (user_id, token_hash, expires_at, now))
+    conn.commit()
+    conn.close()
+    return raw_token, token_hash
+
+
+def verify_and_consume_reset_token(raw_token: str, new_password: str) -> bool:
+    """
+    Validates token, updates user's password with Argon2id, revokes all active sessions for that user,
+    and marks token as used.
+    """
+    if not raw_token or not new_password or len(new_password) < 15:
+        return False
+    token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+    now = datetime.now(timezone.utc).timestamp()
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    conn = get_connection()
+    try:
+        conn.execute("BEGIN IMMEDIATE;")
+        cursor = conn.cursor()
+        cursor.execute("""
+        SELECT id, user_id, expires_at, used_at FROM password_reset_tokens WHERE token_hash = ?;
+        """, (token_hash,))
+        row = cursor.fetchone()
+        if not row:
+            conn.rollback()
+            return False
+        if row["used_at"] is not None or float(row["expires_at"]) < now:
+            conn.rollback()
+            return False
+
+        user_id = row["user_id"]
+        new_hash, new_salt = hash_password(new_password)
+        cursor.execute("""
+        UPDATE users SET password_hash = ?, salt = ?, updated_at = ? WHERE id = ?;
+        """, (new_hash, new_salt, now_iso, user_id))
+
+        cursor.execute("UPDATE password_reset_tokens SET used_at = ? WHERE id = ?;", (now, row["id"]))
+        # Revoke all existing sessions for this user
+        cursor.execute("DELETE FROM user_sessions WHERE user_id = ?;", (user_id,))
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+# --- Transify Communication Hub Database Helpers ---
+
+def create_hub_conversation(user_id: int, title: str) -> Dict[str, Any]:
+    """Creates a new communication session for an authenticated user."""
+    conv_id = f"conv_{secrets.token_hex(8)}"
+    now = datetime.now(timezone.utc).timestamp()
+    clean_title = (title or "").strip() or "Communication Session"
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO hub_conversations (id, user_id, title, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?);
+    """, (conv_id, user_id, clean_title, now, now))
+    conn.commit()
+    conn.close()
+    return {
+        "id": conv_id,
+        "user_id": user_id,
+        "title": clean_title,
+        "created_at": now,
+        "updated_at": now
+    }
+
+
+def get_hub_conversations(user_id: int) -> List[Dict[str, Any]]:
+    """Retrieves all conversation sessions belonging to the user."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT id, user_id, title, created_at, updated_at FROM hub_conversations
+    WHERE user_id = ? ORDER BY updated_at DESC;
+    """, (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_hub_messages(conversation_id: str, user_id: int) -> Optional[List[Dict[str, Any]]]:
+    """Retrieves messages for a conversation, enforcing ownership check."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM hub_conversations WHERE id = ? AND user_id = ?;", (conversation_id, user_id))
+    if not cursor.fetchone():
+        conn.close()
+        return None
+    cursor.execute("""
+    SELECT id, conversation_id, user_id, source, content, timestamp FROM hub_messages
+    WHERE conversation_id = ? ORDER BY timestamp ASC;
+    """, (conversation_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def add_hub_message(conversation_id: str, user_id: int, source: str, content: str) -> Optional[Dict[str, Any]]:
+    """Appends a message to a conversation, enforcing ownership."""
+    if not content or not content.strip():
+        return None
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM hub_conversations WHERE id = ? AND user_id = ?;", (conversation_id, user_id))
+    if not cursor.fetchone():
+        conn.close()
+        return None
+    msg_id = f"msg_{secrets.token_hex(8)}"
+    now = datetime.now(timezone.utc).timestamp()
+    clean_src = (source or "typed").lower().strip()
+    clean_content = content.strip()
+    cursor.execute("""
+    INSERT INTO hub_messages (id, conversation_id, user_id, source, content, timestamp)
+    VALUES (?, ?, ?, ?, ?, ?);
+    """, (msg_id, conversation_id, user_id, clean_src, clean_content, now))
+    cursor.execute("UPDATE hub_conversations SET updated_at = ? WHERE id = ?;", (now, conversation_id))
+    conn.commit()
+    conn.close()
+    return {
+        "id": msg_id,
+        "conversation_id": conversation_id,
+        "user_id": user_id,
+        "source": clean_src,
+        "content": clean_content,
+        "timestamp": now
+    }
+
+
+def delete_hub_conversation(conversation_id: str, user_id: int) -> bool:
+    """Deletes a conversation session owned by user_id."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM hub_conversations WHERE id = ? AND user_id = ?;", (conversation_id, user_id))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted
+
+
+def clear_hub_conversation_messages(conversation_id: str, user_id: int) -> bool:
+    """Clears all messages within a conversation owned by user_id."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM hub_conversations WHERE id = ? AND user_id = ?;", (conversation_id, user_id))
+    if not cursor.fetchone():
+        conn.close()
+        return False
+    cursor.execute("DELETE FROM hub_messages WHERE conversation_id = ?;", (conversation_id,))
+    now = datetime.now(timezone.utc).timestamp()
+    cursor.execute("UPDATE hub_conversations SET updated_at = ? WHERE id = ?;", (now, conversation_id))
+    conn.commit()
+    conn.close()
+    return True
+
+
+# --- Quick Phraseboard & Personal Phrasebook Database Helpers ---
+
+DEFAULT_PHRASES = [
+    {"text_en": "Hello", "text_bn": "হ্যালো", "category": "General"},
+    {"text_en": "Help", "text_bn": "সাহায্য", "category": "Urgent"},
+    {"text_en": "Thank you", "text_bn": "ধন্যবাদ", "category": "General"},
+    {"text_en": "Please", "text_bn": "দয়া করে", "category": "General"},
+    {"text_en": "Yes", "text_bn": "হ্যাঁ", "category": "General"},
+    {"text_en": "No", "text_bn": "না", "category": "General"},
+    {"text_en": "I need help", "text_bn": "আমার সাহায্য দরকার", "category": "Urgent"},
+    {"text_en": "I do not understand", "text_bn": "আমি বুঝতে পারছি না", "category": "Assistance"},
+    {"text_en": "Water", "text_bn": "পানি", "category": "Assistance"},
+    {"text_en": "Call my family", "text_bn": "আমার পরিবারকে ফোন করুন", "category": "Urgent"},
+    {"text_en": "Emergency", "text_bn": "জরুরি অবস্থা", "category": "Urgent"},
+    {"text_en": "Stop", "text_bn": "থামুন", "category": "Urgent"},
+]
+
+
+def get_user_phrases(user_id: int) -> List[Dict[str, Any]]:
+    """Retrieves all custom phrases for an authenticated user."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT id, user_id, text_en, text_bn, category, is_favorite, created_at
+    FROM user_phrases WHERE user_id = ? ORDER BY is_favorite DESC, created_at ASC;
+    """, (user_id,))
+    user_rows = []
+    for r in cursor.fetchall():
+        d = dict(r)
+        d["is_favorite"] = bool(d["is_favorite"])
+        user_rows.append(d)
+    conn.close()
+    return user_rows
+
+
+def add_user_phrase(user_id: int, text_en: str, text_bn: str, category: str = "General", is_favorite: bool = False) -> Dict[str, Any]:
+    """Adds a custom phrase to the user's personal phrasebook."""
+    clean_en = (text_en or "").strip()
+    clean_bn = (text_bn or "").strip()
+    if not clean_en and not clean_bn:
+        raise ValueError("Phrase text in either English or Bengali is required.")
+    if not clean_en:
+        clean_en = clean_bn
+    if not clean_bn:
+        clean_bn = clean_en
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now(timezone.utc).timestamp()
+    cursor.execute("""
+    INSERT INTO user_phrases (user_id, text_en, text_bn, category, is_favorite, created_at)
+    VALUES (?, ?, ?, ?, ?, ?);
+    """, (user_id, clean_en, clean_bn, (category or "General").strip(), 1 if is_favorite else 0, now))
+    phrase_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return {
+        "id": phrase_id,
+        "user_id": user_id,
+        "text_en": clean_en,
+        "text_bn": clean_bn,
+        "category": (category or "General").strip(),
+        "is_favorite": bool(is_favorite),
+        "created_at": now
+    }
+
+
+def toggle_phrase_favorite(phrase_id: int, user_id: int) -> Optional[bool]:
+    """Toggles favorite status for a custom phrase owned by user_id."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT is_favorite FROM user_phrases WHERE id = ? AND user_id = ?;", (phrase_id, user_id))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return None
+    new_fav = 0 if row["is_favorite"] else 1
+    cursor.execute("UPDATE user_phrases SET is_favorite = ? WHERE id = ? AND user_id = ?;", (new_fav, phrase_id, user_id))
+    conn.commit()
+    conn.close()
+    return bool(new_fav)
+
+
+def delete_user_phrase(phrase_id: int, user_id: int) -> bool:
+    """Deletes a custom phrase owned by user_id."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM user_phrases WHERE id = ? AND user_id = ?;", (phrase_id, user_id))
+    deleted = cursor.rowcount > 0
     conn.commit()
     conn.close()
     return deleted

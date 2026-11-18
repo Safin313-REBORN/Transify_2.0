@@ -125,141 +125,40 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   },
 
   openAuthSheet(mode = 'login') {
-    this.switchAuthTab(mode);
+    if (window.AuthController) return window.AuthController.openSheet(mode);
     const sheetContainer = document.getElementById('auth-sheet-container');
-    if (sheetContainer) {
-      sheetContainer.classList.add('active');
-    }
-    this.hideAuthAlert();
+    if (sheetContainer) sheetContainer.classList.add('active');
   },
 
   closeAuthSheet() {
+    if (window.AuthController) return window.AuthController.closeSheet();
     const sheetContainer = document.getElementById('auth-sheet-container');
-    if (sheetContainer) {
-      sheetContainer.classList.remove('active');
-    }
-    this.hideAuthAlert();
+    if (sheetContainer) sheetContainer.classList.remove('active');
   },
 
   switchAuthTab(mode = 'login') {
+    if (window.AuthController) return window.AuthController.switchTab(mode);
     this.activeAuthMode = mode;
-    this.hideAuthAlert();
-
-    const tabLogin = document.getElementById('tab-login');
-    const tabSignup = document.getElementById('tab-signup');
-    const title = document.getElementById('auth-heading-title');
-    const subtitle = document.getElementById('auth-heading-subtitle');
-    const groupFullname = document.getElementById('group-fullname');
-    const inputFullname = document.getElementById('input-fullname');
-    const btnText = document.getElementById('btn-text');
-    const rememberLabelText = document.getElementById('remember-label-text');
-    const forgotLink = document.getElementById('forgot-password-link');
-    const switchPromptText = document.getElementById('switch-prompt-text');
-    const switchPromptLink = document.getElementById('switch-prompt-link');
-
-    if (mode === 'login') {
-      if (tabLogin) { tabLogin.classList.add('active'); tabLogin.setAttribute('aria-selected', 'true'); }
-      if (tabSignup) { tabSignup.classList.remove('active'); tabSignup.setAttribute('aria-selected', 'false'); }
-      if (title) title.textContent = 'Welcome Back!';
-      if (subtitle) subtitle.textContent = 'Login to your Transify account';
-      if (groupFullname) groupFullname.style.display = 'none';
-      if (inputFullname) inputFullname.removeAttribute('required');
-      if (btnText) btnText.textContent = 'Login';
-      if (rememberLabelText) rememberLabelText.textContent = 'Remember me';
-      if (forgotLink) forgotLink.style.display = 'inline';
-      if (switchPromptText) switchPromptText.textContent = "Don't have an account?";
-      if (switchPromptLink) switchPromptLink.textContent = 'Sign Up';
-    } else {
-      if (tabSignup) { tabSignup.classList.add('active'); tabSignup.setAttribute('aria-selected', 'true'); }
-      if (tabLogin) { tabLogin.classList.remove('active'); tabLogin.setAttribute('aria-selected', 'false'); }
-      if (title) title.textContent = 'Join Transify!';
-      if (subtitle) subtitle.textContent = 'Create your account to start communicating';
-      if (groupFullname) groupFullname.style.display = 'flex';
-      if (inputFullname && !inputFullname.value) inputFullname.value = 'Sarah Ahmed';
-      if (btnText) btnText.textContent = 'Register & Open Slides';
-      if (rememberLabelText) rememberLabelText.textContent = 'I agree to Terms & Privacy';
-      if (forgotLink) forgotLink.style.display = 'none';
-      if (switchPromptText) switchPromptText.textContent = 'Already have an account?';
-      if (switchPromptLink) switchPromptLink.textContent = 'Login';
-    }
   },
 
   handleDirectLogin() {
-    this.handleDemoLogin();
+    if (window.AuthController) return window.AuthController.submitGuest();
   },
 
-  async handleDemoLogin() {
-    this.showAuthAlert('Continuing in Guest Demo Mode...', true);
-    try {
-      const res = await fetch('/api/auth/guest', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const data = await res.json().catch(() => ({}));
-      const guestUser = (data && data.user) ? data.user : {
-        id: 0,
-        name: 'Guest User (Demo Mode)',
-        email: 'guest@transify.ai',
-        role: 'guest',
-        is_guest: true
-      };
-      guestUser.is_guest = true;
-      try {
-        localStorage.setItem('transify_guest_mode', 'true');
-        localStorage.setItem('transify_auth_user', JSON.stringify(guestUser));
-        localStorage.removeItem('transify_session_token');
-        localStorage.removeItem('transify_auth_token');
-      } catch (_) {}
-      this.completeAuthentication(guestUser, true);
-    } catch (_) {
-      const guestUser = {
-        id: 0,
-        name: 'Guest User (Demo Mode)',
-        email: 'guest@transify.ai',
-        role: 'guest',
-        is_guest: true
-      };
-      try {
-        localStorage.setItem('transify_guest_mode', 'true');
-        localStorage.setItem('transify_auth_user', JSON.stringify(guestUser));
-        localStorage.removeItem('transify_session_token');
-        localStorage.removeItem('transify_auth_token');
-      } catch (_) {}
-      this.completeAuthentication(guestUser, true);
-    }
+  handleDemoLogin() {
+    if (window.AuthController) return window.AuthController.submitGuest();
   },
 
   handleDemoGuest() {
-    return this.handleDemoLogin();
+    if (window.AuthController) return window.AuthController.submitGuest();
   },
 
   togglePasswordVisibility() {
-    const pwdInput = document.getElementById('input-password');
-    const eyeIcon = document.getElementById('eye-icon');
-    if (!pwdInput) return;
-    if (pwdInput.type === 'password') {
-      pwdInput.type = 'text';
-      if (eyeIcon) {
-        eyeIcon.innerHTML = `
-          <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
-          <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
-          <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
-          <line x1="2" x2="22" y1="2" y2="22"/>
-        `;
-      }
-    } else {
-      pwdInput.type = 'password';
-      if (eyeIcon) {
-        eyeIcon.innerHTML = `
-          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-          <circle cx="12" cy="12" r="3"/>
-        `;
-      }
-    }
+    if (window.AuthController) return window.AuthController.togglePasswordVisibility();
   },
 
   showAuthAlert(msg, isSuccess = true) {
+    if (window.AuthController) return window.AuthController.showAlert(msg, isSuccess);
     const alertBox = document.getElementById('auth-alert');
     if (!alertBox) return;
     alertBox.textContent = msg;
@@ -268,6 +167,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   },
 
   hideAuthAlert() {
+    if (window.AuthController) return window.AuthController.hideAlert();
     const alertBox = document.getElementById('auth-alert');
     if (alertBox) {
       alertBox.style.display = 'none';
@@ -276,103 +176,21 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   },
 
   handleForgotPassword(e) {
-    if (e) e.preventDefault();
-    this.showAuthAlert('Password self-service recovery is currently unavailable. Please contact your system administrator.', false);
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    if (window.AuthController) return window.AuthController.openForgotPassword();
   },
 
   quickFillDemo() {
-    this.handleDemoLogin();
+    if (window.AuthController) return window.AuthController.submitGuest();
   },
 
-  async handleAuthSubmit(e, overrideEmail, overridePwd, overrideMode) {
-    if (e) e.preventDefault();
-    const emailInput = document.getElementById('input-email');
-    const pwdInput = document.getElementById('input-password');
-    const nameInput = document.getElementById('input-fullname');
-
-    const email = overrideEmail || ((emailInput && emailInput.value) ? emailInput.value.trim() : '');
-    const password = overridePwd || ((pwdInput && pwdInput.value) ? pwdInput.value : '');
-    const name = (nameInput && nameInput.value) ? nameInput.value.trim() : 'Transify User';
-    const mode = overrideMode || this.activeAuthMode || 'login';
-
-    if (!email || !password) {
-      this.showAuthAlert('Please fill in both email and password.', false);
-      return;
-    }
-
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      this.showAuthAlert('Please enter a valid email address.', false);
-      return;
-    }
-
-    if (mode === 'signup' && password.length < 15) {
-      this.showAuthAlert('Password must be at least 15 characters long.', false);
-      return;
-    }
-
-    if (mode === 'signup' && (!name || name.length < 2)) {
-      this.showAuthAlert('Please enter your full name.', false);
-      return;
-    }
-
-    const submitBtn = document.getElementById('auth-submit-btn');
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.style.opacity = '0.75';
-      const label = submitBtn.querySelector('#btn-text');
-      if (label) label.textContent = mode === 'login' ? 'Authenticating...' : 'Registering...';
-    }
-
-    try {
-      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
-      const bodyPayload = mode === 'login'
-        ? { email: email, password: password }
-        : { name: name, email: email, password: password };
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(bodyPayload)
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (res.ok && data.status === 'success') {
-        try {
-          localStorage.setItem('transify_auth_user', JSON.stringify(data.user));
-          localStorage.removeItem('transify_guest_mode');
-          localStorage.removeItem('transify_session_token');
-          localStorage.removeItem('transify_auth_token');
-        } catch (_) {}
-
-        this.showAuthAlert(mode === 'login' ? 'Login successful! Opening Transify...' : 'Account registered! Opening Transify...', true);
-        setTimeout(() => {
-          this.completeAuthentication(data.user, false);
-        }, 300);
-      } else {
-        const errorDetail = data.detail || (mode === 'login' ? 'Invalid email or password.' : 'Registration failed. Please try again.');
-        this.showAuthAlert(errorDetail, false);
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.style.opacity = '1';
-          const label = submitBtn.querySelector('#btn-text');
-          if (label) label.textContent = mode === 'login' ? 'Login' : 'Register & Open Slides';
-        }
-      }
-    } catch (err) {
-      this.showAuthAlert('Unable to reach authentication server. Please check your network connection.', false);
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.style.opacity = '1';
-        const label = submitBtn.querySelector('#btn-text');
-        if (label) label.textContent = mode === 'login' ? 'Login' : 'Register & Open Slides';
-      }
-    }
+  async handleAuthSubmit(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    if (window.AuthController) return window.AuthController.submitAuth(e);
   },
 
   handleGoogleLogin() {
-    this.showAuthAlert('Google Single Sign-On is currently unavailable. Please sign in with email and password.', false);
+    if (window.AuthController) return window.AuthController.handleGoogleClick();
   },
 
   completeAuthentication(userObj, isGuest = false) {
@@ -405,6 +223,12 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
       if (typeof openSlide === 'function') openSlide('slide-stt');
     } else if (window.location.hash === '#tts') {
       if (typeof openSlide === 'function') openSlide('slide-tts');
+    } else if (window.location.hash === '#hub') {
+      if (typeof openSlide === 'function') openSlide('slide-communication-hub');
+    } else if (window.location.hash === '#phrases') {
+      if (typeof openSlide === 'function') openSlide('slide-phraseboard');
+    } else if (window.location.hash === '#dashboard') {
+      if (typeof openSlide === 'function') openSlide('slide-dashboard');
     }
   },
 
@@ -541,6 +365,11 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     if (region) {
       region.textContent = '';
       setTimeout(() => { region.textContent = text; }, 50);
+    }
+    const a11yAnnouncer = document.getElementById('a11y-announcer');
+    if (a11yAnnouncer) {
+      a11yAnnouncer.textContent = '';
+      setTimeout(() => { a11yAnnouncer.textContent = text; }, 50);
     }
   },
 
@@ -895,7 +724,7 @@ var SignPage = window.SignPage = window.TransifySign = {
   predictTimer: null,
   lastPrediction: null,
   sessionId: 'transify_sess_' + Math.random().toString(36).substring(2, 10),
-  autoSpeak: true,
+  autoSpeak: false,
   currentMode: 'expressions',
   currentLanguageMode: 'bdsl',
   sentenceTokens: [],
@@ -1291,9 +1120,7 @@ var SignPage = window.SignPage = window.TransifySign = {
           if (badgeEl && data.source) {
             badgeEl.innerHTML = `<span class="badge badge-success" style="font-size: 11px;">🎯 ${data.source}</span>`;
           }
-          if (this.autoSpeak && data.sentence) {
-            TransifyTTS.speak(data.sentence);
-          }
+// Strict accessibility rule: translations never auto-play audio
         }
       } catch (e) {
         console.debug('Auto sentence smoother note:', e);
@@ -1362,10 +1189,7 @@ var SignPage = window.SignPage = window.TransifySign = {
       TransifyApp.showToast('Natural sentence synthesized successfully!', 'success');
       TransifyApp.announce(`Sentence synthesized: ${data.sentence}`);
 
-      // Speak sentence aloud
-      if (data.sentence) {
-        TransifyTTS.speak(data.sentence);
-      }
+// User can click speaker button to hear sentence aloud
     } catch (e) {
       console.error('Sentence smoothing error:', e);
       TransifyApp.showToast(`Error: ${e.message}`, 'danger');
@@ -2108,9 +1932,7 @@ var SignPage = window.SignPage = window.TransifySign = {
         // Automatically append confirmed sign token to Sentence Builder
         this.addTokenToSentence(result.label);
 
-        if (this.autoSpeak) {
-          TransifyTTS.speak(englishText);
-        }
+// Strict accessibility rule: recognized signs never auto-play audio
       }
     } else {
       if (statusNote) statusNote.textContent = `Debouncing consensus (${result.debounce_count}/${result.debounce_target})...`;
@@ -2866,6 +2688,836 @@ var TransifyTTSPage = window.TransifyTTSPage = {
 // 8. Global DOM Initialization
 // ==========================================
 
+
+
+// ============================================================================
+// TRANSIFY 2.0 COMMUNICATION HUB CONTROLLER
+// Multimodal accessible communication feed supporting sign, Braille, speech, and typed input.
+// ============================================================================
+window.CommunicationHub = {
+  activeConversationId: null,
+  messages: [],
+  _initialized: false,
+
+  async init() {
+    if (!this._initialized) {
+      this._initialized = true;
+      this.bindEvents();
+    }
+    await this.ensureConversation();
+    await this.loadMessages();
+  },
+
+  bindEvents() {
+    const form = document.getElementById('hub-input-form');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('hub-input-text');
+        const text = input ? input.value.trim() : '';
+        if (text) {
+          this.sendMessage(text, 'typed');
+          if (input) input.value = '';
+        }
+      });
+    }
+
+    const clearBtn = document.getElementById('hub-clear-btn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => this.clearConversation());
+    }
+
+    const copyAllBtn = document.getElementById('hub-copy-all-btn');
+    if (copyAllBtn) {
+      copyAllBtn.addEventListener('click', () => this.copyConversation());
+    }
+
+    const exportBtn = document.getElementById('hub-export-btn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => this.exportTxt());
+    }
+
+    const fromSignBtn = document.getElementById('hub-import-sign-btn');
+    if (fromSignBtn) {
+      fromSignBtn.addEventListener('click', () => {
+        const text = (window.SignPage && window.SignPage.lastPrediction) ||
+                     (document.getElementById('smooth-sentence-text') && document.getElementById('smooth-sentence-text').textContent) ||
+                     '';
+        if (text && !text.includes('Waiting')) {
+          this.sendMessage(text, 'sign');
+        } else {
+          TransifyApp.showToast('No sign translation available to import.', 'warning');
+        }
+      });
+    }
+
+    const fromBrailleBtn = document.getElementById('hub-import-braille-btn');
+    if (fromBrailleBtn) {
+      fromBrailleBtn.addEventListener('click', () => {
+        const el = document.getElementById('braille-text-output');
+        const text = el ? el.value.trim() : '';
+        if (text) {
+          this.sendMessage(text, 'braille');
+        } else {
+          TransifyApp.showToast('No Braille text available to import.', 'warning');
+        }
+      });
+    }
+
+    const fromSttBtn = document.getElementById('hub-import-stt-btn');
+    if (fromSttBtn) {
+      fromSttBtn.addEventListener('click', () => {
+        const el = document.getElementById('stt-transcript-output');
+        const text = el ? el.textContent.trim() : '';
+        if (text && !text.includes('Listening')) {
+          this.sendMessage(text, 'speech');
+        } else {
+          TransifyApp.showToast('No speech transcript available to import.', 'warning');
+        }
+      });
+    }
+  },
+
+  async ensureConversation() {
+    try {
+      const res = await fetch('/api/hub/conversations', { credentials: 'same-origin' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.conversations && data.conversations.length > 0) {
+          this.activeConversationId = data.conversations[0].id;
+          return;
+        }
+      }
+      const createRes = await fetch('/api/hub/conversations', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Main Conversation' })
+      });
+      if (createRes.ok) {
+        const conv = await createRes.json();
+        this.activeConversationId = conv.conversation.id;
+      }
+    } catch (e) {
+      console.warn('Hub ensureConversation note:', e);
+      this.activeConversationId = 'local_session';
+    }
+  },
+
+  async loadMessages() {
+    if (!this.activeConversationId) return;
+    try {
+      const res = await fetch(`/api/hub/conversations/${this.activeConversationId}/messages`, { credentials: 'same-origin' });
+      if (res.ok) {
+        const data = await res.json();
+        this.messages = data.messages || [];
+      } else {
+        this.messages = [];
+      }
+    } catch (e) {
+      console.warn('Hub loadMessages note:', e);
+    }
+    this.renderFeed();
+  },
+
+  async sendMessage(content, modality = 'typed') {
+    if (!content) return;
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    try {
+      if (this.activeConversationId && this.activeConversationId !== 'local_session') {
+        const res = await fetch(`/api/hub/conversations/${this.activeConversationId}/messages`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: content, modality: modality })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          this.messages.push(data.message);
+          this.renderFeed();
+          TransifyApp.announce(`Message added from ${modality}: ${content}`);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Hub sendMessage server error, falling back to local:', e);
+    }
+
+    const localMsg = {
+      id: Date.now(),
+      sender_name: 'You',
+      content: content,
+      modality: modality,
+      created_at: timeStr
+    };
+    this.messages.push(localMsg);
+    this.renderFeed();
+    TransifyApp.announce(`Message added from ${modality}: ${content}`);
+  },
+
+  renderFeed() {
+    const container = document.getElementById('hub-feed-container');
+    if (!container) return;
+
+    if (!this.messages.length) {
+      container.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 24px 0;">No messages yet. Send a typed message or translate from any modality.</div>';
+      return;
+    }
+
+    const badgeClasses = {
+      sign: 'hub-badge-sign',
+      braille: 'hub-badge-braille',
+      speech: 'hub-badge-speech',
+      typed: 'hub-badge-typed'
+    };
+
+    const badgeLabels = {
+      sign: '🤟 Sign',
+      braille: '⠃ Braille',
+      speech: '🎙️ Voice',
+      typed: '⌨️ Typed'
+    };
+
+    container.innerHTML = this.messages.map((msg, idx) => {
+      const mod = msg.modality || 'typed';
+      const badgeCls = badgeClasses[mod] || 'hub-badge-typed';
+      const badgeLbl = badgeLabels[mod] || mod;
+      const safeContent = (msg.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const rawText = (msg.content || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const timeStr = typeof msg.created_at === 'number' ? new Date(msg.created_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (msg.created_at || '');
+
+      return `
+        <div class="hub-message-card" data-msg-idx="${idx}">
+          <div class="hub-msg-header">
+            <span class="hub-modality-badge ${badgeCls}">${badgeLbl}</span>
+            <span class="hub-msg-time">${timeStr}</span>
+          </div>
+          <div class="hub-msg-body">${safeContent}</div>
+          <div class="hub-msg-actions">
+            <button type="button" class="hub-action-btn" onclick="CommunicationHub.copyText('${rawText}')" title="Copy text">📋 Copy</button>
+            <button type="button" class="hub-action-btn btn-speak-voice" onclick="CommunicationHub.speakText('${rawText}')" title="Speak message aloud">🔊 Speak</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.scrollTop = container.scrollHeight;
+  },
+
+  copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        TransifyApp.showToast('Message copied to clipboard!', 'success');
+      });
+    }
+  },
+
+  speakText(text) {
+    if (window.TransifyTTS && window.TransifyTTS.speak) {
+      window.TransifyTTS.speak(text);
+    }
+  },
+
+  copyConversation() {
+    if (!this.messages.length) {
+      TransifyApp.showToast('No messages to copy.', 'warning');
+      return;
+    }
+    const fullText = this.messages.map(m => `[${(m.modality||'typed').toUpperCase()}] ${m.content}`).join('\n');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(fullText).then(() => {
+        TransifyApp.showToast('Full conversation copied to clipboard!', 'success');
+      });
+    }
+  },
+
+  exportTxt() {
+    if (!this.messages.length) {
+      TransifyApp.showToast('No messages to export.', 'warning');
+      return;
+    }
+    const fullText = "Transify 2.0 Accessible Conversation Export\nGenerated: " + new Date().toISOString() + "\n\n" +
+      this.messages.map(m => `[${new Date(typeof m.created_at === 'number' ? m.created_at * 1000 : Date.now()).toLocaleTimeString()}] [${(m.modality||'typed').toUpperCase()}]: ${m.content}`).join('\n\n');
+    
+    const blob = new Blob([fullText], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transify-conversation-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    TransifyApp.showToast('Conversation exported successfully!', 'success');
+  },
+
+  async clearConversation() {
+    if (!confirm('Are you sure you want to clear this conversation?')) return;
+    try {
+      if (this.activeConversationId && this.activeConversationId !== 'local_session') {
+        await fetch(`/api/hub/conversations/${this.activeConversationId}/clear`, {
+          method: 'POST',
+          credentials: 'same-origin'
+        });
+      }
+    } catch (e) {
+      console.warn('Hub clear error:', e);
+    }
+    this.messages = [];
+    this.renderFeed();
+    TransifyApp.showToast('Conversation feed cleared.', 'success');
+  }
+};
+
+// ============================================================================
+// QUICK PHRASEBOARD CONTROLLER
+// Bilingual Essential & Custom Phrases with user isolation and explicit-only speech.
+// ============================================================================
+window.Phraseboard = {
+  phrases: [],
+  favoritesOnly: false,
+  _initialized: false,
+
+  async init() {
+    if (!this._initialized) {
+      this._initialized = true;
+      this.bindEvents();
+    }
+    await this.loadPhrases();
+  },
+
+  bindEvents() {
+    const favFilter = document.getElementById('phrase-fav-filter');
+    if (favFilter) {
+      favFilter.addEventListener('change', (e) => {
+        this.favoritesOnly = e.target.checked;
+        this.renderGrid();
+      });
+    }
+
+    const toggleAddBtn = document.getElementById('btn-toggle-add-phrase');
+    const addForm = document.getElementById('phrase-add-form-container');
+    const cancelAddBtn = document.getElementById('btn-cancel-add-phrase');
+    const savePhraseBtn = document.getElementById('btn-save-phrase');
+
+    if (toggleAddBtn && addForm) {
+      toggleAddBtn.addEventListener('click', () => {
+        addForm.style.display = (addForm.style.display === 'none' || !addForm.style.display) ? 'block' : 'none';
+      });
+    }
+    if (cancelAddBtn && addForm) {
+      cancelAddBtn.addEventListener('click', () => {
+        addForm.style.display = 'none';
+      });
+    }
+    if (savePhraseBtn) {
+      savePhraseBtn.addEventListener('click', () => this.saveCustomPhrase());
+    }
+  },
+
+  async loadPhrases() {
+    try {
+      const res = await fetch('/api/phrases', { credentials: 'same-origin' });
+      if (res.ok) {
+        const data = await res.json();
+        this.phrases = data.phrases || [...(data.default_phrases || []), ...(data.custom_phrases || [])];
+        if (!this.phrases.length) this.phrases = this.getDefaultFallbackPhrases();
+      } else {
+        this.phrases = this.getDefaultFallbackPhrases();
+      }
+    } catch (e) {
+      console.warn('Phraseboard loadPhrases error, using defaults:', e);
+      this.phrases = this.getDefaultFallbackPhrases();
+    }
+    this.renderGrid();
+  },
+
+  getDefaultFallbackPhrases() {
+    return [
+      { id: 1, text_en: "Hello, how are you?", text_bn: "হ্যালো, আপনি কেমন আছেন?", category: "greetings", is_favorite: false },
+      { id: 2, text_en: "I need assistance, please.", text_bn: "দয়া করে আমাকে সাহায্য করুন।", category: "emergency", is_favorite: true },
+      { id: 3, text_en: "Thank you very much.", text_bn: "আপনাকে অনেক ধন্যবাদ।", category: "courtesy", is_favorite: false },
+      { id: 4, text_en: "Yes, that works for me.", text_bn: "হ্যাঁ, এটি আমার জন্য ঠিক আছে।", category: "responses", is_favorite: false },
+      { id: 5, text_en: "No, thank you.", text_bn: "না, ধন্যবাদ।", category: "responses", is_favorite: false },
+      { id: 6, text_en: "Please give me a moment.", text_bn: "দয়া করে আমাকে একটু সময় দিন।", category: "patience", is_favorite: false },
+      { id: 7, text_en: "Where is the restroom?", text_bn: "টয়লেট কোথায়?", category: "navigation", is_favorite: false },
+      { id: 8, text_en: "I communicate using this device.", text_bn: "আমি এই ডিভাইসের মাধ্যমে কথা বলি।", category: "assistive", is_favorite: true },
+      { id: 9, text_en: "Could you please repeat that?", text_bn: "দয়া করে আরেকবার বলবেন?", category: "clarification", is_favorite: false },
+      { id: 10, text_en: "I am deaf or hard of hearing.", text_bn: "আমি বধির বা শ্রবণ প্রতিবন্ধী।", category: "assistive", is_favorite: true },
+      { id: 11, text_en: "Please write it down.", text_bn: "দয়া করে লিখে দিন।", category: "assistive", is_favorite: false },
+      { id: 12, text_en: "Nice to meet you.", text_bn: "আপনার সাথে দেখা হয়ে ভালো লাগলো।", category: "courtesy", is_favorite: false }
+    ];
+  },
+
+  renderGrid() {
+    const grid = document.getElementById('phraseboard-grid');
+    if (!grid) return;
+
+    let items = this.phrases;
+    if (this.favoritesOnly) {
+      items = items.filter(p => Boolean(p.is_favorite));
+    }
+
+    if (!items.length) {
+      grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; font-size: 13px; padding: 24px 0;">No phrases match your filter.</div>';
+      return;
+    }
+
+    grid.innerHTML = items.map(p => {
+      const isFav = Boolean(p.is_favorite);
+      const en = (p.text_en || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const bn = (p.text_bn || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const isCustom = p.is_custom ? `<button type="button" class="phrase-icon-btn" onclick="event.stopPropagation(); Phraseboard.deleteCustomPhrase(${p.id})" title="Delete phrase">🗑️</button>` : '';
+
+      return `
+        <div class="phrase-card ${isFav ? 'favorite' : ''}" onclick="Phraseboard.onPhraseClick('${en}', '${bn}')" role="button" tabindex="0" aria-label="${p.text_en} - ${p.text_bn}">
+          <div>
+            <div class="phrase-text-en">${p.text_en}</div>
+            <div class="phrase-text-bn">${p.text_bn || ''}</div>
+          </div>
+          <div class="phrase-controls" onclick="event.stopPropagation()">
+            <button type="button" class="phrase-icon-btn" onclick="Phraseboard.speakPhrase('${en}')" title="Speak aloud (user clicked)">🔊</button>
+            <button type="button" class="phrase-icon-btn" onclick="Phraseboard.toggleFavorite(${p.id})" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">${isFav ? '⭐' : '☆'}</button>
+            ${isCustom}
+          </div>
+        </div>
+      `;
+    }).join('');
+  },
+
+  /**
+   * IMPORTANT: Clicking phrase card adds text to Communication Hub without auto-playing audio!
+   */
+  onPhraseClick(en, bn) {
+    if (window.CommunicationHub) {
+      window.CommunicationHub.sendMessage(en, 'typed');
+      TransifyApp.showToast(`Phrase added to Hub: "${en}"`, 'success');
+      TransifyApp.announce(`Phrase selected: ${en}`);
+    } else {
+      const input = document.getElementById('hub-input-text');
+      if (input) input.value = en;
+    }
+  },
+
+  /**
+   * Spoken strictly and ONLY when user explicitly clicks 🔊 button!
+   */
+  speakPhrase(text) {
+    if (window.TransifyTTS && window.TransifyTTS.speak) {
+      window.TransifyTTS.speak(text);
+    }
+  },
+
+  async toggleFavorite(phraseId) {
+    try {
+      const res = await fetch(`/api/phrases/${phraseId}/favorite`, {
+        method: 'POST',
+        credentials: 'same-origin'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const p = this.phrases.find(item => item.id === phraseId);
+        if (p) p.is_favorite = data.is_favorite;
+        this.renderGrid();
+        return;
+      }
+    } catch (e) {
+      console.warn('Phrase favorite toggle server error, toggling locally:', e);
+    }
+    const p = this.phrases.find(item => item.id === phraseId);
+    if (p) {
+      p.is_favorite = !p.is_favorite;
+      this.renderGrid();
+    }
+  },
+
+  async saveCustomPhrase() {
+    const enInput = document.getElementById('input-phrase-en');
+    const bnInput = document.getElementById('input-phrase-bn');
+    const textEn = enInput ? enInput.value.trim() : '';
+    const textBn = bnInput ? bnInput.value.trim() : '';
+
+    if (!textEn) {
+      TransifyApp.showToast('Please enter English text for the phrase.', 'warning');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/phrases', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text_en: textEn, text_bn: textBn, category: 'custom' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        this.phrases.unshift(data.phrase);
+        if (enInput) enInput.value = '';
+        if (bnInput) bnInput.value = '';
+        const addForm = document.getElementById('phrase-add-form-container');
+        if (addForm) addForm.style.display = 'none';
+        this.renderGrid();
+        TransifyApp.showToast('Custom phrase saved successfully!', 'success');
+        return;
+      }
+    } catch (e) {
+      console.warn('Phraseboard save custom phrase server error:', e);
+    }
+
+    this.phrases.unshift({
+      id: Date.now(),
+      text_en: textEn,
+      text_bn: textBn,
+      category: 'custom',
+      is_favorite: false,
+      is_custom: true
+    });
+    if (enInput) enInput.value = '';
+    if (bnInput) bnInput.value = '';
+    const addForm = document.getElementById('phrase-add-form-container');
+    if (addForm) addForm.style.display = 'none';
+    this.renderGrid();
+    TransifyApp.showToast('Custom phrase saved locally.', 'success');
+  },
+
+  async deleteCustomPhrase(phraseId) {
+    if (!confirm('Delete this custom phrase?')) return;
+    try {
+      await fetch(`/api/phrases/${phraseId}`, {
+        method: 'DELETE',
+        credentials: 'same-origin'
+      });
+    } catch (e) {
+      console.warn('Phraseboard delete server note:', e);
+    }
+    this.phrases = this.phrases.filter(p => p.id !== phraseId);
+    this.renderGrid();
+    TransifyApp.showToast('Phrase deleted.', 'success');
+  }
+};
+
+// ============================================================================
+// ACTIVITY & DIAGNOSTICS DASHBOARD CONTROLLER
+// ============================================================================
+window.TransifyDashboard = {
+  historyRecords: [],
+  _initialized: false,
+
+  async init() {
+    if (!this._initialized) {
+      this._initialized = true;
+      this.bindEvents();
+    }
+    await Promise.all([this.loadHistory(), this.loadDiagnostics()]);
+  },
+
+  bindEvents() {
+    const searchInput = document.getElementById('dash-search-input');
+    const modalitySelect = document.getElementById('dash-modality-select');
+    const dateSelect = document.getElementById('dash-date-select');
+    const favFilter = document.getElementById('dash-fav-filter');
+
+    const triggerReload = () => this.loadHistory();
+
+    if (searchInput) searchInput.addEventListener('input', this.debounce(triggerReload, 300));
+    if (modalitySelect) modalitySelect.addEventListener('change', triggerReload);
+    if (dateSelect) dateSelect.addEventListener('change', triggerReload);
+    if (favFilter) favFilter.addEventListener('change', triggerReload);
+  },
+
+  debounce(fn, delay) {
+    let timer;
+    return function(...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+  },
+
+  async loadHistory() {
+    const search = document.getElementById('dash-search-input')?.value.trim() || '';
+    const modality = document.getElementById('dash-modality-select')?.value || 'all';
+    const dateFilter = document.getElementById('dash-date-select')?.value || 'all';
+    const favOnly = document.getElementById('dash-fav-filter')?.checked || false;
+
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (modality !== 'all') params.set('modality', modality);
+    if (dateFilter !== 'all') params.set('date_filter', dateFilter);
+    if (favOnly) params.set('favorites_only', 'true');
+
+    try {
+      const res = await fetch(`/api/history?${params.toString()}`, { credentials: 'same-origin' });
+      if (res.ok) {
+        const data = await res.json();
+        this.historyRecords = data.history || [];
+      } else {
+        this.historyRecords = [];
+      }
+    } catch (e) {
+      console.warn('Dashboard loadHistory note:', e);
+      this.historyRecords = [];
+    }
+    this.renderHistory();
+  },
+
+  renderHistory() {
+    const listEl = document.getElementById('dashboard-history-list');
+    if (!listEl) return;
+
+    if (!this.historyRecords.length) {
+      listEl.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 24px 0;">No translation records found matching your filters.</div>';
+      return;
+    }
+
+    listEl.innerHTML = this.historyRecords.map(rec => {
+      const isFav = Boolean(rec.is_favorite);
+      const textToSpeak = (rec.recognized_text || rec.translated_text || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const timeStr = typeof rec.timestamp === 'number' ? new Date(rec.timestamp * 1000).toLocaleString() : (rec.timestamp || '');
+
+      return `
+        <div style="background: #ffffff; border: 1px solid rgba(131,56,236,0.12); border-radius: 12px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+              <span class="badge badge-info" style="font-size: 10px; text-transform: uppercase;">${rec.modality || 'sign'}</span>
+              <span style="font-size: 11px; color: #94a3b8;">${timeStr}</span>
+            </div>
+            <div style="font-size: 13.5px; font-weight: 700; color: #1e1b4b; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+              ${(rec.recognized_text || rec.translated_text || '').replace(/</g, '&lt;')}
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <button type="button" class="phrase-icon-btn" onclick="TransifyDashboard.speakRecord('${textToSpeak}')" title="Speak text aloud">🔊</button>
+            <button type="button" class="phrase-icon-btn" onclick="TransifyDashboard.toggleFavorite(${rec.id})" title="${isFav ? 'Unfavorite' : 'Favorite'}">${isFav ? '⭐' : '☆'}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  },
+
+  speakRecord(text) {
+    if (window.TransifyTTS && window.TransifyTTS.speak) {
+      window.TransifyTTS.speak(text);
+    }
+  },
+
+  async toggleFavorite(recordId) {
+    try {
+      const res = await fetch(`/api/history/${recordId}/favorite`, {
+        method: 'POST',
+        credentials: 'same-origin'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const r = this.historyRecords.find(item => item.id === recordId);
+        if (r) r.is_favorite = data.is_favorite;
+        this.renderHistory();
+      }
+    } catch (e) {
+      console.warn('Dashboard favorite error:', e);
+    }
+  },
+
+  async loadDiagnostics() {
+    const statusVal = document.getElementById('diag-val-status');
+    const dbVal = document.getElementById('diag-val-db');
+    const modelVal = document.getElementById('diag-val-model');
+    const latencyVal = document.getElementById('diag-val-latency');
+
+    const t0 = performance.now();
+    try {
+      const res = await fetch('/api/ready');
+      const roundtrip = Math.round(performance.now() - t0);
+      if (latencyVal) latencyVal.textContent = `${roundtrip} ms`;
+
+      if (res.ok) {
+        const data = await res.json();
+        if (statusVal) {
+          statusVal.textContent = data.status === 'ready' ? 'Online' : 'Degraded';
+          statusVal.style.color = data.status === 'ready' ? '#10b981' : '#f59e0b';
+        }
+        if (dbVal) {
+          const dbOk = data.checks && data.checks.database;
+          dbVal.textContent = dbOk ? 'Connected' : 'Unavailable';
+          dbVal.style.color = dbOk ? '#10b981' : '#ef4444';
+        }
+        if (modelVal) {
+          const modelOk = data.checks && data.checks.asl_model;
+          modelVal.textContent = modelOk ? 'ASL Ready' : 'Fallback';
+          modelVal.style.color = modelOk ? '#8338ec' : '#f59e0b';
+        }
+      } else {
+        if (statusVal) { statusVal.textContent = 'Degraded'; statusVal.style.color = '#ef4444'; }
+      }
+    } catch (e) {
+      if (statusVal) { statusVal.textContent = 'Offline'; statusVal.style.color = '#ef4444'; }
+      if (dbVal) dbVal.textContent = 'Unreachable';
+      if (modelVal) modelVal.textContent = 'Unavailable';
+    }
+  }
+};
+
+// ============================================================================
+// ACCESSIBILITY & INTERNATIONALIZATION ENGINE
+// ============================================================================
+window.TransifyA11y = {
+  _initialized: false,
+
+  init() {
+    if (this._initialized) return;
+    this._initialized = true;
+
+    const reducedMotion = localStorage.getItem('transify_reduced_motion') === 'true';
+    const largeTargets = localStorage.getItem('transify_large_targets') === 'true';
+
+    this.toggleReducedMotion(reducedMotion, false);
+    this.toggleLargeTargets(largeTargets, false);
+
+    const btnOpen = document.getElementById('btn-open-a11y');
+    const modal = document.getElementById('a11y-modal-overlay');
+    const btnClose = document.getElementById('a11y-close-btn');
+    const chkMotion = document.getElementById('a11y-toggle-reduced-motion');
+    const chkTargets = document.getElementById('a11y-toggle-large-targets');
+
+    if (chkMotion) chkMotion.checked = reducedMotion;
+    if (chkTargets) chkTargets.checked = largeTargets;
+
+    if (btnOpen && modal) {
+      btnOpen.addEventListener('click', () => { modal.style.display = 'flex'; });
+    }
+    if (btnClose && modal) {
+      btnClose.addEventListener('click', () => { modal.style.display = 'none'; });
+    }
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+      });
+    }
+
+    if (chkMotion) {
+      chkMotion.addEventListener('change', (e) => this.toggleReducedMotion(e.target.checked, true));
+    }
+    if (chkTargets) {
+      chkTargets.addEventListener('change', (e) => this.toggleLargeTargets(e.target.checked, true));
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.altKey && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        if (typeof openSlide === 'function') openSlide('slide-communication-hub');
+      } else if (e.altKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        if (typeof openSlide === 'function') openSlide('slide-phraseboard');
+      } else if (e.altKey && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        if (typeof openSlide === 'function') openSlide('slide-dashboard');
+      } else if (e.altKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        if (window.TransifyI18n) window.TransifyI18n.toggleLanguage();
+      } else if (e.key === 'Escape') {
+        if (modal && modal.style.display === 'flex') modal.style.display = 'none';
+      }
+    });
+  },
+
+  toggleReducedMotion(enabled, save = true) {
+    if (enabled) {
+      document.body.classList.add('reduced-motion');
+    } else {
+      document.body.classList.remove('reduced-motion');
+    }
+    if (save) {
+      localStorage.setItem('transify_reduced_motion', enabled ? 'true' : 'false');
+      TransifyApp.announce(enabled ? 'Reduced motion enabled' : 'Reduced motion disabled');
+    }
+  },
+
+  toggleLargeTargets(enabled, save = true) {
+    if (enabled) {
+      document.body.classList.add('large-targets');
+    } else {
+      document.body.classList.remove('large-targets');
+    }
+    if (save) {
+      localStorage.setItem('transify_large_targets', enabled ? 'true' : 'false');
+      TransifyApp.announce(enabled ? 'Large touch targets enabled' : 'Large touch targets disabled');
+    }
+  }
+};
+
+window.TransifyI18n = {
+  currentLang: localStorage.getItem('transify_lang') || 'en',
+  translations: {
+    en: {
+      hub_title: 'Communication Hub',
+      hub_sub: 'Unified Chat',
+      hub_subtitle: 'Unified Multimodal Conversation Feed',
+      phrases_title: 'Quick Phraseboard',
+      phrases_sub: 'Quick Phrases',
+      phrases_subtitle: 'Bilingual Essential & Custom Phrases',
+      dash_title: 'Dashboard',
+      dash_sub: 'History & Health',
+      dash_subtitle: 'History, Activity & System Diagnostics'
+    },
+    bn: {
+      hub_title: 'যোগাযোগ কেন্দ্র',
+      hub_sub: 'সমন্বিত চ্যাট',
+      hub_subtitle: 'বহুমুখী সমন্বিত বার্তা আদান-প্রদান',
+      phrases_title: 'দ্রুত বাক্যাবলী',
+      phrases_sub: 'প্রয়োজনীয় বাক্য',
+      phrases_subtitle: 'দ্বিভাষিক প্রয়োজনীয় ও কাস্টম বাক্যাবলী',
+      dash_title: 'ড্যাশবোর্ড',
+      dash_sub: 'ইতিহাস ও স্বাস্থ্য',
+      dash_subtitle: 'কার্যক্রমের ইতিহাস ও সিস্টেমের অবস্থা'
+    }
+  },
+
+  init() {
+    this.applyLanguage(this.currentLang, false);
+    const toggleBtn = document.getElementById('lang-toggle-btn');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => this.toggleLanguage());
+    }
+  },
+
+  toggleLanguage() {
+    const nextLang = this.currentLang === 'en' ? 'bn' : 'en';
+    this.applyLanguage(nextLang, true);
+  },
+
+  applyLanguage(lang, save = true) {
+    this.currentLang = lang;
+    document.documentElement.setAttribute('lang', lang);
+
+    const toggleBtn = document.getElementById('lang-toggle-btn');
+    if (toggleBtn) {
+      const enOpt = toggleBtn.querySelector('.lang-en');
+      const bnOpt = toggleBtn.querySelector('.lang-bn');
+      if (enOpt && bnOpt) {
+        if (lang === 'bn') {
+          enOpt.classList.remove('lang-active');
+          bnOpt.classList.add('lang-active');
+        } else {
+          enOpt.classList.add('lang-active');
+          bnOpt.classList.remove('lang-active');
+        }
+      }
+    }
+
+    const dict = this.translations[lang] || this.translations.en;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (dict[key]) el.textContent = dict[key];
+    });
+
+    if (save) {
+      localStorage.setItem('transify_lang', lang);
+      TransifyApp.announce(lang === 'bn' ? 'ভাষা পরিবর্তন করা হয়েছে: বাংলা' : 'Language changed to English');
+    }
+  }
+};
+
 function initTransifyAllModules() {
   if (window.TransifyApp && window.TransifyApp.init) {
     window.TransifyApp.init();
@@ -2886,6 +3538,12 @@ function initTransifyAllModules() {
   }
   if (window.DashboardPage && window.DashboardPage.init && (document.getElementById('dashboard-container') || document.getElementById('system-status-badge') || document.getElementById('history-records-list'))) {
     window.DashboardPage.init();
+  }
+  if (window.TransifyA11y && window.TransifyA11y.init) {
+    window.TransifyA11y.init();
+  }
+  if (window.TransifyI18n && window.TransifyI18n.init) {
+    window.TransifyI18n.init();
   }
 
   // Expose module APIs to window for inline onclick handlers and extensions

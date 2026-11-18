@@ -48,6 +48,7 @@ from src.database.db import (
     log_translation,
     get_history,
     clear_history,
+    toggle_history_favorite,
     record_feedback,
     get_preferences,
     update_preference,
@@ -61,7 +62,20 @@ from src.database.db import (
     record_failed_login,
     is_login_rate_limited,
     clear_failed_logins,
-    count_legacy_history
+    count_legacy_history,
+    create_password_reset_token,
+    verify_and_consume_reset_token,
+    create_hub_conversation,
+    get_hub_conversations,
+    get_hub_messages,
+    add_hub_message,
+    delete_hub_conversation,
+    clear_hub_conversation_messages,
+    DEFAULT_PHRASES,
+    get_user_phrases,
+    add_user_phrase,
+    toggle_phrase_favorite,
+    delete_user_phrase
 )
 
 # Initialize FastAPI App
@@ -269,12 +283,38 @@ class MCPSignResolveRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str = Field(..., description="User email address")
     password: str = Field(..., min_length=1, description="User account password")
+    remember_me: Optional[bool] = Field(False, description="Whether to establish a persistent session cookie")
 
 
 class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=100, description="User full name")
     email: str = Field(..., description="User email address")
     password: str = Field(..., min_length=15, max_length=128, description="User password (min 15 characters)")
+    consent_terms: bool = Field(True, description="Explicit consent to Terms of Service and Privacy Policy")
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(..., description="User email address")
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(..., min_length=10, description="Cryptographically secure reset token")
+    new_password: str = Field(..., min_length=15, max_length=128, description="New password (min 15 characters)")
+
+
+class CreateConversationRequest(BaseModel):
+    title: Optional[str] = Field("Communication Session", max_length=100, description="Title of the conversation")
+
+
+class AddHubMessageRequest(BaseModel):
+    source: str = Field("typed", description="Source modality: sign, braille, speech, typed")
+    content: str = Field(..., min_length=1, max_length=5000, description="Message content text")
+
+
+class AddPhraseRequest(BaseModel):
+    text_en: str = Field(..., min_length=1, max_length=200, description="English phrase text")
+    text_bn: Optional[str] = Field("", max_length=200, description="Bengali phrase text")
+    category: Optional[str] = Field("General", max_length=50, description="Category of phrase")
 
 
 # --- Security: Rate Limiting, CSRF Protection & Auth Dependencies ---
@@ -1055,17 +1095,40 @@ def get_braille_sample_image(filename: str):
 @app.get("/api/history", tags=["History"])
 def list_history(
     limit: int = Query(50, ge=1, le=200),
-    module: Optional[str] = Query(None, pattern="^(sign|braille)$"),
+    module: Optional[str] = Query(None, pattern="^(sign|braille|speech)$"),
+    search: Optional[str] = Query(None),
+    date_filter: Optional[str] = Query(None, pattern="^(all|today|week)$"),
+    favorites_only: bool = Query(False),
     user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Retrieves translation history records isolated strictly to the authenticated user.
+    Supports filtering by module, search query, date range, and favorites.
     Unauthenticated/guest users receive an empty list to protect private user data.
     """
     if not user:
         return {"count": 0, "records": []}
-    records = get_history(limit=limit, module=module, user_id=user["id"])
+    records = get_history(
+        limit=limit,
+        module=module,
+        user_id=user["id"],
+        search=search,
+        date_filter=date_filter,
+        favorites_only=favorites_only
+    )
     return {"count": len(records), "records": records}
+
+
+@app.post("/api/history/{record_id}/favorite", tags=["History"])
+def toggle_history_favorite_endpoint(
+    record_id: int,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """Toggles favorite/bookmarked status on a user-owned translation history item."""
+    new_status = toggle_history_favorite(record_id, user_id=user["id"])
+    if new_status is None:
+        raise HTTPException(status_code=404, detail="History record not found or not owned by user.")
+    return {"success": True, "is_favorite": new_status}
 
 
 @app.delete("/api/history", tags=["History"])
@@ -1112,11 +1175,13 @@ def set_preference(
 
 # --- Authentication Endpoints ---
 
+_LAST_RESET_EMAIL_FOR_TESTS = {}
+
 @app.post("/api/auth/register", tags=["Authentication"])
 def register_user(req: RegisterRequest, response: Response, request: Request):
     """
     Registers a new user account with Argon2id / PBKDF2 password hashing.
-    Enforces password length >= 15 characters and sets an HttpOnly session cookie.
+    Enforces password length >= 15 characters, explicit consent, and sets an HttpOnly session cookie.
     Never returns raw session tokens in the JSON response.
     """
     client_ip = request.client.host if request.client else "unknown"
@@ -1126,8 +1191,14 @@ def register_user(req: RegisterRequest, response: Response, request: Request):
             detail="Too many attempts. Please wait 5 minutes before trying again."
         )
 
+    if not req.consent_terms:
+        raise HTTPException(
+            status_code=422,
+            detail="Consent to Terms of Service and Privacy Policy is required to create an account."
+        )
+
     try:
-        user = create_user(req.name, req.email, req.password)
+        user = create_user(req.name, req.email, req.password, consent_terms=req.consent_terms)
     except ValueError as err:
         err_msg = str(err)
         if "already exists" in err_msg.lower():
@@ -1163,6 +1234,7 @@ def register_user(req: RegisterRequest, response: Response, request: Request):
 def login_user(req: LoginRequest, response: Response, request: Request):
     """
     Authenticates user credentials against the persistent SQLite database.
+    Supports Remember Me: persistent cookie when true, browser session cookie when false.
     Rejects bad credentials with generic HTTP 401 and enforces login rate limiting.
     Delivers session token exclusively through secure HttpOnly cookie.
     """
@@ -1182,26 +1254,103 @@ def login_user(req: LoginRequest, response: Response, request: Request):
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
     # Clear failed login attempts ONLY for this specific email account on successful login.
-    # Note: client_ip rate limit counter is deliberately NOT cleared here so that a valid login
-    # does not wipe the shared network/IP-level rate limit protection against brute force attacks.
     clear_failed_logins(f"email:{req.email.lower()}")
 
     session_token = create_session(user["id"])
     secure_cookie = is_request_secure(request)
-    response.set_cookie(
-        key="transify_session",
-        value=session_token,
-        max_age=30 * 86400,
-        httponly=True,
-        samesite="lax",
-        secure=secure_cookie,
-        path="/"
-    )
+
+    # Real Remember Me behavior:
+    # Checked (True) -> persistent cookie with 30-day Max-Age
+    # Unchecked (False) -> browser session cookie (max_age=None, expires=None)
+    cookie_kwargs = {
+        "key": "transify_session",
+        "value": session_token,
+        "httponly": True,
+        "samesite": "lax",
+        "secure": secure_cookie,
+        "path": "/"
+    }
+    if req.remember_me:
+        cookie_kwargs["max_age"] = 30 * 86400
+    else:
+        cookie_kwargs["max_age"] = None
+
+    response.set_cookie(**cookie_kwargs)
 
     return {
         "status": "success",
         "message": "Login successful.",
-        "user": user
+        "user": user,
+        "remember_me": bool(req.remember_me)
+    }
+
+
+@app.post("/api/auth/forgot-password", tags=["Authentication"])
+def forgot_password(req: ForgotPasswordRequest, request: Request):
+    """
+    Initiates a password reset workflow.
+    Generates a cryptographically secure single-use token, stores only its SHA-256 hash,
+    and enforces rate limiting. Returns a generic response to prevent account enumeration.
+    """
+    client_ip = request.client.host if request.client else "unknown"
+    if is_login_rate_limited(f"reset_ip:{client_ip}", max_attempts=30) or (req.email and is_login_rate_limited(f"reset_email:{req.email.lower()}", max_attempts=5)):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many password reset requests. Please wait 5 minutes before trying again."
+        )
+
+    record_failed_login(f"reset_ip:{client_ip}", window_seconds=300.0)
+    record_failed_login(f"reset_email:{req.email.lower()}", window_seconds=300.0)
+
+    user = get_user_by_email(req.email)
+    raw_token = None
+    if user and user.get("role") != "disabled":
+        raw_token, token_hash = create_password_reset_token(user["id"], expires_in_seconds=1800.0)
+        if not is_production():
+            _LAST_RESET_EMAIL_FOR_TESTS[req.email.lower()] = raw_token
+
+    smtp_configured = bool(os.getenv("SMTP_HOST") and os.getenv("SMTP_USER"))
+    resp_body = {
+        "status": "success",
+        "message": "If an account with that email exists, password reset instructions have been processed."
+    }
+    if not smtp_configured and not is_production() and raw_token:
+        resp_body["test_token"] = raw_token
+        resp_body["note"] = "SMTP not configured in local environment; test_token provided for verification."
+    elif not smtp_configured and is_production():
+        resp_body["delivery_notice"] = "Email delivery is not configured on this server. Please contact support@transify.ai."
+
+    return resp_body
+
+
+@app.post("/api/auth/reset-password", tags=["Authentication"])
+def reset_password(req: ResetPasswordRequest, request: Request):
+    """
+    Consumes a password reset token to set a new password.
+    Enforces minimum 15-character length, updates password using Argon2id, and revokes all active sessions.
+    """
+    if len(req.new_password) < 15:
+        raise HTTPException(status_code=400, detail="New password must be at least 15 characters long.")
+
+    success = verify_and_consume_reset_token(req.token, req.new_password)
+    if not success:
+        raise HTTPException(status_code=400, detail="Invalid, expired, or already used password reset token.")
+
+    return {
+        "status": "success",
+        "message": "Password reset successfully. Please log in with your new password."
+    }
+
+
+@app.get("/api/auth/oauth/google/config", tags=["Authentication"])
+def get_google_oauth_config():
+    """Returns Google OAuth status and client ID if configured."""
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    available = bool(client_id and client_id.strip())
+    return {
+        "available": available,
+        "client_id": client_id if available else None,
+        "message": "Google Sign-In is configured." if available else "Google Sign-In is not configured in this deployment."
     }
 
 
@@ -1254,6 +1403,136 @@ def logout_user(response: Response, request: Request = None):
 
     response.delete_cookie(key="transify_session", path="/")
     return {"status": "success", "message": "Logged out successfully."}
+
+
+# --- Communication Hub Endpoints ---
+
+@app.get("/api/hub/conversations", tags=["Communication Hub"])
+def list_conversations(user: Dict[str, Any] = Depends(get_authenticated_user)):
+    """Retrieves all conversation sessions for the authenticated user."""
+    convs = get_hub_conversations(user["id"])
+    return {"status": "success", "conversations": convs}
+
+
+@app.post("/api/hub/conversations", tags=["Communication Hub"])
+def create_conversation_endpoint(
+    req: CreateConversationRequest,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """Creates a new conversation session for the authenticated user."""
+    conv = create_hub_conversation(user["id"], req.title or "Communication Session")
+    return {"status": "success", "conversation": conv}
+
+
+@app.get("/api/hub/conversations/{conv_id}/messages", tags=["Communication Hub"])
+def list_messages_endpoint(
+    conv_id: str,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """Retrieves messages for a conversation session owned by user."""
+    msgs = get_hub_messages(conv_id, user["id"])
+    if msgs is None:
+        raise HTTPException(status_code=404, detail="Conversation session not found or not owned by user.")
+    return {"status": "success", "messages": msgs}
+
+
+@app.post("/api/hub/conversations/{conv_id}/messages", tags=["Communication Hub"])
+def add_message_endpoint(
+    conv_id: str,
+    req: AddHubMessageRequest,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """Adds a message to a conversation session owned by user."""
+    msg = add_hub_message(conv_id, user["id"], req.source, req.content)
+    if msg is None:
+        raise HTTPException(status_code=404, detail="Conversation session not found or empty message content.")
+    return {"status": "success", "message": msg}
+
+
+@app.delete("/api/hub/conversations/{conv_id}", tags=["Communication Hub"])
+def delete_conversation_endpoint(
+    conv_id: str,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """Deletes a conversation session owned by user."""
+    deleted = delete_hub_conversation(conv_id, user["id"])
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Conversation session not found or not owned by user.")
+    return {"status": "success", "message": "Conversation session deleted."}
+
+
+@app.post("/api/hub/conversations/{conv_id}/clear", tags=["Communication Hub"])
+def clear_conversation_messages_endpoint(
+    conv_id: str,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """Clears all messages in a conversation session owned by user."""
+    cleared = clear_hub_conversation_messages(conv_id, user["id"])
+    if not cleared:
+        raise HTTPException(status_code=404, detail="Conversation session not found or not owned by user.")
+    return {"status": "success", "message": "Conversation messages cleared."}
+
+
+# --- Quick Phraseboard Endpoints ---
+
+@app.get("/api/phrases", tags=["Phraseboard"])
+def list_phrases(user: Optional[Dict[str, Any]] = Depends(get_optional_user)):
+    """
+    Retrieves the complete phrase library: default core phrases plus any custom
+    phrases saved by the authenticated user.
+    """
+    user_phrases = []
+    if user:
+        user_phrases = get_user_phrases(user["id"])
+    all_phrases = list(DEFAULT_PHRASES) + user_phrases
+    return {
+        "status": "success",
+        "phrases": all_phrases,
+        "default_phrases": DEFAULT_PHRASES,
+        "custom_phrases": user_phrases
+    }
+
+
+@app.post("/api/phrases", tags=["Phraseboard"])
+def create_custom_phrase(
+    req: AddPhraseRequest,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """Creates a custom phrase in the authenticated user's personal phrasebook."""
+    try:
+        phrase = add_user_phrase(
+            user_id=user["id"],
+            text_en=req.text_en,
+            text_bn=req.text_bn or req.text_en,
+            category=req.category or "General"
+        )
+        return {"status": "success", "phrase": phrase}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/phrases/{phrase_id}/favorite", tags=["Phraseboard"])
+def toggle_phrase_favorite_endpoint(
+    phrase_id: int,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """Toggles favorite status for a custom phrase owned by user."""
+    fav = toggle_phrase_favorite(phrase_id, user["id"])
+    if fav is None:
+        raise HTTPException(status_code=404, detail="Phrase not found or not owned by user.")
+    return {"status": "success", "is_favorite": fav}
+
+
+@app.delete("/api/phrases/{phrase_id}", tags=["Phraseboard"])
+def delete_custom_phrase(
+    phrase_id: int,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """Deletes a custom phrase owned by user."""
+    deleted = delete_user_phrase(phrase_id, user["id"])
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Phrase not found or not owned by user.")
+    return {"status": "success", "message": "Phrase deleted."}
 
 
 # --- Static Frontend App Serving ---

@@ -500,8 +500,12 @@
 
     .auth-welcome-exact-card {
       position: relative;
-      width: 100%;
+      width: auto;
       height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      aspect-ratio: 613 / 1024;
+      margin: auto;
       overflow: hidden;
       background: #ffffff;
     }
@@ -509,7 +513,7 @@
     .auth-welcome-exact-artwork {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: fill;
       display: block;
       user-select: none;
       -webkit-user-drag: none;
@@ -882,67 +886,17 @@
 }
 
   </style>
+  <script src="/static/auth-controller.js?v=20261118_authfix_v11"></script>
   <script>
-    window.handleArtworkError = function(img) {
-      var artwork = img || document.getElementById('auth-welcome-artwork');
-      if (artwork) {
-        artwork.style.display = 'none';
-        artwork.setAttribute('aria-hidden', 'true');
-        artwork.setAttribute('alt', '');
-      }
-      var card = document.getElementById('auth-welcome-card');
-      if (card) {
-        card.classList.add('auth-fallback-active');
-      }
-    };
-
-    window.addEventListener('error', function(e) {
-      if (e.target && (e.target.id === 'auth-welcome-artwork' || (e.target.classList && e.target.classList.contains('auth-welcome-exact-artwork')))) {
-        window.handleArtworkError(e.target);
-      }
-    }, true);
-
-    window.openAuthSheet = function(mode) {
-      mode = mode || 'login';
-      var sheet = document.getElementById('auth-sheet-container');
-      if (sheet) sheet.classList.add('active');
-      if (typeof setMode === 'function') setMode(mode);
-    };
-    window.closeAuthSheet = function() {
-      var sheet = document.getElementById('auth-sheet-container');
-      if (sheet) sheet.classList.remove('active');
-      if (typeof hideAlert === 'function') hideAlert();
-    };
-    window.handleDemoGuest = async function() {
-      try {
-        var res = await fetch('/api/auth/guest', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        var data = await res.json().catch(function() { return {}; });
-        var guestUser = (data && data.user) ? data.user : {
-          id: 0,
-          name: 'Guest User (Demo Mode)',
-          email: 'guest@transify.ai',
-          role: 'guest',
-          is_guest: true
-        };
-        guestUser.is_guest = true;
-        localStorage.setItem('transify_guest_mode', 'true');
-        localStorage.setItem('transify_auth_user', JSON.stringify(guestUser));
-        localStorage.removeItem('transify_session_token');
-        localStorage.removeItem('transify_auth_token');
-      } catch(e) {
-        var fallbackGuest = { id: 0, name: 'Guest User (Demo Mode)', email: 'guest@transify.ai', role: 'guest', is_guest: true };
-        localStorage.setItem('transify_guest_mode', 'true');
-        localStorage.setItem('transify_auth_user', JSON.stringify(fallbackGuest));
-        localStorage.removeItem('transify_session_token');
-        localStorage.removeItem('transify_auth_token');
-      }
-      window.location.href = '/?auth_completed=1';
-    };
+    window.openAuthSheet = function(mode) { if (window.AuthController) window.AuthController.openSheet(mode); };
+    window.closeAuthSheet = function() { if (window.AuthController) window.AuthController.closeSheet(); };
+    window.setMode = function(mode) { if (window.AuthController) window.AuthController.switchTab(mode); };
+    window.handleDemoGuest = function() { if (window.AuthController) window.AuthController.submitGuest(); };
     window.handleDemoLogin = window.handleDemoGuest;
+    window.togglePasswordVisibility = function() { if (window.AuthController) window.AuthController.togglePasswordVisibility(); };
+    window.handleForgotPassword = function(e) { if (e) e.preventDefault(); if (window.AuthController) window.AuthController.openForgotPassword(); };
+    window.handleGoogleLogin = function() { if (window.AuthController) window.AuthController.handleGoogleClick(); };
+    window.handleAuthSubmit = function(e) { if (window.AuthController) window.AuthController.submitAuth(e); };
   </script>
 </head>
 <body>
@@ -1160,6 +1114,35 @@
             </button>
           </div>
 
+          <!-- Group Terms (Dedicated Checkbox for Signup mode, unchecked by default) -->
+          <div class="input-group-terms" id="group-terms" style="display: none; align-items: center; gap: 8px; margin: 8px 0 14px 4px;">
+            <input type="checkbox" id="input-terms" style="width: 18px; height: 18px; accent-color: #7c3aed; cursor: pointer;">
+            <label for="input-terms" style="font-size: 13px; color: #475569; cursor: pointer; user-select: none;">
+              I agree to the <a href="#" onclick="alert('Transify Terms of Service & Privacy Policy'); return false;" style="color: #7c3aed; text-decoration: underline;">Terms of Service</a> &amp; <a href="#" onclick="alert('Transify Privacy Policy'); return false;" style="color: #7c3aed; text-decoration: underline;">Privacy Policy</a>
+            </label>
+          </div>
+
+          <!-- Password Recovery Step 2 Fields -->
+          <div id="auth-forgot-fields" style="display: none; margin-bottom: 12px;">
+            <div class="input-group" style="margin-bottom: 10px;">
+              <div class="input-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                </svg>
+              </div>
+              <input type="text" class="auth-input" id="input-reset-token" placeholder="Reset Code / Token" autocomplete="off">
+            </div>
+            <div class="input-group">
+              <div class="input-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </div>
+              <input type="password" class="auth-input" id="input-new-password" placeholder="New Password (15+ chars)" autocomplete="new-password">
+            </div>
+          </div>
+
           <!-- Utility Options Row: Remember Me & Forgot Password -->
           <div class="form-options-row" id="auth-options-row">
             <label class="checkbox-label" for="input-remember">
@@ -1205,240 +1188,12 @@
   </main>
 
   <script>
-    let activeMode = 'login'; // 'login' or 'signup'
-
-    const tabLogin = document.getElementById('tab-login');
-    const tabSignup = document.getElementById('tab-signup');
-    const headingTitle = document.getElementById('auth-heading-title');
-    const headingSubtitle = document.getElementById('auth-heading-subtitle');
-    const groupFullname = document.getElementById('group-fullname');
-    const inputFullname = document.getElementById('input-fullname');
-    const btnText = document.getElementById('btn-text');
-    const rememberLabelText = document.getElementById('remember-label-text');
-    const forgotLink = document.getElementById('forgot-password-link');
-    const alertBox = document.getElementById('auth-alert');
-    const sheetContainer = document.getElementById('auth-sheet-container');
-    const switchPromptText = document.getElementById('switch-prompt-text');
-    const switchPromptLink = document.getElementById('switch-prompt-link');
-
-    function openAuthSheet(mode) {
-      setMode(mode || 'login');
-      if (sheetContainer) sheetContainer.classList.add('active');
-    }
-
-    function closeAuthSheet() {
-      if (sheetContainer) sheetContainer.classList.remove('active');
-      hideAlert();
-    }
-
-    // Close on escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeAuthSheet();
+    // Transify 2.0 Auth Bridge
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.AuthController) {
+        window.AuthController.init();
+      }
     });
-
-    function setMode(mode) {
-      activeMode = mode;
-      hideAlert();
-      if (mode === 'login') {
-        if (tabLogin) { tabLogin.classList.add('active'); tabLogin.setAttribute('aria-selected', 'true'); }
-        if (tabSignup) { tabSignup.classList.remove('active'); tabSignup.setAttribute('aria-selected', 'false'); }
-
-        if (headingTitle) headingTitle.textContent = 'Welcome Back!';
-        if (headingSubtitle) headingSubtitle.textContent = 'Login to your Transify account';
-        if (groupFullname) groupFullname.style.display = 'none';
-        if (inputFullname) inputFullname.removeAttribute('required');
-        if (btnText) btnText.textContent = 'Login';
-        if (rememberLabelText) rememberLabelText.textContent = 'Remember me';
-        if (forgotLink) forgotLink.style.display = 'inline';
-        if (switchPromptText) switchPromptText.textContent = "Don't have an account?";
-        if (switchPromptLink) switchPromptLink.textContent = "Sign Up";
-      } else {
-        if (tabSignup) { tabSignup.classList.add('active'); tabSignup.setAttribute('aria-selected', 'true'); }
-        if (tabLogin) { tabLogin.classList.remove('active'); tabLogin.setAttribute('aria-selected', 'false'); }
-
-        if (headingTitle) headingTitle.textContent = 'Join Transify!';
-        if (headingSubtitle) headingSubtitle.textContent = 'Create your account to start communicating';
-        if (groupFullname) groupFullname.style.display = 'flex';
-        if (inputFullname) inputFullname.removeAttribute('required');
-        if (btnText) btnText.textContent = 'Register & Open Slides';
-        if (rememberLabelText) rememberLabelText.textContent = 'I agree to Terms & Privacy';
-        if (forgotLink) forgotLink.style.display = 'none';
-        if (switchPromptText) switchPromptText.textContent = "Already have an account?";
-        if (switchPromptLink) switchPromptLink.textContent = "Login";
-      }
-    }
-
-    function handleDirectLogin() {
-      handleDemoGuest();
-    }
-
-    async function handleDemoGuest() {
-      showAlert('Entering Demo Guest Mode...', true);
-      try {
-        const res = await fetch('/api/auth/guest', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        const data = await res.json().catch(() => ({}));
-        const guestUser = (data && data.user) ? data.user : {
-          id: 0,
-          name: 'Guest User (Demo Mode)',
-          email: 'guest@transify.ai',
-          role: 'guest',
-          is_guest: true
-        };
-        guestUser.is_guest = true;
-        localStorage.setItem('transify_guest_mode', 'true');
-        localStorage.setItem('transify_auth_user', JSON.stringify(guestUser));
-        localStorage.removeItem('transify_session_token');
-        localStorage.removeItem('transify_auth_token');
-      } catch (err) {
-        const fallbackGuest = { id: 0, name: 'Guest User (Demo Mode)', email: 'guest@transify.ai', role: 'guest', is_guest: true };
-        localStorage.setItem('transify_guest_mode', 'true');
-        localStorage.setItem('transify_auth_user', JSON.stringify(fallbackGuest));
-        localStorage.removeItem('transify_session_token');
-        localStorage.removeItem('transify_auth_token');
-      }
-      setTimeout(() => {
-        window.location.href = '/?auth_completed=1';
-      }, 150);
-    }
-
-    // Password Visibility Toggle
-    function togglePasswordVisibility() {
-      const pwdInput = document.getElementById('input-password');
-      const eyeIcon = document.getElementById('eye-icon');
-      if (pwdInput.type === 'password') {
-        pwdInput.type = 'text';
-        eyeIcon.innerHTML = `
-          <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
-          <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
-          <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
-          <line x1="2" x2="22" y1="2" y2="22"/>
-        `;
-      } else {
-        pwdInput.type = 'password';
-        eyeIcon.innerHTML = `
-          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-          <circle cx="12" cy="12" r="3"/>
-        `;
-      }
-    }
-
-    // Feedback Alerts
-    function showAlert(msg, isSuccess = true) {
-      alertBox.textContent = msg;
-      alertBox.className = `auth-alert ${isSuccess ? 'success' : 'error'}`;
-      alertBox.style.display = 'block';
-    }
-    function hideAlert() {
-      alertBox.style.display = 'none';
-      alertBox.textContent = '';
-    }
-
-    // Handle Forgot Password
-    function handleForgotPassword(e) {
-      e.preventDefault();
-      showAlert('Password self-service recovery is currently unavailable. Please contact your system administrator.', false);
-    }
-
-    // Handle Form Submit
-    async function handleAuthSubmit(e) {
-      if (e) e.preventDefault();
-      const emailInput = document.getElementById('input-email');
-      const pwdInput = document.getElementById('input-password');
-      const email = emailInput ? emailInput.value.trim() : '';
-      const password = pwdInput ? pwdInput.value : '';
-      const fullname = inputFullname && inputFullname.value.trim() ? inputFullname.value.trim() : '';
-
-      const submitBtn = document.getElementById('auth-submit-btn');
-      const resetBtn = () => {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.style.opacity = '1';
-          const label = submitBtn.querySelector('#btn-text');
-          if (label) label.textContent = activeMode === 'login' ? 'Login' : 'Register & Open Slides';
-        }
-      };
-
-      if (!email || !password) {
-        showAlert('Please fill in both email and password.', false);
-        resetBtn();
-        return;
-      }
-
-      if (activeMode === 'signup' && (!fullname || fullname.length < 2)) {
-        showAlert('Please provide your full name (at least 2 characters).', false);
-        resetBtn();
-        return;
-      }
-
-      if (activeMode === 'signup' && password.length < 15) {
-        showAlert('Password must be at least 15 characters long.', false);
-        resetBtn();
-        return;
-      }
-
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.style.opacity = '0.75';
-        const label = submitBtn.querySelector('#btn-text');
-        if (label) label.textContent = activeMode === 'login' ? 'Authenticating...' : 'Registering...';
-      }
-
-      try {
-        const endpoint = activeMode === 'login' ? '/api/auth/login' : '/api/auth/register';
-        const payload = activeMode === 'login' 
-          ? { email: email, password: password }
-          : { name: fullname, email: email, password: password };
-
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          const errMsg = data.detail || (activeMode === 'login' ? 'Invalid email or password.' : 'Registration failed.');
-          showAlert(errMsg, false);
-          resetBtn();
-          return;
-        }
-
-        showAlert(activeMode === 'login' ? 'Login successful! Redirecting...' : 'Account registered! Redirecting...', true);
-        completeAuthentication(data.user);
-      } catch (err) {
-        console.error('Authentication request error:', err);
-        showAlert('Network error while authenticating. Please try again.', false);
-        resetBtn();
-      }
-    }
-
-    // Handle Google Login
-    function handleGoogleLogin() {
-      showAlert('Google Single Sign-On is currently unavailable. Please sign in with email and password.', false);
-    }
-
-    // Complete Authentication & Launch Application with Splash Loading
-    function completeAuthentication(userObj) {
-      try {
-        localStorage.removeItem('transify_guest_mode');
-        localStorage.setItem('transify_auth_user', JSON.stringify(userObj || { name: 'Transify User', email: '' }));
-        localStorage.removeItem('transify_session_token');
-        localStorage.removeItem('transify_auth_token');
-      } catch (err) {
-        console.warn('LocalStorage error:', err);
-      }
-
-      // Smooth transition to the app
-      setTimeout(() => {
-        window.location.href = '/?auth_completed=1';
-      }, 150);
-    }
   </script>
 </body>
 </html>

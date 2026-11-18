@@ -289,3 +289,136 @@ def test_login_rate_limiting(client):
     res_blocked = client.post("/api/auth/login", json={"email": abuse_email, "password": "wrongpassword123!"})
     assert res_blocked.status_code == 429
     assert "Too many failed login attempts" in res_blocked.json()["detail"]
+
+
+def test_remember_me_cookie_lifecycle(client):
+    """
+    Verifies real Remember Me behavior:
+    1. remember_me=True -> Set-Cookie includes Max-Age=2592000 (30 days).
+    2. remember_me=False -> Set-Cookie omits Max-Age/Expires (browser session cookie).
+    """
+    email = f"remember_tester_{int(time.time()*1000)}@test.com"
+    pwd = "RememberPassword123!_2026"
+    create_user("Remember Tester", email, pwd)
+
+    # 1. Login with remember_me=True
+    res_rem = client.post("/api/auth/login", json={
+        "email": email,
+        "password": pwd,
+        "remember_me": True
+    })
+    assert res_rem.status_code == 200
+    set_cookie_header = res_rem.headers.get("set-cookie", "")
+    assert "transify_session=" in set_cookie_header
+    assert "max-age=" in set_cookie_header.lower()
+    assert "httponly" in set_cookie_header.lower()
+    assert res_rem.json()["remember_me"] is True
+
+    # 2. Login with remember_me=False
+    client.cookies.clear()
+    res_no_rem = client.post("/api/auth/login", json={
+        "email": email,
+        "password": pwd,
+        "remember_me": False
+    })
+    assert res_no_rem.status_code == 200
+    set_cookie_session = res_no_rem.headers.get("set-cookie", "")
+    assert "transify_session=" in set_cookie_session
+    # Session cookie: Must NOT contain Max-Age or Expires
+    assert "max-age=" not in set_cookie_session.lower()
+    assert res_no_rem.json()["remember_me"] is False
+
+
+def test_registration_terms_consent_enforcement(client):
+    """
+    Verifies registration requires explicit consent to Terms & Privacy:
+    1. consent_terms=False -> rejected with HTTP 422.
+    2. consent_terms=True -> successful registration with consent timestamp stored.
+    """
+    email = f"consent_tester_{int(time.time()*1000)}@test.com"
+    pwd = "ConsentPassword123!_2026"
+
+    # Reject without consent
+    res_no_consent = client.post("/api/auth/register", json={
+        "name": "Consent Tester",
+        "email": email,
+        "password": pwd,
+        "consent_terms": False
+    })
+    assert res_no_consent.status_code == 422
+    assert "Consent to Terms" in res_no_consent.json()["detail"]
+
+    # Accept with consent
+    res_consent = client.post("/api/auth/register", json={
+        "name": "Consent Tester",
+        "email": email,
+        "password": pwd,
+        "consent_terms": True
+    })
+    assert res_consent.status_code == 200
+    data = res_consent.json()
+    assert data["status"] == "success"
+    assert data["user"]["consent_terms"] is True
+    assert data["user"]["consented_at"] is not None
+
+
+def test_password_recovery_workflow(client):
+    """
+    Verifies end-to-end password recovery:
+    1. forgot-password endpoint generates token and returns generic response.
+    2. reset-password validates token and updates password (Argon2id).
+    3. Old sessions are revoked upon reset.
+    4. Old password no longer works; new password authenticates.
+    """
+    email = f"reset_tester_{int(time.time()*1000)}@test.com"
+    old_pwd = "OldPassword12345!_2026"
+    new_pwd = "BrandNewPassword123!_2026"
+    create_user("Reset Tester", email, old_pwd)
+
+    # Establish an initial session
+    login_res = client.post("/api/auth/login", json={"email": email, "password": old_pwd})
+    assert login_res.status_code == 200
+    old_cookie = client.cookies.get("transify_session")
+
+    # Request password reset
+    forgot_res = client.post("/api/auth/forgot-password", json={"email": email})
+    assert forgot_res.status_code == 200
+    forgot_data = forgot_res.json()
+    assert "instructions have been processed" in forgot_data["message"]
+    # In testing environment, test_token is provided for verification
+    test_token = forgot_data.get("test_token")
+    assert test_token is not None
+
+    # Reset password using token
+    reset_res = client.post("/api/auth/reset-password", json={
+        "token": test_token,
+        "new_password": new_pwd
+    })
+    assert reset_res.status_code == 200
+    assert "Password reset successfully" in reset_res.json()["message"]
+
+    # Verify old session cookie is now revoked in database
+    client.cookies.clear()
+    client.cookies.set("transify_session", old_cookie)
+    me_res = client.get("/api/auth/me")
+    assert me_res.status_code == 200
+    assert me_res.json()["authenticated"] is False
+
+    # Old password rejected
+    old_login = client.post("/api/auth/login", json={"email": email, "password": old_pwd})
+    assert old_login.status_code == 401
+
+    # New password authenticates
+    new_login = client.post("/api/auth/login", json={"email": email, "password": new_pwd})
+    assert new_login.status_code == 200
+    assert new_login.json()["user"]["email"] == email.lower()
+
+
+def test_google_oauth_config_endpoint(client):
+    """Verifies Google OAuth status endpoint returns availability without faking login."""
+    res = client.get("/api/auth/oauth/google/config")
+    assert res.status_code == 200
+    data = res.json()
+    assert "available" in data
+    assert "client_id" in data
+    assert "message" in data

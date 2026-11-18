@@ -2,7 +2,7 @@ name: Transify 2.0 CI/CD Verification
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'feat/**', 'fix/**' ]
   pull_request:
     branches: [ main ]
 
@@ -32,6 +32,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt playwright
 
+      - name: Cache Playwright Chromium
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
       - name: Install Playwright Chromium with System Dependencies
         run: |
           playwright install chromium --with-deps
@@ -48,6 +57,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Run Android Unit Tests and Build Debug APK
         working-directory: android

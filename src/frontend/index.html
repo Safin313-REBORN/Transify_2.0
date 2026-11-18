@@ -13,7 +13,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="/static/styles.css?v=20261118_authfix_v9">
+    <script src="/static/auth-controller.js?v=20261118_authfix_v11"></script>
   <script>
+    window.openAuthSheet = function(mode) { if (window.AuthController) window.AuthController.openSheet(mode); };
+    window.closeAuthSheet = function() { if (window.AuthController) window.AuthController.closeSheet(); };
+    window.setMode = function(mode) { if (window.AuthController) window.AuthController.switchTab(mode); };
+    window.handleDemoGuest = function() { if (window.AuthController) window.AuthController.submitGuest(); };
+    window.handleDemoLogin = window.handleDemoGuest;
+    window.togglePasswordVisibility = function() { if (window.AuthController) window.AuthController.togglePasswordVisibility(); };
+    window.handleForgotPassword = function(e) { if (e) e.preventDefault(); if (window.AuthController) window.AuthController.openForgotPassword(); };
+    window.handleGoogleLogin = function() { if (window.AuthController) window.AuthController.handleGoogleClick(); };
+    window.handleAuthSubmit = function(e) { if (window.AuthController) window.AuthController.submitAuth(e); };
+
     // Bulletproof Early Artwork Error Handler
     window.handleArtworkError = function(img) {
       var artwork = img || document.getElementById('auth-welcome-artwork');
@@ -27,239 +38,11 @@
         card.classList.add('auth-fallback-active');
       }
     };
-
-    // Capture-phase error listener catches image decode or load failures immediately
     window.addEventListener('error', function(e) {
       if (e.target && (e.target.id === 'auth-welcome-artwork' || (e.target.classList && e.target.classList.contains('auth-welcome-exact-artwork')))) {
         window.handleArtworkError(e.target);
       }
     }, true);
-
-    // Early Navigation & Sheet Handlers
-    window.openAuthSheet = function(mode) {
-      mode = mode || 'login';
-      if (window.TransifyApp && typeof window.TransifyApp.openAuthSheet === 'function' && window.TransifyApp._fullLoaded) {
-        return window.TransifyApp.openAuthSheet(mode);
-      }
-      var sheet = document.getElementById('auth-sheet-container');
-      if (sheet) sheet.classList.add('active');
-      var tLogin = document.getElementById('tab-login');
-      var tSignup = document.getElementById('tab-signup');
-      var title = document.getElementById('auth-heading-title');
-      var subtitle = document.getElementById('auth-heading-subtitle');
-      var groupFullname = document.getElementById('group-fullname');
-      var inputFullname = document.getElementById('input-fullname');
-      var btnText = document.getElementById('btn-text');
-      var switchPromptText = document.getElementById('switch-prompt-text');
-      var switchPromptLink = document.getElementById('switch-prompt-link');
-      if (mode === 'signup') {
-        if (tSignup) { tSignup.classList.add('active'); tSignup.setAttribute('aria-selected', 'true'); }
-        if (tLogin) { tLogin.classList.remove('active'); tLogin.setAttribute('aria-selected', 'false'); }
-        if (title) title.textContent = 'Join Transify!';
-        if (subtitle) subtitle.textContent = 'Create your account to start communicating';
-        if (groupFullname) groupFullname.style.display = 'flex';
-        if (inputFullname) inputFullname.setAttribute('required', 'required');
-        if (btnText) btnText.textContent = 'Register & Open Slides';
-        if (switchPromptText) switchPromptText.textContent = "Already have an account?";
-        if (switchPromptLink) switchPromptLink.textContent = "Login";
-      } else {
-        if (tLogin) { tLogin.classList.add('active'); tLogin.setAttribute('aria-selected', 'true'); }
-        if (tSignup) { tSignup.classList.remove('active'); tSignup.setAttribute('aria-selected', 'false'); }
-        if (title) title.textContent = 'Welcome Back!';
-        if (subtitle) subtitle.textContent = 'Login to your Transify account';
-        if (groupFullname) groupFullname.style.display = 'none';
-        if (inputFullname) inputFullname.removeAttribute('required');
-        if (btnText) btnText.textContent = 'Login';
-        if (switchPromptText) switchPromptText.textContent = "Don't have an account?";
-        if (switchPromptLink) switchPromptLink.textContent = "Sign Up";
-      }
-    };
-
-    window.closeAuthSheet = function() {
-      if (window.TransifyApp && typeof window.TransifyApp.closeAuthSheet === 'function' && window.TransifyApp._fullLoaded) {
-        return window.TransifyApp.closeAuthSheet();
-      }
-      var sheet = document.getElementById('auth-sheet-container');
-      if (sheet) sheet.classList.remove('active');
-    };
-
-    window.switchAuthTab = function(mode) {
-      if (window.TransifyApp && typeof window.TransifyApp.switchAuthTab === 'function' && window.TransifyApp._fullLoaded) {
-        return window.TransifyApp.switchAuthTab(mode);
-      }
-      window.openAuthSheet(mode);
-    };
-    window.setMode = window.switchAuthTab;
-
-    // Genuine Guest Mode Handler (Explicit Demo Mode, Never Claims Verified Login)
-    window.handleDemoGuest = async function() {
-      if (window.TransifyApp && typeof window.TransifyApp.handleDemoGuest === 'function' && window.TransifyApp._fullLoaded) {
-        return window.TransifyApp.handleDemoGuest();
-      }
-      try {
-        var res = await fetch('/api/auth/guest', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        var data = await res.json().catch(function() { return {}; });
-        var guestUser = (data && data.user) ? data.user : {
-          id: 0,
-          name: 'Guest User (Demo Mode)',
-          email: 'guest@transify.ai',
-          role: 'guest',
-          is_guest: true
-        };
-        guestUser.is_guest = true;
-        localStorage.setItem('transify_guest_mode', 'true');
-        localStorage.setItem('transify_auth_user', JSON.stringify(guestUser));
-        localStorage.removeItem('transify_session_token');
-        localStorage.removeItem('transify_auth_token');
-      } catch(e) {
-        var fallbackGuest = { id: 0, name: 'Guest User (Demo Mode)', email: 'guest@transify.ai', role: 'guest', is_guest: true };
-        localStorage.setItem('transify_guest_mode', 'true');
-        localStorage.setItem('transify_auth_user', JSON.stringify(fallbackGuest));
-        localStorage.removeItem('transify_session_token');
-        localStorage.removeItem('transify_auth_token');
-      }
-      var overlay = document.getElementById('transify-auth-screen');
-      if (overlay) {
-        overlay.style.display = 'none';
-        overlay.style.pointerEvents = 'none';
-        overlay.style.zIndex = '-99999';
-      }
-      var splash = document.getElementById('transify-splash-screen');
-      if (splash) {
-        splash.style.display = 'none';
-        splash.classList.add('splash-hidden');
-      }
-    };
-    window.handleDemoLogin = window.handleDemoGuest;
-
-    // Genuine Early Form Submit (Real Backend Verification)
-    window.handleAuthSubmit = async function(e) {
-      if (e) e.preventDefault();
-      if (window.TransifyApp && typeof window.TransifyApp.handleAuthSubmit === 'function' && window.TransifyApp._fullLoaded) {
-        return window.TransifyApp.handleAuthSubmit(e);
-      }
-      var emailInput = document.getElementById('input-email');
-      var pwdInput = document.getElementById('input-password');
-      var nameInput = document.getElementById('input-fullname');
-      var alertBox = document.getElementById('auth-alert');
-      var tSignup = document.getElementById('tab-signup');
-      var isSignup = tSignup && tSignup.classList.contains('active');
-
-      var email = emailInput ? emailInput.value.trim() : '';
-      var password = pwdInput ? pwdInput.value : '';
-      var name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Transify User';
-
-      function showEarlyAlert(msg, ok) {
-        if (!alertBox) return;
-        alertBox.textContent = msg;
-        alertBox.className = 'auth-status-alert ' + (ok ? 'success' : 'error');
-        alertBox.style.display = 'block';
-      }
-
-      if (!email || !password) {
-        showEarlyAlert('Please fill in both email and password.', false);
-        return;
-      }
-      if (!/^\S+@\S+\.\S+$/.test(email)) {
-        showEarlyAlert('Please enter a valid email address.', false);
-        return;
-      }
-      if (isSignup && password.length < 15) {
-        showEarlyAlert('Password must be at least 15 characters long.', false);
-        return;
-      }
-      if (isSignup && (!name || name.length < 2)) {
-        showEarlyAlert('Please enter your full name.', false);
-        return;
-      }
-
-      var submitBtn = document.getElementById('auth-submit-btn');
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.style.opacity = '0.75';
-      }
-
-      try {
-        var endpoint = isSignup ? '/api/auth/register' : '/api/auth/login';
-        var payload = isSignup ? { name: name, email: email, password: password } : { email: email, password: password };
-        var res = await fetch(endpoint, {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        var data = await res.json().catch(function() { return {}; });
-
-        if (res.ok && data.status === 'success') {
-          localStorage.setItem('transify_auth_user', JSON.stringify(data.user));
-          localStorage.removeItem('transify_session_token');
-          localStorage.removeItem('transify_guest_mode');
-          localStorage.removeItem('transify_auth_token');
-          showEarlyAlert(isSignup ? 'Account registered! Opening Transify...' : 'Login successful! Opening Transify...', true);
-          setTimeout(function() {
-            var overlay = document.getElementById('transify-auth-screen');
-            if (overlay) {
-              overlay.style.display = 'none';
-              overlay.style.pointerEvents = 'none';
-              overlay.style.zIndex = '-99999';
-            }
-          }, 350);
-        } else {
-          var errDetail = data.detail || (isSignup ? 'Registration failed.' : 'Invalid email or password.');
-          showEarlyAlert(errDetail, false);
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = '1';
-          }
-        }
-      } catch(err) {
-        showEarlyAlert('Unable to reach server. Please check your network connection.', false);
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.style.opacity = '1';
-        }
-      }
-    };
-
-    window.handleDirectLogin = function() {
-      window.handleDemoGuest();
-    };
-
-    var TransifyApp = window.TransifyApp = window.TransifyApp || {};
-    TransifyApp.openAuthSheet = window.openAuthSheet;
-    TransifyApp.closeAuthSheet = window.closeAuthSheet;
-    TransifyApp.switchAuthTab = window.switchAuthTab;
-    TransifyApp.setMode = window.switchAuthTab;
-    TransifyApp.handleDirectLogin = window.handleDirectLogin;
-    TransifyApp.handleDemoLogin = window.handleDemoGuest;
-    TransifyApp.handleDemoGuest = window.handleDemoGuest;
-    TransifyApp.handleAuthSubmit = window.handleAuthSubmit;
-    TransifyApp.togglePasswordVisibility = function() {
-      var pwd = document.getElementById('input-password');
-      if (pwd) pwd.type = pwd.type === 'password' ? 'text' : 'password';
-    };
-    TransifyApp.handleForgotPassword = function(e) { if (e) e.preventDefault(); alert('Password self-service recovery is currently unavailable. Please contact your system administrator.'); };
-    TransifyApp.handleGoogleLogin = function() { alert('Google Single Sign-On is currently unavailable. Please sign in with email and password.'); };
-    TransifyApp.logoutUser = async function() {
-      try {
-        await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' } }).catch(function() {});
-      } catch(e) {}
-      try {
-        localStorage.removeItem('transify_auth_user');
-        localStorage.removeItem('transify_session_token');
-        localStorage.removeItem('transify_auth_token');
-        localStorage.removeItem('transify_guest_mode');
-      } catch(e) {}
-      window.location.reload();
-    };
-    TransifyApp.closeProfileModal = function() {
-      var modal = document.getElementById('profile-modal-overlay');
-      if (modal) modal.classList.remove('open');
-    };
   </script>
   <style>
     /* -------------------------------------------------------------
@@ -1654,7 +1437,7 @@
                 class="auth-text-input" 
                 id="input-fullname" 
                 placeholder="Full Name" 
-                value="Sarah Ahmed"
+                value=""
                 autocomplete="name"
               >
             </div>
@@ -1704,6 +1487,35 @@
                   <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
                 </svg>
               </button>
+            </div>
+
+            <!-- Group Terms (Dedicated Checkbox for Signup mode, unchecked by default) -->
+            <div class="auth-input-row" id="group-terms" style="display: none; align-items: center; gap: 8px; margin: 8px 0 14px 4px;">
+              <input type="checkbox" id="input-terms" style="width: 18px; height: 18px; accent-color: #7c3aed; cursor: pointer;">
+              <label for="input-terms" style="font-size: 13px; color: #475569; cursor: pointer; user-select: none;">
+                I agree to the <a href="#" onclick="alert('Transify Terms of Service & Privacy Policy'); return false;" style="color: #7c3aed; text-decoration: underline;">Terms of Service</a> &amp; <a href="#" onclick="alert('Transify Privacy Policy'); return false;" style="color: #7c3aed; text-decoration: underline;">Privacy Policy</a>
+              </label>
+            </div>
+
+            <!-- Password Recovery Step 2 Fields -->
+            <div id="auth-forgot-fields" style="display: none; margin-bottom: 12px;">
+              <div class="auth-input-row" style="margin-bottom: 10px;">
+                <div class="auth-field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                  </svg>
+                </div>
+                <input type="text" class="auth-text-input" id="input-reset-token" placeholder="Reset Code / Token" autocomplete="off">
+              </div>
+              <div class="auth-input-row">
+                <div class="auth-field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
+                <input type="password" class="auth-text-input" id="input-new-password" placeholder="New Password (15+ chars)" autocomplete="new-password">
+              </div>
             </div>
 
             <!-- Utility Options Row: Remember Me & Forgot Password -->
@@ -1787,8 +1599,20 @@
         <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 38px; width: auto; object-fit: contain;">
       </a>
 
-      <div class="frame-avatar-btn" id="frame-avatar-btn" role="img" aria-label="User Profile" title="User Profile">
-        <span role="img" aria-label="User Avatar">👩‍🦰</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" class="lang-toggle-btn" id="lang-toggle-btn" aria-label="Toggle language between English and Bengali" title="Switch Language">
+          <span class="lang-opt lang-en lang-active">EN</span>
+          <span style="opacity: 0.5;">|</span>
+          <span class="lang-opt lang-bn">বাং</span>
+        </button>
+
+        <button type="button" class="frame-icon-btn" id="btn-open-a11y" aria-label="Accessibility Settings" title="Accessibility Settings" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.85); border: 1.5px solid rgba(131,56,236,0.25); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px;">
+          ♿
+        </button>
+
+        <div class="frame-avatar-btn" id="frame-avatar-btn" role="img" aria-label="User Profile" title="User Profile">
+          <span role="img" aria-label="User Avatar">👩‍🦰</span>
+        </div>
       </div>
     </header>
 
@@ -1848,6 +1672,33 @@
             <path d="M58 14C61 16.5 61 21.5 58 24" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
             <path d="M63 11C68 14.5 68 23.5 63 27" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
           </svg>
+        </div>
+      </button>
+    </div>
+
+    <!-- Unified Hub, Phraseboard & Dashboard Navigation Row -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px;">
+      <button type="button" class="mini-sub-card" id="btn-open-hub" onclick="openSlide('slide-communication-hub')" aria-label="Open Communication Hub" style="padding: 10px; background: #ffffff; border: 1.5px solid rgba(131,56,236,0.18); border-radius: 16px; cursor: pointer; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 72px;">
+        <div style="font-size: 20px;">💬</div>
+        <div>
+          <div style="font-size: 12px; font-weight: 800; color: #1e1b4b;" data-i18n="hub_title">Comm Hub</div>
+          <div style="font-size: 10px; color: #64748b; font-weight: 600;" data-i18n="hub_sub">Unified Chat</div>
+        </div>
+      </button>
+
+      <button type="button" class="mini-sub-card" id="btn-open-phraseboard" onclick="openSlide('slide-phraseboard')" aria-label="Open Phraseboard" style="padding: 10px; background: #ffffff; border: 1.5px solid rgba(131,56,236,0.18); border-radius: 16px; cursor: pointer; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 72px;">
+        <div style="font-size: 20px;">⚡</div>
+        <div>
+          <div style="font-size: 12px; font-weight: 800; color: #1e1b4b;" data-i18n="phrases_title">Phraseboard</div>
+          <div style="font-size: 10px; color: #64748b; font-weight: 600;" data-i18n="phrases_sub">Quick Phrases</div>
+        </div>
+      </button>
+
+      <button type="button" class="mini-sub-card" id="btn-open-dashboard" onclick="openSlide('slide-dashboard')" aria-label="Open History and Diagnostics Dashboard" style="padding: 10px; background: #ffffff; border: 1.5px solid rgba(131,56,236,0.18); border-radius: 16px; cursor: pointer; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 72px;">
+        <div style="font-size: 20px;">📊</div>
+        <div>
+          <div style="font-size: 12px; font-weight: 800; color: #1e1b4b;" data-i18n="dash_title">Dashboard</div>
+          <div style="font-size: 10px; color: #64748b; font-weight: 600;" data-i18n="dash_sub">History & Health</div>
         </div>
       </button>
     </div>
@@ -2385,8 +2236,183 @@
     </div>
   </div>
 
+  <!-- =============================================================
+       SLIDE 5: COMMUNICATION HUB (SLIDES IN FROM LEFT)
+       ============================================================= -->
+  <div id="slide-communication-hub" class="slide-screen slide-from-left" role="dialog" aria-modal="true" aria-label="Communication Hub Slide">
+    <div class="slide-inner-frame">
+      <div class="slide-banner-segment-wrap">
+        <div class="slide-actor-banner" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
+          <div class="slide-actor-overlay">
+            <div class="slide-actor-top-row">
+              <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+            </div>
+            <div class="slide-actor-titles">
+              <h2 class="slide-actor-h2" data-i18n="hub_title">Communication Hub</h2>
+              <p class="slide-actor-sub" data-i18n="hub_subtitle">Unified Multimodal Conversation Feed</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-body-padding">
+        <!-- Hub Actions Row -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 6px;">
+            <button type="button" id="hub-copy-all-btn" class="btn btn-secondary btn-sm" title="Copy full conversation text">📋 Copy All</button>
+            <button type="button" id="hub-export-btn" class="btn btn-secondary btn-sm" title="Export conversation as .txt file">📥 Export .txt</button>
+          </div>
+          <button type="button" id="hub-clear-btn" class="btn btn-danger btn-sm" title="Clear conversation history">🗑️ Clear Feed</button>
+        </div>
+
+        <!-- Quick Insert from Translators -->
+        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+          <button type="button" id="hub-import-sign-btn" class="btn btn-secondary btn-sm" style="font-size: 11px;">+ From Sign</button>
+          <button type="button" id="hub-import-braille-btn" class="btn btn-secondary btn-sm" style="font-size: 11px;">+ From Braille</button>
+          <button type="button" id="hub-import-stt-btn" class="btn btn-secondary btn-sm" style="font-size: 11px;">+ From STT</button>
+        </div>
+
+        <!-- Live Message Feed -->
+        <div id="hub-feed-container" class="hub-feed-container" role="log" aria-live="polite" aria-label="Conversation messages">
+          <div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 24px 0;">No messages yet. Send a typed message or translate from any modality.</div>
+        </div>
+
+        <!-- Typed Input Bar -->
+        <form id="hub-input-form" class="hub-input-bar">
+          <input type="text" id="hub-input-text" class="hub-input-field" placeholder="Type a message to share..." autocomplete="off" aria-label="Type a message">
+          <button type="submit" id="hub-send-btn" class="btn btn-primary" style="padding: 12px 18px; border-radius: 14px;">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================================
+       SLIDE 6: QUICK PHRASEBOARD (SLIDES IN FROM RIGHT)
+       ============================================================= -->
+  <div id="slide-phraseboard" class="slide-screen slide-from-right" role="dialog" aria-modal="true" aria-label="Quick Phraseboard Slide">
+    <div class="slide-inner-frame">
+      <div class="slide-banner-segment-wrap">
+        <div class="slide-actor-banner" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+          <div class="slide-actor-overlay">
+            <div class="slide-actor-top-row">
+              <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+            </div>
+            <div class="slide-actor-titles">
+              <h2 class="slide-actor-h2" data-i18n="phrases_title">Quick Phraseboard</h2>
+              <p class="slide-actor-sub" data-i18n="phrases_subtitle">Bilingual Essential & Custom Phrases</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-body-padding">
+        <!-- Phraseboard Controls -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px;">
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #1e1b4b; cursor: pointer;">
+            <input type="checkbox" id="phrase-fav-filter" style="width: 16px; height: 16px; accent-color: #f59e0b;">
+            <span>⭐ Favorites Only</span>
+          </label>
+          <button type="button" id="btn-toggle-add-phrase" class="btn btn-primary btn-sm" style="font-size: 12px;">+ Add Phrase</button>
+        </div>
+
+        <!-- Add Custom Phrase Form (Collapsible) -->
+        <div id="phrase-add-form-container" style="display: none; background: #ffffff; border: 1.5px solid rgba(131,56,236,0.2); border-radius: 16px; padding: 14px; margin-bottom: 14px;">
+          <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #1e1b4b;">Add Custom Phrase</h4>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <input type="text" id="input-phrase-en" class="hub-input-field" placeholder="English text (e.g., Thank you)" style="font-size: 13px; padding: 8px 12px;">
+            <input type="text" id="input-phrase-bn" class="hub-input-field font-bn" placeholder="বাংলা অনুবাদ (যেমন: ধন্যবাদ)" style="font-size: 13px; padding: 8px 12px;">
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px;">
+              <button type="button" id="btn-cancel-add-phrase" class="btn btn-secondary btn-sm">Cancel</button>
+              <button type="button" id="btn-save-phrase" class="btn btn-primary btn-sm">Save Phrase</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phrase Cards Grid -->
+        <div id="phraseboard-grid" class="phraseboard-grid" role="region" aria-label="Phrase grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================================
+       SLIDE 7: ACTIVITY & DIAGNOSTICS DASHBOARD (SLIDES IN FROM LEFT)
+       ============================================================= -->
+  <div id="slide-dashboard" class="slide-screen slide-from-left" role="dialog" aria-modal="true" aria-label="Activity and Diagnostics Dashboard Slide">
+    <div class="slide-inner-frame">
+      <div class="slide-banner-segment-wrap">
+        <div class="slide-actor-banner" style="background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);">
+          <div class="slide-actor-overlay">
+            <div class="slide-actor-top-row">
+              <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+            </div>
+            <div class="slide-actor-titles">
+              <h2 class="slide-actor-h2" data-i18n="dash_title">Dashboard</h2>
+              <p class="slide-actor-sub" data-i18n="dash_subtitle">History, Activity & System Diagnostics</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-body-padding">
+        <!-- Search & Filter Controls -->
+        <div class="dashboard-filter-row">
+          <input type="text" id="dash-search-input" class="dashboard-search-input" placeholder="🔍 Search translations..." aria-label="Search translations">
+          <select id="dash-modality-select" class="dashboard-select" aria-label="Filter by Modality">
+            <option value="all">All Modalities</option>
+            <option value="sign">Sign Language</option>
+            <option value="braille">Braille</option>
+            <option value="stt">Speech to Text</option>
+            <option value="tts">Text to Speech</option>
+          </select>
+          <select id="dash-date-select" class="dashboard-select" aria-label="Filter by Date">
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="week">Past Week</option>
+            <option value="month">Past Month</option>
+          </select>
+          <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: #1e1b4b; cursor: pointer; white-space: nowrap;">
+            <input type="checkbox" id="dash-fav-filter" style="accent-color: #f59e0b;"> ⭐ Favorites
+          </label>
+        </div>
+
+        <!-- Translation History List -->
+        <h4 style="margin: 12px 0 8px 0; font-size: 13px; font-weight: 800; color: #64748b; text-transform: uppercase;">Translation History</h4>
+        <div id="dashboard-history-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; padding-right: 4px;">
+          <div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 18px 0;">Loading activity history...</div>
+        </div>
+
+        <!-- System Diagnostics Panel -->
+        <h4 style="margin: 20px 0 8px 0; font-size: 13px; font-weight: 800; color: #64748b; text-transform: uppercase;">System Diagnostics & Health</h4>
+        <div id="diagnostics-panel" class="diagnostics-panel">
+          <div class="diag-stat-card">
+            <div class="diag-stat-label">API Status</div>
+            <div id="diag-val-status" class="diag-stat-value" style="color: #10b981;">Online</div>
+          </div>
+          <div class="diag-stat-card">
+            <div class="diag-stat-label">Database Health</div>
+            <div id="diag-val-db" class="diag-stat-value" style="color: #10b981;">Connected</div>
+          </div>
+          <div class="diag-stat-card">
+            <div class="diag-stat-label">ASL Model Readiness</div>
+            <div id="diag-val-model" class="diag-stat-value" style="color: #8338ec;">Ready</div>
+          </div>
+          <div class="diag-stat-card">
+            <div class="diag-stat-label">Average Latency</div>
+            <div id="diag-val-latency" class="diag-stat-value">~18ms</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Client Application Script -->
-  <script src="/static/app.js?v=20261118_secfix_v10"></script>
+  <script src="/static/app.js?v=20261118_secfix_v11"></script>
 
   <!-- Slide Control Logic with smooth Left/Right slide transitions -->
   <script>
@@ -2433,6 +2459,21 @@
           window.TransifyTTSPage.init();
         }
         if (history.pushState) history.pushState({ slide: 'tts' }, '', '#tts');
+      } else if (slideId === 'slide-communication-hub') {
+        if (window.CommunicationHub && window.CommunicationHub.init) {
+          window.CommunicationHub.init();
+        }
+        if (history.pushState) history.pushState({ slide: 'hub' }, '', '#hub');
+      } else if (slideId === 'slide-phraseboard') {
+        if (window.Phraseboard && window.Phraseboard.init) {
+          window.Phraseboard.init();
+        }
+        if (history.pushState) history.pushState({ slide: 'phrases' }, '', '#phrases');
+      } else if (slideId === 'slide-dashboard') {
+        if (window.TransifyDashboard && window.TransifyDashboard.init) {
+          window.TransifyDashboard.init();
+        }
+        if (history.pushState) history.pushState({ slide: 'dashboard' }, '', '#dashboard');
       }
     }
 
@@ -2479,6 +2520,12 @@
         openSlide('slide-stt');
       } else if (e.state && e.state.slide === 'tts') {
         openSlide('slide-tts');
+      } else if (e.state && e.state.slide === 'hub') {
+        openSlide('slide-communication-hub');
+      } else if (e.state && e.state.slide === 'phrases') {
+        openSlide('slide-phraseboard');
+      } else if (e.state && e.state.slide === 'dashboard') {
+        openSlide('slide-dashboard');
       } else {
         closeAllSlides();
       }
@@ -2531,6 +2578,12 @@
         openSlide('slide-stt');
       } else if (window.location.hash === '#tts') {
         openSlide('slide-tts');
+      } else if (window.location.hash === '#hub') {
+        openSlide('slide-communication-hub');
+      } else if (window.location.hash === '#phrases') {
+        openSlide('slide-phraseboard');
+      } else if (window.location.hash === '#dashboard') {
+        openSlide('slide-dashboard');
       }
     });
   </script>
@@ -2539,7 +2592,7 @@
   <div id="profile-modal-overlay" class="profile-modal-overlay" role="dialog" aria-modal="true" aria-label="User Profile Details">
     <div class="profile-modal-card">
       <div style="font-size: 3rem; margin-bottom: 8px;">👩‍🦰</div>
-      <h3 id="profile-name-text" style="font-size: 18px; font-weight: 800; color: #1e1b4b; margin: 0 0 4px 0;">Sarah Ahmed</h3>
+      <h3 id="profile-name-text" style="font-size: 18px; font-weight: 800; color: #1e1b4b; margin: 0 0 4px 0;">Transify User</h3>
       <p id="profile-email-text" style="font-size: 13px; color: #64748b; margin: 0 0 14px 0;">user@transify.ai</p>
       <div style="display: inline-block; padding: 4px 12px; background: rgba(34, 197, 94, 0.12); color: #15803d; border-radius: 9999px; font-size: 12px; font-weight: 700; margin-bottom: 20px;">
         Active • Accessible AI Enabled
@@ -2554,6 +2607,48 @@
       </div>
     </div>
   </div>
+
+  <!-- Accessibility Settings Modal -->
+  <div id="a11y-modal-overlay" class="profile-modal-overlay" role="dialog" aria-modal="true" aria-label="Accessibility Settings" style="display: none;">
+    <div class="profile-modal-card" style="text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="font-size: 18px; font-weight: 800; color: #1e1b4b; margin: 0;">♿ Accessibility</h3>
+        <button type="button" id="a11y-close-btn" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;">✕</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px;">
+        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+          <div>
+            <div style="font-weight: 700; color: #1e1b4b; font-size: 14px;">Reduced Motion</div>
+            <div style="font-size: 11px; color: #64748b;">Disables animations and transitions</div>
+          </div>
+          <input type="checkbox" id="a11y-toggle-reduced-motion" style="width: 20px; height: 20px; accent-color: #8338ec;">
+        </label>
+
+        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+          <div>
+            <div style="font-weight: 700; color: #1e1b4b; font-size: 14px;">Large Touch Targets</div>
+            <div style="font-size: 11px; color: #64748b;">Increases button sizes (≥ 48px) for easier tapping</div>
+          </div>
+          <input type="checkbox" id="a11y-toggle-large-targets" style="width: 20px; height: 20px; accent-color: #8338ec;">
+        </label>
+
+        <div style="padding: 10px; background: rgba(131,56,236,0.06); border-radius: 10px; border: 1px solid rgba(131,56,236,0.15);">
+          <div style="font-weight: 700; font-size: 12px; color: #8338ec; margin-bottom: 4px;">Keyboard Shortcuts</div>
+          <div style="font-size: 11px; color: #475569; line-height: 1.5;">
+            <strong>Esc:</strong> Close slide / modal<br>
+            <strong>Alt + H:</strong> Open Comm Hub<br>
+            <strong>Alt + P:</strong> Open Phraseboard<br>
+            <strong>Alt + D:</strong> Open Dashboard<br>
+            <strong>Alt + L:</strong> Switch Language
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen Reader Live Region Announcer -->
+  <div id="a11y-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
 </body>
 </html>
