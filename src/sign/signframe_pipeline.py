@@ -179,6 +179,92 @@ class HandTracker:
                 best_hand = hand
         return best_hand
 
+    def detect_holistic_landmarks(self, frame: np.ndarray) -> Tuple[Optional[List], Optional[np.ndarray]]:
+        """
+        Runs MediaPipe HandLandmarker and extracts:
+          1. The primary active hand landmarks (for bbox/roi/visual feedback)
+          2. The standardized 162-dimensional coordinate vector:
+             - Left hand (21 x 3 = 63 floats)
+             - Right hand (21 x 3 = 63 floats)
+             - Upper pose reference (12 x 3 = 36 floats)
+             Pre-centered on chest and normalized by shoulder width.
+        """
+        if self.landmarker is None:
+            return None, None
+        import mediapipe as mp
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+        result = self.landmarker.detect(mp_image)
+        if not result or not result.hand_landmarks:
+            return None, None
+
+        # 1. Primary hand selection
+        best_hand = result.hand_landmarks[0]
+        if len(result.hand_landmarks) > 1:
+            max_area = 0.0
+            for hand in result.hand_landmarks:
+                pts = np.array([[p.x, p.y] for p in hand])
+                area = float(np.ptp(pts[:, 0]) * np.ptp(pts[:, 1]))
+                if area > max_area:
+                    max_area = area
+                    best_hand = hand
+
+        # 2. Extract 162D representation matching dataset convention
+        lh_landmarks = np.zeros((21, 3), dtype=np.float32)
+        rh_landmarks = np.zeros((21, 3), dtype=np.float32)
+        pose_coords = np.zeros((12, 3), dtype=np.float32)
+
+        # Standard upper pose reference relative to chest center (matching generate_calibration_dataset.py)
+        pose_coords[0] = [0.0, -0.65, 0.1]    # Nose
+        pose_coords[1] = [-0.1, -0.72, 0.1]   # Left eye
+        pose_coords[2] = [0.1, -0.72, 0.1]    # Right eye
+        pose_coords[3] = [-0.28, -0.72, 0.0]  # Left ear
+        pose_coords[4] = [0.28, -0.72, 0.0]   # Right ear
+        pose_coords[5] = [-0.5, 0.0, 0.0]     # Left shoulder
+        pose_coords[6] = [0.5, 0.0, 0.0]      # Right shoulder
+        pose_coords[7] = [-0.65, 0.4, 0.0]    # Left elbow
+        pose_coords[8] = [0.65, 0.4, 0.0]     # Right elbow
+        pose_coords[9] = [-0.4, 0.7, 0.0]     # Left wrist default
+        pose_coords[10] = [0.4, 0.7, 0.0]     # Right wrist default
+        pose_coords[11] = [0.0, 0.2, 0.0]     # Sternum
+
+        # Process each detected hand and map to normalized model space
+        for idx, hand in enumerate(result.hand_landmarks):
+            handedness = "Right"
+            if hasattr(result, "handedness") and len(result.handedness) > idx and len(result.handedness[idx]) > 0:
+                handedness = result.handedness[idx][0].category_name
+
+            hand_pts = np.zeros((21, 3), dtype=np.float32)
+            for p_idx, pt in enumerate(hand):
+                # Normalized coordinate transform from 640x480 camera view to model reference space
+                nx = (float(pt.x) - 0.5) * (640.0 / 240.0)
+                ny = (float(pt.y) - 0.54) * (480.0 / 240.0)
+                nz = float(pt.z) * 2.0
+                hand_pts[p_idx] = [nx, ny, nz]
+
+            if handedness == "Left":
+                lh_landmarks = hand_pts
+                pose_coords[9] = hand_pts[0]
+            else:
+                rh_landmarks = hand_pts
+                pose_coords[10] = hand_pts[0]
+
+        # If only 1 hand was detected and assigned to Left, but user is signing predominantly with 1 hand:
+        # also set pose wrist appropriately
+        if len(result.hand_landmarks) == 1 and np.all(rh_landmarks == 0):
+            rh_landmarks = lh_landmarks
+            lh_landmarks = np.zeros((21, 3), dtype=np.float32)
+            pose_coords[10] = rh_landmarks[0]
+            pose_coords[9] = [-0.4, 0.7, 0.0]
+
+        frame_162 = np.concatenate([
+            lh_landmarks.flatten(),
+            rh_landmarks.flatten(),
+            pose_coords.flatten()
+        ]).astype(np.float32)
+
+        return best_hand, frame_162
+
     def close(self):
         if self.landmarker is not None:
             try:

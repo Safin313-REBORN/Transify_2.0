@@ -101,6 +101,10 @@ class ProcessFrameRequest(BaseModel):
     mode: Optional[str] = Field("expressions", description="Active mode: expressions, fingerspell, sentence")
     language_mode: Optional[str] = Field("bdsl", description="Language mode: bdsl (temporal sequences) or asl")
     roi: Optional[List[float]] = Field(None, description="Optional normalized ROI bounding box [x1, y1, x2, y2]")
+    session_id: Optional[str] = Field("default", description="Client session identifier for sequence buffer isolation")
+
+class SignResetRequest(BaseModel):
+    session_id: Optional[str] = Field("default", description="Client session identifier to reset")
 
 class FingerspellRequest(BaseModel):
     landmarks: Optional[List[List[float]]] = Field(None, description="21 hand landmarks (21 x 2 or 21 x 3)")
@@ -189,8 +193,13 @@ def readiness_check(response: Response):
         braille_adapter.pipeline is not None
         and braille_adapter.pipeline.wrapper.model is not None
     )
+    bdsl_temporal_ready = (
+        sign_adapter.temporal_model is not None
+        and sign_adapter.temporal_scaler is not None
+        and sign_adapter.temporal_calibrated is not None
+    )
 
-    all_ready = db_connected and signframe_ready and hagrid_ready and mediapipe_ready and braille_ready
+    all_ready = db_connected and signframe_ready and hagrid_ready and mediapipe_ready and braille_ready and bdsl_temporal_ready
     if not all_ready:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
@@ -207,7 +216,8 @@ def readiness_check(response: Response):
             "tts": "ready",
             "signframe_model": "ready" if signframe_ready else "unavailable",
             "hagrid_classifier": "ready" if hagrid_ready else "unavailable",
-            "mediapipe_landmarker": "ready" if mediapipe_ready else "fallback_active"
+            "mediapipe_landmarker": "ready" if mediapipe_ready else "fallback_active",
+            "bdsl_temporal_model": "ready" if bdsl_temporal_ready else "unavailable"
         }
     }
 
@@ -219,6 +229,7 @@ def models_status():
     sign_manifest_p = os.path.join(project_root, "models/sign/hagrid_model_manifest.json")
     braille_manifest_p = os.path.join(project_root, "models/braille/exported/model_manifest.json")
     test_metrics_p = os.path.join(project_root, "models/sign/test_metrics.json")
+    val_metrics_p = os.path.join(project_root, "models/sign/validation_metrics.json")
 
     import json
     sign_manifest = {}
@@ -235,6 +246,11 @@ def models_status():
     if os.path.exists(test_metrics_p):
         with open(test_metrics_p, 'r', encoding='utf-8') as f:
             test_metrics = json.load(f)
+
+    val_metrics = {}
+    if os.path.exists(val_metrics_p):
+        with open(val_metrics_p, 'r', encoding='utf-8') as f:
+            val_metrics = json.load(f)
 
     hagrid_acc = sign_manifest.get("test_accuracy") if (sign_manifest and "test_accuracy" in sign_manifest) else None
     braille_cell_acc = (
@@ -299,9 +315,25 @@ def models_status():
             "calibrated_brier_score": bdsl_brier,
             "calibrated_ece": bdsl_ece,
             "supported_classes": 10,
-            "test_signer": test_metrics.get("test_signer", "S001"),
-            "test_samples": test_metrics.get("test_samples", 150),
+            "signer_id": test_metrics.get("signer_id"),
+            "sample_count": test_metrics.get("sample_count"),
+            "test_signer": test_metrics.get("signer_id", ["S001"])[0] if isinstance(test_metrics.get("signer_id"), list) else test_metrics.get("signer_id"),
+            "test_samples": test_metrics.get("sample_count"),
             "metric_type": "Held-Out Signer-Independent Test Accuracy",
+            "validation_metrics": {
+                "val_accuracy": val_metrics.get("val_accuracy"),
+                "val_macro_f1": val_metrics.get("val_macro_f1"),
+                "signer_id": val_metrics.get("signer_id"),
+                "sample_count": val_metrics.get("sample_count"),
+                "calibration": val_metrics.get("calibration", {})
+            },
+            "test_metrics": {
+                "test_accuracy": test_metrics.get("test_accuracy"),
+                "test_macro_f1": test_metrics.get("test_macro_f1"),
+                "signer_id": test_metrics.get("signer_id"),
+                "sample_count": test_metrics.get("sample_count"),
+                "calibration": test_metrics.get("calibration", {})
+            },
             "ready": temporal_loaded
         },
         "mediapipe_landmarker": {
@@ -450,15 +482,16 @@ def predict_sign_sequence(req: SignPredictRequest):
 def process_webcam_frame(req: ProcessFrameRequest):
     """
     Processes real-time webcam frame snapshot (JPEG base64), detects skin/hand contour,
-    evaluates gestures against BdSL or ASL model, converts via Unified Translation Layer,
-    and applies the 98% Decision Gateway.
+    evaluates gestures against BdSL (30-frame temporal model) or ASL (SignFrame CNN / HaGRID),
+    converts via Unified Translation Layer, and applies the 98% Decision Gateway.
     """
     try:
         res = live_sign_processor.process_frame(
             req.image_b64,
             mode=req.mode or "expressions",
             language_mode=req.language_mode or "asl",
-            roi=req.roi
+            roi=req.roi,
+            session_id=req.session_id or "default"
         )
         return res
     except Exception as ex:
@@ -468,11 +501,12 @@ def process_webcam_frame(req: ProcessFrameRequest):
 
 
 @app.post("/api/sign/reset", tags=["Sign Language"])
-def reset_sign_buffer():
-    """Resets the sign language debounce consensus buffer and live tracking state."""
+def reset_sign_buffer(req: Optional[SignResetRequest] = None):
+    """Resets the sign language debounce consensus buffer and live tracking state for the session."""
+    session_id = req.session_id if req else "default"
     sign_adapter.reset_buffer()
-    live_sign_processor.reset()
-    return {"success": True, "message": "Debounce buffer and tracking state reset."}
+    live_sign_processor.reset(session_id=session_id)
+    return {"success": True, "message": "Debounce buffer and tracking state reset.", "session_id": session_id}
 
 
 @app.post("/api/mcp/sign-resolve", tags=["Sign Language", "MCP"])

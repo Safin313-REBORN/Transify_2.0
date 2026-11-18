@@ -273,13 +273,15 @@ class SignLanguageAdapter:
             probs = None
             is_heuristic = True
 
-        # 98% Decision Gateway or Heuristic Fallback
+        # 98% Decision Gateway or Heuristic Fallback (Strictly evaluates Calibrated Confidence)
         if is_heuristic:
             engine_info = {
                 "engine": "HEURISTIC_FALLBACK",
                 "source": f"{model_name} (Temporal Model Unavailable)",
                 "is_fallback": True,
                 "confidence": None,
+                "raw_confidence": None,
+                "calibrated_confidence": None,
                 "threshold": self.mcp_resolver.threshold,
                 "badge": "Heuristic Fallback",
                 "notes": "Trained temporal model weights unavailable. Confidence is unavailable."
@@ -287,40 +289,48 @@ class SignLanguageAdapter:
             final_label = class_meta["label"]
             final_conf = None
             resolver_assisted = False
-        elif not self.mcp_resolver.is_low_confidence(raw_conf):
+        elif cal_conf is not None and not self.mcp_resolver.is_low_confidence(cal_conf):
+            # Calibrated confidence >= 0.98: Local model authorized to decide directly
             engine_info = {
                 "engine": "LOCAL_CUSTOM_MODEL",
-                "source": f"{model_name} (>= 98% Confidence)",
+                "source": f"{model_name} (>= 98% Calibrated Confidence)",
                 "is_fallback": False,
-                "confidence": raw_conf,
+                "confidence": cal_conf,
+                "raw_confidence": raw_conf,
+                "calibrated_confidence": cal_conf,
                 "threshold": self.mcp_resolver.threshold,
                 "badge": f"{source_badge_prefix} (>= 98%)",
-                "notes": f"High confidence {active_lang.upper()} recognition ({raw_conf * 100:.1f}%) handled directly by custom model."
+                "notes": f"High calibrated confidence {active_lang.upper()} recognition ({cal_conf * 100:.1f}%) handled directly by custom model."
             }
             final_label = class_meta["label"]
-            final_conf = raw_conf
+            final_conf = cal_conf
             resolver_assisted = False
         else:
-            top_candidates = [{"label": class_meta["label"], "confidence": raw_conf}]
+            # Shift to MCP resolver when calibrated_confidence is < 0.98 OR when calibration is unavailable
+            candidate_conf = cal_conf if cal_conf is not None else 0.0
+            top_candidates = [{"label": class_meta["label"], "confidence": candidate_conf}]
             mcp_res = self.mcp_resolver.resolve(
                 candidate_label=class_meta["label"],
-                confidence=raw_conf,
+                confidence=candidate_conf,
                 top_candidates=top_candidates,
                 motion_energy=motion_energy,
                 gloss_hint=class_meta["gloss"]
             )
             final_label = mcp_res.get("label", class_meta["label"])
             mcp_conf = mcp_res.get("confidence")
-            final_conf = mcp_conf if mcp_conf is not None else raw_conf
+            final_conf = mcp_conf if mcp_conf is not None else cal_conf
             resolver_assisted = bool(mcp_res.get("resolver_assisted", True))
+            reason_str = f"Calibrated confidence was {cal_conf * 100:.1f}% (< 98%)" if cal_conf is not None else "Calibrated confidence unavailable"
             engine_info = {
                 "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
                 "source": mcp_res.get("source", "MCP Server / Chatbot"),
                 "is_fallback": True,
-                "confidence": mcp_conf,
+                "confidence": final_conf,
+                "raw_confidence": raw_conf,
+                "calibrated_confidence": cal_conf,
                 "threshold": self.mcp_resolver.threshold,
                 "badge": mcp_res.get("badge", "MCP Fallback (< 98%)"),
-                "notes": mcp_res.get("notes", f"{active_lang.upper()} confidence was {raw_conf * 100:.1f}%. Shifted to MCP."),
+                "notes": mcp_res.get("notes", f"{reason_str}. Shifted to MCP resolver."),
                 "latency_ms": mcp_res.get("latency_ms", 3.0),
                 "resolver_assisted": resolver_assisted
             }

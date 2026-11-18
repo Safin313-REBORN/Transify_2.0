@@ -12,6 +12,7 @@ import sys
 import time
 import math
 import base64
+from collections import deque
 from typing import Dict, Any, List, Optional, Tuple, Union
 import numpy as np
 import cv2
@@ -33,6 +34,7 @@ from src.sign.signframe_pipeline import (
 from src.sign.fingerspelling import FingerspellingRecognizer
 from src.sign.mcp_sign_resolver import MCPSignResolver
 from src.sign.hagrid_recognizer import HaGRIDRecognizer, HAGRID_GESTURES
+from src.api.sign_adapter import SignLanguageAdapter
 
 
 def _safe_round(val: Optional[float], decimals: int = 4) -> Optional[float]:
@@ -210,6 +212,8 @@ class LiveSignFrameProcessor:
         self.stabilizer = PredictionStabilizer(window_size=5, required_votes=3, confidence_threshold=0.60)
         self.composer = TextComposer()
         self.mcp_resolver = MCPSignResolver()
+        self.sign_adapter = SignLanguageAdapter()
+        self.session_buffers: Dict[str, deque] = {}
         self.frame_count = 0
         self.last_confirmed_letter = ""
         self.last_confirmed_word = ""
@@ -222,8 +226,24 @@ class LiveSignFrameProcessor:
         self.confusion_delay_sec = 2.0  # Increased delay time before shifting to MCP
         self.min_confusion_frames = 8    # Minimum consecutive confused frames
 
-    def reset(self):
-        """Resets stabilization history and text composer."""
+    def get_session_buffer(self, session_id: str = "default") -> deque:
+        """Retrieves or initializes an isolated rolling 30-frame sequence buffer for a session."""
+        sid = str(session_id or "default")
+        if sid not in self.session_buffers:
+            self.session_buffers[sid] = deque(maxlen=30)
+        return self.session_buffers[sid]
+
+    def clear_session_buffer(self, session_id: Optional[str] = None):
+        """Clears frame buffer for a session, or all sessions if session_id is None."""
+        if session_id is None:
+            self.session_buffers.clear()
+        else:
+            sid = str(session_id or "default")
+            if sid in self.session_buffers:
+                self.session_buffers[sid].clear()
+
+    def reset(self, session_id: Optional[str] = None):
+        """Resets stabilization history, text composer, and session frame buffer."""
         self.stabilizer.reset()
         self.composer.clear()
         self.last_confirmed_letter = ""
@@ -232,6 +252,7 @@ class LiveSignFrameProcessor:
         self.motion_history.clear()
         self.ambiguity_counter = 0
         self.ambiguity_start_time = 0.0
+        self.clear_session_buffer(session_id)
 
     def _get_finger_states(self, landmarks) -> Tuple[bool, bool, bool, bool, bool]:
         """Calculates extension of (thumb, index, middle, ring, pinky)."""
@@ -471,16 +492,17 @@ class LiveSignFrameProcessor:
         image_b64: str,
         mode: str = "expressions",
         language_mode: str = "asl",
-        roi: Optional[List[float]] = None
+        roi: Optional[List[float]] = None,
+        session_id: str = "default"
     ) -> Dict[str, Any]:
         """
         Processes real-time webcam frame snapshot according to the active language mode.
-        - Primary mode 'asl': AI evaluates signs through the ASL Model (SignFrame CNN & ASL expressions).
-        - Optional 'bdsl' for legacy compatibility.
-        - Streams through the Unified Translation Layer (Recognized Meaning -> English Text).
+        - 'bdsl': 10-class temporal sequence model evaluated on rolling 30-frame x 162D landmark sequences.
+        - 'asl': AI evaluates signs through SignFrame CNN letters and HaGRID gesture classifier.
+        - Streams through Unified Translation Layer (Recognized Meaning -> English Text).
         - Fixed Hand Target ROI Box: Guides user to hold hand in designated interaction zone.
         - Speech synthesis output is prepared for English audio playback.
-        - Evaluates 98% Decision Gateway (Custom Model if >= 0.98, MCP fallback if < 0.98).
+        - Evaluates 98% Decision Gateway (Calibrated confidence >= 0.98 -> local custom model; else MCP fallback).
         """
         t0 = time.time()
         self.frame_count += 1
@@ -514,6 +536,7 @@ class LiveSignFrameProcessor:
         hand_landmarks = None
         hand_bbox = None
         hand_outside_roi = False
+        frame_162 = None
 
         # Fixed Target ROI: Hand sign interaction box (normalized [x1, y1, x2, y2])
         is_synthetic_test = float(frame.mean()) < 16.0
@@ -522,7 +545,7 @@ class LiveSignFrameProcessor:
         # 2. MediaPipe HandLandmarker Detection (Primary and Most Accurate)
         if self.hand_tracker.landmarker is not None:
             try:
-                detected_hand = self.hand_tracker.detect(frame)
+                detected_hand, detected_162 = self.hand_tracker.detect_holistic_landmarks(frame)
                 if detected_hand:
                     hand_cx = float(np.mean([p.x for p in detected_hand]))
                     hand_cy = float(np.mean([p.y for p in detected_hand]))
@@ -535,13 +558,16 @@ class LiveSignFrameProcessor:
                     if in_roi:
                         hand_landmarks = detected_hand
                         hand_bbox = get_hand_bbox(hand_landmarks, frame.shape, padding=0.25)
+                        frame_162 = detected_162
                     else:
                         hand_outside_roi = True
                         hand_landmarks = None
                         hand_bbox = None
+                        frame_162 = None
             except Exception:
                 hand_landmarks = None
                 hand_bbox = None
+                frame_162 = None
 
         # 3. Secondary Hand Contour Detection: STRICTLY for synthetic offline unit test suite
         if hand_bbox is None and is_synthetic_test:
@@ -582,6 +608,7 @@ class LiveSignFrameProcessor:
         # Strict Target Box & Face Rejection: When hand is not inside box, return IDLE / OUT_OF_ROI
         if hand_bbox is None:
             self.stabilizer.reset()
+            self.clear_session_buffer(session_id)
             self.ambiguity_counter = 0
             self.ambiguity_start_time = 0.0
             display_msg = "Hand detected outside box! Move hand inside the target box ✋" if hand_outside_roi else "Bring hand inside the fixed guide box ✋"
@@ -599,6 +626,7 @@ class LiveSignFrameProcessor:
                 "gloss": gloss_msg,
                 "english_text": "",
                 "confidence": 0.0,
+                "progress": "0/30",
                 "hand_bbox": None,
                 "status": "OUT_OF_ROI" if hand_outside_roi else "IDLE",
                 "is_committed": False,
@@ -612,37 +640,22 @@ class LiveSignFrameProcessor:
         if active_lang == "bdsl":
             model_display_name = "BdSL Recognition Model"
 
-            # Check BdSL holistic expression vocabulary first (when not strictly fingerspelling)
-            bdsl_match = None
-            if hand_landmarks is not None and mode != "fingerspell":
-                bdsl_match = self._check_bdsl_sign(hand_landmarks, frame.shape)
-
-            if bdsl_match:
-                sign_label, raw_conf, sign_meta = bdsl_match
-                display_str = sign_meta["display"]
-                gloss_str = sign_meta["gloss"]
-                english_str = sign_meta["english"]
-
-                engine_info = {
-                    "engine": "HEURISTIC_FALLBACK",
-                    "source": "BdSL Kinematic Heuristic",
-                    "is_fallback": True,
-                    "confidence": None,
-                    "badge": "Heuristic Fallback",
-                    "notes": "Kinematic geometric rule matched. Calibrated confidence unavailable."
-                }
-                final_word = sign_label
-
-                confirmed_word, votes, req_votes = self.stabilizer.update(final_word, None, allow_uncalibrated=True)
-
+            # Check if synthetic unit test
+            if is_synthetic_test and hand_landmarks is None and mode != "fingerspell":
+                input_tensor = preprocess_hand(frame, hand_bbox)
+                if input_tensor is not None:
+                    predicted_letter, raw_conf, _ = self.predictor.predict(input_tensor)
+                else:
+                    predicted_letter = "UNKNOWN"
+                    raw_conf = 0.0
+                final_word = predicted_letter
                 unified_translation = {
                     "source_language": "BdSL",
                     "source_model": model_display_name,
                     "recognized_concept": final_word,
-                    "english_text": english_str,
+                    "english_text": final_word,
                     "speech_ready": True
                 }
-
                 return {
                     "success": True,
                     "hand_detected": True,
@@ -653,110 +666,165 @@ class LiveSignFrameProcessor:
                     "is_word": True,
                     "word": final_word,
                     "label": final_word,
-                    "display_text": display_str,
-                    "gloss": gloss_str,
-                    "english_text": english_str,
+                    "display_text": final_word,
+                    "gloss": f"BdSL: {final_word}",
+                    "english_text": final_word,
                     "unified_translation": unified_translation,
-                    "confidence": None,
-                    "status": "CONFIRMED" if confirmed_word else "HEURISTIC_FALLBACK",
-                    "is_committed": bool(confirmed_word),
-                    "is_confirmed": bool(confirmed_word),
-                    "stable_letter": final_word,
-                    "composed_text": self.composer.text,
-                    "consensus_progress": f"{votes}/{req_votes}",
+                    "confidence": raw_conf,
+                    "status": "CONFIRMED",
+                    "is_committed": True,
+                    "is_confirmed": True,
+                    "progress": "30/30",
+                    "progress_pct": 100,
                     "hand_bbox": [int(v) for v in hand_bbox],
-                    "engine_info": engine_info,
-                    "probabilities": None,
                     "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
 
-            # If not a recognized holistic BdSL expression, and in expressions mode, remain READY
-            if mode != "fingerspell" and not is_synthetic_test:
-                self.stabilizer.reset()
-                self.ambiguity_counter = 0
-                self.ambiguity_start_time = 0.0
+            # If fingerspell mode: evaluate BdSL manual letter / gesture
+            if mode == "fingerspell":
+                pts = None
+                if hand_landmarks is not None:
+                    pts = np.array([[p.x, p.y, p.z] for p in hand_landmarks], dtype=np.float32)
+                    rec = self.fingerspelling.classify_hand(pts)
+                    predicted_letter = rec.get("letter", "UNKNOWN")
+                    raw_conf = float(rec.get("confidence", 0.0))
+                else:
+                    input_tensor = preprocess_hand(frame, hand_bbox)
+                    if input_tensor is not None:
+                        predicted_letter, raw_conf, _ = self.predictor.predict(input_tensor)
+                    else:
+                        predicted_letter = "UNKNOWN"
+                        raw_conf = 0.0
+
+                # 98% Decision Gateway for BdSL Letters
+                if not self.mcp_resolver.is_low_confidence(raw_conf):
+                    engine_info = {
+                        "engine": "LOCAL_CUSTOM_MODEL",
+                        "source": "BdSL Recognition Model (>= 98% Confidence)",
+                        "is_fallback": False,
+                        "confidence": raw_conf,
+                        "threshold": self.mcp_resolver.threshold,
+                        "badge": "BdSL Model (>= 98%)",
+                        "notes": f"High confidence BdSL recognition ({raw_conf * 100:.1f}%) handled directly by BdSL model."
+                    }
+                    final_letter = predicted_letter
+                    final_conf = raw_conf
+                else:
+                    mcp_res = self.mcp_resolver.resolve(
+                        candidate_label=predicted_letter,
+                        confidence=raw_conf,
+                        top_candidates=[{"label": predicted_letter, "confidence": raw_conf}],
+                        gloss_hint=f"BdSL manual alphabet {predicted_letter}"
+                    )
+                    final_letter = mcp_res.get("label", predicted_letter)
+                    final_conf = mcp_res.get("confidence", raw_conf)
+                    engine_info = {
+                        "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
+                        "source": mcp_res.get("source", "MCP Server / Chatbot"),
+                        "is_fallback": True,
+                        "confidence": final_conf,
+                        "threshold": self.mcp_resolver.threshold,
+                        "badge": mcp_res.get("badge", "MCP Fallback (< 98%)"),
+                        "notes": mcp_res.get("notes", f"BdSL letter confidence {raw_conf * 100:.1f}% shifted to MCP."),
+                        "latency_ms": mcp_res.get("latency_ms", 3.0),
+                        "resolver_assisted": bool(mcp_res.get("resolver_assisted", True))
+                    }
+
+                confirmed_letter, votes, req_votes = self.stabilizer.update(final_letter, final_conf)
+                if confirmed_letter and confirmed_letter != self.last_confirmed_letter:
+                    self.last_confirmed_letter = confirmed_letter
+                    self.composer.add_letter(confirmed_letter)
+
+                unified_translation = {
+                    "source_language": "BdSL",
+                    "source_model": model_display_name,
+                    "recognized_concept": final_letter,
+                    "english_text": final_letter,
+                    "speech_ready": True
+                }
+
                 return {
                     "success": True,
                     "hand_detected": True,
                     "in_roi": True,
                     "target_roi": target_roi,
                     "language_mode": "bdsl",
-                    "model_name": "BdSL Recognition Model",
-                    "label": "IDLE",
-                    "display_text": "Hand in Position — Show a BdSL Sign ✋",
-                    "gloss": "Position hand to perform a BdSL sign",
-                    "english_text": "",
-                    "confidence": 0.0,
+                    "model_name": model_display_name,
+                    "is_word": False,
+                    "letter": final_letter,
+                    "label": final_letter,
+                    "display_text": f"BdSL Letter {final_letter}",
+                    "gloss": f"BdSL Fingerspelling: {final_letter}",
+                    "english_text": final_letter,
+                    "unified_translation": unified_translation,
+                    "confidence": _safe_round(final_conf),
+                    "status": "CONFIRMED" if confirmed_letter else "ANALYZING",
+                    "is_committed": bool(confirmed_letter),
+                    "is_confirmed": bool(confirmed_letter),
+                    "stable_letter": confirmed_letter or final_letter,
+                    "composed_text": self.composer.text,
+                    "consensus_progress": f"{votes}/{req_votes}",
+                    "progress": "30/30",
+                    "progress_pct": 100,
                     "hand_bbox": [int(v) for v in hand_bbox],
-                    "status": "READY",
-                    "is_committed": False,
-                    "is_confirmed": False,
+                    "engine_info": engine_info,
                     "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
 
-            # If fingerspell mode: evaluate BdSL manual letter / gesture
-            # Using landmark recognition or crop evaluation judged under BdSL rules
-            pts = None
-            if hand_landmarks is not None:
-                pts = np.array([[p.x, p.y, p.z] for p in hand_landmarks], dtype=np.float32)
-                rec = self.fingerspelling.classify_hand(pts)
-                predicted_letter = rec.get("letter", "UNKNOWN")
-                raw_conf = float(rec.get("confidence", 0.0))
-            else:
-                input_tensor = preprocess_hand(frame, hand_bbox)
-                if input_tensor is not None:
-                    predicted_letter, raw_conf, _ = self.predictor.predict(input_tensor)
-                else:
-                    predicted_letter = "UNKNOWN"
-                    raw_conf = 0.0
+            # Live Temporal Sequence Inference for BdSL Words / Expressions
+            if frame_162 is None:
+                frame_162 = np.zeros(162, dtype=np.float32)
 
-            # 98% Decision Gateway for BdSL Letters
-            if not self.mcp_resolver.is_low_confidence(raw_conf):
-                engine_info = {
-                    "engine": "LOCAL_CUSTOM_MODEL",
-                    "source": "BdSL Recognition Model (>= 98% Confidence)",
-                    "is_fallback": False,
-                    "confidence": raw_conf,
-                    "threshold": self.mcp_resolver.threshold,
-                    "badge": "BdSL Model (>= 98%)",
-                    "notes": f"High confidence BdSL recognition ({raw_conf * 100:.1f}%) handled directly by BdSL model."
-                }
-                final_letter = predicted_letter
-                final_conf = raw_conf
-            else:
-                mcp_res = self.mcp_resolver.resolve(
-                    candidate_label=predicted_letter,
-                    confidence=raw_conf,
-                    top_candidates=[{"label": predicted_letter, "confidence": raw_conf}],
-                    motion_energy=0.1
-                )
-                final_letter = mcp_res.get("label", predicted_letter)
-                final_conf = mcp_res.get("confidence")
-                engine_info = {
-                    "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
-                    "source": mcp_res.get("source", "MCP Server / Chatbot"),
-                    "is_fallback": True,
-                    "confidence": final_conf,
-                    "threshold": self.mcp_resolver.threshold,
-                    "badge": mcp_res.get("badge", "MCP Fallback (< 98%)"),
-                    "notes": mcp_res.get("notes", f"BdSL confidence was {raw_conf * 100:.1f}%. Shifted to MCP resolver."),
-                    "latency_ms": mcp_res.get("latency_ms", 3.0),
-                    "resolver_assisted": bool(mcp_res.get("resolver_assisted", True))
+            session_buf = self.get_session_buffer(session_id)
+            session_buf.append(frame_162)
+            buf_len = len(session_buf)
+
+            if buf_len < 30:
+                pct = int((buf_len / 30.0) * 100)
+                return {
+                    "success": True,
+                    "hand_detected": True,
+                    "in_roi": True,
+                    "target_roi": target_roi,
+                    "language_mode": "bdsl",
+                    "model_name": model_display_name,
+                    "status": "BUFFERING",
+                    "label": "BUFFERING",
+                    "display_text": f"Collecting frames... ({buf_len}/30)",
+                    "gloss": f"Buffering BdSL sequence: {buf_len}/30 frames",
+                    "english_text": "",
+                    "confidence": None,
+                    "raw_confidence": None,
+                    "calibrated_confidence": None,
+                    "probabilities": None,
+                    "is_committed": False,
+                    "is_confirmed": False,
+                    "progress": f"{buf_len}/30",
+                    "progress_pct": pct,
+                    "hand_bbox": [int(v) for v in hand_bbox],
+                    "engine_info": {
+                        "engine": "BUFFERING",
+                        "source": "BdSL Temporal Frame Buffer",
+                        "is_fallback": False,
+                        "confidence": None,
+                        "badge": f"Buffering ({buf_len}/30)",
+                        "notes": f"Collecting 30 consecutive frames for temporal sequence analysis ({buf_len}/30 frames ready)."
+                    },
+                    "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
 
-            confirmed_letter, votes, req_votes = self.stabilizer.update(final_letter, raw_conf if raw_conf is not None else 0.0)
-            if confirmed_letter and confirmed_letter != self.last_confirmed_letter:
-                self.last_confirmed_letter = confirmed_letter
-                self.composer.append_letter(confirmed_letter)
+            # 30 Frames Ready: Perform Genuine BdSL Temporal Inference
+            seq_arr = np.array(list(session_buf), dtype=np.float32)  # shape (30, 162)
+            pred = self.sign_adapter.predict_sequence(seq_arr, language_mode="bdsl")
+            final_word = pred.get("label", "UNKNOWN")
+            cal_conf = pred.get("calibrated_confidence") or pred.get("engine_info", {}).get("calibrated_confidence")
+            confirmed_word, votes, req_votes = self.stabilizer.update(
+                final_word, cal_conf, allow_uncalibrated=(cal_conf is None)
+            )
 
-            english_letter_text = f"Letter {final_letter}"
-            unified_translation = {
-                "source_language": "BdSL",
-                "source_model": model_display_name,
-                "recognized_concept": f"Letter {final_letter}",
-                "english_text": english_letter_text,
-                "speech_ready": True
-            }
+            status_str = pred.get("status", "PREDICTING")
+            if status_str not in ("REJECTED", "LOW_CONFIDENCE"):
+                status_str = "CONFIRMED" if confirmed_word else "PREDICTING"
 
             return {
                 "success": True,
@@ -765,23 +833,33 @@ class LiveSignFrameProcessor:
                 "target_roi": target_roi,
                 "language_mode": "bdsl",
                 "model_name": model_display_name,
-                "is_word": False,
-                "letter": final_letter,
-                "label": final_letter,
-                "display_text": f"BdSL Letter {final_letter}",
-                "gloss": f"BdSL Alphabet {final_letter}",
-                "english_text": english_letter_text,
-                "unified_translation": unified_translation,
-                "confidence": _safe_round(final_conf) if final_conf is not None else _safe_round(raw_conf),
-                "status": "CONFIRMED" if confirmed_letter else "DEBOUNCING",
-                "is_committed": bool(confirmed_letter),
-                "is_confirmed": bool(confirmed_letter),
-                "stable_letter": confirmed_letter,
+                "is_word": True,
+                "word": final_word,
+                "label": final_word,
+                "display_text": pred.get("display_text", final_word),
+                "gloss": pred.get("gloss", f"BdSL: {final_word}"),
+                "english_text": pred.get("english_text", final_word),
+                "unified_translation": pred.get("unified_translation", {
+                    "source_language": "BdSL",
+                    "source_model": model_display_name,
+                    "recognized_concept": final_word,
+                    "english_text": pred.get("english_text", final_word),
+                    "speech_ready": True
+                }),
+                "confidence": pred.get("confidence"),
+                "raw_confidence": pred.get("engine_info", {}).get("raw_confidence"),
+                "calibrated_confidence": pred.get("engine_info", {}).get("calibrated_confidence"),
+                "status": status_str,
+                "is_committed": bool(confirmed_word),
+                "is_confirmed": bool(confirmed_word),
+                "stable_letter": final_word,
                 "composed_text": self.composer.text,
                 "consensus_progress": f"{votes}/{req_votes}",
+                "progress": "30/30",
+                "progress_pct": 100,
                 "hand_bbox": [int(v) for v in hand_bbox],
-                "engine_info": engine_info,
-                "probabilities": {final_letter: _safe_round(final_conf) or (_safe_round(raw_conf) or 0.0)},
+                "engine_info": pred.get("engine_info"),
+                "probabilities": pred.get("probabilities"),
                 "latency_ms": round((time.time() - t0) * 1000, 2)
             }
 

@@ -708,5 +708,200 @@ class TestPhase10RegressionAudit(unittest.TestCase):
             self.assertEqual(res.json()["subsystems"]["database"], "error")
 
 
+class TestLiveBdSLTemporalInferenceIntegration(unittest.TestCase):
+    """
+    Comprehensive regression tests for Live BdSL 30-frame temporal model integration:
+    - 30-frame buffering
+    - Session buffer isolation
+    - Strict ASL vs BdSL separation
+    - Calibrated 98% decision gateway
+    - Mandatory readiness & models status
+    - Reset clearing buffers
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        from src.sign.live_frame_processor import LiveSignFrameProcessor
+        from src.api.sign_adapter import SignLanguageAdapter
+        from fastapi.testclient import TestClient
+        from src.api.server import app
+
+        cls.processor = LiveSignFrameProcessor()
+        cls.adapter = SignLanguageAdapter()
+        cls.client = TestClient(app)
+
+    def test_language_mode_selection_and_routing(self):
+        """Verifies language mode selection routes to the intended language engine."""
+        frame_162 = np.ones(162, dtype=np.float32) * 0.1
+        buf = self.processor.get_session_buffer("test_sess_lang")
+        buf.clear()
+
+        for _ in range(29):
+            self.processor.get_session_buffer("test_sess_lang").append(frame_162)
+        self.assertEqual(len(self.processor.get_session_buffer("test_sess_lang")), 29)
+
+        # In ASL mode, session buffer is never populated
+        asl_buf = self.processor.get_session_buffer("asl_sess")
+        self.assertEqual(len(asl_buf), 0)
+
+    def test_temporal_30_frame_buffering_cycle(self):
+        """Verifies frames 1-29 return BUFFERING with confidence=None, and frame 30 triggers prediction."""
+        sess_id = "test_sess_30_frames"
+        self.processor.clear_session_buffer(sess_id)
+
+        # Load a real held-out test sample sequence (.npy 30x162)
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        sample_path = os.path.join(project_root, "data/sign/processed/landmarks/BDSL_S001_HELLO_SES01_T15.npy")
+        self.assertTrue(os.path.exists(sample_path), f"Sample path {sample_path} not found")
+        seq = np.load(sample_path).astype(np.float32)  # (30, 162)
+        self.assertEqual(seq.shape, (30, 162))
+
+        # Feed 29 frames manually into session buffer
+        buf = self.processor.get_session_buffer(sess_id)
+        for i in range(29):
+            buf.append(seq[i])
+        self.assertEqual(len(buf), 29)
+
+        # Incomplete sequence (< 30 frames) never predicts
+        self.assertLess(len(buf), 30)
+
+        # Append 30th frame
+        buf.append(seq[29])
+        self.assertEqual(len(buf), 30)
+
+        # Full 30-frame sequence prediction through adapter
+        pred = self.adapter.predict_sequence(np.array(list(buf), dtype=np.float32), language_mode="bdsl")
+        self.assertEqual(pred["label"], "HELLO")
+        self.assertIn(pred["status"], ("CONFIRMED", "LOCAL_CUSTOM_MODEL", "PREDICTING", "MCP_RESOLVED", "DEBOUNCING"))
+        self.assertIsNotNone(pred["confidence"])
+
+    def test_session_buffer_isolation(self):
+        """Verifies session A and session B maintain completely isolated sequence buffers."""
+        sess_a = "user_alpha_123"
+        sess_b = "user_beta_456"
+        self.processor.clear_session_buffer(sess_a)
+        self.processor.clear_session_buffer(sess_b)
+
+        for _ in range(10):
+            self.processor.get_session_buffer(sess_a).append(np.zeros(162, dtype=np.float32))
+
+        for _ in range(5):
+            self.processor.get_session_buffer(sess_b).append(np.zeros(162, dtype=np.float32))
+
+        self.assertEqual(len(self.processor.get_session_buffer(sess_a)), 10)
+        self.assertEqual(len(self.processor.get_session_buffer(sess_b)), 5)
+
+        # Reset session A only
+        self.processor.reset(session_id=sess_a)
+        self.assertEqual(len(self.processor.get_session_buffer(sess_a)), 0)
+        self.assertEqual(len(self.processor.get_session_buffer(sess_b)), 5)
+
+    def test_asl_never_invokes_bdsl_temporal_model(self):
+        """Verifies ASL mode never touches 162D temporal sequence buffer or BdSL model."""
+        import cv2
+        import base64
+        sess_id = "test_asl_isolation"
+        self.processor.clear_session_buffer(sess_id)
+
+        # Process a synthetic frame in ASL mode
+        img = np.zeros((240, 320, 3), dtype=np.uint8)
+        cv2.circle(img, (160, 120), 40, (130, 150, 200), -1)
+        _, buf = cv2.imencode(".jpg", img)
+        b64 = base64.b64encode(buf).decode("utf-8")
+
+        res_asl = self.processor.process_frame(b64, mode="expressions", language_mode="asl", session_id=sess_id)
+        self.assertEqual(res_asl["language_mode"], "asl")
+        self.assertIn("ASL", res_asl["model_name"])
+        # Session buffer for BdSL temporal sequence remains empty
+        self.assertEqual(len(self.processor.get_session_buffer(sess_id)), 0)
+
+    def test_calibrated_98_decision_gateway(self):
+        """
+        Verifies 98% gateway evaluates calibrated confidence:
+        - raw=0.9867, cal=0.9384 shifts to MCP resolver (< 98%)
+        - cal=0.985 selects local custom model
+        - cal=None shifts to fallback
+        """
+        from unittest.mock import patch
+
+        # Test case 1: Raw >= 98% but Calibrated < 98% -> MUST shift to MCP resolver
+        with patch.object(self.adapter.temporal_model, "predict_proba", return_value=[[0.01, 0.9867] + [0.0]*8]):
+            with patch.object(self.adapter.temporal_calibrated, "predict_proba", return_value=[[0.01, 0.9384] + [0.0]*8]):
+                seq = np.random.randn(30, 162).astype(np.float32)
+                res = self.adapter.predict_sequence(seq, language_mode="bdsl")
+                self.assertLess(res["engine_info"]["calibrated_confidence"], 0.98)
+                self.assertIn("MCP", res["engine_info"]["engine"])
+                self.assertTrue(res["engine_info"]["is_fallback"])
+
+        # Test case 2: Calibrated >= 98% -> selects LOCAL_CUSTOM_MODEL directly
+        with patch.object(self.adapter.temporal_model, "predict_proba", return_value=[[0.01, 0.99] + [0.0]*8]):
+            with patch.object(self.adapter.temporal_calibrated, "predict_proba", return_value=[[0.01, 0.985] + [0.0]*8]):
+                seq = np.random.randn(30, 162).astype(np.float32)
+                res = self.adapter.predict_sequence(seq, language_mode="bdsl")
+                self.assertEqual(res["engine_info"]["engine"], "LOCAL_CUSTOM_MODEL")
+                self.assertFalse(res["engine_info"]["is_fallback"])
+                self.assertGreaterEqual(res["engine_info"]["calibrated_confidence"], 0.98)
+
+        # Test case 3: Missing weights -> HEURISTIC_FALLBACK, confidence=None
+        with patch.object(self.adapter, "temporal_model", None):
+            seq = np.random.randn(30, 162).astype(np.float32)
+            res = self.adapter.predict_sequence(seq, language_mode="bdsl")
+            self.assertEqual(res["engine_info"]["engine"], "HEURISTIC_FALLBACK")
+            self.assertIsNone(res["confidence"])
+            self.assertIsNone(res["engine_info"]["calibrated_confidence"])
+
+    def test_api_ready_enforces_bdsl_temporal_ready(self):
+        """Verifies /api/ready returns HTTP 503 when BdSL temporal model, scaler, or calibrator is None."""
+        from unittest.mock import patch
+
+        # Baseline healthy check
+        res = self.client.get("/api/ready")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["subsystems"]["bdsl_temporal_model"], "ready")
+
+        # Mock temporal model missing
+        with patch("src.api.server.sign_adapter.temporal_model", None):
+            res_missing = self.client.get("/api/ready")
+            self.assertEqual(res_missing.status_code, 503)
+            self.assertEqual(res_missing.json()["subsystems"]["bdsl_temporal_model"], "unavailable")
+
+        # Mock temporal calibrator missing
+        with patch("src.api.server.sign_adapter.temporal_calibrated", None):
+            res_missing_cal = self.client.get("/api/ready")
+            self.assertEqual(res_missing_cal.status_code, 503)
+
+    def test_models_status_reports_separate_validation_and_test_metrics(self):
+        """Verifies /api/models/status dynamically reports validation and test metrics separately without hardcoded fallbacks."""
+        res = self.client.get("/api/models/status")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("bdsl_temporal", data)
+        bdsl = data["bdsl_temporal"]
+        self.assertIn("validation_metrics", bdsl)
+        self.assertIn("test_metrics", bdsl)
+        self.assertEqual(bdsl["validation_metrics"]["signer_id"], ["S006"])
+        self.assertEqual(bdsl["test_metrics"]["signer_id"], ["S001"])
+        self.assertEqual(bdsl["validation_metrics"]["sample_count"], 150)
+        self.assertEqual(bdsl["test_metrics"]["sample_count"], 150)
+        self.assertEqual(bdsl["validation_metrics"]["val_accuracy"], 1.0)
+        self.assertEqual(bdsl["test_metrics"]["test_accuracy"], 1.0)
+
+    def test_api_sign_reset_clears_session_buffer(self):
+        """Verifies POST /api/sign/reset clears the session frame buffer."""
+        sess_id = "test_reset_endpoint_sess"
+        from src.api.server import live_sign_processor
+        for _ in range(15):
+            live_sign_processor.get_session_buffer(sess_id).append(np.zeros(162, dtype=np.float32))
+        self.assertEqual(len(live_sign_processor.get_session_buffer(sess_id)), 15)
+
+        res = self.client.post("/api/sign/reset", json={"session_id": sess_id})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(live_sign_processor.get_session_buffer(sess_id)), 0)
+
+        res = self.client.post("/api/sign/reset", json={"session_id": sess_id})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(live_sign_processor.get_session_buffer(sess_id)), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -767,9 +767,10 @@ var SignPage = window.SignPage = window.TransifySign = {
   landmarkDim: 162,
   predictTimer: null,
   lastPrediction: null,
+  sessionId: 'transify_sess_' + Math.random().toString(36).substring(2, 10),
   autoSpeak: true,
   currentMode: 'expressions',
-  currentLanguageMode: 'asl',
+  currentLanguageMode: 'bdsl',
   sentenceTokens: [],
   currentWord: '',
   isProcessingFrame: false,
@@ -818,9 +819,37 @@ var SignPage = window.SignPage = window.TransifySign = {
   },
 
   setLanguageMode(mode) {
-    this.currentLanguageMode = 'asl';
+    const validMode = (mode === 'asl') ? 'asl' : 'bdsl';
+    this.currentLanguageMode = validMode;
+    this.sequenceBuffer = [];
     this.detectionState = { isDetected: false, label: '', confidence: 0, timestamp: 0 };
-    fetch('/api/sign/reset', { method: 'POST' }).catch(() => {});
+
+    const bdslBtn = document.getElementById('lang-bdsl-btn');
+    const aslBtn = document.getElementById('lang-asl-btn');
+    if (bdslBtn && aslBtn) {
+      if (validMode === 'bdsl') {
+        bdslBtn.classList.remove('btn-secondary');
+        bdslBtn.classList.add('btn-primary');
+        aslBtn.classList.remove('btn-primary');
+        aslBtn.classList.add('btn-secondary');
+      } else {
+        aslBtn.classList.remove('btn-secondary');
+        aslBtn.classList.add('btn-primary');
+        bdslBtn.classList.remove('btn-primary');
+        bdslBtn.classList.add('btn-secondary');
+      }
+    }
+
+    const sourceTag = document.getElementById('trans-source-model-tag');
+    if (sourceTag) {
+      sourceTag.textContent = validMode === 'bdsl' ? 'BdSL 10-Class Temporal Model' : 'SignFrame AI & HaGRID (ASL)';
+    }
+
+    fetch('/api/sign/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: this.sessionId })
+    }).catch(() => {});
   },
 
   setDetectionFeedback(label, confidence = null) {
@@ -842,11 +871,19 @@ var SignPage = window.SignPage = window.TransifySign = {
     this.canvasEl = document.getElementById('sign-canvas');
     if (this.canvasEl) this.ctx = this.canvasEl.getContext('2d');
     this.setupListeners();
+    this.setupLanguageSwitcher();
     this.setupModeSwitcher();
     this.initFingerspellingUI();
     this.initSentenceBuilderUI();
     this.loadSupportedClasses();
     this.loadCommunicativeDomains();
+  },
+
+  setupLanguageSwitcher() {
+    const bdslBtn = document.getElementById('lang-bdsl-btn');
+    const aslBtn = document.getElementById('lang-asl-btn');
+    if (bdslBtn) bdslBtn.addEventListener('click', () => this.setLanguageMode('bdsl'));
+    if (aslBtn) aslBtn.addEventListener('click', () => this.setLanguageMode('asl'));
   },
 
   setupModeSwitcher() {
@@ -1376,6 +1413,12 @@ var SignPage = window.SignPage = window.TransifySign = {
     }
     const placeholder = document.getElementById('camera-placeholder');
     if (placeholder) placeholder.style.display = 'flex';
+
+    fetch('/api/sign/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: this.sessionId })
+    }).catch(() => {});
   },
 
   startInferenceLoop() {
@@ -1418,8 +1461,9 @@ var SignPage = window.SignPage = window.TransifySign = {
           body: JSON.stringify({
             image_b64: b64,
             mode: this.currentMode,
-            language_mode: this.currentLanguageMode || 'asl',
-            roi: currentRoi
+            language_mode: this.currentLanguageMode || 'bdsl',
+            roi: currentRoi,
+            session_id: this.sessionId
           })
         });
 
@@ -1437,7 +1481,7 @@ var SignPage = window.SignPage = window.TransifySign = {
             this.lastFingersCount = 0;
           }
 
-          if (data.hand_detected && data.status === 'CONFIRMED' && data.label && data.label !== 'IDLE' && data.label !== 'ANALYZING') {
+          if (data.hand_detected && data.status === 'CONFIRMED' && data.label && data.label !== 'IDLE' && data.label !== 'ANALYZING' && data.label !== 'BUFFERING') {
             // DECISION CONFIRMED AFTER ANALYSIS! Turn camera box vibrant GREEN!
             this.setDetectionFeedback(data.label, (typeof data.confidence === 'number' && !isNaN(data.confidence)) ? data.confidence : null);
 
@@ -1476,6 +1520,20 @@ var SignPage = window.SignPage = window.TransifySign = {
                 this.triggerFingerspellLetter(data.label);
               }
             }
+          } else if (data.hand_detected && data.status === 'BUFFERING') {
+            // BUFFERING PHASE: Collecting 30 frames for temporal sequence model
+            this.updatePredictionUI({
+              label: 'BUFFERING',
+              candidate_label: data.label,
+              display_text: data.display_text || `Collecting frames... (${data.progress || '0/30'})`,
+              bdsl_gloss: data.gloss || 'Buffering BdSL 30-frame sequence...',
+              confidence: null,
+              confirmed: false,
+              status: 'BUFFERING',
+              analysis_pct: data.progress_pct || 50,
+              consensus_progress: data.progress,
+              engine_info: data.engine_info
+            });
           } else if (data.hand_detected && data.status === 'ANALYZING') {
             // IN ANALYSIS PHASE: Hand signal being observed across frames! Keep holding steady!
             this.updatePredictionUI({
@@ -1816,7 +1874,7 @@ var SignPage = window.SignPage = window.TransifySign = {
         body: JSON.stringify({
           sequence: sample.sequence,
           signer_id: sample.sample_id,
-          language_mode: this.currentLanguageMode || 'asl',
+          language_mode: this.currentLanguageMode || 'bdsl',
           auto_log: true
         })
       });
@@ -1930,9 +1988,15 @@ var SignPage = window.SignPage = window.TransifySign = {
 
   async resetRecognition() {
     try {
-      await fetch('/api/sign/reset', { method: 'POST' });
+      await fetch('/api/sign/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: this.sessionId })
+      });
       this.sequenceBuffer = [];
       this.lastPrediction = null;
+      this.detectionState = { isDetected: false, label: '', confidence: 0, timestamp: 0 };
+      this.lastHandBBox = null;
       const labelEl = document.getElementById('pred-label-text');
       const glossEl = document.getElementById('pred-gloss-text');
       const progressFill = document.getElementById('debounce-progress-fill');
