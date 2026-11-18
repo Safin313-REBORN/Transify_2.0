@@ -2159,3 +2159,64 @@ select:focus {
 }
 
 
+
+/* --------------------------------------------------------------------------
+   Resilient Fallback Rules for Welcome Screen Artwork
+   -------------------------------------------------------------------------- */
+.auth-fallback-active .auth-welcome-exact-artwork {
+  display: none !important;
+}
+
+.auth-fallback-active .auth-hotspots-layer {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  padding: 36px 28px !important;
+  gap: 14px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, #ffffff 100%) !important;
+}
+
+.auth-fallback-active .auth-exact-hotspot {
+  position: static !important;
+  width: 100% !important;
+  height: 52px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 15.5px !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.auth-fallback-active .auth-hotspot-register {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.35) !important;
+}
+
+.auth-fallback-active .auth-hotspot-login {
+  background: #ffffff !important;
+  color: #8338ec !important;
+  border: 2px solid #8338ec !important;
+  box-shadow: 0 4px 14px rgba(131, 56, 236, 0.15) !important;
+}
+
+.auth-fallback-active .auth-hotspot-guest {
+  background: transparent !important;
+  color: #64748b !important;
+  height: 38px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+}
+
+.auth-fallback-active .sr-only {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  clip: auto !important;
+  overflow: visible !important;
+  margin: 0 !important;
+}
