@@ -22,7 +22,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     this.initAuthGateway();
   },
 
-  initAuthGateway() {
+  async initAuthGateway() {
     const authOverlay = document.getElementById('transify-auth-screen');
     const splash = document.getElementById('transify-splash-screen');
     if (!authOverlay) {
@@ -32,46 +32,95 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
 
     const urlParams = new URLSearchParams(window.location.search);
     const forceLogin = urlParams.get('view') === 'login' || urlParams.get('logout') === '1';
-    const isAuthCompleted = urlParams.get('auth_completed') === '1';
 
+    if (forceLogin) {
+      try {
+        localStorage.removeItem('transify_auth_user');
+        localStorage.removeItem('transify_session_token');
+        localStorage.removeItem('transify_auth_token');
+        localStorage.removeItem('transify_guest_mode');
+      } catch (_) {}
+    }
+
+    const isGuest = localStorage.getItem('transify_guest_mode') === 'true';
     let authUser = null;
     try {
       authUser = JSON.parse(localStorage.getItem('transify_auth_user') || 'null');
     } catch (_) {}
 
-    if (isAuthCompleted && !authUser) {
-      authUser = { name: 'Sarah Ahmed', email: 'demo@transify.ai', provider: 'login' };
-      try {
-        localStorage.setItem('transify_auth_user', JSON.stringify(authUser));
-        localStorage.setItem('transify_auth_token', 'jwt_' + Date.now());
-      } catch (_) {}
-    }
-
-    if ((!authUser && !isAuthCompleted) || forceLogin) {
-      // User is NOT logged in: Show Auth Screen FIRST!
-      if (splash) {
-        splash.style.display = 'none';
-        splash.classList.add('splash-hidden');
-      }
-      authOverlay.style.display = 'flex';
-      authOverlay.classList.remove('auth-hidden');
-      authOverlay.style.pointerEvents = 'auto';
-      authOverlay.style.zIndex = '1000000';
-      this.bindAuthEvents();
-    } else {
-      // Already logged in: Immediately hide auth overlay and show dashboard!
+    // 1. If in guest mode and not forced to login:
+    if (isGuest && !forceLogin) {
       authOverlay.style.display = 'none';
       authOverlay.classList.add('auth-hidden');
       authOverlay.style.pointerEvents = 'none';
       authOverlay.style.zIndex = '-99999';
-      this.updateProfileUI(authUser || { name: 'Sarah Ahmed', email: 'demo@transify.ai' });
+      this.updateProfileUI(authUser || { name: 'Guest User (Demo Mode)', email: 'guest@transify.ai', is_guest: true });
       if (splash) {
         splash.style.display = 'none';
         splash.classList.add('splash-hidden');
       }
       this.checkUrlSlide();
+      this.bindProfileModal();
+      return;
     }
 
+    // 2. If authenticated user exists, verify with backend session validator:
+    if (authUser && !forceLogin) {
+      const sessionToken = localStorage.getItem('transify_session_token') || '';
+      try {
+        const checkRes = await fetch('/api/auth/me', {
+          headers: sessionToken ? { 'Authorization': 'Bearer ' + sessionToken } : {}
+        });
+        const checkData = await checkRes.json();
+        if (checkRes.ok && checkData.authenticated && checkData.user) {
+          authUser = checkData.user;
+          localStorage.setItem('transify_auth_user', JSON.stringify(authUser));
+          authOverlay.style.display = 'none';
+          authOverlay.classList.add('auth-hidden');
+          authOverlay.style.pointerEvents = 'none';
+          authOverlay.style.zIndex = '-99999';
+          this.updateProfileUI(authUser);
+          if (splash) {
+            splash.style.display = 'none';
+            splash.classList.add('splash-hidden');
+          }
+          this.checkUrlSlide();
+          this.bindProfileModal();
+          return;
+        } else {
+          // Session expired or invalid
+          localStorage.removeItem('transify_auth_user');
+          localStorage.removeItem('transify_session_token');
+          localStorage.removeItem('transify_auth_token');
+          authUser = null;
+        }
+      } catch (_) {
+        // Network offline but user exists locally: allow offline access
+        authOverlay.style.display = 'none';
+        authOverlay.classList.add('auth-hidden');
+        authOverlay.style.pointerEvents = 'none';
+        authOverlay.style.zIndex = '-99999';
+        this.updateProfileUI(authUser);
+        if (splash) {
+          splash.style.display = 'none';
+          splash.classList.add('splash-hidden');
+        }
+        this.checkUrlSlide();
+        this.bindProfileModal();
+        return;
+      }
+    }
+
+    // 3. User is NOT logged in: Show Auth Screen FIRST!
+    if (splash) {
+      splash.style.display = 'none';
+      splash.classList.add('splash-hidden');
+    }
+    authOverlay.style.display = 'flex';
+    authOverlay.classList.remove('auth-hidden');
+    authOverlay.style.pointerEvents = 'auto';
+    authOverlay.style.zIndex = '1000000';
+    this.bindAuthEvents();
     this.bindProfileModal();
   },
 
@@ -149,21 +198,53 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   },
 
   handleDirectLogin() {
-    this.showAuthAlert('Logging in as Sarah Ahmed...', true);
-    this.completeAuthentication({
-      name: 'Sarah Ahmed',
-      email: 'demo@transify.ai',
-      provider: 'direct'
-    });
+    this.showAuthAlert('Logging in as Verified Demo account...', true);
+    this.handleAuthSubmit(null, 'demo@transify.ai', 'transify2026', 'login');
   },
 
-  handleDemoLogin() {
-    this.showAuthAlert('Continuing as Demo Guest...', true);
-    this.completeAuthentication({
-      name: 'Sarah Ahmed',
-      email: 'demo@transify.ai',
-      provider: 'guest'
-    });
+  async handleDemoLogin() {
+    this.showAuthAlert('Continuing in Guest Demo Mode...', true);
+    try {
+      const res = await fetch('/api/auth/guest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json().catch(() => ({}));
+      const guestUser = (data && data.user) ? data.user : {
+        id: 0,
+        name: 'Guest User (Demo Mode)',
+        email: 'guest@transify.ai',
+        role: 'guest',
+        is_guest: true
+      };
+      guestUser.is_guest = true;
+      try {
+        localStorage.setItem('transify_guest_mode', 'true');
+        localStorage.setItem('transify_auth_user', JSON.stringify(guestUser));
+        localStorage.removeItem('transify_session_token');
+        localStorage.removeItem('transify_auth_token');
+      } catch (_) {}
+      this.completeAuthentication(guestUser, true);
+    } catch (_) {
+      const guestUser = {
+        id: 0,
+        name: 'Guest User (Demo Mode)',
+        email: 'guest@transify.ai',
+        role: 'guest',
+        is_guest: true
+      };
+      try {
+        localStorage.setItem('transify_guest_mode', 'true');
+        localStorage.setItem('transify_auth_user', JSON.stringify(guestUser));
+        localStorage.removeItem('transify_session_token');
+        localStorage.removeItem('transify_auth_token');
+      } catch (_) {}
+      this.completeAuthentication(guestUser, true);
+    }
+  },
+
+  handleDemoGuest() {
+    return this.handleDemoLogin();
   },
 
   togglePasswordVisibility() {
@@ -218,46 +299,81 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     const nameInput = document.getElementById('input-fullname');
     if (emailInput) emailInput.value = 'demo@transify.ai';
     if (pwdInput) pwdInput.value = 'transify2026';
-    if (nameInput) nameInput.value = 'Sarah Ahmed';
-    this.showAuthAlert('Demo credentials loaded! Authenticating...', true);
-    setTimeout(() => {
-      this.completeAuthentication({
-        name: 'Sarah Ahmed',
-        email: 'demo@transify.ai',
-        provider: 'demo'
-      });
-    }, 450);
+    if (nameInput) nameInput.value = 'Verified Demo User';
+    this.showAuthAlert('Demo credentials loaded (demo@transify.ai). Submitting authentication...', true);
+    this.handleAuthSubmit(null, 'demo@transify.ai', 'transify2026', 'login');
   },
 
-  handleAuthSubmit(e) {
+  async handleAuthSubmit(e, overrideEmail, overridePwd, overrideMode) {
     if (e) e.preventDefault();
     const emailInput = document.getElementById('input-email');
     const pwdInput = document.getElementById('input-password');
     const nameInput = document.getElementById('input-fullname');
 
-    const email = (emailInput && emailInput.value.trim()) ? emailInput.value.trim() : 'demo@transify.ai';
-    const password = (pwdInput && pwdInput.value) ? pwdInput.value : 'transify2026';
-    const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Sarah Ahmed';
+    const email = overrideEmail || ((emailInput && emailInput.value) ? emailInput.value.trim() : '');
+    const password = overridePwd || ((pwdInput && pwdInput.value) ? pwdInput.value : '');
+    const name = (nameInput && nameInput.value) ? nameInput.value.trim() : 'Transify User';
+    const mode = overrideMode || this.activeAuthMode || 'login';
 
-    const mode = this.activeAuthMode || 'login';
+    if (!email || !password) {
+      this.showAuthAlert('Please fill in both email and password.', false);
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      this.showAuthAlert('Please enter a valid email address.', false);
+      return;
+    }
+
+    if (password.length < 6) {
+      this.showAuthAlert('Password must be at least 6 characters long.', false);
+      return;
+    }
+
+    if (mode === 'signup' && (!name || name.length < 2)) {
+      this.showAuthAlert('Please enter your full name.', false);
+      return;
+    }
+
     const submitBtn = document.getElementById('auth-submit-btn');
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.style.opacity = '0.75';
       const label = submitBtn.querySelector('#btn-text');
-      if (label) label.textContent = mode === 'login' ? 'Logging in...' : 'Opening Transify...';
+      if (label) label.textContent = mode === 'login' ? 'Authenticating...' : 'Registering...';
     }
 
-    setTimeout(() => {
-      try {
+    try {
+      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
+      const bodyPayload = mode === 'login'
+        ? { email: email, password: password }
+        : { name: name, email: email, password: password };
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload)
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.status === 'success') {
+        try {
+          localStorage.setItem('transify_auth_user', JSON.stringify(data.user));
+          if (data.token) {
+            localStorage.setItem('transify_session_token', data.token);
+          }
+          localStorage.removeItem('transify_guest_mode');
+          localStorage.removeItem('transify_auth_token');
+        } catch (_) {}
+
         this.showAuthAlert(mode === 'login' ? 'Login successful! Opening Transify...' : 'Account registered! Opening Transify...', true);
-        this.completeAuthentication({
-          name: name,
-          email: email,
-          provider: 'password'
-        });
-      } catch (err) {
-        this.showAuthAlert('Authentication error. Please try again.', false);
+        setTimeout(() => {
+          this.completeAuthentication(data.user, false);
+        }, 300);
+      } else {
+        const errorDetail = data.detail || (mode === 'login' ? 'Invalid email or password.' : 'Registration failed. Please try again.');
+        this.showAuthAlert(errorDetail, false);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.style.opacity = '1';
@@ -265,26 +381,22 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
           if (label) label.textContent = mode === 'login' ? 'Login' : 'Register & Open Slides';
         }
       }
-    }, 200);
+    } catch (err) {
+      this.showAuthAlert('Unable to reach authentication server. Please check your network connection.', false);
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        const label = submitBtn.querySelector('#btn-text');
+        if (label) label.textContent = mode === 'login' ? 'Login' : 'Register & Open Slides';
+      }
+    }
   },
 
   handleGoogleLogin() {
-    this.showAuthAlert('Connecting with Google Account...', true);
-    setTimeout(() => {
-      this.completeAuthentication({
-        name: 'Sarah Ahmed',
-        email: 'sarah.ahmed@gmail.com',
-        provider: 'google'
-      });
-    }, 600);
+    this.showAuthAlert('Google Sign-In is unavailable. Please sign in with your email and password.', false);
   },
 
-  completeAuthentication(userObj) {
-    try {
-      localStorage.setItem('transify_auth_user', JSON.stringify(userObj));
-      localStorage.setItem('transify_auth_token', 'jwt_' + Date.now());
-    } catch (_) {}
-
+  completeAuthentication(userObj, isGuest = false) {
     this.updateProfileUI(userObj);
 
     const authOverlay = document.getElementById('transify-auth-screen');
@@ -321,8 +433,12 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     if (!userObj) return;
     const nameText = document.getElementById('profile-name-text');
     const emailText = document.getElementById('profile-email-text');
-    if (nameText && userObj.name) nameText.textContent = userObj.name;
-    if (emailText && userObj.email) emailText.textContent = userObj.email;
+    if (nameText && userObj.name) {
+      nameText.textContent = userObj.is_guest ? 'Guest User (Demo Mode)' : userObj.name;
+    }
+    if (emailText && userObj.email) {
+      emailText.textContent = userObj.is_guest ? 'demo-guest@transify.ai' : userObj.email;
+    }
   },
 
   bindProfileModal() {
@@ -343,11 +459,24 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     if (modal) modal.classList.remove('open');
   },
 
-  logoutUser() {
+  async logoutUser() {
     this.closeProfileModal();
     try {
+      const sessionToken = localStorage.getItem('transify_session_token') || '';
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + sessionToken,
+          'Content-Type': 'application/json'
+        }
+      }).catch(() => {});
+    } catch (_) {}
+
+    try {
       localStorage.removeItem('transify_auth_user');
+      localStorage.removeItem('transify_session_token');
       localStorage.removeItem('transify_auth_token');
+      localStorage.removeItem('transify_guest_mode');
     } catch (_) {}
 
     const authOverlay = document.getElementById('transify-auth-screen');

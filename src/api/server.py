@@ -45,7 +45,13 @@ from src.database.db import (
     clear_history,
     record_feedback,
     get_preferences,
-    update_preference
+    update_preference,
+    create_user,
+    authenticate_user,
+    create_session,
+    get_user_by_session,
+    revoke_session,
+    get_user_by_email
 )
 
 # Initialize FastAPI App
@@ -150,6 +156,17 @@ class MCPSignResolveRequest(BaseModel):
     top_candidates: Optional[List[Dict[str, Any]]] = Field(None, description="Top predicted candidates")
     motion_energy: Optional[float] = Field(0.0, description="Kinematic motion energy")
     gloss_hint: Optional[str] = Field("", description="Gloss hint")
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(..., description="User email address")
+    password: str = Field(..., min_length=1, description="User account password")
+
+
+class RegisterRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=100, description="User full name")
+    email: str = Field(..., description="User email address")
+    password: str = Field(..., min_length=6, max_length=128, description="User password (min 6 characters)")
 
 
 # --- API Routes ---
@@ -838,6 +855,138 @@ def set_preference(req: PreferenceUpdateRequest):
     """Updates a user accessibility preference."""
     update_preference(req.key, req.value)
     return {"success": True, "updated": {req.key: req.value}}
+
+
+# --- Authentication Endpoints ---
+
+@app.post("/api/auth/register", tags=["Authentication"])
+def register_user(req: RegisterRequest, response: Response):
+    """
+    Registers a new user account with real backend validation and PBKDF2 password hashing.
+    Rejects invalid inputs and duplicate email addresses.
+    """
+    try:
+        user = create_user(req.name, req.email, req.password)
+    except ValueError as err:
+        err_msg = str(err)
+        if "already exists" in err_msg.lower():
+            raise HTTPException(status_code=409, detail=err_msg)
+        raise HTTPException(status_code=400, detail=err_msg)
+    except Exception as ex:
+        logger.error(f"Error during user registration: {ex}")
+        raise HTTPException(status_code=500, detail="Internal registration failure. Please try again.")
+
+    # Create genuine session
+    session_token = create_session(user["id"])
+    response.set_cookie(
+        key="transify_session",
+        value=session_token,
+        max_age=7 * 86400,
+        httponly=True,
+        samesite="lax",
+        secure=is_prod,
+        path="/"
+    )
+
+    return {
+        "status": "success",
+        "message": "Account created successfully.",
+        "user": user,
+        "token": session_token
+    }
+
+
+@app.post("/api/auth/login", tags=["Authentication"])
+def login_user(req: LoginRequest, response: Response):
+    """
+    Authenticates user credentials against the persistent SQLite database.
+    Rejects unknown accounts or incorrect passwords with HTTP 401 Unauthorized.
+    """
+    user = authenticate_user(req.email, req.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+    session_token = create_session(user["id"])
+    response.set_cookie(
+        key="transify_session",
+        value=session_token,
+        max_age=7 * 86400,
+        httponly=True,
+        samesite="lax",
+        secure=is_prod,
+        path="/"
+    )
+
+    return {
+        "status": "success",
+        "message": "Login successful.",
+        "user": user,
+        "token": session_token
+    }
+
+
+@app.post("/api/auth/guest", tags=["Authentication"])
+def guest_login():
+    """
+    Initializes a demo guest session.
+    Distinguishes guest usage from verified user accounts without creating a fake JWT.
+    """
+    return {
+        "status": "success",
+        "message": "Demo guest session active.",
+        "user": {
+            "id": 0,
+            "name": "Guest User",
+            "email": "guest@transify.ai",
+            "role": "guest",
+            "is_guest": True
+        },
+        "token": None
+    }
+
+
+@app.get("/api/auth/me", tags=["Authentication"])
+def get_current_user(request: Request = None):
+    """
+    Verifies session validity from HttpOnly cookie or Authorization Bearer header.
+    Returns authenticated user profile or unauthenticated status.
+    """
+    token = None
+    if request:
+        token = request.cookies.get("transify_session")
+        if not token:
+            auth_header = request.headers.get("authorization", "")
+            if auth_header.lower().startswith("bearer "):
+                token = auth_header[7:].strip()
+
+    if not token:
+        return {"authenticated": False, "user": None}
+
+    user = get_user_by_session(token)
+    if not user:
+        return {"authenticated": False, "user": None}
+
+    return {"authenticated": True, "user": user}
+
+
+@app.post("/api/auth/logout", tags=["Authentication"])
+def logout_user(response: Response, request: Request = None):
+    """
+    Revokes the current session in database and clears the session cookie.
+    """
+    token = None
+    if request:
+        token = request.cookies.get("transify_session")
+        if not token:
+            auth_header = request.headers.get("authorization", "")
+            if auth_header.lower().startswith("bearer "):
+                token = auth_header[7:].strip()
+
+    if token:
+        revoke_session(token)
+
+    response.delete_cookie(key="transify_session", path="/")
+    return {"status": "success", "message": "Logged out successfully."}
 
 
 # --- Static Frontend App Serving ---
