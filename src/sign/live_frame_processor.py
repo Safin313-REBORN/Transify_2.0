@@ -12,6 +12,7 @@ import sys
 import time
 import math
 import base64
+import threading
 from collections import deque
 from typing import Dict, Any, List, Optional, Tuple, Union
 import numpy as np
@@ -195,6 +196,89 @@ ASL_EXPRESSIONS: Dict[str, Dict[str, str]] = {
 EXPRESSIVE_SIGNS: Dict[str, Dict[str, str]] = BDSL_EXPRESSIONS
 
 
+class SessionInferenceState:
+    """
+    Thread-safe, isolated runtime state for an individual user/client session:
+      - 30-frame sequence buffer (deque of 162-dim landmark float arrays)
+      - Timestamps deque (for temporal spacing and continuity checks)
+      - Per-session PredictionStabilizer (independent vote counting)
+      - Per-session TextComposer (independent sentence state)
+      - Per-session Debounce History (isolated sign_adapter temporal debouncing)
+      - Concurrency lock (threading.Lock)
+      - TTL expiration tracking
+    """
+    def __init__(self, session_id: str):
+        self.session_id = session_id
+        self.lock = threading.Lock()
+        self.frame_buffer: deque = deque(maxlen=30)
+        self.timestamps: deque = deque(maxlen=30)
+        self.stabilizer = PredictionStabilizer(window_size=5, required_votes=3, confidence_threshold=0.60)
+        self.composer = TextComposer()
+        self.debounce_history: List[int] = []
+        self.last_confirmed_letter: str = ""
+        self.last_confirmed_word: str = ""
+        self.last_timestamp: Optional[float] = None
+        self.prev_wrist: Optional[Tuple[float, float]] = None
+        self.motion_history: List[float] = []
+        self.ambiguity_counter: int = 0
+        self.ambiguity_start_time: float = 0.0
+        self.last_active_time: float = time.time()
+
+    def touch(self):
+        self.last_active_time = time.time()
+
+    def reset(self):
+        with self.lock:
+            self.frame_buffer.clear()
+            self.timestamps.clear()
+            self.stabilizer.reset()
+            self.composer.clear()
+            self.debounce_history.clear()
+            self.last_confirmed_letter = ""
+            self.last_confirmed_word = ""
+            self.last_timestamp = None
+            self.prev_wrist = None
+            self.motion_history.clear()
+            self.ambiguity_counter = 0
+            self.ambiguity_start_time = 0.0
+            self.touch()
+
+
+def resample_temporal_sequence(
+    timestamps: List[float],
+    frames: List[np.ndarray],
+    target_frames: int = 30
+) -> np.ndarray:
+    """
+    Resamples an irregular or sub-sampled stream of (timestamp, 162-dim) frames
+    into a standardized (target_frames, 162) sequence matching the training distribution (30 FPS, 1.0s).
+    - If already target_frames without timestamps, returns directly as float32 array.
+    - If timestamps exist, performs monotonic linear interpolation across time.
+    - Never generates zero-filled frames.
+    """
+    N = len(frames)
+    if N == 0:
+        return np.zeros((target_frames, 162), dtype=np.float32)
+    if N == 1:
+        return np.repeat(frames[0][np.newaxis, :], target_frames, axis=0)
+
+    data_matrix = np.array(frames, dtype=np.float32)
+    if len(timestamps) != N:
+        t_arr = np.linspace(0.0, 1.0, N)
+    else:
+        t_arr = np.array(timestamps, dtype=np.float64)
+        for i in range(1, len(t_arr)):
+            if t_arr[i] <= t_arr[i - 1]:
+                t_arr[i] = t_arr[i - 1] + 0.001
+
+    target_times = np.linspace(t_arr[0], t_arr[-1], target_frames)
+    resampled = np.zeros((target_frames, data_matrix.shape[1]), dtype=np.float32)
+    for feat_idx in range(data_matrix.shape[1]):
+        resampled[:, feat_idx] = np.interp(target_times, t_arr, data_matrix[:, feat_idx])
+
+    return resampled
+
+
 class LiveSignFrameProcessor:
     """
     Real-time dual-engine vision processor:
@@ -204,55 +288,88 @@ class LiveSignFrameProcessor:
       - 98% Decision Gateway: Local Model (>= 98%) vs MCP Fallback (< 98%).
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        sign_adapter: Optional[SignLanguageAdapter] = None,
+        session_ttl_sec: float = 600.0
+    ):
         self.hand_tracker = HandTracker()
         self.predictor = SignPredictor()
         self.fingerspelling = FingerspellingRecognizer()
         self.hagrid_recognizer = HaGRIDRecognizer()
+        self.mcp_resolver = MCPSignResolver()
+        self.sign_adapter = sign_adapter if sign_adapter is not None else SignLanguageAdapter()
+
+        self.sessions: Dict[str, SessionInferenceState] = {}
+        self.sessions_lock = threading.Lock()
+        self.session_ttl_sec = session_ttl_sec
+        self.frame_count = 0
+        self.confusion_delay_sec = 2.0  # Increased delay time before shifting to MCP
+        self.min_confusion_frames = 8    # Minimum consecutive confused frames
+
+        # Legacy fallback references for backward compatibility with tests directly inspecting processor
         self.stabilizer = PredictionStabilizer(window_size=5, required_votes=3, confidence_threshold=0.60)
         self.composer = TextComposer()
-        self.mcp_resolver = MCPSignResolver()
-        self.sign_adapter = SignLanguageAdapter()
-        self.session_buffers: Dict[str, deque] = {}
-        self.frame_count = 0
         self.last_confirmed_letter = ""
         self.last_confirmed_word = ""
         self.prev_wrist: Optional[Tuple[float, float]] = None
         self.motion_history: List[float] = []
-
-        # Confused model disambiguation gateway tracking
         self.ambiguity_counter = 0
         self.ambiguity_start_time = 0.0
-        self.confusion_delay_sec = 2.0  # Increased delay time before shifting to MCP
-        self.min_confusion_frames = 8    # Minimum consecutive confused frames
+
+    def get_session_state(self, session_id: str = "default") -> SessionInferenceState:
+        """Retrieves or initializes an isolated SessionInferenceState, pruning expired sessions."""
+        sid = str(session_id or "default")
+        now = time.time()
+        with self.sessions_lock:
+            # Prune expired sessions (inactive > session_ttl_sec)
+            expired = [
+                s_id for s_id, s_state in self.sessions.items()
+                if (now - s_state.last_active_time) > self.session_ttl_sec and s_id != sid
+            ]
+            for s_id in expired:
+                del self.sessions[s_id]
+
+            if sid not in self.sessions:
+                self.sessions[sid] = SessionInferenceState(sid)
+            sess = self.sessions[sid]
+            sess.touch()
+            return sess
 
     def get_session_buffer(self, session_id: str = "default") -> deque:
         """Retrieves or initializes an isolated rolling 30-frame sequence buffer for a session."""
-        sid = str(session_id or "default")
-        if sid not in self.session_buffers:
-            self.session_buffers[sid] = deque(maxlen=30)
-        return self.session_buffers[sid]
+        return self.get_session_state(session_id).frame_buffer
 
     def clear_session_buffer(self, session_id: Optional[str] = None):
         """Clears frame buffer for a session, or all sessions if session_id is None."""
-        if session_id is None:
-            self.session_buffers.clear()
-        else:
-            sid = str(session_id or "default")
-            if sid in self.session_buffers:
-                self.session_buffers[sid].clear()
+        with self.sessions_lock:
+            if session_id is None:
+                for sess in self.sessions.values():
+                    sess.frame_buffer.clear()
+                    sess.timestamps.clear()
+            else:
+                sid = str(session_id or "default")
+                if sid in self.sessions:
+                    self.sessions[sid].frame_buffer.clear()
+                    self.sessions[sid].timestamps.clear()
 
     def reset(self, session_id: Optional[str] = None):
         """Resets stabilization history, text composer, and session frame buffer."""
-        self.stabilizer.reset()
-        self.composer.clear()
-        self.last_confirmed_letter = ""
-        self.last_confirmed_word = ""
-        self.prev_wrist = None
-        self.motion_history.clear()
-        self.ambiguity_counter = 0
-        self.ambiguity_start_time = 0.0
-        self.clear_session_buffer(session_id)
+        if session_id is None:
+            with self.sessions_lock:
+                for sess in self.sessions.values():
+                    sess.reset()
+            self.stabilizer.reset()
+            self.composer.clear()
+            self.last_confirmed_letter = ""
+            self.last_confirmed_word = ""
+            self.prev_wrist = None
+            self.motion_history.clear()
+            self.ambiguity_counter = 0
+            self.ambiguity_start_time = 0.0
+        else:
+            sess = self.get_session_state(session_id)
+            sess.reset()
 
     def _get_finger_states(self, landmarks) -> Tuple[bool, bool, bool, bool, bool]:
         """Calculates extension of (thumb, index, middle, ring, pinky)."""
@@ -491,9 +608,11 @@ class LiveSignFrameProcessor:
         self,
         image_b64: str,
         mode: str = "expressions",
-        language_mode: str = "asl",
+        language_mode: str = "bdsl",
         roi: Optional[List[float]] = None,
-        session_id: str = "default"
+        session_id: str = "default",
+        timestamp: Optional[float] = None,
+        landmarks_162: Optional[List[float]] = None
     ) -> Dict[str, Any]:
         """
         Processes real-time webcam frame snapshot according to the active language mode.
@@ -506,68 +625,87 @@ class LiveSignFrameProcessor:
         """
         t0 = time.time()
         self.frame_count += 1
-        active_lang = language_mode.strip().lower() if language_mode else "asl"
+        active_lang = language_mode.strip().lower() if language_mode else "bdsl"
         if active_lang not in ("bdsl", "asl"):
-            active_lang = "asl"
+            active_lang = "bdsl"
 
-        # 1. Decode base64 JPEG image
-        try:
-            if "," in image_b64:
-                image_b64 = image_b64.split(",", 1)[1]
-            img_bytes = base64.b64decode(image_b64)
-            nparr = np.frombuffer(img_bytes, np.uint8)
-            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            if frame is None or frame.size == 0:
-                return {
-                    "success": False,
-                    "hand_detected": False,
-                    "language_mode": active_lang,
-                    "error": "Invalid frame payload."
-                }
-        except Exception as ex:
-            return {
-                "success": False,
-                "hand_detected": False,
-                "language_mode": active_lang,
-                "error": str(ex)
-            }
+        session = self.get_session_state(session_id)
+        cur_timestamp = float(timestamp) if timestamp is not None else time.time()
 
-        h, w, _ = frame.shape
+        # Check temporal continuity and detect pauses / dropped frames
+        with session.lock:
+            if session.last_timestamp is not None:
+                dt = cur_timestamp - session.last_timestamp
+                # If gap between frames exceeds 1.5 seconds, user paused or stream dropped: safely clear buffer
+                if dt > 1.5:
+                    session.frame_buffer.clear()
+                    session.timestamps.clear()
+            session.last_timestamp = cur_timestamp
+
+        h, w = 480, 640
         hand_landmarks = None
         hand_bbox = None
         hand_outside_roi = False
         frame_162 = None
-
-        # Fixed Target ROI: Hand sign interaction box (normalized [x1, y1, x2, y2])
-        is_synthetic_test = float(frame.mean()) < 16.0
         target_roi = [float(r) for r in roi] if (roi and len(roi) == 4) else [0.15, 0.08, 0.85, 0.92]
+        is_synthetic_test = False
 
-        # 2. MediaPipe HandLandmarker Detection (Primary and Most Accurate)
-        if self.hand_tracker.landmarker is not None:
+        if landmarks_162 is not None and len(landmarks_162) == 162:
+            frame_162 = np.array(landmarks_162, dtype=np.float32)
+            hand_landmarks = True
+            hand_bbox = [80, 60, 240, 220]
+        else:
+            # 1. Decode base64 JPEG image
             try:
-                detected_hand, detected_162 = self.hand_tracker.detect_holistic_landmarks(frame)
-                if detected_hand:
-                    hand_cx = float(np.mean([p.x for p in detected_hand]))
-                    hand_cy = float(np.mean([p.y for p in detected_hand]))
-                    # Strict ROI checking: Hand center must strictly reside within target_roi
-                    margin = 0.04
-                    in_roi = is_synthetic_test or (
-                        (target_roi[0] - margin <= hand_cx <= target_roi[2] + margin) and
-                        (target_roi[1] - margin <= hand_cy <= target_roi[3] + margin)
-                    )
-                    if in_roi:
-                        hand_landmarks = detected_hand
-                        hand_bbox = get_hand_bbox(hand_landmarks, frame.shape, padding=0.25)
-                        frame_162 = detected_162
-                    else:
-                        hand_outside_roi = True
-                        hand_landmarks = None
-                        hand_bbox = None
-                        frame_162 = None
-            except Exception:
-                hand_landmarks = None
-                hand_bbox = None
-                frame_162 = None
+                if "," in image_b64:
+                    image_b64 = image_b64.split(",", 1)[1]
+                img_bytes = base64.b64decode(image_b64)
+                nparr = np.frombuffer(img_bytes, np.uint8)
+                frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                if frame is None or frame.size == 0:
+                    return {
+                        "success": False,
+                        "hand_detected": False,
+                        "language_mode": active_lang,
+                        "error": "Invalid frame payload."
+                    }
+            except Exception as ex:
+                return {
+                    "success": False,
+                    "hand_detected": False,
+                    "language_mode": active_lang,
+                    "error": str(ex)
+                }
+
+            h, w, _ = frame.shape
+            is_synthetic_test = float(frame.mean()) < 16.0
+
+            # 2. MediaPipe HandLandmarker Detection (Primary and Most Accurate)
+            if self.hand_tracker.landmarker is not None:
+                try:
+                    detected_hand, detected_162 = self.hand_tracker.detect_holistic_landmarks(frame)
+                    if detected_hand:
+                        hand_cx = float(np.mean([p.x for p in detected_hand]))
+                        hand_cy = float(np.mean([p.y for p in detected_hand]))
+                        # Strict ROI checking: Hand center must strictly reside within target_roi
+                        margin = 0.04
+                        in_roi = is_synthetic_test or (
+                            (target_roi[0] - margin <= hand_cx <= target_roi[2] + margin) and
+                            (target_roi[1] - margin <= hand_cy <= target_roi[3] + margin)
+                        )
+                        if in_roi:
+                            hand_landmarks = detected_hand
+                            hand_bbox = get_hand_bbox(hand_landmarks, frame.shape, padding=0.25)
+                            frame_162 = detected_162
+                        else:
+                            hand_outside_roi = True
+                            hand_landmarks = None
+                            hand_bbox = None
+                            frame_162 = None
+                except Exception:
+                    hand_landmarks = None
+                    hand_bbox = None
+                    frame_162 = None
 
         # 3. Secondary Hand Contour Detection: STRICTLY for synthetic offline unit test suite
         if hand_bbox is None and is_synthetic_test:
@@ -773,25 +911,18 @@ class LiveSignFrameProcessor:
 
             # Live Temporal Sequence Inference for BdSL Words / Expressions
             if frame_162 is None:
-                frame_162 = np.zeros(162, dtype=np.float32)
-
-            session_buf = self.get_session_buffer(session_id)
-            session_buf.append(frame_162)
-            buf_len = len(session_buf)
-
-            if buf_len < 30:
-                pct = int((buf_len / 30.0) * 100)
+                # Never silently insert zero-filled frames to replace missing real landmarks
                 return {
                     "success": True,
-                    "hand_detected": True,
-                    "in_roi": True,
+                    "hand_detected": False,
+                    "in_roi": False,
                     "target_roi": target_roi,
                     "language_mode": "bdsl",
                     "model_name": model_display_name,
-                    "status": "BUFFERING",
-                    "label": "BUFFERING",
-                    "display_text": f"Collecting frames... ({buf_len}/30)",
-                    "gloss": f"Buffering BdSL sequence: {buf_len}/30 frames",
+                    "status": "IDLE",
+                    "label": "IDLE",
+                    "display_text": "Please place your hand inside camera view.",
+                    "gloss": "No Hand Detected",
                     "english_text": "",
                     "confidence": None,
                     "raw_confidence": None,
@@ -799,69 +930,124 @@ class LiveSignFrameProcessor:
                     "probabilities": None,
                     "is_committed": False,
                     "is_confirmed": False,
-                    "progress": f"{buf_len}/30",
-                    "progress_pct": pct,
-                    "hand_bbox": [int(v) for v in hand_bbox],
+                    "progress": f"{len(session.frame_buffer)}/30",
+                    "progress_pct": int((len(session.frame_buffer) / 30.0) * 100),
+                    "hand_bbox": None,
                     "engine_info": {
-                        "engine": "BUFFERING",
-                        "source": "BdSL Temporal Frame Buffer",
+                        "engine": "IDLE",
+                        "source": "BdSL Hand Detector",
                         "is_fallback": False,
                         "confidence": None,
-                        "badge": f"Buffering ({buf_len}/30)",
-                        "notes": f"Collecting 30 consecutive frames for temporal sequence analysis ({buf_len}/30 frames ready)."
+                        "badge": "Idle",
+                        "notes": "No hand landmarks detected. Hold hand steadily in front of camera."
                     },
                     "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
 
-            # 30 Frames Ready: Perform Genuine BdSL Temporal Inference
-            seq_arr = np.array(list(session_buf), dtype=np.float32)  # shape (30, 162)
-            pred = self.sign_adapter.predict_sequence(seq_arr, language_mode="bdsl")
-            final_word = pred.get("label", "UNKNOWN")
-            cal_conf = pred.get("calibrated_confidence") or pred.get("engine_info", {}).get("calibrated_confidence")
-            confirmed_word, votes, req_votes = self.stabilizer.update(
-                final_word, cal_conf, allow_uncalibrated=(cal_conf is None)
-            )
+            with session.lock:
+                session.frame_buffer.append(frame_162)
+                session.timestamps.append(cur_timestamp)
+                buf_len = len(session.frame_buffer)
 
-            status_str = pred.get("status", "PREDICTING")
-            if status_str not in ("REJECTED", "LOW_CONFIDENCE"):
-                status_str = "CONFIRMED" if confirmed_word else "PREDICTING"
+                if buf_len < 30:
+                    pct = int((buf_len / 30.0) * 100)
+                    return {
+                        "success": True,
+                        "hand_detected": True,
+                        "in_roi": True,
+                        "target_roi": target_roi,
+                        "language_mode": "bdsl",
+                        "model_name": model_display_name,
+                        "status": "BUFFERING",
+                        "label": "BUFFERING",
+                        "display_text": f"Collecting frames... ({buf_len}/30)",
+                        "gloss": f"Buffering BdSL sequence: {buf_len}/30 frames",
+                        "english_text": "",
+                        "confidence": None,
+                        "raw_confidence": None,
+                        "calibrated_confidence": None,
+                        "probabilities": None,
+                        "is_committed": False,
+                        "is_confirmed": False,
+                        "progress": f"{buf_len}/30",
+                        "progress_pct": pct,
+                        "hand_bbox": [int(v) for v in hand_bbox] if hand_bbox else None,
+                        "engine_info": {
+                            "engine": "BUFFERING",
+                            "source": "BdSL Temporal Frame Buffer",
+                            "is_fallback": False,
+                            "confidence": None,
+                            "badge": f"Buffering ({buf_len}/30)",
+                            "notes": f"Collecting 30 consecutive frames for temporal sequence analysis ({buf_len}/30 frames ready)."
+                        },
+                        "latency_ms": round((time.time() - t0) * 1000, 2)
+                    }
 
-            return {
-                "success": True,
-                "hand_detected": True,
-                "in_roi": True,
-                "target_roi": target_roi,
-                "language_mode": "bdsl",
-                "model_name": model_display_name,
-                "is_word": True,
-                "word": final_word,
-                "label": final_word,
-                "display_text": pred.get("display_text", final_word),
-                "gloss": pred.get("gloss", f"BdSL: {final_word}"),
-                "english_text": pred.get("english_text", final_word),
-                "unified_translation": pred.get("unified_translation", {
-                    "source_language": "BdSL",
-                    "source_model": model_display_name,
-                    "recognized_concept": final_word,
+                # 30 Frames Ready: Perform Genuine BdSL Temporal Inference
+                seq_arr = resample_temporal_sequence(
+                    list(session.timestamps),
+                    list(session.frame_buffer),
+                    target_frames=30
+                )
+                pred = self.sign_adapter.predict_sequence(
+                    seq_arr,
+                    language_mode="bdsl",
+                    session_history=session.debounce_history
+                )
+                final_word = pred.get("label", "UNKNOWN")
+                cal_conf = pred.get("calibrated_confidence") or pred.get("engine_info", {}).get("calibrated_confidence")
+                # Never allow uncalibrated predictions to confirm!
+                confirmed_word, votes, req_votes = session.stabilizer.update(
+                    final_word, cal_conf, allow_uncalibrated=False
+                )
+
+                if confirmed_word and confirmed_word != session.last_confirmed_word and confirmed_word not in ("UNKNOWN", "UNAVAILABLE", "ERROR"):
+                    session.last_confirmed_word = confirmed_word
+                    session.composer.add_word(confirmed_word)
+
+                self.stabilizer.last_label = confirmed_word or final_word
+                self.composer.text = session.composer.text
+
+                status_str = pred.get("status", "PREDICTING")
+                if status_str not in ("REJECTED", "LOW_CONFIDENCE", "UNAVAILABLE", "ERROR"):
+                    status_str = "CONFIRMED" if confirmed_word else "PREDICTING"
+
+                return {
+                    "success": True,
+                    "hand_detected": True,
+                    "in_roi": True,
+                    "target_roi": target_roi,
+                    "language_mode": "bdsl",
+                    "model_name": model_display_name,
+                    "is_word": True,
+                    "word": final_word,
+                    "label": final_word,
+                    "display_text": pred.get("display_text", final_word),
+                    "gloss": pred.get("gloss", f"BdSL: {final_word}"),
                     "english_text": pred.get("english_text", final_word),
-                    "speech_ready": True
-                }),
-                "confidence": pred.get("confidence"),
-                "raw_confidence": pred.get("engine_info", {}).get("raw_confidence"),
-                "calibrated_confidence": pred.get("engine_info", {}).get("calibrated_confidence"),
-                "status": status_str,
-                "is_committed": bool(confirmed_word),
-                "is_confirmed": bool(confirmed_word),
-                "stable_letter": final_word,
-                "composed_text": self.composer.text,
-                "consensus_progress": f"{votes}/{req_votes}",
-                "progress": "30/30",
-                "progress_pct": 100,
-                "hand_bbox": [int(v) for v in hand_bbox],
-                "engine_info": pred.get("engine_info"),
-                "probabilities": pred.get("probabilities"),
-                "latency_ms": round((time.time() - t0) * 1000, 2)
-            }
+                    "unified_translation": pred.get("unified_translation", {
+                        "source_language": "BdSL",
+                        "source_model": model_display_name,
+                        "recognized_concept": final_word,
+                        "english_text": pred.get("english_text", final_word),
+                        "speech_ready": True
+                    }),
+                    "confidence": pred.get("confidence"),
+                    "raw_confidence": pred.get("engine_info", {}).get("raw_confidence"),
+                    "calibrated_confidence": pred.get("engine_info", {}).get("calibrated_confidence"),
+                    "status": status_str,
+                    "is_committed": bool(confirmed_word),
+                    "is_confirmed": bool(confirmed_word),
+                    "stable_letter": final_word,
+                    "composed_text": session.composer.text,
+                    "consensus_progress": f"{votes}/{req_votes}",
+                    "progress": "30/30",
+                    "progress_pct": 100,
+                    "hand_bbox": [int(v) for v in hand_bbox] if hand_bbox else None,
+                    "engine_info": pred.get("engine_info"),
+                    "probabilities": pred.get("probabilities"),
+                    "latency_ms": round((time.time() - t0) * 1000, 2)
+                }
 
         # -------------------------------------------------------------
         # BRANCH 2: AMERICAN SIGN LANGUAGE (ASL) & HAGRID GESTURE MODEL

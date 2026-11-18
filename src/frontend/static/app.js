@@ -1473,6 +1473,7 @@ var SignPage = window.SignPage = window.TransifySign = {
         const b64 = this.offscreenCanvas.toDataURL('image/jpeg', 0.82);
 
         const currentRoi = this.getTargetRoi();
+        const clientTimestamp = (performance && performance.now) ? (performance.now() / 1000.0) : (Date.now() / 1000.0);
         const res = await fetch('/api/sign/process_frame', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1481,7 +1482,8 @@ var SignPage = window.SignPage = window.TransifySign = {
             mode: this.currentMode,
             language_mode: this.currentLanguageMode || 'bdsl',
             roi: currentRoi,
-            session_id: this.sessionId
+            session_id: this.sessionId,
+            timestamp: clientTimestamp
           })
         });
 
@@ -2778,6 +2780,7 @@ function initTransifyAllModules() {
   // Expose module APIs to window for inline onclick handlers and extensions
   window.TransifyApp = TransifyApp;
   window.SignPage = SignPage;
+  window.SignLanguageModule = SignPage;
   window.TransifySign = SignPage;
   window.BraillePage = BraillePage;
   window.TransifySTT = TransifySTT;

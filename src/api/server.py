@@ -91,7 +91,7 @@ braille_adapter = BrailleRecognitionAdapter()
 fingerspelling_recognizer = FingerspellingRecognizer()
 fingerspelling_assembler = FingerspellingWordAssembler()
 sentence_builder = SentenceBuilder()
-live_sign_processor = LiveSignFrameProcessor()
+live_sign_processor = LiveSignFrameProcessor(sign_adapter=sign_adapter)
 
 
 # --- Pydantic Request/Response Models ---
@@ -102,6 +102,8 @@ class ProcessFrameRequest(BaseModel):
     language_mode: Optional[str] = Field("bdsl", description="Language mode: bdsl (temporal sequences) or asl")
     roi: Optional[List[float]] = Field(None, description="Optional normalized ROI bounding box [x1, y1, x2, y2]")
     session_id: Optional[str] = Field("default", description="Client session identifier for sequence buffer isolation")
+    timestamp: Optional[float] = Field(None, description="Client-side timestamp in seconds for temporal continuity")
+    landmarks_162: Optional[List[float]] = Field(None, description="Pre-extracted 162D landmark coordinates")
 
 class SignResetRequest(BaseModel):
     session_id: Optional[str] = Field("default", description="Client session identifier to reset")
@@ -489,9 +491,11 @@ def process_webcam_frame(req: ProcessFrameRequest):
         res = live_sign_processor.process_frame(
             req.image_b64,
             mode=req.mode or "expressions",
-            language_mode=req.language_mode or "asl",
+            language_mode=req.language_mode or "bdsl",
             roi=req.roi,
-            session_id=req.session_id or "default"
+            session_id=req.session_id or "default",
+            timestamp=req.timestamp,
+            landmarks_162=req.landmarks_162
         )
         return res
     except Exception as ex:
@@ -504,7 +508,6 @@ def process_webcam_frame(req: ProcessFrameRequest):
 def reset_sign_buffer(req: Optional[SignResetRequest] = None):
     """Resets the sign language debounce consensus buffer and live tracking state for the session."""
     session_id = req.session_id if req else "default"
-    sign_adapter.reset_buffer()
     live_sign_processor.reset(session_id=session_id)
     return {"success": True, "message": "Debounce buffer and tracking state reset.", "session_id": session_id}
 

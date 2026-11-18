@@ -6,6 +6,7 @@ audio synthesis, sample delivery, and accessible frontend rendering.
 
 import os
 import sys
+import time
 import unittest
 import numpy as np
 
@@ -615,7 +616,7 @@ class TestPhase10RegressionAudit(unittest.TestCase):
         with patch.object(adapter, "temporal_model", None):
             seq = np.random.randn(30, 162).astype(np.float32)
             res = adapter.predict_sequence(seq)
-            self.assertEqual(res["status"], "HEURISTIC_FALLBACK")
+            self.assertIn(res["status"], ["UNAVAILABLE", "HEURISTIC_FALLBACK"])
             self.assertIsNone(res["confidence"])
             self.assertIsNone(res["probabilities"])
 
@@ -842,11 +843,11 @@ class TestLiveBdSLTemporalInferenceIntegration(unittest.TestCase):
                 self.assertFalse(res["engine_info"]["is_fallback"])
                 self.assertGreaterEqual(res["engine_info"]["calibrated_confidence"], 0.98)
 
-        # Test case 3: Missing weights -> HEURISTIC_FALLBACK, confidence=None
+        # Test case 3: Missing weights -> UNAVAILABLE / HEURISTIC_FALLBACK, confidence=None
         with patch.object(self.adapter, "temporal_model", None):
             seq = np.random.randn(30, 162).astype(np.float32)
             res = self.adapter.predict_sequence(seq, language_mode="bdsl")
-            self.assertEqual(res["engine_info"]["engine"], "HEURISTIC_FALLBACK")
+            self.assertIn(res["engine_info"]["engine"], ["UNAVAILABLE", "HEURISTIC_FALLBACK"])
             self.assertIsNone(res["confidence"])
             self.assertIsNone(res["engine_info"]["calibrated_confidence"])
 
@@ -992,6 +993,216 @@ class TestAuthButtonFunctionalityAndLoginIntegrity(unittest.TestCase):
         css_text = res_css.text
         self.assertIn(".auth-tab-bar", css_text)
         self.assertIn(".tab-btn", css_text)
+
+
+class TestInferenceReliabilityAndMultiSessionHardening(unittest.TestCase):
+    """
+    Validates the 9 core requirements for Live BdSL Inference Reliability:
+      1. Temporal 30-frame sequential integration (/api/sign/process_frame)
+      2. Multi-session concurrency & complete isolation
+      3. Zero-fill prevention (never appending 0s on missing hand)
+      4. Temporal continuity and gap reset (> 1.5s)
+      5. Unavailable-model behavior (UNAVAILABLE status, confidence=None, is_committed=False)
+      6. Shared sign_adapter instance across server and live processor
+      7. Language mode switcher UI and window exposure
+      8. Standard 162-dim landmark preprocessing reproducibility
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        from fastapi.testclient import TestClient
+        from src.api.server import app, sign_adapter, live_sign_processor
+        cls.client = TestClient(app)
+        cls.sign_adapter = sign_adapter
+        cls.processor = live_sign_processor
+
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        cls.sample_path = os.path.join(project_root, "data/sign/processed/landmarks/BDSL_S001_HELLO_SES01_T01.npy")
+
+    def test_shared_sign_adapter_instance(self):
+        """Verifies server.py and LiveSignFrameProcessor share the exact same sign_adapter instance."""
+        self.assertIs(self.processor.sign_adapter, self.sign_adapter)
+
+    def test_zero_fill_prevention_on_missing_landmarks(self):
+        """Verifies that missing landmarks never insert zero-filled frames into the temporal buffer."""
+        sess_id = "test_no_zero_fill"
+        self.processor.reset(sess_id)
+        buf = self.processor.get_session_buffer(sess_id)
+        self.assertEqual(len(buf), 0)
+
+        # Send a synthetic frame with no landmarks
+        empty_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        res = self.client.post("/api/sign/process_frame", json={
+            "image_b64": empty_b64,
+            "mode": "expressions",
+            "language_mode": "bdsl",
+            "session_id": sess_id
+        })
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertFalse(data["hand_detected"])
+        self.assertEqual(data["status"], "IDLE")
+        # Buffer remains completely empty!
+        self.assertEqual(len(buf), 0)
+
+    def test_e2e_30_frame_sequential_live_inference(self):
+        """
+        Feeds all 30 frames of a real held-out BdSL trial through /api/sign/process_frame.
+        Verifies:
+          - Frames 1-29 return BUFFERING with confidence=None and is_committed=False.
+          - Frame 30 invokes temporal model and returns prediction for HELLO.
+        """
+        self.assertTrue(os.path.exists(self.sample_path), f"Sample {self.sample_path} not found")
+        seq = np.load(self.sample_path).astype(np.float32)
+        self.assertEqual(seq.shape, (30, 162))
+
+        sess_id = "test_e2e_live_30_seq"
+        self.processor.reset(sess_id)
+
+        t_base = time.time()
+        dummy_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+
+        # Frames 1 through 29
+        for i in range(29):
+            res = self.client.post("/api/sign/process_frame", json={
+                "image_b64": dummy_b64,
+                "mode": "expressions",
+                "language_mode": "bdsl",
+                "session_id": sess_id,
+                "timestamp": t_base + (i * 0.033),
+                "landmarks_162": seq[i].tolist()
+            })
+            self.assertEqual(res.status_code, 200)
+            data = res.json()
+            self.assertEqual(data["status"], "BUFFERING")
+            self.assertIsNone(data["confidence"])
+            self.assertFalse(data["is_committed"])
+            self.assertEqual(data["progress"], f"{i + 1}/30")
+
+        # Frame 30
+        res30 = self.client.post("/api/sign/process_frame", json={
+            "image_b64": dummy_b64,
+            "mode": "expressions",
+            "language_mode": "bdsl",
+            "session_id": sess_id,
+            "timestamp": t_base + (29 * 0.033),
+            "landmarks_162": seq[29].tolist()
+        })
+        self.assertEqual(res30.status_code, 200)
+        data30 = res30.json()
+        self.assertIn(data30["status"], ("CONFIRMED", "PREDICTING", "DEBOUNCING"))
+        self.assertEqual(data30["label"], "HELLO")
+        self.assertEqual(data30["progress"], "30/30")
+        self.assertEqual(data30["progress_pct"], 100)
+
+    def test_multi_session_concurrency_and_isolation(self):
+        """Verifies session A and session B maintain separate buffers, composer, and stabilizer."""
+        sess_a = "user_concurrent_a"
+        sess_b = "user_concurrent_b"
+        self.processor.reset(sess_a)
+        self.processor.reset(sess_b)
+
+        seq = np.load(self.sample_path).astype(np.float32)
+        dummy_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+
+        # Push 10 frames to session A
+        for i in range(10):
+            self.client.post("/api/sign/process_frame", json={
+                "image_b64": dummy_b64,
+                "mode": "expressions",
+                "language_mode": "bdsl",
+                "session_id": sess_a,
+                "landmarks_162": seq[i].tolist()
+            })
+
+        # Push 5 frames to session B
+        for i in range(5):
+            self.client.post("/api/sign/process_frame", json={
+                "image_b64": dummy_b64,
+                "mode": "expressions",
+                "language_mode": "bdsl",
+                "session_id": sess_b,
+                "landmarks_162": seq[i].tolist()
+            })
+
+        self.assertEqual(len(self.processor.get_session_buffer(sess_a)), 10)
+        self.assertEqual(len(self.processor.get_session_buffer(sess_b)), 5)
+
+        # Reset session A via API
+        res_reset = self.client.post("/api/sign/reset", json={"session_id": sess_a})
+        self.assertEqual(res_reset.status_code, 200)
+
+        # Verify session A is cleared while session B remains untouched
+        self.assertEqual(len(self.processor.get_session_buffer(sess_a)), 0)
+        self.assertEqual(len(self.processor.get_session_buffer(sess_b)), 5)
+
+    def test_temporal_pause_resets_buffer(self):
+        """Verifies that a gap > 1.5 seconds between frames automatically resets the buffer."""
+        sess_id = "test_temporal_pause"
+        self.processor.reset(sess_id)
+        dummy_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        seq = np.load(self.sample_path).astype(np.float32)
+
+        # Send frame at t=100.0
+        self.client.post("/api/sign/process_frame", json={
+            "image_b64": dummy_b64,
+            "mode": "expressions",
+            "language_mode": "bdsl",
+            "session_id": sess_id,
+            "timestamp": 100.0,
+            "landmarks_162": seq[0].tolist()
+        })
+        self.assertEqual(len(self.processor.get_session_buffer(sess_id)), 1)
+
+        # Send frame at t=102.0 (gap of 2.0s > 1.5s)
+        res2 = self.client.post("/api/sign/process_frame", json={
+            "image_b64": dummy_b64,
+            "mode": "expressions",
+            "language_mode": "bdsl",
+            "session_id": sess_id,
+            "timestamp": 102.0,
+            "landmarks_162": seq[1].tolist()
+        })
+        self.assertEqual(res2.status_code, 200)
+        # Buffer was cleared on pause and now has only the newest frame
+        self.assertEqual(len(self.processor.get_session_buffer(sess_id)), 1)
+
+    def test_unavailable_model_returns_clean_error_status(self):
+        """Verifies predict_sequence returns UNAVAILABLE when weights or scaler are missing, never fake HELLO."""
+        from unittest.mock import patch
+        with patch.object(self.sign_adapter, "temporal_model", None):
+            seq = np.random.randn(30, 162).astype(np.float32)
+            res = self.sign_adapter.predict_sequence(seq, language_mode="bdsl")
+            self.assertEqual(res["status"], "UNAVAILABLE")
+            self.assertEqual(res["label"], "UNAVAILABLE")
+            self.assertIsNone(res["confidence"])
+            self.assertFalse(res["is_committed"])
+            self.assertFalse(res["is_confirmed"])
+
+    def test_landmark_preprocessing_reproducibility(self):
+        """Verifies standard 162-dim landmark feature extraction on held-out sample."""
+        from src.models.architectures import extract_temporal_features
+        seq = np.load(self.sample_path).astype(np.float32)
+        self.assertEqual(seq.shape, (30, 162))
+
+        feats = extract_temporal_features(seq)
+        self.assertEqual(feats.shape, (972,))
+        self.assertEqual(feats.dtype, np.float32)
+        # Verify finite values (no NaNs or Infs)
+        self.assertTrue(np.all(np.isfinite(feats)))
+
+    def test_language_switcher_frontend_exposure(self):
+        """Verifies index.html has clean buttons and app.js exports window.SignLanguageModule."""
+        res_html = self.client.get("/")
+        self.assertEqual(res_html.status_code, 200)
+        self.assertIn('id="lang-bdsl-btn"', res_html.text)
+        self.assertIn('id="lang-asl-btn"', res_html.text)
+        # Ensure broken inline onclick was removed
+        self.assertNotIn('onclick="window.SignLanguageModule.setLanguageMode(\'bdsl\')"', res_html.text)
+
+        res_js = self.client.get("/static/app.js")
+        self.assertEqual(res_js.status_code, 200)
+        self.assertIn("window.SignLanguageModule = SignPage;", res_js.text)
 
 
 if __name__ == "__main__":

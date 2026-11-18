@@ -174,7 +174,12 @@ class SignLanguageAdapter:
             "probabilities": probs
         }
 
-    def predict_sequence(self, sequence_landmarks: np.ndarray, language_mode: str = "bdsl") -> Dict[str, Any]:
+    def predict_sequence(
+        self,
+        sequence_landmarks: np.ndarray,
+        language_mode: str = "bdsl",
+        session_history: Optional[List[int]] = None
+    ) -> Dict[str, Any]:
         """
         Predicts gesture from sequence of coordinates (T x 162).
         Supports language_mode: "bdsl" (Bangladesh Sign temporal sequence model) or "asl".
@@ -217,14 +222,15 @@ class SignLanguageAdapter:
         # Check for idle / flat zero input
         motion_energy = float(np.std(sequence_landmarks))
         if motion_energy < 0.005 or np.all(sequence_landmarks == 0):
-            self.history_buffer.clear()
+            history = session_history if session_history is not None else self.history_buffer
+            history.clear()
             return {
                 "class_id": -1,
                 "label": "UNKNOWN",
                 "display_text": f"Please hold {active_lang.upper()} gesture steady within camera view.",
                 "gloss": "Unknown Gesture",
                 "english_text": "",
-                "confidence": 0.0,
+                "confidence": None,
                 "status": "REJECTED",
                 "rejection_reason": "Low motion energy / idle user posture.",
                 "is_committed": False,
@@ -233,63 +239,115 @@ class SignLanguageAdapter:
                 "probabilities": {BDSL_CLASSES[i]["label"]: 0.0 for i in range(len(BDSL_CLASSES))}
             }
 
-        # Perform genuine temporal inference if trained model is available
-        if self.temporal_model is not None and self.temporal_scaler is not None:
-            try:
-                from src.models.architectures import extract_temporal_features
-                feat = extract_temporal_features(sequence_landmarks).reshape(1, -1)
-                feat_scaled = self.temporal_scaler.transform(feat)
-                probs_arr = self.temporal_model.predict_proba(feat_scaled)[0]
-                decision_id = int(np.argmax(probs_arr))
-                raw_conf = float(probs_arr[decision_id])
-                cal_conf = None
-                if self.temporal_calibrated is not None:
-                    try:
-                        cal_probs_arr = self.temporal_calibrated.predict_proba(feat_scaled)[0]
-                        cal_conf = float(cal_probs_arr[decision_id])
-                    except Exception:
-                        pass
-                class_meta = BDSL_CLASSES.get(decision_id, BDSL_CLASSES[0])
-                probs = {
-                    BDSL_CLASSES[i]["label"]: round(float(probs_arr[i]), 4)
-                    for i in range(len(probs_arr))
-                    if i in BDSL_CLASSES
-                }
-                is_heuristic = False
-            except Exception as e:
-                logger.warning(f"Temporal inference error: {e}")
-                decision_id = 0
-                class_meta = BDSL_CLASSES[0]
-                raw_conf = None
-                cal_conf = None
-                probs = None
-                is_heuristic = True
-        else:
-            # If no trained temporal model weights exist, do not fabricate probabilities
-            decision_id = 0
-            class_meta = BDSL_CLASSES[0]
-            raw_conf = None
-            cal_conf = None
-            probs = None
-            is_heuristic = True
-
-        # 98% Decision Gateway or Heuristic Fallback (Strictly evaluates Calibrated Confidence)
-        if is_heuristic:
-            engine_info = {
-                "engine": "HEURISTIC_FALLBACK",
-                "source": f"{model_name} (Temporal Model Unavailable)",
-                "is_fallback": True,
+        # Check model and scaler availability: NEVER default to HELLO if unavailable
+        if self.temporal_model is None or self.temporal_scaler is None:
+            history = session_history if session_history is not None else self.history_buffer
+            history.clear()
+            return {
+                "class_id": -1,
+                "label": "UNAVAILABLE",
+                "display_text": "BdSL temporal model is unavailable.",
+                "gloss": "Model Unavailable",
+                "description": "Trained BdSL temporal model or scaler is unavailable.",
+                "english_text": "",
+                "unified_translation": {
+                    "source_language": active_lang.upper(),
+                    "source_model": model_name,
+                    "recognized_concept": "UNAVAILABLE",
+                    "english_text": "",
+                    "speech_ready": False
+                },
+                "language_mode": active_lang,
+                "model_name": model_name,
                 "confidence": None,
                 "raw_confidence": None,
                 "calibrated_confidence": None,
-                "threshold": self.mcp_resolver.threshold,
-                "badge": "Heuristic Fallback",
-                "notes": "Trained temporal model weights unavailable. Confidence is unavailable."
+                "resolver_assisted": False,
+                "status": "UNAVAILABLE",
+                "rejection_reason": "Trained BdSL temporal model weights or scaler unavailable.",
+                "is_committed": False,
+                "is_confirmed": False,
+                "engine_info": {
+                    "engine": "UNAVAILABLE",
+                    "source": f"{model_name} (Unavailable)",
+                    "is_fallback": False,
+                    "confidence": None,
+                    "raw_confidence": None,
+                    "calibrated_confidence": None,
+                    "threshold": self.mcp_resolver.threshold,
+                    "badge": "Model Unavailable",
+                    "notes": "Trained BdSL temporal model weights or scaler are unavailable. False labels are strictly suppressed."
+                },
+                "consensus_progress": f"0/{self.debounce_window}",
+                "probabilities": None
             }
-            final_label = class_meta["label"]
-            final_conf = None
-            resolver_assisted = False
-        elif cal_conf is not None and not self.mcp_resolver.is_low_confidence(cal_conf):
+
+        # Perform genuine temporal inference
+        try:
+            from src.models.architectures import extract_temporal_features
+            feat = extract_temporal_features(sequence_landmarks).reshape(1, -1)
+            feat_scaled = self.temporal_scaler.transform(feat)
+            probs_arr = self.temporal_model.predict_proba(feat_scaled)[0]
+            decision_id = int(np.argmax(probs_arr))
+            raw_conf = float(probs_arr[decision_id])
+            cal_conf = None
+            if self.temporal_calibrated is not None:
+                try:
+                    cal_probs_arr = self.temporal_calibrated.predict_proba(feat_scaled)[0]
+                    cal_conf = float(cal_probs_arr[decision_id])
+                except Exception:
+                    cal_conf = None
+            class_meta = BDSL_CLASSES.get(decision_id, BDSL_CLASSES[0])
+            probs = {
+                BDSL_CLASSES[i]["label"]: round(float(probs_arr[i]), 4)
+                for i in range(len(probs_arr))
+                if i in BDSL_CLASSES
+            }
+        except Exception as e:
+            logger.warning(f"Temporal inference error: {e}", exc_info=True)
+            history = session_history if session_history is not None else self.history_buffer
+            history.clear()
+            return {
+                "class_id": -1,
+                "label": "ERROR",
+                "display_text": f"Inference exception: {type(e).__name__}",
+                "gloss": "Inference Error",
+                "description": str(e),
+                "english_text": "",
+                "unified_translation": {
+                    "source_language": active_lang.upper(),
+                    "source_model": model_name,
+                    "recognized_concept": "ERROR",
+                    "english_text": "",
+                    "speech_ready": False
+                },
+                "language_mode": active_lang,
+                "model_name": model_name,
+                "confidence": None,
+                "raw_confidence": None,
+                "calibrated_confidence": None,
+                "resolver_assisted": False,
+                "status": "ERROR",
+                "rejection_reason": f"Temporal inference exception: {e}",
+                "is_committed": False,
+                "is_confirmed": False,
+                "engine_info": {
+                    "engine": "ERROR",
+                    "source": model_name,
+                    "is_fallback": False,
+                    "confidence": None,
+                    "raw_confidence": None,
+                    "calibrated_confidence": None,
+                    "threshold": self.mcp_resolver.threshold,
+                    "badge": "Inference Error",
+                    "notes": str(e)
+                },
+                "consensus_progress": f"0/{self.debounce_window}",
+                "probabilities": None
+            }
+
+        # 98% Decision Gateway (Calibrated Confidence Required for Local Authorization)
+        if cal_conf is not None and not self.mcp_resolver.is_low_confidence(cal_conf):
             # Calibrated confidence >= 0.98: Local model authorized to decide directly
             engine_info = {
                 "engine": "LOCAL_CUSTOM_MODEL",
@@ -305,6 +363,7 @@ class SignLanguageAdapter:
             final_label = class_meta["label"]
             final_conf = cal_conf
             resolver_assisted = False
+            authorization_granted = True
         else:
             # Shift to MCP resolver when calibrated_confidence is < 0.98 OR when calibration is unavailable
             candidate_conf = cal_conf if cal_conf is not None else 0.0
@@ -334,16 +393,21 @@ class SignLanguageAdapter:
                 "latency_ms": mcp_res.get("latency_ms", 3.0),
                 "resolver_assisted": resolver_assisted
             }
+            # Commit is only permitted if resolver was explicitly successful with an accepted confidence
+            authorization_granted = resolver_assisted and (final_conf is not None and final_conf >= 0.70)
 
-        # Debounce buffer
-        self.history_buffer.append(decision_id)
-        if len(self.history_buffer) > self.debounce_window:
-            self.history_buffer.pop(0)
+        # Isolated Debounce buffer tracking
+        history = session_history if session_history is not None else self.history_buffer
+        history.append(decision_id)
+        if len(history) > self.debounce_window:
+            history.pop(0)
 
         is_consensus = (
-            len(self.history_buffer) == self.debounce_window and
-            all(cid == decision_id for cid in self.history_buffer)
+            len(history) == self.debounce_window and
+            all(cid == decision_id for cid in history)
         )
+
+        can_commit = is_consensus and authorization_granted
 
         unified_translation = {
             "source_language": active_lang.upper(),
@@ -367,9 +431,10 @@ class SignLanguageAdapter:
             "raw_confidence": round(raw_conf, 4) if raw_conf is not None else None,
             "calibrated_confidence": round(cal_conf, 4) if cal_conf is not None else None,
             "resolver_assisted": resolver_assisted,
-            "status": "HEURISTIC_FALLBACK" if is_heuristic else ("CONFIRMED" if is_consensus else "DEBOUNCING"),
-            "is_committed": is_consensus and not is_heuristic,
+            "status": "CONFIRMED" if can_commit else "DEBOUNCING",
+            "is_committed": can_commit,
+            "is_confirmed": can_commit,
             "engine_info": engine_info,
-            "consensus_progress": f"{self.history_buffer.count(decision_id)}/{self.debounce_window}",
+            "consensus_progress": f"{history.count(decision_id)}/{self.debounce_window}",
             "probabilities": probs
         }
