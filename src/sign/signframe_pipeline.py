@@ -313,12 +313,12 @@ class PredictionStabilizer:
         self.confidence_threshold = confidence_threshold
         self.history: deque = deque(maxlen=window_size)
 
-    def update(self, letter: str, confidence: Optional[float]) -> Tuple[Optional[str], int, int]:
+    def update(self, letter: str, confidence: Optional[float], allow_uncalibrated: bool = False) -> Tuple[Optional[str], int, int]:
         """
         Appends prediction to rolling window.
         Returns (confirmed_letter, current_votes, required_votes).
         """
-        if confidence is None or confidence < self.confidence_threshold or not letter or letter == "UNKNOWN":
+        if (confidence is None and not allow_uncalibrated) or (confidence is not None and confidence < self.confidence_threshold) or not letter or letter == "UNKNOWN":
             self.history.append(None)
         else:
             self.history.append(letter)

@@ -68,7 +68,7 @@
       "val_precision": 1.0,
       "val_recall": 1.0,
       "val_macro_f1": 1.0,
-      "training_duration_sec": 0.22
+      "training_duration_sec": 0.24
     },
     "Hist_Gradient_Boosting": {
       "train_accuracy": 1.0,
@@ -76,7 +76,7 @@
       "val_precision": 0.9202,
       "val_recall": 0.9067,
       "val_macro_f1": 0.8885,
-      "training_duration_sec": 7.12
+      "training_duration_sec": 15.35
     },
     "Deep_MLP_Champion": {
       "train_accuracy": 1.0,
@@ -84,8 +84,19 @@
       "val_precision": 1.0,
       "val_recall": 1.0,
       "val_macro_f1": 1.0,
-      "training_duration_sec": 1.81
+      "training_duration_sec": 8.31
     }
   },
-  "timestamp": "2026-11-18T03:48:33Z"
+  "train_sample_count": 900,
+  "train_signers": [
+    "S002",
+    "S003",
+    "S004",
+    "S005",
+    "S007",
+    "S008"
+  ],
+  "model_artifact_sha256": "dccadd016479c7c1d92dc88a18fa0b2ed1dd5609dc4ba5750c42f87509359995",
+  "scaler_artifact_sha256": "964bd8a4c8480ab81e4e2e701d6a3e460eaf1db258e5af67e71f557e5290b86b",
+  "timestamp": "2026-11-18T04:41:03Z"
 }

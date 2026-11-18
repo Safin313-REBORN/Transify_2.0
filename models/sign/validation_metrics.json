@@ -1,0 +1,44 @@
+{
+  "dataset_version": "Transify BdSL Validation Split v2.0",
+  "signer_id": [
+    "S006"
+  ],
+  "sample_count": 150,
+  "champion_architecture": "Random_Forest_Baseline",
+  "val_accuracy": 1.0,
+  "val_macro_f1": 1.0,
+  "calibration": {
+    "raw_brier_score": 0.0237,
+    "raw_ece": 0.0902,
+    "calibrated_brier_score": 0.0049,
+    "calibrated_ece": 0.0657,
+    "raw_bins": [
+      {
+        "bin_range": "(0.60, 0.70]",
+        "sample_count": 14,
+        "accuracy": 1.0,
+        "avg_confidence": 0.6757
+      },
+      {
+        "bin_range": "(0.70, 0.80]",
+        "sample_count": 1,
+        "accuracy": 1.0,
+        "avg_confidence": 0.72
+      },
+      {
+        "bin_range": "(0.80, 0.90]",
+        "sample_count": 48,
+        "accuracy": 1.0,
+        "avg_confidence": 0.8538
+      },
+      {
+        "bin_range": "(0.90, 1.00]",
+        "sample_count": 87,
+        "accuracy": 1.0,
+        "avg_confidence": 0.9806
+      }
+    ]
+  },
+  "model_artifact_sha256": "dccadd016479c7c1d92dc88a18fa0b2ed1dd5609dc4ba5750c42f87509359995",
+  "timestamp": "2026-11-18T04:41:03Z"
+}

@@ -99,7 +99,7 @@ live_sign_processor = LiveSignFrameProcessor()
 class ProcessFrameRequest(BaseModel):
     image_b64: str = Field(..., description="Base64 encoded JPEG camera frame")
     mode: Optional[str] = Field("expressions", description="Active mode: expressions, fingerspell, sentence")
-    language_mode: Optional[str] = Field("asl", description="Language mode: asl (American Sign) or legacy bdsl")
+    language_mode: Optional[str] = Field("bdsl", description="Language mode: bdsl (temporal sequences) or asl")
     roi: Optional[List[float]] = Field(None, description="Optional normalized ROI bounding box [x1, y1, x2, y2]")
 
 class FingerspellRequest(BaseModel):
@@ -119,7 +119,7 @@ class SignPredictRequest(BaseModel):
     )
     signer_id: Optional[str] = Field("web_user", description="Identifier for client session")
     auto_log: Optional[bool] = Field(True, description="Whether to log confirmed predictions to history")
-    language_mode: Optional[str] = Field("asl", description="Language mode: asl (American Sign) or legacy bdsl")
+    language_mode: Optional[str] = Field("bdsl", description="Language mode: bdsl (temporal sequences) or asl")
 
 
 class TTSRequest(BaseModel):
@@ -178,16 +178,19 @@ def readiness_check(response: Response):
         and live_sign_processor.hagrid_recognizer.model is not None
     )
     mediapipe_ready = (
-        hasattr(live_sign_processor, "tracker")
-        and live_sign_processor.tracker is not None
-        and live_sign_processor.tracker.landmarker is not None
+        (hasattr(live_sign_processor, "hand_tracker")
+         and live_sign_processor.hand_tracker is not None
+         and live_sign_processor.hand_tracker.landmarker is not None)
+        or (hasattr(live_sign_processor, "tracker")
+            and live_sign_processor.tracker is not None
+            and live_sign_processor.tracker.landmarker is not None)
     )
     braille_ready = (
         braille_adapter.pipeline is not None
         and braille_adapter.pipeline.wrapper.model is not None
     )
 
-    all_ready = db_connected and signframe_ready and braille_ready
+    all_ready = db_connected and signframe_ready and hagrid_ready and mediapipe_ready and braille_ready
     if not all_ready:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
@@ -215,6 +218,7 @@ def models_status():
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     sign_manifest_p = os.path.join(project_root, "models/sign/hagrid_model_manifest.json")
     braille_manifest_p = os.path.join(project_root, "models/braille/exported/model_manifest.json")
+    test_metrics_p = os.path.join(project_root, "models/sign/test_metrics.json")
 
     import json
     sign_manifest = {}
@@ -227,12 +231,22 @@ def models_status():
         with open(braille_manifest_p, 'r', encoding='utf-8') as f:
             braille_manifest = json.load(f)
 
+    test_metrics = {}
+    if os.path.exists(test_metrics_p):
+        with open(test_metrics_p, 'r', encoding='utf-8') as f:
+            test_metrics = json.load(f)
+
     hagrid_acc = sign_manifest.get("test_accuracy") if (sign_manifest and "test_accuracy" in sign_manifest) else None
     braille_cell_acc = (
         braille_manifest.get("exact_cell_accuracy_heldout")
         if (braille_manifest and "exact_cell_accuracy_heldout" in braille_manifest)
         else (braille_manifest.get("test_cell_accuracy") if (braille_manifest and "test_cell_accuracy" in braille_manifest) else None)
     )
+    bdsl_temporal_acc = test_metrics.get("test_accuracy")
+    bdsl_temporal_f1 = test_metrics.get("test_macro_f1")
+    calib = test_metrics.get("calibration", {})
+    bdsl_brier = calib.get("calibrated_brier_score")
+    bdsl_ece = calib.get("calibrated_ece")
 
     sign_loaded = sign_adapter.model is not None
     hagrid_loaded = (
@@ -240,7 +254,8 @@ def models_status():
         and live_sign_processor.hagrid_recognizer.model is not None
     )
     mediapipe_loaded = getattr(live_sign_processor, "hands", None) is not None or (
-        hasattr(live_sign_processor, "tracker") and live_sign_processor.tracker.landmarker is not None
+        (hasattr(live_sign_processor, "hand_tracker") and live_sign_processor.hand_tracker is not None and live_sign_processor.hand_tracker.landmarker is not None)
+        or (hasattr(live_sign_processor, "tracker") and live_sign_processor.tracker is not None and live_sign_processor.tracker.landmarker is not None)
     )
     braille_loaded = (
         braille_adapter.pipeline is not None
@@ -275,6 +290,20 @@ def models_status():
             "manifest": sign_manifest,
             "ready": hagrid_loaded
         },
+        "bdsl_temporal": {
+            "name": "BdSL 10-Class Temporal Sequence Model (Random Forest Champion)",
+            "status": "LOADED" if temporal_loaded else "UNAVAILABLE",
+            "dataset": "BdSL Temporal 10-Expression Dataset (Signer-Independent Split)",
+            "test_accuracy": bdsl_temporal_acc,
+            "test_macro_f1": bdsl_temporal_f1,
+            "calibrated_brier_score": bdsl_brier,
+            "calibrated_ece": bdsl_ece,
+            "supported_classes": 10,
+            "test_signer": test_metrics.get("test_signer", "S001"),
+            "test_samples": test_metrics.get("test_samples", 150),
+            "metric_type": "Held-Out Signer-Independent Test Accuracy",
+            "ready": temporal_loaded
+        },
         "mediapipe_landmarker": {
             "name": "MediaPipe Hand Landmarker",
             "status": "LOADED" if mediapipe_loaded else "FALLBACK_ACTIVE",
@@ -299,7 +328,7 @@ def models_status():
             "champion_model": "SignFrame AI & HaGRID Dual Engine",
             "test_accuracy": hagrid_acc,
             "hagrid_test_accuracy": hagrid_acc,
-            "temporal_sequence_accuracy": 1.0 if temporal_loaded else None,
+            "temporal_sequence_accuracy": bdsl_temporal_acc,
             "supported_classes": len(HAGRID_CLASS_NAMES),
             "standard": "American Sign Language (ASL) & HaGRID Hand Gestures",
             "output_language": "English Text + Audio Speech",

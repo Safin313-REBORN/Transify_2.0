@@ -34,15 +34,19 @@ def seed_data_if_needed():
         try:
             import shutil
             for item in os.listdir(seed_dir):
+                if item == "transify.db" or item.endswith(".db"):
+                    continue
                 s_item = os.path.join(seed_dir, item)
                 d_item = os.path.join(DB_DIR, item)
                 if not os.path.exists(d_item):
                     if os.path.isdir(s_item):
                         shutil.copytree(s_item, d_item, dirs_exist_ok=True)
+                        logger.info(f"Seeded sample resource directory: {item} -> {d_item}")
                     else:
                         shutil.copy2(s_item, d_item)
-        except Exception:
-            pass
+                        logger.info(f"Seeded sample resource file: {item} -> {d_item}")
+        except Exception as ex:
+            logger.error(f"Failed to seed data resources from {seed_dir}: {ex}")
 
 
 def init_db():

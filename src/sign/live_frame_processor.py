@@ -263,10 +263,11 @@ class LiveSignFrameProcessor:
             self.motion_history.pop(0)
         return float(np.mean(self.motion_history))
 
-    def _check_bdsl_sign(self, landmarks, frame_shape: Tuple[int, int, Any]) -> Optional[Tuple[str, float, Dict[str, str]]]:
+    def _check_bdsl_sign(self, landmarks, frame_shape: Tuple[int, int, Any]) -> Optional[Tuple[str, Optional[float], Dict[str, str]]]:
         """
-        Classifies hand signs against the Bangladesh Sign Language (BdSL) model rules.
-        Returns (sign_label, confidence, metadata) or None.
+        Classifies hand signs against the Bangladesh Sign Language (BdSL) kinematic rules.
+        Returns (sign_label, None, metadata) or None.
+        Geometric rules do NOT return fabricated probabilities; confidence is strictly None.
         """
         if not landmarks or len(landmarks) < 21:
             return None
@@ -280,50 +281,51 @@ class LiveSignFrameProcessor:
 
         # 1. BdSL WATER: Three fingers or index tapping lower lip
         if not t and i and m and r and not p and wrist.y < 0.65:
-            return "WATER", 0.987, BDSL_EXPRESSIONS["WATER"]
+            return "WATER", None, BDSL_EXPRESSIONS["WATER"]
 
         # 2. BdSL OKAY: Index and thumb 'O' contact with forward double tap
         if dist_pts(4, 8) < 0.06 and m and r:
-            return "OKAY", 0.988, BDSL_EXPRESSIONS["OKAY"]
+            return "OKAY", None, BDSL_EXPRESSIONS["OKAY"]
 
         # 3. BdSL STOP: Open palm forward projection held steady
         if t and i and m and r and p and mean_speed < 0.015:
-            return "STOP", 0.985, BDSL_EXPRESSIONS["STOP"]
+            return "STOP", None, BDSL_EXPRESSIONS["STOP"]
 
         # 4. BdSL HELLO: Temple level open hand forward arc
         if t and i and m and r and p and mean_speed >= 0.020:
-            return "HELLO", 0.988, BDSL_EXPRESSIONS["HELLO"]
+            return "HELLO", None, BDSL_EXPRESSIONS["HELLO"]
 
         # 5. BdSL I_NEED_HELP: Fist lifting on palm or emergency help gesture
         if (t and not i and not m and not r and p) or (not t and not i and not m and not r and not p and wrist.y < 0.45 and mean_speed > 0.02):
-            return "I_NEED_HELP", 0.986, BDSL_EXPRESSIONS["I_NEED_HELP"]
+            return "I_NEED_HELP", None, BDSL_EXPRESSIONS["I_NEED_HELP"]
 
         # 6. BdSL NO: Extended index finger horizontal oscillating wag
         if not t and i and not m and not r and not p and mean_speed > 0.016:
-            return "NO", 0.984, BDSL_EXPRESSIONS["NO"]
+            return "NO", None, BDSL_EXPRESSIONS["NO"]
 
         # 7. BdSL YES: Closed fist vertical nodding at wrist
         if not t and not i and not m and not r and not p and mean_speed > 0.010 and wrist.y >= 0.40:
-            return "YES", 0.983, BDSL_EXPRESSIONS["YES"]
+            return "YES", None, BDSL_EXPRESSIONS["YES"]
 
         # 8. BdSL FOOD: Flattened hand touching mouth twice
         if t and i and m and not p and wrist.y < 0.45:
-            return "FOOD", 0.984, BDSL_EXPRESSIONS["FOOD"]
+            return "FOOD", None, BDSL_EXPRESSIONS["FOOD"]
 
         # 9. BdSL THANK_YOU: Flat hand chin to forward-downward arc
         if t and i and m and r and wrist.y > 0.45 and mean_speed > 0.012:
-            return "THANK_YOU", 0.986, BDSL_EXPRESSIONS["THANK_YOU"]
+            return "THANK_YOU", None, BDSL_EXPRESSIONS["THANK_YOU"]
 
         # 10. BdSL PLEASE: Flat palm clockwise circular motion on chest
         if t and i and m and r and wrist.y > 0.50 and mean_speed > 0.018:
-            return "PLEASE", 0.984, BDSL_EXPRESSIONS["PLEASE"]
+            return "PLEASE", None, BDSL_EXPRESSIONS["PLEASE"]
 
         return None
 
-    def _check_asl_sign(self, landmarks, frame_shape: Tuple[int, int, Any]) -> Optional[Tuple[str, float, Dict[str, str]]]:
+    def _check_asl_sign(self, landmarks, frame_shape: Tuple[int, int, Any]) -> Optional[Tuple[str, Optional[float], Dict[str, str]]]:
         """
-        Classifies hand signs against American Sign Language (ASL) expressive word vocabulary.
-        Returns (sign_label, confidence, metadata) or None.
+        Classifies hand signs against American Sign Language (ASL) kinematic word rules.
+        Returns (sign_label, None, metadata) or None.
+        Geometric rules do NOT return fabricated probabilities; confidence is strictly None.
         """
         if not landmarks or len(landmarks) < 21:
             return None
@@ -337,61 +339,75 @@ class LiveSignFrameProcessor:
 
         # 1. ASL WATER: 'W' three-finger handshape tapping chin
         if not t and i and m and r and not p:
-            return "WATER", 0.988, ASL_EXPRESSIONS["WATER"]
+            return "WATER", None, ASL_EXPRESSIONS["WATER"]
 
         # 2. ASL OKAY: 'O' handshape with index/thumb circle
         if dist_pts(4, 8) < 0.06 and m and r:
-            return "OKAY", 0.989, ASL_EXPRESSIONS["OKAY"]
+            return "OKAY", None, ASL_EXPRESSIONS["OKAY"]
 
         # 3. ASL STOP: Flat vertical blade hand chop with fingers together
         dist_fingers_tight = dist_pts(8, 12) < 0.045 and dist_pts(12, 16) < 0.045
         if t and i and m and r and p and dist_fingers_tight and mean_speed < 0.012 and wrist.y >= 0.38:
-            return "STOP", 0.986, ASL_EXPRESSIONS["STOP"]
+            return "STOP", None, ASL_EXPRESSIONS["STOP"]
 
         # 4. ASL HELLO: Open hand salute wave from temple/forehead
         if t and i and m and r and p and wrist.y < 0.36 and mean_speed >= 0.025:
-            return "HELLO", 0.986, ASL_EXPRESSIONS["HELLO"]
+            return "HELLO", None, ASL_EXPRESSIONS["HELLO"]
 
         # 5. ASL I_NEED_HELP: Fist with thumb extended upward on palm or shaka
         if t and not i and not m and not r and p:
-            return "I_NEED_HELP", 0.987, ASL_EXPRESSIONS["I_NEED_HELP"]
+            return "I_NEED_HELP", None, ASL_EXPRESSIONS["I_NEED_HELP"]
 
         # 6. ASL NO: Index and middle snapping shut to thumb
         if not t and i and not m and not r and not p and mean_speed > 0.016:
-            return "NO", 0.982, ASL_EXPRESSIONS["NO"]
+            return "NO", None, ASL_EXPRESSIONS["NO"]
 
         # 7. ASL YES: 'S' fist nodding vertically
         if not t and not i and not m and not r and not p and mean_speed > 0.010:
-            return "YES", 0.983, ASL_EXPRESSIONS["YES"]
+            return "YES", None, ASL_EXPRESSIONS["YES"]
 
         # 8. ASL FOOD: Fingertips to thumb tapping mouth
         if dist_pts(4, 8) < 0.08 and dist_pts(4, 12) < 0.08 and wrist.y < 0.45:
-            return "FOOD", 0.985, ASL_EXPRESSIONS["FOOD"]
+            return "FOOD", None, ASL_EXPRESSIONS["FOOD"]
 
         # 9. ASL THANK_YOU: Flat hand moving forward from chin
         if t and i and m and r and wrist.y > 0.40 and mean_speed > 0.014:
-            return "THANK_YOU", 0.986, ASL_EXPRESSIONS["THANK_YOU"]
+            return "THANK_YOU", None, ASL_EXPRESSIONS["THANK_YOU"]
 
         # 10. ASL PLEASE: Flat hand rubbing chest in circle
         if t and i and m and r and wrist.y > 0.55 and mean_speed > 0.018:
-            return "PLEASE", 0.985, ASL_EXPRESSIONS["PLEASE"]
+            return "PLEASE", None, ASL_EXPRESSIONS["PLEASE"]
 
         return None
 
     def _evaluate_gateway(
         self,
         predicted_label: str,
-        confidence: float,
+        confidence: Optional[float],
         model_name: str,
         top_candidates: Optional[List[Dict[str, Any]]] = None,
         gloss_hint: str = ""
-    ) -> Tuple[str, float, Dict[str, Any]]:
+    ) -> Tuple[str, Optional[float], Dict[str, Any]]:
         """
         User Specification Gateway:
         1. Trained model answers directly according to how it was trained (when accurate with clear margin).
         2. When two signs or letters have a clash / almost the same accuracy (margin < 0.15 or low confidence),
            shift to MCP Server Agent to resolve the confusion and make the tie-breaker decision!
         """
+        if confidence is None:
+            self.ambiguity_counter = 0
+            self.ambiguity_start_time = 0.0
+            engine_info = {
+                "engine": "HEURISTIC_FALLBACK",
+                "source": f"{model_name} (Geometric Heuristic)",
+                "is_fallback": True,
+                "confidence": None,
+                "threshold": self.mcp_resolver.threshold,
+                "badge": "Heuristic Fallback",
+                "notes": "Geometric kinematic rule matched. Calibrated confidence unavailable."
+            }
+            return predicted_label, None, engine_info
+
         top_candidates = top_candidates or [{"label": predicted_label, "confidence": confidence}]
         is_confused = False
         top1_label = predicted_label
@@ -607,42 +623,17 @@ class LiveSignFrameProcessor:
                 gloss_str = sign_meta["gloss"]
                 english_str = sign_meta["english"]
 
-                # 98% Decision Gateway for BdSL Model
-                if not self.mcp_resolver.is_low_confidence(raw_conf):
-                    engine_info = {
-                        "engine": "LOCAL_CUSTOM_MODEL",
-                        "source": "BdSL Custom Recognition Model (>= 98% Confidence)",
-                        "is_fallback": False,
-                        "confidence": raw_conf,
-                        "threshold": self.mcp_resolver.threshold,
-                        "badge": "BdSL Model (>= 98%)",
-                        "notes": f"High confidence BdSL recognition ({raw_conf * 100:.1f}%) handled by local BdSL model."
-                    }
-                    final_word = sign_label
-                    final_conf = raw_conf
-                else:
-                    mcp_res = self.mcp_resolver.resolve(
-                        candidate_label=sign_label,
-                        confidence=raw_conf,
-                        top_candidates=[{"label": sign_label, "confidence": raw_conf}],
-                        motion_energy=0.1,
-                        gloss_hint=gloss_str
-                    )
-                    final_word = mcp_res.get("label", sign_label)
-                    final_conf = mcp_res.get("confidence")
-                    engine_info = {
-                        "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
-                        "source": mcp_res.get("source", "MCP Server / Chatbot"),
-                        "is_fallback": True,
-                        "confidence": final_conf,
-                        "threshold": self.mcp_resolver.threshold,
-                        "badge": mcp_res.get("badge", "MCP Fallback (< 98%)"),
-                        "notes": mcp_res.get("notes", f"BdSL model confidence was {raw_conf * 100:.1f}%. Shifted to MCP resolver."),
-                        "latency_ms": mcp_res.get("latency_ms", 3.0),
-                        "resolver_assisted": bool(mcp_res.get("resolver_assisted", True))
-                    }
+                engine_info = {
+                    "engine": "HEURISTIC_FALLBACK",
+                    "source": "BdSL Kinematic Heuristic",
+                    "is_fallback": True,
+                    "confidence": None,
+                    "badge": "Heuristic Fallback",
+                    "notes": "Kinematic geometric rule matched. Calibrated confidence unavailable."
+                }
+                final_word = sign_label
 
-                confirmed_word, votes, req_votes = self.stabilizer.update(final_word, raw_conf if raw_conf is not None else 0.0)
+                confirmed_word, votes, req_votes = self.stabilizer.update(final_word, None, allow_uncalibrated=True)
 
                 unified_translation = {
                     "source_language": "BdSL",
@@ -666,8 +657,8 @@ class LiveSignFrameProcessor:
                     "gloss": gloss_str,
                     "english_text": english_str,
                     "unified_translation": unified_translation,
-                    "confidence": _safe_round(final_conf) if final_conf is not None else _safe_round(raw_conf),
-                    "status": "CONFIRMED" if confirmed_word else "DEBOUNCING",
+                    "confidence": None,
+                    "status": "CONFIRMED" if confirmed_word else "HEURISTIC_FALLBACK",
                     "is_committed": bool(confirmed_word),
                     "is_confirmed": bool(confirmed_word),
                     "stable_letter": final_word,
@@ -675,7 +666,7 @@ class LiveSignFrameProcessor:
                     "consensus_progress": f"{votes}/{req_votes}",
                     "hand_bbox": [int(v) for v in hand_bbox],
                     "engine_info": engine_info,
-                    "probabilities": {final_word: _safe_round(final_conf) or (_safe_round(raw_conf) or 0.0)},
+                    "probabilities": None,
                     "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
 
@@ -912,15 +903,17 @@ class LiveSignFrameProcessor:
             gloss_str = sign_meta["gloss"]
             english_str = sign_meta["english"]
 
-            final_word, final_conf, engine_info = self._evaluate_gateway(
-                predicted_label=sign_label,
-                confidence=raw_conf,
-                model_name="SignFrame AI ASL Model",
-                top_candidates=[{"label": sign_label, "confidence": raw_conf}],
-                gloss_hint=gloss_str
-            )
+            engine_info = {
+                "engine": "HEURISTIC_FALLBACK",
+                "source": "ASL Kinematic Heuristic",
+                "is_fallback": True,
+                "confidence": None,
+                "badge": "Heuristic Fallback",
+                "notes": "Kinematic geometric rule matched. Calibrated confidence unavailable."
+            }
+            final_word = sign_label
 
-            confirmed_word, votes, req_votes = self.stabilizer.update(final_word, raw_conf)
+            confirmed_word, votes, req_votes = self.stabilizer.update(final_word, None, allow_uncalibrated=True)
             if is_synthetic_test:
                 confirmed_word = final_word
             analysis_progress = min(1.0, votes / req_votes)
@@ -944,8 +937,8 @@ class LiveSignFrameProcessor:
                     "analysis_pct": analysis_pct,
                     "votes": votes,
                     "required_votes": req_votes,
-                    "confidence": _safe_round(final_conf),
-                    "status": "ANALYZING",
+                    "confidence": None,
+                    "status": "HEURISTIC_FALLBACK",
                     "is_committed": False,
                     "is_confirmed": False,
                     "stable_letter": "",
@@ -953,7 +946,7 @@ class LiveSignFrameProcessor:
                     "consensus_progress": f"{votes}/{req_votes}",
                     "hand_bbox": [int(v) for v in hand_bbox],
                     "engine_info": engine_info,
-                    "probabilities": {final_word: _safe_round(final_conf) or 0.0},
+                    "probabilities": None,
                     "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
 
@@ -980,7 +973,7 @@ class LiveSignFrameProcessor:
                 "gloss": gloss_str,
                 "english_text": english_str,
                 "unified_translation": unified_translation,
-                "confidence": _safe_round(final_conf),
+                "confidence": None,
                 "status": "CONFIRMED",
                 "is_committed": True,
                 "is_confirmed": True,
@@ -990,7 +983,7 @@ class LiveSignFrameProcessor:
                 "consensus_progress": f"{votes}/{req_votes}",
                 "hand_bbox": [int(v) for v in hand_bbox],
                 "engine_info": engine_info,
-                "probabilities": {final_word: _safe_round(final_conf) or 0.0},
+                "probabilities": None,
                 "latency_ms": round((time.time() - t0) * 1000, 2)
             }
 

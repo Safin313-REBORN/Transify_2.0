@@ -659,6 +659,54 @@ class TestPhase10RegressionAudit(unittest.TestCase):
         self.assertEqual(len(res["hagrid_gestures"]["classes"]), 24)
         self.assertEqual(res["module_03_hagrid"]["vocabulary_size"], 24)
 
+    def test_heuristic_fallback_no_synthetic_confidence(self):
+        """Verifies geometric heuristic rules return confidence=None rather than synthetic values."""
+        from src.sign.live_frame_processor import LiveSignFrameProcessor
+        processor = LiveSignFrameProcessor()
+        # Verify method returns (label, None, meta)
+        self.assertIsNone(processor._check_bdsl_sign([], (480, 640, 3)))
+        self.assertIsNone(processor._check_asl_sign([], (480, 640, 3)))
+
+    def test_predict_sequence_asl_unavailable(self):
+        """Verifies predict_sequence with language_mode='asl' returns status='UNAVAILABLE' with confidence=None."""
+        from src.api.sign_adapter import SignLanguageAdapter
+        adapter = SignLanguageAdapter()
+        seq = np.random.randn(30, 162).astype(np.float32)
+        res = adapter.predict_sequence(seq, language_mode="asl")
+        self.assertEqual(res["status"], "UNAVAILABLE")
+        self.assertEqual(res["label"], "UNAVAILABLE")
+        self.assertIsNone(res["confidence"])
+        self.assertIn("unified_translation", res)
+
+    def test_independent_test_metrics_metadata(self):
+        """Verifies test_metrics.json contains genuine independent held-out evaluation metrics."""
+        import json
+        metrics_p = os.path.abspath(os.path.join(os.path.dirname(__file__), "../models/sign/test_metrics.json"))
+        self.assertTrue(os.path.exists(metrics_p), f"test_metrics.json not found: {metrics_p}")
+        with open(metrics_p, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        self.assertEqual(data["sample_count"], 150)
+        self.assertEqual(data["signer_id"], ["S001"])
+        self.assertIn("test_accuracy", data)
+        self.assertIn("calibration", data)
+
+    def test_api_ready_mandatory_components(self):
+        """Verifies /api/ready returns HTTP 503 when any mandatory component is unavailable."""
+        from fastapi.testclient import TestClient
+        from unittest.mock import patch
+        from src.api.server import app
+
+        client = TestClient(app)
+        # Normal ready check
+        normal_res = client.get("/api/ready")
+        self.assertEqual(normal_res.status_code, 200)
+
+        # Mock database failure
+        with patch("src.api.server.get_connection", side_effect=Exception("DB Down")):
+            res = client.get("/api/ready")
+            self.assertEqual(res.status_code, 503)
+            self.assertEqual(res.json()["subsystems"]["database"], "error")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -80,21 +80,27 @@ class SignLanguageAdapter:
         # Load trained temporal sequence model and feature scaler for (T x 162) sequence inputs
         self.temporal_model = None
         self.temporal_scaler = None
+        self.temporal_calibrated = None
         try:
             project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
             t_model_p = os.path.join(project_root, "models/sign/bdsl_champion_model.pkl")
             t_scaler_p = os.path.join(project_root, "models/sign/scaler.pkl")
+            t_calib_p = os.path.join(project_root, "models/sign/calibrated_classifier.pkl")
             if os.path.exists(t_model_p) and os.path.exists(t_scaler_p):
                 import pickle
                 with open(t_model_p, "rb") as f:
                     self.temporal_model = pickle.load(f)
                 with open(t_scaler_p, "rb") as f:
                     self.temporal_scaler = pickle.load(f)
-                logger.info("Loaded temporal sign model and scaler.")
+                if os.path.exists(t_calib_p):
+                    with open(t_calib_p, "rb") as f:
+                        self.temporal_calibrated = pickle.load(f)
+                logger.info("Loaded BdSL temporal sign model and scaler.")
         except Exception as e:
             logger.warning(f"Could not load temporal sign model: {e}")
             self.temporal_model = None
             self.temporal_scaler = None
+            self.temporal_calibrated = None
 
     def reset_buffer(self):
         """Resets the debounce state buffer and stabilizer."""
@@ -157,6 +163,7 @@ class SignLanguageAdapter:
             "display_text": f"Letter {final_letter}",
             "confidence": round(final_conf, 4) if final_conf is not None else None,
             "raw_confidence": round(raw_conf, 4) if raw_conf is not None else None,
+            "calibrated_confidence": round(cal_conf, 4) if cal_conf is not None else None,
             "resolver_assisted": resolver_assisted,
             "status": "CONFIRMED" if confirmed_letter else "DEBOUNCING",
             "is_committed": bool(confirmed_letter),
@@ -167,21 +174,45 @@ class SignLanguageAdapter:
             "probabilities": probs
         }
 
-    def predict_sequence(self, sequence_landmarks: np.ndarray, language_mode: str = "asl") -> Dict[str, Any]:
+    def predict_sequence(self, sequence_landmarks: np.ndarray, language_mode: str = "bdsl") -> Dict[str, Any]:
         """
         Predicts gesture from sequence of coordinates (T x 162).
-        Supports language_mode: "asl" (American Sign) or legacy "bdsl".
+        Supports language_mode: "bdsl" (Bangladesh Sign temporal sequence model) or "asl".
         Includes idle/OOD motion rejection filter, 98% Decision Gateway, and debouncing.
         """
         if sequence_landmarks.ndim != 2 or sequence_landmarks.shape[1] != 162:
             raise ValueError(f"Expected sequence shape (T, 162), got {sequence_landmarks.shape}")
 
-        active_lang = language_mode.strip().lower() if language_mode else "asl"
+        active_lang = language_mode.strip().lower() if language_mode else "bdsl"
         if active_lang not in ("bdsl", "asl"):
-            active_lang = "asl"
+            active_lang = "bdsl"
 
-        model_name = "BdSL Recognition Model" if active_lang == "bdsl" else "ASL Model (SignFrame AI)"
-        source_badge_prefix = "BdSL Model" if active_lang == "bdsl" else "ASL Model"
+        # Explicit Model Attribution: bdsl_champion_model.pkl is strictly a BdSL model
+        if active_lang == "asl":
+            return {
+                "class_id": -1,
+                "label": "UNAVAILABLE",
+                "display_text": "ASL temporal sequence model is unavailable. Use BdSL mode for temporal signs, or ASL mode for fingerspelling and HaGRID communicative gestures.",
+                "gloss": "ASL Temporal Model Unavailable",
+                "english_text": "",
+                "confidence": None,
+                "status": "UNAVAILABLE",
+                "rejection_reason": "No validated ASL temporal sequence model exists.",
+                "is_committed": False,
+                "language_mode": "asl",
+                "model_name": "ASL Model (SignFrame AI)",
+                "probabilities": None,
+                "unified_translation": {
+                    "source_language": "ASL",
+                    "source_model": "ASL Model (SignFrame AI)",
+                    "recognized_concept": "UNAVAILABLE",
+                    "english_text": "",
+                    "speech_ready": True
+                }
+            }
+
+        model_name = "BdSL Recognition Model"
+        source_badge_prefix = "BdSL Model"
 
         # Check for idle / flat zero input
         motion_energy = float(np.std(sequence_landmarks))
@@ -211,6 +242,13 @@ class SignLanguageAdapter:
                 probs_arr = self.temporal_model.predict_proba(feat_scaled)[0]
                 decision_id = int(np.argmax(probs_arr))
                 raw_conf = float(probs_arr[decision_id])
+                cal_conf = None
+                if self.temporal_calibrated is not None:
+                    try:
+                        cal_probs_arr = self.temporal_calibrated.predict_proba(feat_scaled)[0]
+                        cal_conf = float(cal_probs_arr[decision_id])
+                    except Exception:
+                        pass
                 class_meta = BDSL_CLASSES.get(decision_id, BDSL_CLASSES[0])
                 probs = {
                     BDSL_CLASSES[i]["label"]: round(float(probs_arr[i]), 4)
@@ -223,6 +261,7 @@ class SignLanguageAdapter:
                 decision_id = 0
                 class_meta = BDSL_CLASSES[0]
                 raw_conf = None
+                cal_conf = None
                 probs = None
                 is_heuristic = True
         else:
@@ -230,6 +269,7 @@ class SignLanguageAdapter:
             decision_id = 0
             class_meta = BDSL_CLASSES[0]
             raw_conf = None
+            cal_conf = None
             probs = None
             is_heuristic = True
 
@@ -315,6 +355,7 @@ class SignLanguageAdapter:
             "model_name": model_name,
             "confidence": round(final_conf, 4) if final_conf is not None else None,
             "raw_confidence": round(raw_conf, 4) if raw_conf is not None else None,
+            "calibrated_confidence": round(cal_conf, 4) if cal_conf is not None else None,
             "resolver_assisted": resolver_assisted,
             "status": "HEURISTIC_FALLBACK" if is_heuristic else ("CONFIRMED" if is_consensus else "DEBOUNCING"),
             "is_committed": is_consensus and not is_heuristic,
