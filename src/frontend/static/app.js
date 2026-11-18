@@ -48,7 +48,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
       authUser = JSON.parse(localStorage.getItem('transify_auth_user') || 'null');
     } catch (_) {}
 
-    // 1. If in guest mode and not forced to login:
+    // 1. If in explicit guest mode and not forced to login:
     if (isGuest && !forceLogin) {
       authOverlay.style.display = 'none';
       authOverlay.classList.add('auth-hidden');
@@ -64,14 +64,13 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
       return;
     }
 
-    // 2. If authenticated user exists, verify with backend session validator:
+    // 2. If user profile cached, verify server session via secure HttpOnly cookie
     if (authUser && !forceLogin) {
-      const sessionToken = localStorage.getItem('transify_session_token') || '';
       try {
         const checkRes = await fetch('/api/auth/me', {
-          headers: sessionToken ? { 'Authorization': 'Bearer ' + sessionToken } : {}
+          credentials: 'same-origin'
         });
-        const checkData = await checkRes.json();
+        const checkData = await checkRes.json().catch(() => ({}));
         if (checkRes.ok && checkData.authenticated && checkData.user) {
           authUser = checkData.user;
           localStorage.setItem('transify_auth_user', JSON.stringify(authUser));
@@ -88,26 +87,14 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
           this.bindProfileModal();
           return;
         } else {
-          // Session expired or invalid
+          // Session expired or revoked: require re-authentication
           localStorage.removeItem('transify_auth_user');
-          localStorage.removeItem('transify_session_token');
-          localStorage.removeItem('transify_auth_token');
           authUser = null;
         }
-      } catch (_) {
-        // Network offline but user exists locally: allow offline access
-        authOverlay.style.display = 'none';
-        authOverlay.classList.add('auth-hidden');
-        authOverlay.style.pointerEvents = 'none';
-        authOverlay.style.zIndex = '-99999';
-        this.updateProfileUI(authUser);
-        if (splash) {
-          splash.style.display = 'none';
-          splash.classList.add('splash-hidden');
-        }
-        this.checkUrlSlide();
-        this.bindProfileModal();
-        return;
+      } catch (netErr) {
+        // Offline / network failure: NEVER grant authenticated access to private account data
+        console.warn('Network error during session check:', netErr);
+        this.showAuthAlert('Unable to verify session with authentication server. Please check your connection or continue as Demo Guest.', false);
       }
     }
 
@@ -207,6 +194,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     try {
       const res = await fetch('/api/auth/guest', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' }
       });
       const data = await res.json().catch(() => ({}));
@@ -290,18 +278,11 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
 
   handleForgotPassword(e) {
     if (e) e.preventDefault();
-    this.showAuthAlert('Password reset instructions sent to your email.', true);
+    this.showAuthAlert('Password self-service recovery is currently unavailable. Please contact your system administrator.', false);
   },
 
   quickFillDemo() {
-    const emailInput = document.getElementById('input-email');
-    const pwdInput = document.getElementById('input-password');
-    const nameInput = document.getElementById('input-fullname');
-    if (emailInput) emailInput.value = 'demo@transify.ai';
-    if (pwdInput) pwdInput.value = 'transify2026';
-    if (nameInput) nameInput.value = 'Verified Demo User';
-    this.showAuthAlert('Demo credentials loaded (demo@transify.ai). Submitting authentication...', true);
-    this.handleAuthSubmit(null, 'demo@transify.ai', 'transify2026', 'login');
+    this.handleDemoLogin();
   },
 
   async handleAuthSubmit(e, overrideEmail, overridePwd, overrideMode) {
@@ -325,8 +306,8 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
       return;
     }
 
-    if (password.length < 6) {
-      this.showAuthAlert('Password must be at least 6 characters long.', false);
+    if (mode === 'signup' && password.length < 15) {
+      this.showAuthAlert('Password must be at least 15 characters long.', false);
       return;
     }
 
@@ -352,6 +333,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify(bodyPayload)
       });
 
@@ -360,10 +342,8 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
       if (res.ok && data.status === 'success') {
         try {
           localStorage.setItem('transify_auth_user', JSON.stringify(data.user));
-          if (data.token) {
-            localStorage.setItem('transify_session_token', data.token);
-          }
           localStorage.removeItem('transify_guest_mode');
+          localStorage.removeItem('transify_session_token');
           localStorage.removeItem('transify_auth_token');
         } catch (_) {}
 
@@ -393,7 +373,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   },
 
   handleGoogleLogin() {
-    this.showAuthAlert('Google Sign-In is unavailable. Please sign in with your email and password.', false);
+    this.showAuthAlert('Google Single Sign-On is currently unavailable. Please sign in with email and password.', false);
   },
 
   completeAuthentication(userObj, isGuest = false) {
@@ -462,11 +442,10 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   async logoutUser() {
     this.closeProfileModal();
     try {
-      const sessionToken = localStorage.getItem('transify_session_token') || '';
       await fetch('/api/auth/logout', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
-          'Authorization': 'Bearer ' + sessionToken,
           'Content-Type': 'application/json'
         }
       }).catch(() => {});
@@ -593,7 +572,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
 
   async syncPreferencesWithServer() {
     try {
-      const res = await fetch('/api/preferences');
+      const res = await fetch('/api/preferences', { credentials: 'same-origin' });
       if (res.ok) {
         const data = await res.json();
         if (data.theme && !localStorage.getItem('transify_theme')) {
@@ -610,6 +589,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
       await fetch('/api/preferences', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ key, value: String(value) })
       });
     } catch (e) {
@@ -818,7 +798,7 @@ var DashboardPage = window.DashboardPage = {
     if (!listContainer) return;
 
     try {
-      const res = await fetch('/api/history?limit=15');
+      const res = await fetch('/api/history?limit=15', { credentials: 'same-origin' });
       if (!res.ok) throw new Error('History fetch failed');
       const data = await res.json();
 
@@ -869,6 +849,7 @@ var DashboardPage = window.DashboardPage = {
     try {
       const res = await fetch(`/api/history/${id}/feedback`, {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating })
       });
@@ -886,7 +867,7 @@ var DashboardPage = window.DashboardPage = {
       clearBtn.addEventListener('click', async () => {
         if (confirm('Are you sure you want to clear your local translation history?')) {
           try {
-            await fetch('/api/history', { method: 'DELETE' });
+            await fetch('/api/history', { method: 'DELETE', credentials: 'same-origin' });
             TransifyApp.showToast('History cleared', 'info');
             this.loadHistory();
           } catch (e) {
@@ -1605,6 +1586,7 @@ var SignPage = window.SignPage = window.TransifySign = {
         const clientTimestamp = (performance && performance.now) ? (performance.now() / 1000.0) : (Date.now() / 1000.0);
         const res = await fetch('/api/sign/process_frame', {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             image_b64: b64,
@@ -2019,6 +2001,7 @@ var SignPage = window.SignPage = window.TransifySign = {
       // Send to prediction pipeline
       const predRes = await fetch('/api/sign/predict', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sequence: sample.sequence,
@@ -2387,7 +2370,7 @@ var BraillePage = window.BraillePage = {
     formData.append('speak_tts', 'false');
 
     try {
-      const res = await fetch('/api/braille/translate', { method: 'POST', body: formData });
+      const res = await fetch('/api/braille/translate', { method: 'POST', credentials: 'same-origin', body: formData });
       const data = await res.json();
 
       if (!res.ok || !data.success) {

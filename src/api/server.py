@@ -17,12 +17,15 @@ load_dotenv()
 
 logger = logging.getLogger("transify.server")
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, status, Request
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, status, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from pydantic import BaseModel, Field
 import numpy as np
+import time
+import threading
+from collections import defaultdict
 
 # Ensure repository root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -166,7 +169,107 @@ class LoginRequest(BaseModel):
 class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=100, description="User full name")
     email: str = Field(..., description="User email address")
-    password: str = Field(..., min_length=6, max_length=128, description="User password (min 6 characters)")
+    password: str = Field(..., min_length=15, max_length=128, description="User password (min 15 characters)")
+
+
+# --- Security: Rate Limiting, CSRF Protection & Auth Dependencies ---
+
+_FAILED_LOGINS = defaultdict(list)
+_RATE_LIMIT_LOCK = threading.Lock()
+
+
+def check_login_rate_limit(client_ip: str, email: str = ""):
+    now = time.time()
+    with _RATE_LIMIT_LOCK:
+        keys = [client_ip]
+        if email:
+            keys.append(f"email:{email.lower()}")
+        for k in keys:
+            _FAILED_LOGINS[k] = [t for t in _FAILED_LOGINS[k] if now - t < 300]
+            if len(_FAILED_LOGINS[k]) >= 5:
+                logger.warning(f"Rate limit exceeded for {k}: {len(_FAILED_LOGINS[k])} failed attempts.")
+                raise HTTPException(
+                    status_code=429,
+                    detail="Too many failed login attempts. Please wait 5 minutes before trying again."
+                )
+
+
+def record_failed_login(client_ip: str, email: str = ""):
+    now = time.time()
+    with _RATE_LIMIT_LOCK:
+        _FAILED_LOGINS[client_ip].append(now)
+        if email:
+            _FAILED_LOGINS[f"email:{email.lower()}"].append(now)
+
+
+def clear_failed_logins(client_ip: str, email: str = ""):
+    with _RATE_LIMIT_LOCK:
+        _FAILED_LOGINS.pop(client_ip, None)
+        if email:
+            _FAILED_LOGINS.pop(f"email:{email.lower()}", None)
+
+
+def is_request_secure(request: Request) -> bool:
+    if is_prod:
+        return True
+    proto = request.headers.get("x-forwarded-proto", "").lower()
+    return proto == "https" or request.url.scheme == "https"
+
+
+def get_authenticated_user(request: Request) -> Dict[str, Any]:
+    """FastAPI dependency: enforces valid authenticated session via secure HttpOnly cookie or bearer header."""
+    token = request.cookies.get("transify_session")
+    if not token:
+        auth_header = request.headers.get("authorization", "")
+        if auth_header.lower().startswith("bearer "):
+            token = auth_header[7:].strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+    user = get_user_by_session(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired session. Please log in again.")
+    return user
+
+
+def get_optional_user(request: Request) -> Optional[Dict[str, Any]]:
+    """FastAPI dependency: resolves current user if session exists; returns None for guests."""
+    token = request.cookies.get("transify_session")
+    if not token:
+        auth_header = request.headers.get("authorization", "")
+        if auth_header.lower().startswith("bearer "):
+            token = auth_header[7:].strip()
+    if not token:
+        return None
+    return get_user_by_session(token)
+
+
+@app.middleware("http")
+async def csrf_and_origin_protection_middleware(request: Request, call_next):
+    """CSRF & Origin validation on state-changing requests."""
+    if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+        origin = request.headers.get("origin")
+        referer = request.headers.get("referer")
+        host = request.headers.get("host")
+        
+        check_url = origin or referer
+        if check_url:
+            from urllib.parse import urlparse
+            parsed = urlparse(check_url)
+            allowed_hosts = {
+                "transify20-production.up.railway.app",
+                "localhost",
+                "127.0.0.1",
+                "0.0.0.0"
+            }
+            if host:
+                allowed_hosts.add(host.split(":")[0])
+            if parsed.hostname and parsed.hostname not in allowed_hosts:
+                logger.warning(f"Blocked cross-origin CSRF attempt from {check_url}")
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "CSRF validation failed: cross-origin request rejected."}
+                )
+    return await call_next(request)
 
 
 # --- API Routes ---
@@ -461,7 +564,10 @@ def get_hagrid_classes():
 
 
 @app.post("/api/sign/predict", tags=["Sign Language"])
-def predict_sign_sequence(req: SignPredictRequest):
+def predict_sign_sequence(
+    req: SignPredictRequest,
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
+):
     """
     Predicts BdSL or ASL expression from sequence of 162D landmark coordinates.
     Applies temporal pooling, OOD unknown rejection, and debouncing.
@@ -479,7 +585,7 @@ def predict_sign_sequence(req: SignPredictRequest):
         result["debounce_count"] = int(prog_parts[0]) if len(prog_parts) > 0 and prog_parts[0].isdigit() else 1
         result["debounce_target"] = int(prog_parts[1]) if len(prog_parts) > 1 and prog_parts[1].isdigit() else 3
 
-        # Log confirmed predictions to history
+        # Log confirmed predictions to history with user isolation
         if req.auto_log and result["is_committed"] and result["class_id"] != -1:
             log_translation(
                 module="sign",
@@ -487,7 +593,8 @@ def predict_sign_sequence(req: SignPredictRequest):
                 confidence=result["confidence"],
                 status="CONFIRMED",
                 input_meta={"frames": seq_arr.shape[0], "signer": req.signer_id, "language_mode": req.language_mode or "bdsl"},
-                diagnostics={"status": result["status"], "class_id": result["class_id"]}
+                diagnostics={"status": result["status"], "class_id": result["class_id"]},
+                user_id=user["id"] if user else None
             )
 
         return result
@@ -677,7 +784,8 @@ def reset_sentence_tokens():
 async def translate_braille_file(
     file: UploadFile = File(..., description="Braille document photograph (JPG, PNG, WebP)"),
     speak_tts: bool = Form(False),
-    confidence_threshold: float = Form(0.65)
+    confidence_threshold: float = Form(0.65),
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """
     Translates an uploaded Braille document photograph into English text.
@@ -697,7 +805,8 @@ async def translate_braille_file(
             confidence=0.0,
             status="REJECTED",
             input_meta={"filename": file.filename, "size_bytes": len(contents)},
-            diagnostics=res.get("error", {})
+            diagnostics=res.get("error", {}),
+            user_id=user["id"] if user else None
         )
         return JSONResponse(status_code=res.get("status_code", 422), content=res)
 
@@ -709,7 +818,8 @@ async def translate_braille_file(
         confidence=data["mean_confidence"],
         status="SUCCESS",
         input_meta={"filename": file.filename, "size_bytes": len(contents)},
-        diagnostics=data.get("diagnostics", {})
+        diagnostics=data.get("diagnostics", {}),
+        user_id=user["id"] if user else None
     )
 
     should_speak = (speak_tts is True) or (isinstance(speak_tts, str) and speak_tts.lower() in ("true", "1"))
@@ -821,50 +931,73 @@ def get_braille_sample_image(filename: str):
 @app.get("/api/history", tags=["History"])
 def list_history(
     limit: int = Query(50, ge=1, le=200),
-    module: Optional[str] = Query(None, pattern="^(sign|braille)$")
+    module: Optional[str] = Query(None, pattern="^(sign|braille)$"),
+    user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
-    """Retrieves recent translation history records."""
-    records = get_history(limit=limit, module=module)
+    """
+    Retrieves translation history records isolated strictly to the authenticated user.
+    Unauthenticated/guest users receive an empty list to protect private user data.
+    """
+    if not user:
+        return {"count": 0, "records": []}
+    records = get_history(limit=limit, module=module, user_id=user["id"])
     return {"count": len(records), "records": records}
 
 
 @app.delete("/api/history", tags=["History"])
-def delete_all_history():
-    """Clears translation history records."""
-    deleted_count = clear_history()
+def delete_all_history(user: Dict[str, Any] = Depends(get_authenticated_user)):
+    """
+    Clears translation history records strictly for the requesting authenticated user.
+    A user cannot delete another user's records, and guests are denied access.
+    """
+    deleted_count = clear_history(user_id=user["id"])
     return {"success": True, "deleted_count": deleted_count}
 
 
 @app.post("/api/history/{record_id}/feedback", tags=["History"])
-def submit_feedback(record_id: int, req: FeedbackRequest):
-    """Records user feedback on a translation event."""
-    updated = record_feedback(record_id, req.rating, req.comments)
+def submit_feedback(
+    record_id: int,
+    req: FeedbackRequest,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """
+    Records user feedback on a translation event owned by the authenticated user.
+    """
+    updated = record_feedback(record_id, req.rating, req.comments, user_id=user["id"])
     if not updated:
-        raise HTTPException(status_code=404, detail=f"History record {record_id} not found.")
+        raise HTTPException(status_code=404, detail=f"History record {record_id} not found or not owned by user.")
     return {"success": True, "message": "Feedback recorded."}
 
 
 @app.get("/api/preferences", tags=["Preferences"])
-def read_preferences():
-    """Retrieves user interface accessibility preferences."""
-    return get_preferences()
+def read_preferences(user: Optional[Dict[str, Any]] = Depends(get_optional_user)):
+    """Retrieves accessibility preferences for the authenticated user, or system defaults."""
+    uid = user["id"] if user else None
+    return get_preferences(user_id=uid)
 
 
 @app.post("/api/preferences", tags=["Preferences"])
-def set_preference(req: PreferenceUpdateRequest):
-    """Updates a user accessibility preference."""
-    update_preference(req.key, req.value)
+def set_preference(
+    req: PreferenceUpdateRequest,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """Updates an accessibility preference for the authenticated user."""
+    update_preference(req.key, req.value, user_id=user["id"])
     return {"success": True, "updated": {req.key: req.value}}
 
 
 # --- Authentication Endpoints ---
 
 @app.post("/api/auth/register", tags=["Authentication"])
-def register_user(req: RegisterRequest, response: Response):
+def register_user(req: RegisterRequest, response: Response, request: Request):
     """
-    Registers a new user account with real backend validation and PBKDF2 password hashing.
-    Rejects invalid inputs and duplicate email addresses.
+    Registers a new user account with Argon2id / PBKDF2 password hashing.
+    Enforces password length >= 15 characters and sets an HttpOnly session cookie.
+    Never returns raw session tokens in the JSON response.
     """
+    client_ip = request.client.host if request.client else "unknown"
+    check_login_rate_limit(client_ip, req.email)
+
     try:
         user = create_user(req.name, req.email, req.password)
     except ValueError as err:
@@ -876,61 +1009,70 @@ def register_user(req: RegisterRequest, response: Response):
         logger.error(f"Error during user registration: {ex}")
         raise HTTPException(status_code=500, detail="Internal registration failure. Please try again.")
 
-    # Create genuine session
+    # High-entropy cryptographic session: database stores only SHA-256 hash
     session_token = create_session(user["id"])
+    secure_cookie = is_request_secure(request)
     response.set_cookie(
         key="transify_session",
         value=session_token,
-        max_age=7 * 86400,
+        max_age=30 * 86400,
         httponly=True,
         samesite="lax",
-        secure=is_prod,
+        secure=secure_cookie,
         path="/"
     )
 
+    clear_failed_logins(client_ip, req.email)
     return {
         "status": "success",
         "message": "Account created successfully.",
-        "user": user,
-        "token": session_token
+        "user": user
     }
 
 
 @app.post("/api/auth/login", tags=["Authentication"])
-def login_user(req: LoginRequest, response: Response):
+def login_user(req: LoginRequest, response: Response, request: Request):
     """
     Authenticates user credentials against the persistent SQLite database.
-    Rejects unknown accounts or incorrect passwords with HTTP 401 Unauthorized.
+    Rejects bad credentials with generic HTTP 401 and enforces login rate limiting.
+    Delivers session token exclusively through secure HttpOnly cookie.
     """
+    client_ip = request.client.host if request.client else "unknown"
+    check_login_rate_limit(client_ip, req.email)
+
     user = authenticate_user(req.email, req.password)
     if not user:
+        record_failed_login(client_ip, req.email)
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
+    clear_failed_logins(client_ip, req.email)
+
     session_token = create_session(user["id"])
+    secure_cookie = is_request_secure(request)
     response.set_cookie(
         key="transify_session",
         value=session_token,
-        max_age=7 * 86400,
+        max_age=30 * 86400,
         httponly=True,
         samesite="lax",
-        secure=is_prod,
+        secure=secure_cookie,
         path="/"
     )
 
     return {
         "status": "success",
         "message": "Login successful.",
-        "user": user,
-        "token": session_token
+        "user": user
     }
 
 
 @app.post("/api/auth/guest", tags=["Authentication"])
-def guest_login():
+def guest_login(response: Response):
     """
-    Initializes a demo guest session.
-    Distinguishes guest usage from verified user accounts without creating a fake JWT.
+    Initializes a restricted demo guest session.
+    Clears any existing session cookie and avoids issuing fake tokens.
     """
+    response.delete_cookie(key="transify_session", path="/")
     return {
         "status": "success",
         "message": "Demo guest session active.",
@@ -940,8 +1082,7 @@ def guest_login():
             "email": "guest@transify.ai",
             "role": "guest",
             "is_guest": True
-        },
-        "token": None
+        }
     }
 
 

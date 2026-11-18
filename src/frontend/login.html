@@ -917,6 +917,7 @@
       try {
         var res = await fetch('/api/auth/guest', {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' }
         });
         var data = await res.json().catch(function() { return {}; });
@@ -1108,7 +1109,6 @@
               class="auth-input" 
               id="input-fullname" 
               placeholder="Full Name" 
-              value="Sarah Ahmed"
               autocomplete="name"
             >
           </div>
@@ -1126,7 +1126,6 @@
               class="auth-input" 
               id="input-email" 
               placeholder="Email" 
-              value="demo@transify.ai" 
               required
               autocomplete="email"
             >
@@ -1145,7 +1144,6 @@
               class="auth-input" 
               id="input-password" 
               placeholder="Password" 
-              value="transify2026" 
               required
               autocomplete="current-password"
             >
@@ -1271,13 +1269,7 @@
     }
 
     function handleDirectLogin() {
-      showAlert('Logging in as Verified Demo Account...', true);
-      const emailInput = document.getElementById('input-email');
-      const pwdInput = document.getElementById('input-password');
-      if (emailInput) emailInput.value = 'demo@transify.ai';
-      if (pwdInput) pwdInput.value = 'transify2026';
-      setMode('login');
-      handleAuthSubmit();
+      handleDemoGuest();
     }
 
     async function handleDemoGuest() {
@@ -1285,6 +1277,7 @@
       try {
         const res = await fetch('/api/auth/guest', {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' }
         });
         const data = await res.json().catch(() => ({}));
@@ -1347,7 +1340,7 @@
     // Handle Forgot Password
     function handleForgotPassword(e) {
       e.preventDefault();
-      showAlert('Password reset link has been dispatched to your email.', true);
+      showAlert('Password self-service recovery is currently unavailable. Please contact your system administrator.', false);
     }
 
     // Handle Form Submit
@@ -1381,8 +1374,8 @@
         return;
       }
 
-      if (password.length < 6) {
-        showAlert('Password must be at least 6 characters.', false);
+      if (activeMode === 'signup' && password.length < 15) {
+        showAlert('Password must be at least 15 characters long.', false);
         resetBtn();
         return;
       }
@@ -1402,6 +1395,7 @@
 
         const res = await fetch(endpoint, {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
@@ -1416,7 +1410,7 @@
         }
 
         showAlert(activeMode === 'login' ? 'Login successful! Redirecting...' : 'Account registered! Redirecting...', true);
-        completeAuthentication(data.user, data.token);
+        completeAuthentication(data.user);
       } catch (err) {
         console.error('Authentication request error:', err);
         showAlert('Network error while authenticating. Please try again.', false);
@@ -1426,17 +1420,15 @@
 
     // Handle Google Login
     function handleGoogleLogin() {
-      showAlert('Google SSO is configured with OAuth2 backend. Please use email/password or demo login.', false);
+      showAlert('Google Single Sign-On is currently unavailable. Please sign in with email and password.', false);
     }
 
     // Complete Authentication & Launch Application with Splash Loading
-    function completeAuthentication(userObj, token) {
+    function completeAuthentication(userObj) {
       try {
         localStorage.removeItem('transify_guest_mode');
         localStorage.setItem('transify_auth_user', JSON.stringify(userObj || { name: 'Transify User', email: '' }));
-        if (token) {
-          localStorage.setItem('transify_session_token', token);
-        }
+        localStorage.removeItem('transify_session_token');
         localStorage.removeItem('transify_auth_token');
       } catch (err) {
         console.warn('LocalStorage error:', err);

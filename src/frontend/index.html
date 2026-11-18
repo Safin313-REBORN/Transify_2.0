@@ -99,6 +99,7 @@
       try {
         var res = await fetch('/api/auth/guest', {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' }
         });
         var data = await res.json().catch(function() { return {}; });
@@ -167,8 +168,8 @@
         showEarlyAlert('Please enter a valid email address.', false);
         return;
       }
-      if (password.length < 6) {
-        showEarlyAlert('Password must be at least 6 characters long.', false);
+      if (isSignup && password.length < 15) {
+        showEarlyAlert('Password must be at least 15 characters long.', false);
         return;
       }
       if (isSignup && (!name || name.length < 2)) {
@@ -187,6 +188,7 @@
         var payload = isSignup ? { name: name, email: email, password: password } : { email: email, password: password };
         var res = await fetch(endpoint, {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
@@ -194,9 +196,7 @@
 
         if (res.ok && data.status === 'success') {
           localStorage.setItem('transify_auth_user', JSON.stringify(data.user));
-          if (data.token) {
-            localStorage.setItem('transify_session_token', data.token);
-          }
+          localStorage.removeItem('transify_session_token');
           localStorage.removeItem('transify_guest_mode');
           localStorage.removeItem('transify_auth_token');
           showEarlyAlert(isSignup ? 'Account registered! Opening Transify...' : 'Login successful! Opening Transify...', true);
@@ -226,11 +226,7 @@
     };
 
     window.handleDirectLogin = function() {
-      var emailInput = document.getElementById('input-email');
-      var pwdInput = document.getElementById('input-password');
-      if (emailInput) emailInput.value = 'demo@transify.ai';
-      if (pwdInput) pwdInput.value = 'transify2026';
-      window.handleAuthSubmit();
+      window.handleDemoGuest();
     };
 
     var TransifyApp = window.TransifyApp = window.TransifyApp || {};
@@ -246,12 +242,11 @@
       var pwd = document.getElementById('input-password');
       if (pwd) pwd.type = pwd.type === 'password' ? 'text' : 'password';
     };
-    TransifyApp.handleForgotPassword = function(e) { if (e) e.preventDefault(); alert('Password reset link sent to your email.'); };
-    TransifyApp.handleGoogleLogin = function() { alert('Google Sign-In is unavailable. Please use email and password.'); };
+    TransifyApp.handleForgotPassword = function(e) { if (e) e.preventDefault(); alert('Password self-service recovery is currently unavailable. Please contact your system administrator.'); };
+    TransifyApp.handleGoogleLogin = function() { alert('Google Single Sign-On is currently unavailable. Please sign in with email and password.'); };
     TransifyApp.logoutUser = async function() {
       try {
-        var token = localStorage.getItem('transify_session_token') || '';
-        await fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(function() {});
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' } }).catch(function() {});
       } catch(e) {}
       try {
         localStorage.removeItem('transify_auth_user');
@@ -1677,7 +1672,6 @@
                 class="auth-text-input" 
                 id="input-email" 
                 placeholder="Email" 
-                value="demo@transify.ai" 
                 required
                 autocomplete="email"
               >
@@ -1696,7 +1690,6 @@
                 class="auth-text-input" 
                 id="input-password" 
                 placeholder="Password" 
-                value="transify2026" 
                 required
                 autocomplete="current-password"
               >
@@ -2393,7 +2386,7 @@
   </div>
 
   <!-- Client Application Script -->
-  <script src="/static/app.js?v=20261118_authfix_v9"></script>
+  <script src="/static/app.js?v=20261118_secfix_v10"></script>
 
   <!-- Slide Control Logic with smooth Left/Right slide transitions -->
   <script>
@@ -2547,7 +2540,7 @@
     <div class="profile-modal-card">
       <div style="font-size: 3rem; margin-bottom: 8px;">👩‍🦰</div>
       <h3 id="profile-name-text" style="font-size: 18px; font-weight: 800; color: #1e1b4b; margin: 0 0 4px 0;">Sarah Ahmed</h3>
-      <p id="profile-email-text" style="font-size: 13px; color: #64748b; margin: 0 0 14px 0;">demo@transify.ai</p>
+      <p id="profile-email-text" style="font-size: 13px; color: #64748b; margin: 0 0 14px 0;">user@transify.ai</p>
       <div style="display: inline-block; padding: 4px 12px; background: rgba(34, 197, 94, 0.12); color: #15803d; border-radius: 9999px; font-size: 12px; font-weight: 700; margin-bottom: 20px;">
         Active • Accessible AI Enabled
       </div>

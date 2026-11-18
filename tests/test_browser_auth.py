@@ -139,15 +139,19 @@ def test_real_login_flow(live_server, browser_instance):
     # Wait for auth screen to close
     page.wait_for_selector("#transify-auth-screen", state="hidden", timeout=5000)
     
-    # Verify localStorage has real user and session token
+    # Verify localStorage has real user and NO raw session token (cookie-only security)
     user_data = page.evaluate("() => localStorage.getItem('transify_auth_user')")
     session_token = page.evaluate("() => localStorage.getItem('transify_session_token')")
     guest_mode = page.evaluate("() => localStorage.getItem('transify_guest_mode')")
     
     assert user_data is not None
     assert "demo@transify.ai" in user_data
-    assert session_token is not None
+    assert session_token is None
     assert guest_mode is None
+
+    # Verify session cookie is present and set
+    cookies = page.context.cookies()
+    assert any(c["name"] == "transify_session" for c in cookies)
     page.close()
 
 def test_invalid_login_rejection(live_server, browser_instance):
@@ -181,7 +185,7 @@ def test_user_registration_flow(live_server, browser_instance):
     
     page.fill("#input-fullname", "Alice Browser")
     page.fill("#input-email", unique_email)
-    page.fill("#input-password", "Secur3P@ssword")
+    page.fill("#input-password", "SecurePassword1234567!") # 22 chars (>= 15)
     page.click("#auth-submit-btn")
     
     # Wait for auth screen to close
@@ -189,6 +193,9 @@ def test_user_registration_flow(live_server, browser_instance):
     
     user_data = page.evaluate("() => localStorage.getItem('transify_auth_user')")
     assert unique_email in user_data
+    assert page.evaluate("() => localStorage.getItem('transify_session_token')") is None
+    cookies = page.context.cookies()
+    assert any(c["name"] == "transify_session" for c in cookies)
     page.close()
 
 def test_guest_mode_flow(live_server, browser_instance):
@@ -208,6 +215,7 @@ def test_guest_mode_flow(live_server, browser_instance):
     assert guest_mode == "true"
     assert "Guest User" in user_data
     assert fake_token is None
+    assert page.evaluate("() => localStorage.getItem('transify_session_token')") is None
     page.close()
 
 def test_session_persistence_on_reload(live_server, browser_instance):

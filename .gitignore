@@ -79,6 +79,9 @@ src/frontend/static/card-braille-clean.png
 src/frontend/static/target_crop_exact.png
 
 # Databases
+*.db
+*.sqlite
+*.sqlite3
 *.db-journal
 *.db-wal
 *.db-shm
