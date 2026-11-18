@@ -77,6 +77,25 @@ class SignLanguageAdapter:
         self.debounce_window = debounce_window
         self.history_buffer: List[int] = []
 
+        # Load trained temporal sequence model and feature scaler for (T x 162) sequence inputs
+        self.temporal_model = None
+        self.temporal_scaler = None
+        try:
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+            t_model_p = os.path.join(project_root, "models/sign/bdsl_champion_model.pkl")
+            t_scaler_p = os.path.join(project_root, "models/sign/scaler.pkl")
+            if os.path.exists(t_model_p) and os.path.exists(t_scaler_p):
+                import pickle
+                with open(t_model_p, "rb") as f:
+                    self.temporal_model = pickle.load(f)
+                with open(t_scaler_p, "rb") as f:
+                    self.temporal_scaler = pickle.load(f)
+                logger.info("Loaded temporal sign model and scaler.")
+        except Exception as e:
+            logger.warning(f"Could not load temporal sign model: {e}")
+            self.temporal_model = None
+            self.temporal_scaler = None
+
     def reset_buffer(self):
         """Resets the debounce state buffer and stabilizer."""
         self.history_buffer.clear()
@@ -183,27 +202,52 @@ class SignLanguageAdapter:
                 "probabilities": {BDSL_CLASSES[i]["label"]: 0.0 for i in range(len(BDSL_CLASSES))}
             }
 
-        # Analyze motion trajectory and coordinates
-        # Map to class id
-        wrist_r = sequence_landmarks[:, 63:66]  # Right wrist
-        mean_y = float(np.mean(wrist_r[:, 1]))
-        std_x = float(np.std(wrist_r[:, 0]))
-
-        # Heuristic mapping for landmark sequences
-        if std_x > 0.15:
-            decision_id = 6  # NO (wagging)
-        elif mean_y < -0.2:
-            decision_id = 0  # HELLO (temple level)
-        elif mean_y > 0.2:
-            decision_id = 1  # THANK_YOU (chin to down)
+        # Perform genuine temporal inference if trained model is available
+        if self.temporal_model is not None and self.temporal_scaler is not None:
+            try:
+                from src.models.architectures import extract_temporal_features
+                feat = extract_temporal_features(sequence_landmarks).reshape(1, -1)
+                feat_scaled = self.temporal_scaler.transform(feat)
+                probs_arr = self.temporal_model.predict_proba(feat_scaled)[0]
+                decision_id = int(np.argmax(probs_arr))
+                raw_conf = float(probs_arr[decision_id])
+                class_meta = BDSL_CLASSES.get(decision_id, BDSL_CLASSES[0])
+                probs = {
+                    BDSL_CLASSES[i]["label"]: round(float(probs_arr[i]), 4)
+                    for i in range(len(probs_arr))
+                    if i in BDSL_CLASSES
+                }
+                is_heuristic = False
+            except Exception as e:
+                logger.warning(f"Temporal inference error: {e}")
+                decision_id = 0
+                class_meta = BDSL_CLASSES[0]
+                raw_conf = None
+                probs = None
+                is_heuristic = True
         else:
-            decision_id = 0  # Default verified class
+            # If no trained temporal model weights exist, do not fabricate probabilities
+            decision_id = 0
+            class_meta = BDSL_CLASSES[0]
+            raw_conf = None
+            probs = None
+            is_heuristic = True
 
-        class_meta = BDSL_CLASSES[decision_id]
-        raw_conf = 0.985
-
-        # 98% Decision Gateway
-        if not self.mcp_resolver.is_low_confidence(raw_conf):
+        # 98% Decision Gateway or Heuristic Fallback
+        if is_heuristic:
+            engine_info = {
+                "engine": "HEURISTIC_FALLBACK",
+                "source": f"{model_name} (Temporal Model Unavailable)",
+                "is_fallback": True,
+                "confidence": None,
+                "threshold": self.mcp_resolver.threshold,
+                "badge": "Heuristic Fallback",
+                "notes": "Trained temporal model weights unavailable. Confidence is unavailable."
+            }
+            final_label = class_meta["label"]
+            final_conf = None
+            resolver_assisted = False
+        elif not self.mcp_resolver.is_low_confidence(raw_conf):
             engine_info = {
                 "engine": "LOCAL_CUSTOM_MODEL",
                 "source": f"{model_name} (>= 98% Confidence)",
@@ -251,8 +295,6 @@ class SignLanguageAdapter:
             all(cid == decision_id for cid in self.history_buffer)
         )
 
-        probs = {BDSL_CLASSES[i]["label"]: (0.95 if i == decision_id else 0.05 / 9) for i in range(len(BDSL_CLASSES))}
-
         unified_translation = {
             "source_language": active_lang.upper(),
             "source_model": model_name,
@@ -274,8 +316,8 @@ class SignLanguageAdapter:
             "confidence": round(final_conf, 4) if final_conf is not None else None,
             "raw_confidence": round(raw_conf, 4) if raw_conf is not None else None,
             "resolver_assisted": resolver_assisted,
-            "status": "CONFIRMED" if is_consensus else "DEBOUNCING",
-            "is_committed": is_consensus,
+            "status": "HEURISTIC_FALLBACK" if is_heuristic else ("CONFIRMED" if is_consensus else "DEBOUNCING"),
+            "is_committed": is_consensus and not is_heuristic,
             "engine_info": engine_info,
             "consensus_progress": f"{self.history_buffer.count(decision_id)}/{self.debounce_window}",
             "probabilities": probs

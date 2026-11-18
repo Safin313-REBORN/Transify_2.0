@@ -7,7 +7,7 @@ cell localization, 6-dot classification, and deterministic UEB Grade 1 decoding.
 import os
 import sys
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import cv2
 import numpy as np
 
@@ -105,20 +105,9 @@ class BrailleRecognitionAdapter:
                 }
             }
 
-        # Check if known ground-truth boxes exist (for benchmark testing)
-        base_name = os.path.splitext(filename)[0]
-        json_path = os.path.join("data/braille/annotations", f"{base_name}.json")
-        known_boxes = None
-        if os.path.exists(json_path):
-            import json
-            try:
-                with open(json_path, 'r', encoding='utf-8') as f:
-                    annot = json.load(f)
-                known_boxes = [c for line in annot.get("lines", []) for c in line.get("cells", [])]
-            except Exception:
-                known_boxes = None
-
-        result = self.pipeline.translate_image(img, known_boxes=known_boxes)
+        # Production mode: never derive evaluation access from uploaded filename.
+        # Ground-truth annotations are strictly ignored in production translation.
+        result = self.pipeline.translate_image(img, known_boxes=None)
 
         if not result["success"]:
             # Engage MCP Chatbot / Vision Resolver for challenging or low-contrast documents
@@ -240,3 +229,22 @@ class BrailleRecognitionAdapter:
                 "qa_metrics": result.get("qa_metrics", {})
             }
         }
+
+    def evaluate_benchmark_image(
+        self,
+        image_bytes: bytes,
+        known_boxes: Optional[List[Dict[str, Any]]] = None,
+        evaluation_enabled: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Explicit offline evaluation-only interface.
+        Evaluation mode is disabled by default and never reachable through ordinary public user image uploads.
+        """
+        if not evaluation_enabled:
+            raise PermissionError("Evaluation mode is disabled by default and cannot be invoked from normal user routes.")
+
+        img = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_COLOR)
+        if img is None:
+            raise ValueError("Could not decode image bytes for evaluation.")
+
+        return self.pipeline.translate_image(img, known_boxes=known_boxes)

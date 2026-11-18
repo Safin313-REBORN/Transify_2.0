@@ -218,6 +218,7 @@ def main():
     parser.add_argument("--image_path", type=str, default="data/braille/raw/DOC001_L1.png", help="Path to Braille image")
     parser.add_argument("--tts", action="store_true", help="Speak translated English text using TTS")
     parser.add_argument("--benchmark", action="store_true", help="Run benchmark across all 10 test images")
+    parser.add_argument("--eval_boxes", action="store_true", help="Explicit evaluation mode: use benchmark ground-truth boxes if present")
     args = parser.parse_args()
 
     pipeline = BrailleTranslatorPipeline()
@@ -240,15 +241,15 @@ def main():
     print(f"TRANSIFY MODULE 02: INFERENCE ON IMAGE '{args.image_path}'")
     print("=" * 70)
 
-    # If annotation file exists with same base, load known boxes to demonstrate classification
-    base_name = os.path.splitext(os.path.basename(args.image_path))[0]
-    json_path = os.path.join("data/braille/annotations", f"{base_name}.json")
     known_boxes = None
-    if os.path.exists(json_path):
-        import json
-        with open(json_path, 'r', encoding='utf-8') as f:
-            annot = json.load(f)
-        known_boxes = [c for line in annot.get("lines", []) for c in line.get("cells", [])]
+    if args.eval_boxes:
+        base_name = os.path.splitext(os.path.basename(args.image_path))[0]
+        json_path = os.path.join("data/braille/annotations", f"{base_name}.json")
+        if os.path.exists(json_path):
+            import json
+            with open(json_path, 'r', encoding='utf-8') as f:
+                annot = json.load(f)
+            known_boxes = [c for line in annot.get("lines", []) for c in line.get("cells", [])]
 
     result = pipeline.translate_image(args.image_path, known_boxes=known_boxes)
 

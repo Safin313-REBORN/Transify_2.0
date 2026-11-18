@@ -1,0 +1,91 @@
+{
+  "project": "Transify",
+  "module": "Sign Language Recognition",
+  "primary_language": "Bangladesh Sign Language (BdSL)",
+  "num_classes": 10,
+  "classes": {
+    "0": {
+      "label": "HELLO",
+      "bdsl_gloss": "Hello / Greetings",
+      "english_text": "Hello."
+    },
+    "1": {
+      "label": "THANK_YOU",
+      "bdsl_gloss": "Thank you",
+      "english_text": "Thank you."
+    },
+    "2": {
+      "label": "YOURE_WELCOME",
+      "bdsl_gloss": "You're welcome",
+      "english_text": "You're welcome."
+    },
+    "3": {
+      "label": "PLEASE",
+      "bdsl_gloss": "Please",
+      "english_text": "Please."
+    },
+    "4": {
+      "label": "I_NEED_HELP",
+      "bdsl_gloss": "Need help",
+      "english_text": "I need help."
+    },
+    "5": {
+      "label": "YES",
+      "bdsl_gloss": "Yes",
+      "english_text": "Yes."
+    },
+    "6": {
+      "label": "NO",
+      "bdsl_gloss": "No",
+      "english_text": "No."
+    },
+    "7": {
+      "label": "OKAY",
+      "bdsl_gloss": "Okay",
+      "english_text": "Okay."
+    },
+    "8": {
+      "label": "STOP",
+      "bdsl_gloss": "Stop",
+      "english_text": "Stop."
+    },
+    "9": {
+      "label": "I_DONT_UNDERSTAND",
+      "bdsl_gloss": "Don't understand",
+      "english_text": "I don't understand."
+    }
+  },
+  "champion_architecture": "Random_Forest_Baseline",
+  "input_feature_dim": 972,
+  "raw_sequence_shape": [
+    30,
+    162
+  ],
+  "candidate_comparison": {
+    "Random_Forest_Baseline": {
+      "train_accuracy": 1.0,
+      "val_accuracy": 1.0,
+      "val_precision": 1.0,
+      "val_recall": 1.0,
+      "val_macro_f1": 1.0,
+      "training_duration_sec": 0.22
+    },
+    "Hist_Gradient_Boosting": {
+      "train_accuracy": 1.0,
+      "val_accuracy": 0.9067,
+      "val_precision": 0.9202,
+      "val_recall": 0.9067,
+      "val_macro_f1": 0.8885,
+      "training_duration_sec": 7.12
+    },
+    "Deep_MLP_Champion": {
+      "train_accuracy": 1.0,
+      "val_accuracy": 1.0,
+      "val_precision": 1.0,
+      "val_recall": 1.0,
+      "val_macro_f1": 1.0,
+      "training_duration_sec": 1.81
+    }
+  },
+  "timestamp": "2026-11-18T03:48:33Z"
+}

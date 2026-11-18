@@ -593,44 +593,76 @@ var DashboardPage = window.DashboardPage = {
 
   async loadSystemStatus() {
     try {
-      const [healthRes, modelsRes] = await Promise.all([
-        fetch('/api/health'),
+      const [readyRes, modelsRes] = await Promise.all([
+        fetch('/api/ready'),
         fetch('/api/models/status')
       ]);
 
-      if (healthRes.ok) {
-        const health = await healthRes.json();
-        const sysBadge = document.getElementById('system-status-badge');
-        if (sysBadge) {
-          sysBadge.className = 'badge badge-success';
-          sysBadge.innerHTML = '● All Systems Operational';
+      const sysBadge = document.getElementById('system-status-badge');
+      if (sysBadge) {
+        if (readyRes.ok) {
+          const readyData = await readyRes.json().catch(() => ({}));
+          if (readyData.status === 'ready') {
+            sysBadge.className = 'badge badge-success';
+            sysBadge.innerHTML = '● All Systems Operational';
+          } else {
+            sysBadge.className = 'badge badge-warning';
+            sysBadge.innerHTML = '● Degraded / Partial Subsystems';
+          }
+        } else {
+          sysBadge.className = 'badge badge-danger';
+          sysBadge.innerHTML = '● Service Unavailable';
         }
       }
 
       if (modelsRes.ok) {
-        const data = await modelsRes.json();
+        const data = await modelsRes.json().catch(() => ({}));
+
         const signCard = document.getElementById('sign-model-metric');
         if (signCard && data.sign_language) {
+          const signAcc = (typeof data.sign_language.test_accuracy === 'number' && !isNaN(data.sign_language.test_accuracy))
+            ? `${(data.sign_language.test_accuracy * 100).toFixed(1)}%`
+            : (typeof data.sign_language.hagrid_test_accuracy === 'number' && !isNaN(data.sign_language.hagrid_test_accuracy))
+              ? `${(data.sign_language.hagrid_test_accuracy * 100).toFixed(1)}% (HaGRID)`
+              : 'Unavailable';
+          const signReady = Boolean(data.sign_language.ready);
+          const signBadge = signReady
+            ? '<span class="badge badge-success">Ready</span>'
+            : '<span class="badge badge-warning">Unavailable</span>';
+
           signCard.innerHTML = `
-            <strong>Model:</strong> ${data.sign_language.champion_model || 'Random Forest'}<br>
-            <strong>Accuracy:</strong> ${(data.sign_language.test_accuracy * 100).toFixed(1)}%<br>
-            <strong>Classes:</strong> ${data.sign_language.supported_classes} ASL & Gesture Signs<br>
-            <strong>Status:</strong> <span class="badge badge-success">Ready</span>
+            <strong>Model:</strong> ${data.sign_language.champion_model || 'SignFrame AI'}<br>
+            <strong>Accuracy:</strong> ${signAcc}<br>
+            <strong>Classes:</strong> ${data.sign_language.supported_classes || 24} ASL & Gesture Signs<br>
+            <strong>Status:</strong> ${signBadge}
           `;
         }
 
         const brailleCard = document.getElementById('braille-model-metric');
         if (brailleCard && data.braille_ocr) {
+          const brailleAcc = (typeof data.braille_ocr.test_cell_accuracy === 'number' && !isNaN(data.braille_ocr.test_cell_accuracy))
+            ? `${(data.braille_ocr.test_cell_accuracy * 100).toFixed(1)}%`
+            : 'Unavailable';
+          const brailleReady = Boolean(data.braille_ocr.ready);
+          const brailleBadge = brailleReady
+            ? '<span class="badge badge-success">Ready</span>'
+            : '<span class="badge badge-warning">Unavailable</span>';
+
           brailleCard.innerHTML = `
             <strong>Model:</strong> ${data.braille_ocr.champion_model || 'Extra Trees'}<br>
-            <strong>Cell Acc:</strong> ${(data.braille_ocr.test_cell_accuracy * 100).toFixed(1)}%<br>
+            <strong>Cell Acc:</strong> ${brailleAcc}<br>
             <strong>Standard:</strong> UEB Grade 1 (Uncontracted)<br>
-            <strong>Status:</strong> <span class="badge badge-success">Ready</span>
+            <strong>Status:</strong> ${brailleBadge}
           `;
         }
       }
     } catch (e) {
       console.error('Failed to load status:', e);
+      const sysBadge = document.getElementById('system-status-badge');
+      if (sysBadge) {
+        sysBadge.className = 'badge badge-danger';
+        sysBadge.innerHTML = '● Status Check Error';
+      }
     }
   },
 
@@ -886,22 +918,22 @@ var SignPage = window.SignPage = window.TransifySign = {
       });
     });
 
-    // Bind Quick Common Vocabulary Word buttons
+    // Bind Quick Common Vocabulary Word buttons (Manual input - marked as MANUAL_INPUT, no AI confidence)
     document.querySelectorAll('.quick-word-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const word = btn.getAttribute('data-word');
         if (word) {
-          this.setDetectionFeedback(word, 1.0);
+          this.setDetectionFeedback(word, null);
           this.updatePredictionUI({
             label: word,
             display_text: word.replace(/_/g, ' '),
             bdsl_gloss: word,
-            confidence: 0.99,
+            confidence: null,
             confirmed: true,
             engine_info: {
-              badge: 'Quick Sign Word',
+              badge: 'Manual Input',
               is_fallback: false,
-              notes: 'Selected quick expressive vocabulary word.'
+              notes: 'Manual vocabulary word selection (MANUAL_INPUT).'
             }
           });
           TransifyApp.showToast(`Added "${word.replace(/_/g, ' ')}" to sentence!`, 'success');
@@ -998,7 +1030,7 @@ var SignPage = window.SignPage = window.TransifySign = {
 
         if (liveEl) liveEl.textContent = `${data.letter} (${data.bengali || ''})`;
         if (data.letter && data.letter !== 'UNKNOWN' && data.letter !== 'DELETE') {
-          this.setDetectionFeedback(`Letter: ${data.letter}`, 1.0);
+          this.setDetectionFeedback(`Letter: ${data.letter}`, null);
         }
         if (data.assembler_state) {
           const st = data.assembler_state;
@@ -2247,10 +2279,7 @@ var BraillePage = window.BraillePage = {
       TransifyApp.showToast('Braille translated successfully!', 'success');
       TransifyApp.announce('Translation complete: ' + result.text);
 
-      // Auto-speak the translation
-      if (result.text && result.text.trim()) {
-        setTimeout(() => TransifyTTS.speak(result.text), 500);
-      }
+      // Do not auto-speak the translation (user must click speaker button)
 
     } catch (e) {
       TransifyApp.showToast('Error during Braille translation: ' + e.message, 'danger');

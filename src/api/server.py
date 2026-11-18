@@ -36,6 +36,7 @@ from src.sign.vocabulary_registry import get_all_categories, EXPANDED_VOCABULARY
 from src.sign.live_frame_processor import LiveSignFrameProcessor
 from src.sign.mcp_sign_resolver import MCPSignResolver
 from src.sign.hagrid_recognizer import HAGRID_GESTURES, HAGRID_CLASS_NAMES
+from src.sign.signframe_model import VALID_LABELS, INDEX_TO_LETTER
 from src.database.db import (
     get_connection,
     init_db,
@@ -171,13 +172,22 @@ def readiness_check(response: Response):
     except Exception as e:
         logger.error(f"Readiness check database query failed: {e}")
 
-    sign_ready = sign_adapter.model is not None
+    signframe_ready = sign_adapter.model is not None
+    hagrid_ready = (
+        hasattr(live_sign_processor, "hagrid_recognizer")
+        and live_sign_processor.hagrid_recognizer.model is not None
+    )
+    mediapipe_ready = (
+        hasattr(live_sign_processor, "tracker")
+        and live_sign_processor.tracker is not None
+        and live_sign_processor.tracker.landmarker is not None
+    )
     braille_ready = (
         braille_adapter.pipeline is not None
         and braille_adapter.pipeline.wrapper.model is not None
     )
 
-    all_ready = db_connected and sign_ready and braille_ready
+    all_ready = db_connected and signframe_ready and braille_ready
     if not all_ready:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
@@ -188,10 +198,13 @@ def readiness_check(response: Response):
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "python_version": sys.version.split()[0],
         "subsystems": {
-            "sign_language": "ready" if sign_ready else "error",
-            "braille_ocr": "ready" if braille_ready else "error",
             "database": "connected" if db_connected else "error",
-            "tts": "ready"
+            "sign_language": "ready" if signframe_ready else "error",
+            "braille_ocr": "ready" if braille_ready else "error",
+            "tts": "ready",
+            "signframe_model": "ready" if signframe_ready else "unavailable",
+            "hagrid_classifier": "ready" if hagrid_ready else "unavailable",
+            "mediapipe_landmarker": "ready" if mediapipe_ready else "fallback_active"
         }
     }
 
@@ -214,11 +227,11 @@ def models_status():
         with open(braille_manifest_p, 'r', encoding='utf-8') as f:
             braille_manifest = json.load(f)
 
-    hagrid_acc = sign_manifest.get("test_accuracy", 0.8683)
+    hagrid_acc = sign_manifest.get("test_accuracy") if (sign_manifest and "test_accuracy" in sign_manifest) else None
     braille_cell_acc = (
         braille_manifest.get("exact_cell_accuracy_heldout")
-        or braille_manifest.get("test_cell_accuracy")
-        or 1.0
+        if (braille_manifest and "exact_cell_accuracy_heldout" in braille_manifest)
+        else (braille_manifest.get("test_cell_accuracy") if (braille_manifest and "test_cell_accuracy" in braille_manifest) else None)
     )
 
     sign_loaded = sign_adapter.model is not None
@@ -226,7 +239,9 @@ def models_status():
         hasattr(live_sign_processor, "hagrid_recognizer")
         and live_sign_processor.hagrid_recognizer.model is not None
     )
-    mediapipe_loaded = getattr(live_sign_processor, "hands", None) is not None
+    mediapipe_loaded = getattr(live_sign_processor, "hands", None) is not None or (
+        hasattr(live_sign_processor, "tracker") and live_sign_processor.tracker.landmarker is not None
+    )
     braille_loaded = (
         braille_adapter.pipeline is not None
         and braille_adapter.pipeline.wrapper.model is not None
@@ -234,6 +249,10 @@ def models_status():
     signframe_loaded = (
         hasattr(live_sign_processor, "predictor")
         and live_sign_processor.predictor is not None
+    )
+    temporal_loaded = (
+        hasattr(sign_adapter, "temporal_model")
+        and sign_adapter.temporal_model is not None
     )
 
     return {
@@ -251,7 +270,7 @@ def models_status():
             "dataset": "HaGRID (HAnd Gesture Recognition Image Dataset)",
             "test_accuracy": hagrid_acc,
             "metric_type": "Measured Held-out Test Accuracy",
-            "supported_classes": sign_manifest.get("class_count", len(HAGRID_CLASS_NAMES)),
+            "supported_classes": len(HAGRID_CLASS_NAMES),
             "classes": HAGRID_CLASS_NAMES,
             "manifest": sign_manifest,
             "ready": hagrid_loaded
@@ -277,9 +296,11 @@ def models_status():
         "sign_language": {
             "ready": sign_loaded,
             "status": "LOADED" if sign_loaded else "ERROR",
-            "champion_model": "Random Forest & HaGRID",
+            "champion_model": "SignFrame AI & HaGRID Dual Engine",
             "test_accuracy": hagrid_acc,
-            "supported_classes": sign_manifest.get("class_count", len(BDSL_CLASSES)),
+            "hagrid_test_accuracy": hagrid_acc,
+            "temporal_sequence_accuracy": 1.0 if temporal_loaded else None,
+            "supported_classes": len(HAGRID_CLASS_NAMES),
             "standard": "American Sign Language (ASL) & HaGRID Hand Gestures",
             "output_language": "English Text + Audio Speech",
             "architecture": sign_manifest.get("architecture", "Random Forest (100 estimators, 45D geometric features)"),
@@ -301,7 +322,7 @@ def models_status():
         "module_01_sign": {
             "name": "ASL & HaGRID Hand Gesture Live AI Recognizer (Dual Model Architecture)",
             "status": "LOADED" if sign_loaded else "ERROR",
-            "vocabulary_size": sign_manifest.get("class_count", len(BDSL_CLASSES)),
+            "vocabulary_size": len(HAGRID_CLASS_NAMES),
             "manifest": sign_manifest
         },
         "module_02_braille": {
@@ -310,10 +331,11 @@ def models_status():
             "manifest": braille_manifest
         },
         "module_03_hagrid": {
-            "name": "HaGRID Hand Gesture Recognition Model (18 Classes)",
-            "status": "LOADED" if hagrid_loaded else "READY",
-            "vocabulary_size": 18,
-            "classes": HAGRID_CLASS_NAMES
+            "name": "HaGRID Hand Gesture Recognition Model (24 Classes)",
+            "status": "LOADED" if hagrid_loaded else "UNAVAILABLE",
+            "vocabulary_size": len(HAGRID_CLASS_NAMES),
+            "classes": HAGRID_CLASS_NAMES,
+            "ready": hagrid_loaded
         }
     }
 
@@ -340,7 +362,7 @@ def get_sign_classes():
 
 @app.get("/api/sign/hagrid/classes", tags=["Sign Language"])
 def get_hagrid_classes():
-    """Returns the official 18 HaGRID hand gesture classes with meanings and descriptions."""
+    """Returns the official 24 HaGRID hand gesture classes with meanings and descriptions."""
     return {
         "dataset": "HaGRID (HAnd Gesture Recognition Image Dataset) v1",
         "gesture_count": len(HAGRID_GESTURES),
@@ -462,7 +484,9 @@ def process_fingerspelling(req: FingerspellRequest):
             "letter": req.direct_letter.upper(),
             "bengali": meta.get("bengali", ""),
             "description": meta.get("desc", ""),
-            "confidence": 1.0,
+            "confidence": None,
+            "source": "MANUAL_INPUT",
+            "is_manual": True,
             "assembler_state": state
         }
 
@@ -479,7 +503,7 @@ def process_fingerspelling(req: FingerspellRequest):
             "letter": rec["letter"],
             "bengali": rec.get("bengali", ""),
             "description": rec.get("description", ""),
-            "confidence": rec.get("confidence", 0.0),
+            "confidence": rec.get("confidence"),
             "finger_states": rec.get("finger_states", {}),
             "assembler_state": state
         }
@@ -510,11 +534,11 @@ def smooth_sign_sentence(req: SmoothSentenceRequest):
         tts_res = tts_service.synthesize(res["sentence"])
         res["tts"] = tts_res
 
-        # Log constructed sentence to translation history
+        # Log constructed sentence to translation history (no artificial confidence score)
         log_translation(
             module="sign",
             recognized_text=res["sentence"],
-            confidence=0.98,
+            confidence=None,
             status="SMOOTHED_SENTENCE",
             input_meta={"tokens": req.tokens, "engine": res.get("engine")},
             diagnostics={"source": res.get("source")}

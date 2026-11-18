@@ -27,8 +27,27 @@ def get_connection() -> sqlite3.Connection:
     return conn
 
 
+def seed_data_if_needed():
+    """Seeds sample datasets into TRANSIFY_DATA_DIR if mounted from an empty volume."""
+    seed_dir = os.environ.get("TRANSIFY_DATA_SEED_DIR", "/app/data_seed")
+    if os.path.isdir(seed_dir) and os.path.abspath(seed_dir) != os.path.abspath(DB_DIR):
+        try:
+            import shutil
+            for item in os.listdir(seed_dir):
+                s_item = os.path.join(seed_dir, item)
+                d_item = os.path.join(DB_DIR, item)
+                if not os.path.exists(d_item):
+                    if os.path.isdir(s_item):
+                        shutil.copytree(s_item, d_item, dirs_exist_ok=True)
+                    else:
+                        shutil.copy2(s_item, d_item)
+        except Exception:
+            pass
+
+
 def init_db():
     """Initializes the database schema if tables do not exist."""
+    seed_data_if_needed()
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -79,7 +98,7 @@ def init_db():
 def log_translation(
     module: str,
     recognized_text: str,
-    confidence: float,
+    confidence: Optional[float] = None,
     status: str = "SUCCESS",
     input_meta: Optional[Dict[str, Any]] = None,
     diagnostics: Optional[Dict[str, Any]] = None
@@ -91,12 +110,13 @@ def log_translation(
     now_iso = datetime.now(timezone.utc).isoformat()
     meta_json = json.dumps(input_meta or {})
     diag_json = json.dumps(diagnostics or {})
+    conf_val = float(confidence) if (confidence is not None and not (isinstance(confidence, float) and (confidence != confidence))) else None
 
     cursor.execute("""
     INSERT INTO translation_history 
     (module, input_meta, recognized_text, confidence, status, diagnostics, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?);
-    """, (module, meta_json, recognized_text, float(confidence), status, diag_json, now_iso))
+    """, (module, meta_json, recognized_text, conf_val, status, diag_json, now_iso))
 
     record_id = cursor.lastrowid
     conn.commit()

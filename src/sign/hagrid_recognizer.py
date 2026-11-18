@@ -316,6 +316,10 @@ class HaGRIDRecognizer:
         self.model_path = model_path
         self._load_model()
 
+    def is_loaded(self) -> bool:
+        """Returns True if pre-trained classifier model weights are loaded."""
+        return self.model is not None
+
     def _load_model(self):
         """Attempts to load pre-trained scikit-learn classifier model."""
         if os.path.exists(self.model_path):
@@ -386,10 +390,10 @@ class HaGRIDRecognizer:
             return 1.0
         return float(norm[2] / mag)
 
-    def classify_kinematic(self, landmarks: Any) -> Optional[Tuple[str, float]]:
+    def classify_kinematic(self, landmarks: Any) -> Optional[Tuple[str, Optional[float]]]:
         """
         Pure kinematic geometric verification for all 24 HaGRID & ASL gesture classes.
-        Returns (gesture_label, confidence) or None.
+        Returns (gesture_label, confidence) where confidence is None (heuristic fallback).
         """
         if landmarks is None or len(landmarks) < 21:
             return None
@@ -421,87 +425,87 @@ class HaGRIDRecognizer:
 
         # 1. OK Gesture: Thumb tip and index tip touching (< 0.28 palm_scale), middle/ring/pinky extended
         if dist_thumb_index < 0.28 and (m or r or p) and not (i and not m):
-            return "OK", 0.988
+            return "OK", None
 
         # 2. NO Gesture: Index, middle, and thumb tips touching together, ring and pinky curled
         if (i or m) and dist_thumb_index < 0.28 and dist_thumb_middle < 0.28 and not r and not p:
-            return "NO", 0.986
+            return "NO", None
 
         # 3. I_LOVE_YOU (ASL ILY): Thumb, Index, Pinky extended, Middle and Ring curled
         if t and i and not m and not r and p:
-            return "I_LOVE_YOU", 0.989
+            return "I_LOVE_YOU", None
 
         # 4. CALL Gesture (Shaka): Thumb and pinky extended, index, middle, ring curled
         if t and not i and not m and not r and p:
-            return "CALL", 0.989
+            return "CALL", None
 
         # 5. LIKE (Thumbs Up): Thumb extended upward, other 4 fingers curled
         if t and not i and not m and not r and not p and thumb_dy < -0.10 * palm_scale:
-            return "LIKE", 0.989
+            return "LIKE", None
 
         # 6. DISLIKE (Thumbs Down): Thumb extended downward, other 4 fingers curled
         if not i and not m and not r and not p and thumb_dy > 0.08 * palm_scale:
-            return "DISLIKE", 0.988
+            return "DISLIKE", None
 
         # 7. HELP (Need Assistance): Fist with thumb upright
         if t and not i and not m and not r and not p and thumb_dy <= 0.0:
-            return "HELP", 0.986
+            return "HELP", None
 
         # 8. ROCK Gesture: Index and pinky extended, middle and ring curled under thumb
         if not m and not r and i and p and not t:
-            return "ROCK", 0.987
+            return "ROCK", None
 
         # 9. PEACE / PEACE_INVERTED / TWO_UP / TWO_UP_INVERTED:
         if i and m and not r and not p:
             if dist_index_middle > 0.18:
                 if palm_z < -0.15:
-                    return "PEACE_INVERTED", 0.985
-                return "PEACE", 0.988
+                    return "PEACE_INVERTED", None
+                return "PEACE", None
             else:
                 idx_dy = index_tip[1] - index_mcp[1]
                 if idx_dy > 0.05 * palm_scale:
-                    return "TWO_UP_INVERTED", 0.984
-                return "TWO_UP", 0.986
+                    return "TWO_UP_INVERTED", None
+                return "TWO_UP", None
 
         # 10. ONE: Index finger extended upright, other fingers curled
         if i and not m and not r and not p and not t:
-            return "ONE", 0.987
+            return "ONE", None
 
         # 11. FOUR: Index, middle, ring, pinky extended, thumb folded
         if not t and i and m and r and p:
-            return "FOUR", 0.987
+            return "FOUR", None
 
         # 12. THREE / THREE2:
         if not t and i and m and r and not p:
-            return "THREE", 0.985
+            return "THREE", None
         if t and i and m and not r and not p:
-            return "THREE2", 0.986
+            return "THREE2", None
 
         # 13. PALM / STOP / STOP_INVERTED / HELLO: All 4 main fingers extended
         if i and m and r and p:
             if palm_z < -0.2:
-                return "STOP_INVERTED", 0.985
+                return "STOP_INVERTED", None
             dist_idx_pinky = float(np.linalg.norm(index_tip[:2] - pinky_tip[:2])) / palm_scale
             if dist_idx_pinky > 1.25:
-                return "HELLO", 0.988
+                return "HELLO", None
             if dist_idx_pinky > 0.90:
-                return "PALM", 0.988
-            return "STOP", 0.988
+                return "PALM", None
+            return "STOP", None
 
         # 14. FIST / YES: All 5 fingers closed tight
         if not t and not i and not m and not r and not p:
-            return "FIST", 0.986
+            return "FIST", None
 
         # 15. MUTE: Single index finger near center line
         if i and not m and not r and not p and wrist[1] < 0.35 and index_tip[1] < 0.20:
-            return "MUTE", 0.984
+            return "MUTE", None
 
         return None
 
     def classify(self, landmarks: Any, frame_shape: Optional[Tuple[int, int, Any]] = None) -> Optional[Dict[str, Any]]:
         """
-        Classifies hand landmarks through both ML model (if available) and kinematic verification.
-        Returns full gesture metadata payload with 98% Decision Gateway support.
+        Classifies hand landmarks through trained ML model (when available) or kinematic verification.
+        Returns full gesture metadata payload with authentic model confidence.
         """
         if landmarks is None or len(landmarks) < 21:
             return None
@@ -511,7 +515,7 @@ class HaGRIDRecognizer:
 
         # 2. ML Model inference if loaded
         ml_label = None
-        ml_conf = 0.0
+        ml_conf = None
         ml_probs = {}
 
         if self.model is not None:
@@ -527,34 +531,27 @@ class HaGRIDRecognizer:
                 else:
                     pred = self.model.predict(feat)[0]
                     ml_label = str(pred)
-                    ml_conf = 0.985
+                    ml_conf = None
             except Exception as ex:
                 logger.debug(f"HaGRID ML prediction error: {ex}")
 
-        # Consensus and Final Confidence Determination
+        # Choose prediction source: prefer trained model when available
         chosen_label = None
-        final_conf = 0.0
+        final_conf = None
+        is_fallback = False
 
-        if kin_res and ml_label:
-            kin_label, kin_conf = kin_res
-            if kin_label == ml_label:
-                chosen_label = kin_label
-                final_conf = max(kin_conf, ml_conf, 0.988)
-            else:
-                if kin_conf >= 0.95:
-                    chosen_label = kin_label
-                    final_conf = kin_conf
-                elif ml_conf >= 0.55:
-                    chosen_label = ml_label
-                    final_conf = ml_conf
-                else:
-                    chosen_label = kin_label
-                    final_conf = kin_conf
-        elif kin_res:
-            chosen_label, final_conf = kin_res
-        elif ml_label and ml_conf >= 0.40:
+        if ml_label is not None and ml_conf is not None:
             chosen_label = ml_label
             final_conf = ml_conf
+            is_fallback = False
+        elif kin_res is not None:
+            chosen_label = kin_res[0]
+            final_conf = None
+            is_fallback = True
+        elif ml_label is not None:
+            chosen_label = ml_label
+            final_conf = None
+            is_fallback = True
 
         if not chosen_label or chosen_label not in HAGRID_GESTURES:
             return None
@@ -568,8 +565,9 @@ class HaGRIDRecognizer:
             "meaning": meta["meaning"],
             "english": meta["english"],
             "desc": meta["desc"],
-            "confidence": round(final_conf, 4),
-            "probabilities": ml_probs,
+            "confidence": round(final_conf, 4) if final_conf is not None else None,
+            "probabilities": ml_probs if ml_probs else None,
             "is_hagrid": True,
+            "is_fallback": is_fallback,
             "standard": "HaGRID & ASL Gesture Dataset Standard"
         }

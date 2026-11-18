@@ -797,7 +797,7 @@ class LiveSignFrameProcessor:
         # -------------------------------------------------------------
         # BRANCH 2: AMERICAN SIGN LANGUAGE (ASL) & HAGRID GESTURE MODEL
         # -------------------------------------------------------------
-        # Check HaGRID Gesture Recognition (18 official classes) first if in expressions or general mode
+        # Check HaGRID Gesture Recognition (24 official classes) first if in expressions or general mode
         hagrid_match = None
         if hand_landmarks is not None and mode != "fingerspell":
             hagrid_match = self.hagrid_recognizer.classify(hand_landmarks, frame.shape)
@@ -810,8 +810,8 @@ class LiveSignFrameProcessor:
             english_str = hagrid_match["english"]
             model_display_name = "HaGRID Gesture Recognition Model"
 
-            probs = hagrid_match.get("probabilities", {sign_label: raw_conf})
-            top_3 = sorted(probs.items(), key=lambda kv: kv[1], reverse=True)[:3]
+            probs = hagrid_match.get("probabilities") or {sign_label: raw_conf} if raw_conf is not None else {}
+            top_3 = sorted(probs.items(), key=lambda kv: kv[1], reverse=True)[:3] if probs else []
             top_candidates = [{"label": k, "confidence": v} for k, v in top_3] if top_3 else [{"label": sign_label, "confidence": raw_conf}]
 
             # 98% Decision Gateway: trained model answers directly, or MCP breaks the tie
@@ -823,7 +823,7 @@ class LiveSignFrameProcessor:
                 gloss_hint=gloss_str
             )
 
-            confirmed_word, votes, req_votes = self.stabilizer.update(final_word, final_conf)
+            confirmed_word, votes, req_votes = self.stabilizer.update(final_word, raw_conf)
             if is_synthetic_test:
                 confirmed_word = final_word
             analysis_progress = min(1.0, votes / req_votes)
@@ -920,7 +920,7 @@ class LiveSignFrameProcessor:
                 gloss_hint=gloss_str
             )
 
-            confirmed_word, votes, req_votes = self.stabilizer.update(final_word, final_conf)
+            confirmed_word, votes, req_votes = self.stabilizer.update(final_word, raw_conf)
             if is_synthetic_test:
                 confirmed_word = final_word
             analysis_progress = min(1.0, votes / req_votes)
@@ -1083,7 +1083,7 @@ class LiveSignFrameProcessor:
         )
 
         # Prediction Stabilization (Analysis phase verification)
-        confirmed_letter, votes, req_votes = self.stabilizer.update(final_letter, final_conf)
+        confirmed_letter, votes, req_votes = self.stabilizer.update(final_letter, raw_conf)
         if is_synthetic_test:
             confirmed_letter = final_letter
         analysis_progress = min(1.0, votes / req_votes)

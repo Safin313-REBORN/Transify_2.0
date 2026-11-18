@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libgl1 \
     libglib2.0-0 \
+    libegl1 \
+    libgles2 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -23,8 +25,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application codebase and trained models
 COPY . .
 
-# Ensure data directories exist for SQLite and cache
-RUN mkdir -p /app/data /app/data/audio_cache
+# Ensure data directories exist for SQLite and cache, and prepare seed directory for persistent volume mount
+RUN mkdir -p /app/data /app/data/audio_cache /app/data_seed \
+    && cp -rn /app/data/* /app/data_seed/ 2>/dev/null || true
 
 # Environment variables for SQLite database persistence
 ENV TRANSIFY_DATA_DIR=/app/data \

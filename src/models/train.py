@@ -38,7 +38,7 @@ def load_dataset_split(split_csv: str):
     y_list = []
 
     for _, row in df.iterrows():
-        npy_path = row["landmark_filename"]
+        npy_path = str(row["landmark_filename"]).replace("\\", "/")
         if not os.path.exists(npy_path):
             raise FileNotFoundError(f"Feature file missing: {npy_path}")
 
