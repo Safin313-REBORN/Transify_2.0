@@ -33,17 +33,36 @@ except ImportError:
 
 
 def is_production() -> bool:
-    """Unified check for production deployment environment."""
-    return (
-        os.getenv("RAILWAY_ENVIRONMENT") == "production"
-        or os.getenv("TRANSIFY_ENV") == "production"
-    )
+    """
+    Unified check for production deployment environment.
+    Evaluates RAILWAY_ENVIRONMENT, TRANSIFY_ENV, and ENVIRONMENT.
+    Normalizes values using lowercase and whitespace trimming.
+    Explicitly ensures that testing and local development environments are never treated as production.
+    """
+    for var in ("TRANSIFY_ENV", "ENVIRONMENT", "RAILWAY_ENVIRONMENT"):
+        val = (os.getenv(var) or "").strip().lower()
+        if val in ("test", "testing", "development", "dev", "local", "staging"):
+            return False
+
+    for var in ("RAILWAY_ENVIRONMENT", "TRANSIFY_ENV", "ENVIRONMENT"):
+        val = (os.getenv(var) or "").strip().lower()
+        if val == "production":
+            return True
+
+    return False
+
+
+def get_db_path() -> str:
+    """Resolves database path dynamically from environment or falls back to project default."""
+    db_dir = os.getenv("TRANSIFY_DATA_DIR", DB_DIR)
+    return os.getenv("TRANSIFY_DB_PATH", os.path.join(db_dir, "transify.db"))
 
 
 def get_connection() -> sqlite3.Connection:
     """Creates and returns a connection to the SQLite database with WAL mode and busy timeout."""
-    os.makedirs(DB_DIR, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH, timeout=30.0)
+    db_path = get_db_path()
+    os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
+    conn = sqlite3.connect(db_path, timeout=30.0)
     conn.row_factory = sqlite3.Row
     try:
         conn.execute("PRAGMA journal_mode=WAL;")
@@ -56,14 +75,15 @@ def get_connection() -> sqlite3.Connection:
 def seed_data_if_needed():
     """Seeds sample datasets into TRANSIFY_DATA_DIR if mounted from an empty volume."""
     seed_dir = os.environ.get("TRANSIFY_DATA_SEED_DIR", "/app/data_seed")
-    if os.path.isdir(seed_dir) and os.path.abspath(seed_dir) != os.path.abspath(DB_DIR):
+    data_dir = os.getenv("TRANSIFY_DATA_DIR", DB_DIR)
+    if os.path.isdir(seed_dir) and os.path.abspath(seed_dir) != os.path.abspath(data_dir):
         try:
             import shutil
             for item in os.listdir(seed_dir):
                 if item == "transify.db" or item.endswith(".db"):
                     continue
                 s_item = os.path.join(seed_dir, item)
-                d_item = os.path.join(DB_DIR, item)
+                d_item = os.path.join(data_dir, item)
                 if not os.path.exists(d_item):
                     if os.path.isdir(s_item):
                         shutil.copytree(s_item, d_item, dirs_exist_ok=True)
@@ -704,21 +724,24 @@ def revoke_all_sessions(user_id: Optional[int] = None) -> int:
     return deleted
 
 
-# --- Persistent SQLite-Backed Login Rate Limiting ---
+# --- Persistent SQLite-Backed Login Rate Limiting (Concurrency Safe) ---
 
 def record_failed_login(key: str, window_seconds: float = 300.0) -> int:
     """
     Atomically records a failed login attempt for a key (IP or normalized email).
-    Returns the current number of failed attempts within the active window.
-    Survives application restarts and functions identically across multiple worker processes.
+    Uses SQLite BEGIN IMMEDIATE transaction with WAL mode and busy timeout
+    to guarantee atomic increments without lost updates under high concurrency.
+    Returns the current number of failed attempts within the active sliding window.
     """
     conn = get_connection()
-    cursor = conn.cursor()
     now = datetime.now(timezone.utc).timestamp()
     
     try:
+        conn.execute("BEGIN IMMEDIATE;")
+        cursor = conn.cursor()
         cursor.execute("SELECT attempts, first_attempt_at FROM login_rate_limits WHERE limit_key = ?;", (key,))
         row = cursor.fetchone()
+        
         if not row:
             cursor.execute("""
             INSERT INTO login_rate_limits (limit_key, attempts, first_attempt_at, last_attempt_at)
@@ -726,7 +749,7 @@ def record_failed_login(key: str, window_seconds: float = 300.0) -> int:
             """, (key, now, now))
             attempts = 1
         else:
-            first_at = row["first_attempt_at"]
+            first_at = float(row["first_attempt_at"])
             if (now - first_at) >= window_seconds:
                 cursor.execute("""
                 UPDATE login_rate_limits 
@@ -735,13 +758,20 @@ def record_failed_login(key: str, window_seconds: float = 300.0) -> int:
                 """, (now, now, key))
                 attempts = 1
             else:
-                attempts = row["attempts"] + 1
                 cursor.execute("""
                 UPDATE login_rate_limits 
-                SET attempts = ?, last_attempt_at = ?
+                SET attempts = attempts + 1, last_attempt_at = ?
                 WHERE limit_key = ?;
-                """, (attempts, now, key))
+                """, (now, key))
+                attempts = int(row["attempts"]) + 1
+
+        # Prune expired rate-limit rows (> 1 hour old) to keep table lightweight
+        cursor.execute("DELETE FROM login_rate_limits WHERE (? - last_attempt_at) > 3600;", (now,))
+
         conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
     return attempts
@@ -759,24 +789,27 @@ def is_login_rate_limited(key: str, max_attempts: int = 5, window_seconds: float
         row = cursor.fetchone()
         if not row:
             return False
-        if (now - row["first_attempt_at"]) >= window_seconds:
+        if (now - float(row["first_attempt_at"])) >= window_seconds:
             return False
-        return row["attempts"] >= max_attempts
+        return int(row["attempts"]) >= max_attempts
     finally:
         conn.close()
 
 
-def clear_failed_logins(key: str, email: Optional[str] = None):
+def clear_failed_logins(key: str):
     """
-    Clears failed login attempts for a key (and optional email) upon successful authentication.
+    Clears failed login attempts strictly for the specified key (e.g. email:user@transify.ai).
+    Never inadvertently clears shared IP rate limiters, ensuring network-level brute-force
+    protection remains active even after an individual user logs in successfully.
     """
     conn = get_connection()
-    cursor = conn.cursor()
     try:
-        cursor.execute("DELETE FROM login_rate_limits WHERE limit_key = ?;", (key,))
-        if email:
-            cursor.execute("DELETE FROM login_rate_limits WHERE limit_key = ?;", (f"email:{email.lower()}",))
+        conn.execute("BEGIN IMMEDIATE;")
+        conn.execute("DELETE FROM login_rate_limits WHERE limit_key = ?;", (key,))
         conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 

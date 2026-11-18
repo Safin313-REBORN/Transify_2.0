@@ -23,11 +23,13 @@ import hashlib
 import sqlite3
 import pytest
 from datetime import datetime, timezone, timedelta
+from concurrent.futures import ThreadPoolExecutor
 from fastapi.testclient import TestClient
 
-from src.api.server import app
+from src.api.server import app, normalize_origin, get_trusted_origins
 from src.database.db import (
     get_connection,
+    get_db_path,
     init_db,
     create_user,
     authenticate_user,
@@ -288,3 +290,170 @@ def test_frontend_has_zero_hardcoded_passwords():
             content = f.read()
             for term in forbidden_terms:
                 assert term not in content, f"Forbidden term '{term}' found in {path}"
+
+
+def test_default_database_isolated_from_test_suite():
+    """
+    Verifies that the test suite runs against an isolated temporary SQLite database
+    and never modifies or targets the repository default data/transify.db.
+    """
+    active_db_path = get_db_path()
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    default_prod_db = os.path.join(project_root, "data", "transify.db")
+    
+    assert os.path.abspath(active_db_path) != os.path.abspath(default_prod_db), (
+        f"Active test database ({active_db_path}) must not point to project default ({default_prod_db})"
+    )
+    assert "transify_test_db_" in active_db_path, (
+        f"Test database path must reside within an isolated temporary test directory: {active_db_path}"
+    )
+
+
+def test_rate_limiter_concurrency_atomic_increments():
+    """
+    Verifies that record_failed_login is concurrency-safe under high parallel load.
+    Spawns 20 concurrent threads attempting to record failed logins simultaneously for the same key.
+    Ensures exactly 20 attempts are recorded with zero lost updates.
+    """
+    test_key = f"concurrent_ip:{secrets.token_hex(8)}"
+    clear_failed_logins(test_key)
+    
+    num_threads = 20
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        futures = [executor.submit(record_failed_login, test_key) for _ in range(num_threads)]
+        results = [f.result() for f in futures]
+    
+    # All threads must succeed and return integers
+    assert len(results) == num_threads
+    
+    # Query final count from SQLite
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT attempts FROM login_rate_limits WHERE limit_key = ?;", (test_key,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    assert row is not None, "Rate limit record must exist"
+    assert row["attempts"] == num_threads, f"Expected exactly {num_threads} attempts recorded, found {row['attempts']}"
+    
+    # Clean up
+    clear_failed_logins(test_key)
+
+
+def test_successful_login_counter_isolation(client):
+    """
+    Verifies that successful login clears ONLY the specific user email counter,
+    and deliberately does NOT erase the shared network/client IP counter.
+    """
+    client_ip_key = "ip:testclient"
+    email = f"iso_user_{int(time.time()*1000)}@test.com"
+    email_key = f"email:{email.lower()}"
+    pwd = "IsolationPassword123!_2026"
+    
+    create_user("Isolation Tester", email, pwd)
+    
+    # Seed 3 failed login attempts on the IP and 2 on the email
+    clear_failed_logins(client_ip_key)
+    clear_failed_logins(email_key)
+    
+    for _ in range(3):
+        record_failed_login(client_ip_key)
+    for _ in range(2):
+        record_failed_login(email_key)
+        
+    # Verify initial attempt counts
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT attempts FROM login_rate_limits WHERE limit_key = ?;", (client_ip_key,))
+    ip_row = cursor.fetchone()
+    assert ip_row is not None and ip_row["attempts"] == 3
+    
+    cursor.execute("SELECT attempts FROM login_rate_limits WHERE limit_key = ?;", (email_key,))
+    email_row = cursor.fetchone()
+    assert email_row is not None and email_row["attempts"] == 2
+    conn.close()
+    
+    # Perform successful login
+    login_res = client.post("/api/auth/login", json={"email": email, "password": pwd})
+    assert login_res.status_code == 200
+    
+    # Check that email counter is cleared, BUT IP counter remains intact (still 3)
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT attempts FROM login_rate_limits WHERE limit_key = ?;", (email_key,))
+    cleared_email = cursor.fetchone()
+    assert cleared_email is None, "Email rate limit counter must be cleared on successful login"
+    
+    cursor.execute("SELECT attempts FROM login_rate_limits WHERE limit_key = ?;", (client_ip_key,))
+    retained_ip = cursor.fetchone()
+    assert retained_ip is not None and retained_ip["attempts"] == 3, (
+        "Client IP rate limit counter must NOT be erased by successful user authentication"
+    )
+    conn.close()
+    
+    clear_failed_logins(client_ip_key)
+
+
+def test_exact_origin_csrf_validation_suite(client, monkeypatch):
+    """
+    Comprehensive test of exact-origin CSRF normalization and production enforcement.
+    Verifies:
+    1. normalize_origin unit parsing: scheme, ports, default port stripping.
+    2. Exact production origin accepted (https://transify20-production.up.railway.app).
+    3. Insecure HTTP scheme rejected in production.
+    4. Non-standard port rejected in production.
+    5. Cross-origin domain rejected.
+    6. Origin: null rejected.
+    """
+    # 1. Unit tests for normalize_origin
+    assert normalize_origin("https://transify20-production.up.railway.app") == "https://transify20-production.up.railway.app"
+    assert normalize_origin("https://transify20-production.up.railway.app:443") == "https://transify20-production.up.railway.app"
+    assert normalize_origin("http://transify20-production.up.railway.app:80") == "http://transify20-production.up.railway.app"
+    assert normalize_origin("https://transify20-production.up.railway.app:8443") == "https://transify20-production.up.railway.app:8443"
+    assert normalize_origin("null") == "null"
+    assert normalize_origin("invalid-url") is None
+    assert normalize_origin("") is None
+    
+    # 2. Simulate production environment
+    monkeypatch.setenv("RAILWAY_ENVIRONMENT", "production")
+    monkeypatch.setenv("TRANSIFY_ENV", "production")
+    
+    # Legitimate production origin -> 200 OK
+    res_ok = client.post(
+        "/api/auth/guest",
+        headers={"Origin": "https://transify20-production.up.railway.app"}
+    )
+    assert res_ok.status_code == 200
+    
+    # HTTP scheme mismatch in production -> 403 Forbidden
+    res_http = client.post(
+        "/api/auth/guest",
+        headers={"Origin": "http://transify20-production.up.railway.app"}
+    )
+    assert res_http.status_code == 403
+    assert "cross-origin request rejected" in res_http.json()["detail"].lower()
+    
+    # Port mismatch in production -> 403 Forbidden
+    res_port = client.post(
+        "/api/auth/guest",
+        headers={"Origin": "https://transify20-production.up.railway.app:8443"}
+    )
+    assert res_port.status_code == 403
+    assert "cross-origin request rejected" in res_port.json()["detail"].lower()
+    
+    # Attacker origin -> 403 Forbidden
+    res_attacker = client.post(
+        "/api/auth/guest",
+        headers={"Origin": "https://attacker-origin.evil.org"}
+    )
+    assert res_attacker.status_code == 403
+    assert "cross-origin request rejected" in res_attacker.json()["detail"].lower()
+    
+    # Null origin -> 403 Forbidden
+    res_null = client.post(
+        "/api/auth/guest",
+        headers={"Origin": "null"}
+    )
+    assert res_null.status_code == 403
+    assert "null origin rejected" in res_null.json()["detail"].lower()
+

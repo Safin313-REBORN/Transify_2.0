@@ -9,12 +9,17 @@ on:
 jobs:
   test-and-verify:
     name: Backend, Security, Browser & Android Verification
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Install System Dependencies for MediaPipe & OpenCV
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1 libegl1 libglib2.0-0 libgomp1 libsm6 libxext6 libxrender-dev
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -50,3 +55,4 @@ jobs:
           chmod +x gradlew
           ./gradlew testDebugUnitTest
           ./gradlew assembleDebug --stacktrace
+

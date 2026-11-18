@@ -71,24 +71,79 @@ app = FastAPI(
     version="1.0.0"
 )
 
+from urllib.parse import urlparse
+
 # Configure secure CORS: Allow production origin in production; loopback in development
 is_prod = is_production()
-allowed_origins = ["https://transify20-production.up.railway.app"]
-if not is_prod:
-    allowed_origins.extend([
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:8080",
-        "http://127.0.0.1:8080",
-    ])
-allowed_env = os.getenv("ALLOWED_ORIGINS")
-if allowed_env:
-    for o in allowed_env.split(","):
-        o_clean = o.strip()
-        if o_clean and o_clean not in allowed_origins:
-            allowed_origins.append(o_clean)
+
+def normalize_origin(url_str: Optional[str]) -> Optional[str]:
+    """
+    Parses and normalizes an Origin or Referer URL to 'scheme://hostname[:port]'.
+    Normalizes default ports (http: 80, https: 443 -> omitted).
+    Returns None if empty, malformed, or missing required scheme/host.
+    """
+    if not url_str or not isinstance(url_str, str):
+        return None
+    url_str = url_str.strip()
+    if url_str.lower() == "null":
+        return "null"
+    try:
+        parsed = urlparse(url_str)
+        scheme = (parsed.scheme or "").lower()
+        if scheme not in ("http", "https"):
+            return None
+        hostname = (parsed.hostname or "").lower()
+        if not hostname:
+            return None
+        port = parsed.port
+        if (scheme == "http" and port == 80) or (scheme == "https" and port == 443):
+            port = None
+        if port is not None:
+            return f"{scheme}://{hostname}:{port}"
+        return f"{scheme}://{hostname}"
+    except Exception:
+        return None
+
+
+def get_trusted_origins(is_production_mode: bool) -> set[str]:
+    """
+    Returns the set of fully-normalized trusted origins.
+    Enforces strict HTTPS in production, while permitting loopback origins only in dev/test.
+    """
+    trusted = {
+        "https://transify20-production.up.railway.app"
+    }
+    custom_origins = os.getenv("TRANSIFY_ALLOWED_ORIGINS", os.getenv("ALLOWED_ORIGINS", ""))
+    if custom_origins:
+        for domain in custom_origins.split(","):
+            norm = normalize_origin(domain.strip())
+            if norm and norm != "null":
+                trusted.add(norm)
+
+    if not is_production_mode:
+        dev_origins = [
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+            "http://0.0.0.0:8000",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:8080",
+            "http://127.0.0.1:8080",
+            "http://testserver",
+            "http://testserver:80",
+            "https://testserver",
+            "http://localhost",
+            "http://127.0.0.1",
+        ]
+        for dev in dev_origins:
+            norm = normalize_origin(dev)
+            if norm:
+                trusted.add(norm)
+
+    return trusted
+
+
+allowed_origins = sorted(list(get_trusted_origins(is_prod)))
 
 app.add_middleware(
     CORSMiddleware,
@@ -206,42 +261,53 @@ def get_optional_user(request: Request) -> Optional[Dict[str, Any]]:
 
 @app.middleware("http")
 async def csrf_and_origin_protection_middleware(request: Request, call_next):
-    """CSRF & Origin validation on state-changing requests."""
+    """CSRF & Exact-Origin validation on state-changing requests."""
     if request.method in ("POST", "PUT", "DELETE", "PATCH"):
-        origin = request.headers.get("origin")
-        referer = request.headers.get("referer")
-        host = request.headers.get("host")
+        origin_header = request.headers.get("origin")
+        referer_header = request.headers.get("referer")
         
         # 1. Strictly reject null origin
-        if origin is not None and origin.strip().lower() == "null":
+        if origin_header is not None and origin_header.strip().lower() == "null":
             logger.warning("Blocked state-changing request with Origin: null")
             return JSONResponse(
                 status_code=403,
                 content={"detail": "CSRF validation failed: null origin rejected."}
             )
 
-        allowed_hosts = {
-            "transify20-production.up.railway.app",
-            "localhost",
-            "127.0.0.1",
-            "0.0.0.0",
-            "testserver"
-        }
-        if host:
-            allowed_hosts.add(host.split(":")[0].lower())
+        current_prod = is_production()
+        trusted_origins = get_trusted_origins(current_prod)
 
-        check_url = origin or referer
-        if check_url:
-            from urllib.parse import urlparse
-            parsed = urlparse(check_url)
-            if not parsed.hostname or parsed.hostname.lower() not in allowed_hosts:
-                logger.warning(f"Blocked cross-origin CSRF attempt from {check_url}")
+        def is_origin_allowed(normalized: Optional[str]) -> bool:
+            if not normalized or normalized == "null":
+                return False
+            if normalized in trusted_origins:
+                return True
+            if not current_prod:
+                parsed = urlparse(normalized)
+                if parsed.hostname in ("localhost", "127.0.0.1", "0.0.0.0", "testserver"):
+                    return True
+            return False
+
+        # 2. If Origin header is present, validate exact normalized origin
+        if origin_header is not None:
+            norm_origin = normalize_origin(origin_header)
+            if not is_origin_allowed(norm_origin):
+                logger.warning(f"Blocked cross-origin CSRF attempt with invalid origin: {origin_header}")
                 return JSONResponse(
                     status_code=403,
                     content={"detail": "CSRF validation failed: cross-origin request rejected."}
                 )
+        # 3. If Origin is absent, validate Referer if present
+        elif referer_header is not None:
+            norm_referer = normalize_origin(referer_header)
+            if not is_origin_allowed(norm_referer):
+                logger.warning(f"Blocked cross-origin CSRF attempt with invalid referer: {referer_header}")
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "CSRF validation failed: cross-origin request rejected."}
+                )
+        # 4. If both Origin and Referer are absent
         else:
-            # Both origin and referer are missing!
             csrf_token_header = request.headers.get("x-csrf-token")
             csrf_token_cookie = request.cookies.get("transify_csrf")
             has_valid_csrf = bool(
@@ -251,7 +317,7 @@ async def csrf_and_origin_protection_middleware(request: Request, call_next):
             )
             is_verified_same_origin = request.headers.get("sec-fetch-site") == "same-origin"
             
-            enforce_strict = is_prod or os.getenv("TRANSIFY_ENFORCE_CSRF") == "1"
+            enforce_strict = current_prod or os.getenv("TRANSIFY_ENFORCE_CSRF") == "1"
             if enforce_strict and not has_valid_csrf and not is_verified_same_origin:
                 logger.warning("Blocked state-changing request missing both Origin and Referer headers.")
                 return JSONResponse(
@@ -259,7 +325,10 @@ async def csrf_and_origin_protection_middleware(request: Request, call_next):
                     content={"detail": "CSRF validation failed: missing origin and referer headers."}
                 )
             elif not enforce_strict:
-                if host and host.split(":")[0].lower() not in allowed_hosts:
+                host = request.headers.get("host")
+                host_norm = f"http://{host}" if host else None
+                norm_h = normalize_origin(host_norm) if host_norm else None
+                if not is_origin_allowed(norm_h):
                     return JSONResponse(
                         status_code=403,
                         content={"detail": "CSRF validation failed: unverified host on state-changing request."}
@@ -1035,7 +1104,8 @@ def register_user(req: RegisterRequest, response: Response, request: Request):
         path="/"
     )
 
-    clear_failed_logins(f"ip:{client_ip}", req.email)
+    # Clear rate limiting counter specifically for this email
+    clear_failed_logins(f"email:{req.email.lower()}")
     return {
         "status": "success",
         "message": "Account created successfully.",
@@ -1065,7 +1135,10 @@ def login_user(req: LoginRequest, response: Response, request: Request):
             record_failed_login(f"email:{req.email.lower()}")
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
-    clear_failed_logins(f"ip:{client_ip}", req.email)
+    # Clear failed login attempts ONLY for this specific email account on successful login.
+    # Note: client_ip rate limit counter is deliberately NOT cleared here so that a valid login
+    # does not wipe the shared network/IP-level rate limit protection against brute force attacks.
+    clear_failed_logins(f"email:{req.email.lower()}")
 
     session_token = create_session(user["id"])
     secure_cookie = is_request_secure(request)
