@@ -1207,7 +1207,7 @@ button:active, a.btn:active, .main-segment-card:active, .mini-sub-card:active, .
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #ffffff;
+  background: #ffffff url('/static/login-welcome-exact.jpg') center/cover no-repeat;
 }
 
 .auth-welcome-exact-artwork {

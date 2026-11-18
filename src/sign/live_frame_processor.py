@@ -199,19 +199,20 @@ EXPRESSIVE_SIGNS: Dict[str, Dict[str, str]] = BDSL_EXPRESSIONS
 class SessionInferenceState:
     """
     Thread-safe, isolated runtime state for an individual user/client session:
-      - 30-frame sequence buffer (deque of 162-dim landmark float arrays)
-      - Timestamps deque (for temporal spacing and continuity checks)
+      - Raw observation stream (deque of (timestamp, 162-dim landmark) tuples)
+      - Synchronized frame_buffer and timestamps deques for backward compatibility
       - Per-session PredictionStabilizer (independent vote counting)
       - Per-session TextComposer (independent sentence state)
       - Per-session Debounce History (isolated sign_adapter temporal debouncing)
-      - Concurrency lock (threading.Lock)
+      - Reentrant concurrency lock (threading.RLock)
       - TTL expiration tracking
     """
     def __init__(self, session_id: str):
         self.session_id = session_id
-        self.lock = threading.Lock()
-        self.frame_buffer: deque = deque(maxlen=30)
-        self.timestamps: deque = deque(maxlen=30)
+        self.lock = threading.RLock()
+        self.observations: deque = deque(maxlen=120)
+        self.frame_buffer: deque = deque(maxlen=120)
+        self.timestamps: deque = deque(maxlen=120)
         self.stabilizer = PredictionStabilizer(window_size=5, required_votes=3, confidence_threshold=0.60)
         self.composer = TextComposer()
         self.debounce_history: List[int] = []
@@ -224,11 +225,23 @@ class SessionInferenceState:
         self.ambiguity_start_time: float = 0.0
         self.last_active_time: float = time.time()
 
+    def add_observation(self, t: float, lmk: np.ndarray):
+        with self.lock:
+            t = float(t)
+            if len(self.observations) > 0 and t <= self.observations[-1][0]:
+                t = self.observations[-1][0] + 0.001
+            lmk_arr = np.asarray(lmk, dtype=np.float32)
+            self.observations.append((t, lmk_arr))
+            self.frame_buffer.append(lmk_arr)
+            self.timestamps.append(t)
+            self.last_active_time = time.time()
+
     def touch(self):
         self.last_active_time = time.time()
 
     def reset(self):
         with self.lock:
+            self.observations.clear()
             self.frame_buffer.clear()
             self.timestamps.clear()
             self.stabilizer.reset()
@@ -244,23 +257,138 @@ class SessionInferenceState:
             self.touch()
 
 
+def extract_one_second_temporal_sequence(
+    observations: List[Tuple[float, np.ndarray]],
+    target_window_sec: float = 1.0,
+    min_duration_sec: float = 0.95,
+    min_observations: int = 10,
+    max_gap_sec: float = 0.40,
+    target_frames: int = 30
+) -> Dict[str, Any]:
+    """
+    Extracts and standardizes a 1.0-second temporal window of real hand landmark observations:
+      1. Defines the intended sliding window [t_now - target_window_sec, t_now].
+      2. Rejects incomplete sequences (observed duration < 0.95s).
+      3. Rejects discontinuous sequences (consecutive gap > 0.40s).
+      4. Rejects excessively sparse sequences (< 10 observations in window, e.g. 5 FPS).
+      5. Interpolates valid observations to exactly 30 uniform frames over the 1.0-second window.
+      6. Never manufactures motion or inserts zero-filled frames.
+    """
+    if not observations:
+        return {
+            "status": "BUFFERING",
+            "reason": "EMPTY",
+            "duration": 0.0,
+            "count": 0,
+            "progress_pct": 0,
+            "sequence": None
+        }
+
+    t_now = observations[-1][0]
+    t_start_window = t_now - target_window_sec
+    window_obs = [obs for obs in observations if obs[0] >= t_start_window]
+
+    if not window_obs:
+        return {
+            "status": "BUFFERING",
+            "reason": "EMPTY",
+            "duration": 0.0,
+            "count": 0,
+            "progress_pct": 0,
+            "sequence": None
+        }
+
+    duration = t_now - window_obs[0][0]
+    N = len(window_obs)
+
+    # 1. Incomplete sequence check (< 0.70s observed)
+    if duration < min_duration_sec:
+        pct = int(min(100, (duration / target_window_sec) * 100))
+        return {
+            "status": "BUFFERING",
+            "reason": "INCOMPLETE",
+            "duration": duration,
+            "count": N,
+            "progress_pct": pct,
+            "sequence": None
+        }
+
+    # 2. Discontinuity / Dropped frame check (gap > max_gap_sec)
+    for i in range(len(window_obs) - 1):
+        gap = window_obs[i + 1][0] - window_obs[i][0]
+        if gap > max_gap_sec:
+            return {
+                "status": "BUFFERING",
+                "reason": "DISCONTINUOUS",
+                "gap": gap,
+                "duration": duration,
+                "count": N,
+                "progress_pct": 0,
+                "sequence": None
+            }
+
+    # 3. Sparsity check (need at least 10 observations in the window, e.g. >= 10 FPS)
+    if N < min_observations:
+        pct = int(min(100, (N / float(min_observations)) * 50))
+        return {
+            "status": "BUFFERING",
+            "reason": "TOO_SPARSE",
+            "duration": duration,
+            "count": N,
+            "progress_pct": pct,
+            "sequence": None
+        }
+
+    # 4. Resample valid real observations to target_frames uniformly distributed over observed duration
+    t_arr = np.array([obs[0] for obs in window_obs], dtype=np.float64)
+    data_mat = np.array([obs[1] for obs in window_obs], dtype=np.float32)
+
+    # Enforce strictly monotonic timestamps for interpolation
+    for i in range(1, len(t_arr)):
+        if t_arr[i] <= t_arr[i - 1]:
+            t_arr[i] = t_arr[i - 1] + 0.001
+
+    target_times = np.linspace(t_arr[0], t_arr[-1], target_frames)
+    resampled = np.zeros((target_frames, data_mat.shape[1]), dtype=np.float32)
+    for feat_idx in range(data_mat.shape[1]):
+        resampled[:, feat_idx] = np.interp(target_times, t_arr, data_mat[:, feat_idx])
+
+    return {
+        "status": "READY",
+        "reason": "VALID",
+        "duration": duration,
+        "count": N,
+        "progress_pct": 100,
+        "sequence": resampled
+    }
+
+
 def resample_temporal_sequence(
     timestamps: List[float],
     frames: List[np.ndarray],
     target_frames: int = 30
 ) -> np.ndarray:
     """
-    Resamples an irregular or sub-sampled stream of (timestamp, 162-dim) frames
-    into a standardized (target_frames, 162) sequence matching the training distribution (30 FPS, 1.0s).
-    - If already target_frames without timestamps, returns directly as float32 array.
-    - If timestamps exist, performs monotonic linear interpolation across time.
-    - Never generates zero-filled frames.
+    Standardizes a sequence of landmarks into (target_frames, 162).
+    Slices the trailing 1.0-second window if timestamps span > 1.0s,
+    preventing over-compression of longer streams.
+    Never manufactures motion or inserts zero-filled frames.
     """
     N = len(frames)
     if N == 0:
         return np.zeros((target_frames, 162), dtype=np.float32)
     if N == 1:
         return np.repeat(frames[0][np.newaxis, :], target_frames, axis=0)
+
+    # If timestamps provided and span > 1.0s, extract the 1.0s window
+    if len(timestamps) == N and N >= 2:
+        t_arr = np.array(timestamps, dtype=np.float64)
+        t_now = t_arr[-1]
+        valid_indices = [i for i in range(N) if t_arr[i] >= (t_now - 1.0)]
+        if len(valid_indices) >= 2:
+            frames = [frames[i] for i in valid_indices]
+            timestamps = [timestamps[i] for i in valid_indices]
+            N = len(frames)
 
     data_matrix = np.array(frames, dtype=np.float32)
     if len(timestamps) != N:
@@ -301,7 +429,7 @@ class LiveSignFrameProcessor:
         self.sign_adapter = sign_adapter if sign_adapter is not None else SignLanguageAdapter()
 
         self.sessions: Dict[str, SessionInferenceState] = {}
-        self.sessions_lock = threading.Lock()
+        self.sessions_lock = threading.RLock()
         self.session_ttl_sec = session_ttl_sec
         self.frame_count = 0
         self.confusion_delay_sec = 2.0  # Increased delay time before shifting to MCP
@@ -345,11 +473,13 @@ class LiveSignFrameProcessor:
         with self.sessions_lock:
             if session_id is None:
                 for sess in self.sessions.values():
+                    sess.observations.clear()
                     sess.frame_buffer.clear()
                     sess.timestamps.clear()
             else:
                 sid = str(session_id or "default")
                 if sid in self.sessions:
+                    self.sessions[sid].observations.clear()
                     self.sessions[sid].frame_buffer.clear()
                     self.sessions[sid].timestamps.clear()
 
@@ -370,6 +500,15 @@ class LiveSignFrameProcessor:
         else:
             sess = self.get_session_state(session_id)
             sess.reset()
+            if session_id == "default":
+                self.stabilizer.reset()
+                self.composer.clear()
+                self.last_confirmed_letter = ""
+                self.last_confirmed_word = ""
+                self.prev_wrist = None
+                self.motion_history.clear()
+                self.ambiguity_counter = 0
+                self.ambiguity_start_time = 0.0
 
     def _get_finger_states(self, landmarks) -> Tuple[bool, bool, bool, bool, bool]:
         """Calculates extension of (thumb, index, middle, ring, pinky)."""
@@ -649,11 +788,13 @@ class LiveSignFrameProcessor:
         frame_162 = None
         target_roi = [float(r) for r in roi] if (roi and len(roi) == 4) else [0.15, 0.08, 0.85, 0.92]
         is_synthetic_test = False
+        extraction_source = "mediapipe_image"
 
         if landmarks_162 is not None and len(landmarks_162) == 162:
             frame_162 = np.array(landmarks_162, dtype=np.float32)
             hand_landmarks = True
             hand_bbox = [80, 60, 240, 220]
+            extraction_source = "test_injected_fixture"
         else:
             # 1. Decode base64 JPEG image
             try:
@@ -742,13 +883,17 @@ class LiveSignFrameProcessor:
                 x2 = min(w, x1 + size)
                 y2 = min(h, y1 + size)
                 hand_bbox = (x1, y1, x2, y2)
+                extraction_source = "contour_fallback"
 
         # Strict Target Box & Face Rejection: When hand is not inside box, return IDLE / OUT_OF_ROI
         if hand_bbox is None:
-            self.stabilizer.reset()
-            self.clear_session_buffer(session_id)
-            self.ambiguity_counter = 0
-            self.ambiguity_start_time = 0.0
+            with session.lock:
+                session.stabilizer.reset()
+                session.observations.clear()
+                session.frame_buffer.clear()
+                session.timestamps.clear()
+                session.ambiguity_counter = 0
+                session.ambiguity_start_time = 0.0
             display_msg = "Hand detected outside box! Move hand inside the target box ✋" if hand_outside_roi else "Bring hand inside the fixed guide box ✋"
             gloss_msg = "Move hand inside the highlighted box on camera" if hand_outside_roi else "Position your hand inside the highlighted box on camera"
             return {
@@ -763,10 +908,14 @@ class LiveSignFrameProcessor:
                 "display_text": display_msg,
                 "gloss": gloss_msg,
                 "english_text": "",
-                "confidence": 0.0,
+                "confidence": None,
+                "raw_confidence": None,
+                "calibrated_confidence": None,
                 "progress": "0/30",
+                "progress_pct": 0,
                 "hand_bbox": None,
                 "status": "OUT_OF_ROI" if hand_outside_roi else "IDLE",
+                "extraction_source": extraction_source,
                 "is_committed": False,
                 "is_confirmed": False,
                 "latency_ms": round((time.time() - t0) * 1000, 2)
@@ -868,10 +1017,13 @@ class LiveSignFrameProcessor:
                         "resolver_assisted": bool(mcp_res.get("resolver_assisted", True))
                     }
 
-                confirmed_letter, votes, req_votes = self.stabilizer.update(final_letter, final_conf)
-                if confirmed_letter and confirmed_letter != self.last_confirmed_letter:
-                    self.last_confirmed_letter = confirmed_letter
-                    self.composer.add_letter(confirmed_letter)
+                confirmed_letter, votes, req_votes = session.stabilizer.update(final_letter, final_conf)
+                if confirmed_letter and confirmed_letter != session.last_confirmed_letter:
+                    session.last_confirmed_letter = confirmed_letter
+                    session.composer.add_letter(confirmed_letter)
+
+                self.stabilizer.last_label = confirmed_letter or final_letter
+                self.composer.text = session.composer.text
 
                 unified_translation = {
                     "source_language": "BdSL",
@@ -900,10 +1052,11 @@ class LiveSignFrameProcessor:
                     "is_committed": bool(confirmed_letter),
                     "is_confirmed": bool(confirmed_letter),
                     "stable_letter": confirmed_letter or final_letter,
-                    "composed_text": self.composer.text,
+                    "composed_text": session.composer.text,
                     "consensus_progress": f"{votes}/{req_votes}",
                     "progress": "30/30",
                     "progress_pct": 100,
+                    "extraction_source": extraction_source,
                     "hand_bbox": [int(v) for v in hand_bbox],
                     "engine_info": engine_info,
                     "latency_ms": round((time.time() - t0) * 1000, 2)
@@ -930,8 +1083,9 @@ class LiveSignFrameProcessor:
                     "probabilities": None,
                     "is_committed": False,
                     "is_confirmed": False,
-                    "progress": f"{len(session.frame_buffer)}/30",
-                    "progress_pct": int((len(session.frame_buffer) / 30.0) * 100),
+                    "progress": f"{min(30, len(session.observations))}/30",
+                    "progress_pct": int((min(30, len(session.observations)) / 30.0) * 100),
+                    "extraction_source": extraction_source,
                     "hand_bbox": None,
                     "engine_info": {
                         "engine": "IDLE",
@@ -945,12 +1099,37 @@ class LiveSignFrameProcessor:
                 }
 
             with session.lock:
-                session.frame_buffer.append(frame_162)
-                session.timestamps.append(cur_timestamp)
-                buf_len = len(session.frame_buffer)
+                session.add_observation(cur_timestamp, frame_162)
 
-                if buf_len < 30:
-                    pct = int((buf_len / 30.0) * 100)
+                temporal_res = extract_one_second_temporal_sequence(
+                    list(session.observations),
+                    target_window_sec=1.0,
+                    min_duration_sec=0.95,
+                    min_observations=10,
+                    max_gap_sec=0.40,
+                    target_frames=30
+                )
+
+                if temporal_res["status"] != "READY":
+                    reason = temporal_res.get("reason", "BUFFERING")
+                    pct = temporal_res.get("progress_pct", 0)
+                    cnt = temporal_res.get("count", len(session.observations))
+                    dur = temporal_res.get("duration", 0.0)
+
+                    if reason == "TOO_SPARSE":
+                        msg = f"Camera sampling too sparse ({cnt} frames in {dur:.2f}s). Need >= 10 FPS."
+                    elif reason == "DISCONTINUOUS":
+                        msg = "Temporal discontinuity detected. Resetting sequence buffer."
+                        if len(session.observations) > 1:
+                            session.observations.clear()
+                            session.frame_buffer.clear()
+                            session.timestamps.clear()
+                            session.add_observation(cur_timestamp, frame_162)
+                    elif reason == "INCOMPLETE":
+                        msg = f"Collecting BdSL sequence... ({cnt} frames, {dur:.2f}s/1.00s)"
+                    else:
+                        msg = f"Buffering BdSL sequence... ({cnt}/30 frames)"
+
                     return {
                         "success": True,
                         "hand_detected": True,
@@ -959,9 +1138,10 @@ class LiveSignFrameProcessor:
                         "language_mode": "bdsl",
                         "model_name": model_display_name,
                         "status": "BUFFERING",
+                        "buffering_reason": reason,
                         "label": "BUFFERING",
-                        "display_text": f"Collecting frames... ({buf_len}/30)",
-                        "gloss": f"Buffering BdSL sequence: {buf_len}/30 frames",
+                        "display_text": msg,
+                        "gloss": f"Buffering BdSL sequence: {cnt} frames ({dur:.2f}s)",
                         "english_text": "",
                         "confidence": None,
                         "raw_confidence": None,
@@ -969,48 +1149,55 @@ class LiveSignFrameProcessor:
                         "probabilities": None,
                         "is_committed": False,
                         "is_confirmed": False,
-                        "progress": f"{buf_len}/30",
+                        "progress": f"{min(30, cnt)}/30",
                         "progress_pct": pct,
+                        "extraction_source": extraction_source,
                         "hand_bbox": [int(v) for v in hand_bbox] if hand_bbox else None,
                         "engine_info": {
                             "engine": "BUFFERING",
                             "source": "BdSL Temporal Frame Buffer",
                             "is_fallback": False,
                             "confidence": None,
-                            "badge": f"Buffering ({buf_len}/30)",
-                            "notes": f"Collecting 30 consecutive frames for temporal sequence analysis ({buf_len}/30 frames ready)."
+                            "badge": f"Buffering ({min(30, cnt)}/30)",
+                            "notes": msg
                         },
                         "latency_ms": round((time.time() - t0) * 1000, 2)
                     }
 
-                # 30 Frames Ready: Perform Genuine BdSL Temporal Inference
-                seq_arr = resample_temporal_sequence(
-                    list(session.timestamps),
-                    list(session.frame_buffer),
-                    target_frames=30
-                )
+                # 30-Frame 1.0-Second Sequence Ready: Perform Genuine BdSL Temporal Inference
+                seq_arr = temporal_res["sequence"]
                 pred = self.sign_adapter.predict_sequence(
                     seq_arr,
                     language_mode="bdsl",
                     session_history=session.debounce_history
                 )
                 final_word = pred.get("label", "UNKNOWN")
-                cal_conf = pred.get("calibrated_confidence") or pred.get("engine_info", {}).get("calibrated_confidence")
-                # Never allow uncalibrated predictions to confirm!
-                confirmed_word, votes, req_votes = session.stabilizer.update(
-                    final_word, cal_conf, allow_uncalibrated=False
-                )
+                raw_conf = pred.get("raw_confidence")
+                cal_conf = pred.get("calibrated_confidence")
+                is_committed = bool(pred.get("is_committed", False))
+                is_confirmed = bool(pred.get("is_confirmed", False))
+                pred_status = pred.get("status", "DEBOUNCING")
 
-                if confirmed_word and confirmed_word != session.last_confirmed_word and confirmed_word not in ("UNKNOWN", "UNAVAILABLE", "ERROR"):
-                    session.last_confirmed_word = confirmed_word
-                    session.composer.add_word(confirmed_word)
+                # Strictly enforce adapter authorization result:
+                # Never promote DEBOUNCING/REJECTED/LOW_CONFIDENCE/UNAVAILABLE/ERROR to CONFIRMED independently!
+                if pred_status in ("UNAVAILABLE", "ERROR", "REJECTED", "LOW_CONFIDENCE"):
+                    status_str = pred_status
+                    confirmed_word = ""
+                    session.last_confirmed_word = ""
+                elif is_committed and is_confirmed and final_word not in ("UNKNOWN", "UNAVAILABLE", "ERROR", "REJECTED", "LOW_CONFIDENCE"):
+                    status_str = "CONFIRMED"
+                    confirmed_word = final_word
+                    if confirmed_word != session.last_confirmed_word:
+                        session.last_confirmed_word = confirmed_word
+                        session.composer.add_word(confirmed_word)
+                else:
+                    status_str = "DEBOUNCING"
+                    confirmed_word = ""
+                    is_committed = False
+                    is_confirmed = False
 
                 self.stabilizer.last_label = confirmed_word or final_word
                 self.composer.text = session.composer.text
-
-                status_str = pred.get("status", "PREDICTING")
-                if status_str not in ("REJECTED", "LOW_CONFIDENCE", "UNAVAILABLE", "ERROR"):
-                    status_str = "CONFIRMED" if confirmed_word else "PREDICTING"
 
                 return {
                     "success": True,
@@ -1032,17 +1219,18 @@ class LiveSignFrameProcessor:
                         "english_text": pred.get("english_text", final_word),
                         "speech_ready": True
                     }),
-                    "confidence": pred.get("confidence"),
-                    "raw_confidence": pred.get("engine_info", {}).get("raw_confidence"),
-                    "calibrated_confidence": pred.get("engine_info", {}).get("calibrated_confidence"),
+                    "confidence": cal_conf if cal_conf is not None else None,
+                    "raw_confidence": raw_conf,
+                    "calibrated_confidence": cal_conf,
                     "status": status_str,
-                    "is_committed": bool(confirmed_word),
-                    "is_confirmed": bool(confirmed_word),
+                    "is_committed": is_committed,
+                    "is_confirmed": is_confirmed,
                     "stable_letter": final_word,
                     "composed_text": session.composer.text,
-                    "consensus_progress": f"{votes}/{req_votes}",
+                    "consensus_progress": pred.get("consensus_progress", "0/3"),
                     "progress": "30/30",
                     "progress_pct": 100,
+                    "extraction_source": extraction_source,
                     "hand_bbox": [int(v) for v in hand_bbox] if hand_bbox else None,
                     "engine_info": pred.get("engine_info"),
                     "probabilities": pred.get("probabilities"),
@@ -1078,7 +1266,7 @@ class LiveSignFrameProcessor:
                 gloss_hint=gloss_str
             )
 
-            confirmed_word, votes, req_votes = self.stabilizer.update(final_word, raw_conf)
+            confirmed_word, votes, req_votes = session.stabilizer.update(final_word, raw_conf)
             if is_synthetic_test:
                 confirmed_word = final_word
             analysis_progress = min(1.0, votes / req_votes)
@@ -1108,13 +1296,21 @@ class LiveSignFrameProcessor:
                     "is_committed": False,
                     "is_confirmed": False,
                     "stable_letter": "",
-                    "composed_text": self.composer.text,
+                    "composed_text": session.composer.text,
                     "consensus_progress": f"{votes}/{req_votes}",
+                    "extraction_source": extraction_source,
                     "hand_bbox": [int(v) for v in hand_bbox],
                     "engine_info": engine_info,
                     "probabilities": probs,
                     "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
+
+            if confirmed_word and confirmed_word != session.last_confirmed_word:
+                session.last_confirmed_word = confirmed_word
+                session.composer.add_word(confirmed_word)
+
+            self.stabilizer.last_label = confirmed_word or final_word
+            self.composer.text = session.composer.text
 
             # DECISION CONFIRMED!
             unified_translation = {
@@ -1146,8 +1342,9 @@ class LiveSignFrameProcessor:
                 "is_confirmed": True,
                 "analysis_pct": 100,
                 "stable_letter": final_word,
-                "composed_text": self.composer.text,
+                "composed_text": session.composer.text,
                 "consensus_progress": f"{votes}/{req_votes}",
+                "extraction_source": extraction_source,
                 "hand_bbox": [int(v) for v in hand_bbox],
                 "engine_info": engine_info,
                 "probabilities": probs,
@@ -1177,7 +1374,7 @@ class LiveSignFrameProcessor:
             }
             final_word = sign_label
 
-            confirmed_word, votes, req_votes = self.stabilizer.update(final_word, None, allow_uncalibrated=True)
+            confirmed_word, votes, req_votes = session.stabilizer.update(final_word, None, allow_uncalibrated=True)
             if is_synthetic_test:
                 confirmed_word = final_word
             analysis_progress = min(1.0, votes / req_votes)
@@ -1206,13 +1403,21 @@ class LiveSignFrameProcessor:
                     "is_committed": False,
                     "is_confirmed": False,
                     "stable_letter": "",
-                    "composed_text": self.composer.text,
+                    "composed_text": session.composer.text,
                     "consensus_progress": f"{votes}/{req_votes}",
+                    "extraction_source": extraction_source,
                     "hand_bbox": [int(v) for v in hand_bbox],
                     "engine_info": engine_info,
                     "probabilities": None,
                     "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
+
+            if confirmed_word and confirmed_word != session.last_confirmed_word:
+                session.last_confirmed_word = confirmed_word
+                session.composer.add_word(confirmed_word)
+
+            self.stabilizer.last_label = confirmed_word or final_word
+            self.composer.text = session.composer.text
 
             unified_translation = {
                 "source_language": "ASL",
@@ -1243,8 +1448,9 @@ class LiveSignFrameProcessor:
                 "is_confirmed": True,
                 "analysis_pct": 100,
                 "stable_letter": final_word,
-                "composed_text": self.composer.text,
+                "composed_text": session.composer.text,
                 "consensus_progress": f"{votes}/{req_votes}",
+                "extraction_source": extraction_source,
                 "hand_bbox": [int(v) for v in hand_bbox],
                 "engine_info": engine_info,
                 "probabilities": None,
@@ -1254,9 +1460,9 @@ class LiveSignFrameProcessor:
         # If in expressions or sentence mode and no gesture was matched:
         # DO NOT fall through to the 24-class letter CNN! Hand is waiting / READY!
         if mode != "fingerspell" and not is_synthetic_test:
-            self.stabilizer.update(None, 0.0)
-            self.ambiguity_counter = 0
-            self.ambiguity_start_time = 0.0
+            session.stabilizer.update(None, 0.0)
+            session.ambiguity_counter = 0
+            session.ambiguity_start_time = 0.0
             return {
                 "success": True,
                 "hand_detected": True,
@@ -1271,6 +1477,7 @@ class LiveSignFrameProcessor:
                 "confidence": 0.0,
                 "hand_bbox": [int(v) for v in hand_bbox],
                 "status": "READY",
+                "extraction_source": extraction_source,
                 "is_committed": False,
                 "is_confirmed": False,
                 "latency_ms": round((time.time() - t0) * 1000, 2)
@@ -1293,6 +1500,7 @@ class LiveSignFrameProcessor:
                 "confidence": 0.0,
                 "hand_bbox": list(hand_bbox),
                 "status": "IDLE",
+                "extraction_source": extraction_source,
                 "is_committed": False,
                 "is_confirmed": False,
                 "latency_ms": round((time.time() - t0) * 1000, 2)
@@ -1320,8 +1528,9 @@ class LiveSignFrameProcessor:
                 "is_committed": False,
                 "is_confirmed": False,
                 "stable_letter": "",
-                "composed_text": self.composer.text,
+                "composed_text": session.composer.text,
                 "consensus_progress": "0/12",
+                "extraction_source": extraction_source,
                 "hand_bbox": [int(v) for v in hand_bbox],
                 "engine_info": {"engine": "SignFrame AI CNN", "notes": "Hand shape transitioning."},
                 "probabilities": probs,
@@ -1340,7 +1549,7 @@ class LiveSignFrameProcessor:
         )
 
         # Prediction Stabilization (Analysis phase verification)
-        confirmed_letter, votes, req_votes = self.stabilizer.update(final_letter, raw_conf)
+        confirmed_letter, votes, req_votes = session.stabilizer.update(final_letter, raw_conf)
         if is_synthetic_test:
             confirmed_letter = final_letter
         analysis_progress = min(1.0, votes / req_votes)
@@ -1369,17 +1578,21 @@ class LiveSignFrameProcessor:
                 "is_committed": False,
                 "is_confirmed": False,
                 "stable_letter": "",
-                "composed_text": self.composer.text,
+                "composed_text": session.composer.text,
                 "consensus_progress": f"{votes}/{req_votes}",
+                "extraction_source": extraction_source,
                 "hand_bbox": [int(v) for v in hand_bbox],
                 "engine_info": engine_info,
                 "probabilities": probs,
                 "latency_ms": round((time.time() - t0) * 1000, 2)
             }
 
-        if confirmed_letter and confirmed_letter != self.last_confirmed_letter:
-            self.last_confirmed_letter = confirmed_letter
-            self.composer.append_letter(confirmed_letter)
+        if confirmed_letter and confirmed_letter != session.last_confirmed_letter:
+            session.last_confirmed_letter = confirmed_letter
+            session.composer.append_letter(confirmed_letter)
+
+        self.stabilizer.last_label = confirmed_letter or final_letter
+        self.composer.text = session.composer.text
 
         english_letter_text = f"Letter {final_letter}"
         unified_translation = {
@@ -1411,8 +1624,9 @@ class LiveSignFrameProcessor:
             "is_confirmed": True,
             "analysis_pct": 100,
             "stable_letter": confirmed_letter,
-            "composed_text": self.composer.text,
+            "composed_text": session.composer.text,
             "consensus_progress": f"{votes}/{req_votes}",
+            "extraction_source": extraction_source,
             "hand_bbox": [int(v) for v in hand_bbox],
             "engine_info": engine_info,
             "probabilities": probs,

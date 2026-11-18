@@ -1597,7 +1597,7 @@ var SignPage = window.SignPage = window.TransifySign = {
       } finally {
         this.isProcessingFrame = false;
       }
-    }, 200);
+    }, 33); // Target ~30 FPS (33ms) matching 30 FPS training data
   },
 
   drawCanvasFeedback() {

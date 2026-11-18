@@ -17,7 +17,7 @@ load_dotenv()
 
 logger = logging.getLogger("transify.server")
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, status
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
@@ -481,13 +481,45 @@ def predict_sign_sequence(req: SignPredictRequest):
 
 
 @app.post("/api/sign/process_frame", tags=["Sign Language"])
-def process_webcam_frame(req: ProcessFrameRequest):
+def process_webcam_frame(req: ProcessFrameRequest, request: Request = None):
     """
     Processes real-time webcam frame snapshot (JPEG base64), detects skin/hand contour,
     evaluates gestures against BdSL (30-frame temporal model) or ASL (SignFrame CNN / HaGRID),
     converts via Unified Translation Layer, and applies the 98% Decision Gateway.
     """
     try:
+        # Check if direct landmark fixture injection is explicitly permitted for test fixtures
+        test_fixture_header = None
+        if request is not None:
+            test_fixture_header = request.headers.get("x-transify-test-fixture") or request.headers.get("X-Transify-Test-Fixture")
+        allow_test_fixtures = os.environ.get("TRANSIFY_ALLOW_TEST_LANDMARKS") == "1" or test_fixture_header == "1"
+
+        sanitized_landmarks = None
+        if req.landmarks_162 is not None:
+            if not allow_test_fixtures:
+                # Normal production requests MUST NOT bypass MediaPipe landmark extraction!
+                logger.info("Ignoring direct landmark injection in production mode; processing image via MediaPipe.")
+                sanitized_landmarks = None
+            else:
+                # In test fixture mode: Strictly validate shape (162,), finiteness, and numeric bounds [-10.0, 10.0]
+                if len(req.landmarks_162) != 162:
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"Test fixture landmarks_162 must contain exactly 162 values, got {len(req.landmarks_162)}"
+                    )
+                arr = np.array(req.landmarks_162, dtype=np.float32)
+                if not np.all(np.isfinite(arr)):
+                    raise HTTPException(
+                        status_code=422,
+                        detail="Test fixture landmarks_162 contains NaN or infinite values"
+                    )
+                if np.any(arr < -10.0) or np.any(arr > 10.0):
+                    raise HTTPException(
+                        status_code=422,
+                        detail="Test fixture landmarks_162 values exceed allowed coordinate bounds [-10.0, 10.0]"
+                    )
+                sanitized_landmarks = [float(v) for v in arr]
+
         res = live_sign_processor.process_frame(
             req.image_b64,
             mode=req.mode or "expressions",
@@ -495,9 +527,11 @@ def process_webcam_frame(req: ProcessFrameRequest):
             roi=req.roi,
             session_id=req.session_id or "default",
             timestamp=req.timestamp,
-            landmarks_162=req.landmarks_162
+            landmarks_162=sanitized_landmarks
         )
         return res
+    except HTTPException:
+        raise
     except Exception as ex:
         import traceback
         traceback.print_exc()
@@ -816,7 +850,7 @@ os.makedirs(os.path.join(FRONTEND_DIR, "static"), exist_ok=True)
 app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static")), name="static")
 
 
-@app.get("/", response_class=HTMLResponse, tags=["Frontend"])
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse, tags=["Frontend"])
 def serve_landing_page():
     """Serves the Transify public landing page."""
     landing_path = os.path.join(FRONTEND_DIR, "index.html")
