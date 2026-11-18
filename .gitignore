@@ -72,7 +72,6 @@ src/frontend/static/*_inspect.png
 src/frontend/static/*_top*.png
 src/frontend/static/test_*.png
 src/frontend/static/test-*.png
-src/frontend/static/login-welcome-exact.jpg
 src/frontend/static/welcome-card-bg-clean.*
 src/frontend/static/welcome-hero-artwork.jpg
 src/frontend/static/card_braille_left_half.png
