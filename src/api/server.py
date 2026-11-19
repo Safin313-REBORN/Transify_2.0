@@ -20,7 +20,7 @@ logger = logging.getLogger("transify.server")
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, status, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, PlainTextResponse
 try:
     from pydantic import BaseModel, Field, field_validator
     USE_FIELD_VALIDATOR = True
@@ -364,6 +364,18 @@ def get_optional_user(request: Request) -> Optional[Dict[str, Any]]:
     if not token:
         return None
     return get_user_by_session(token)
+
+
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    """Appends hardened HTTP security headers to all responses."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    if is_request_secure(request):
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 
 @app.middleware("http")
@@ -1662,4 +1674,27 @@ def serve_braille_page():
         with open(br_path, "r", encoding="utf-8") as f:
             return f.read()
     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse, tags=["SEO"])
+def serve_robots_txt():
+    """Serves the search engine robots.txt file."""
+    robots_path = os.path.join(FRONTEND_DIR, "robots.txt")
+    if os.path.exists(robots_path):
+        with open(robots_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return "User-agent: *\nAllow: /\nDisallow: /api/\n"
+
+
+@app.get("/sitemap.xml", response_class=Response, tags=["SEO"])
+def serve_sitemap_xml():
+    """Serves the XML sitemap for search engine indexing."""
+    sitemap_path = os.path.join(FRONTEND_DIR, "sitemap.xml")
+    if os.path.exists(sitemap_path):
+        with open(sitemap_path, "r", encoding="utf-8") as f:
+            return Response(content=f.read(), media_type="application/xml")
+    return Response(
+        content='<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
+        media_type="application/xml"
+    )
 

@@ -85,6 +85,7 @@ src/frontend/static/target_crop_exact.png
 *.db-journal
 *.db-wal
 *.db-shm
+backups/
 
 # Android Local Configuration & Build Artifacts
 local.properties
