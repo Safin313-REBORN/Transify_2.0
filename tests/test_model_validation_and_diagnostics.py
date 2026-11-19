@@ -340,3 +340,11 @@ def test_diagnostics_instrumentation_in_app_js():
     assert "jpegEncodeMs" in content
     assert "serverInferenceMs" in content
     assert "metric_nature" in content
+
+
+def test_verify_loso_report_script():
+    from scripts.verify_loso_report import verify_loso_report
+    report_p = "models/sign/bdsl_loso_evaluation_report.json"
+    assert os.path.exists(report_p), f"Report not found: {report_p}"
+    # Validates schema and acceptance thresholds on generated report
+    verify_loso_report(report_p)

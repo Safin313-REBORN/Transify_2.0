@@ -4,7 +4,7 @@
 **Active Branch:** `feat/auth-repair-communication-hub`
 **Target Branch:** `main`
 **Latest Verified Implementation Checkpoint:** `7e966637781223f992597cda8544eee4a3ee10b4` (Phase 15 Verification & Packaging)
-**Latest Verified Documentation Checkpoint:** `7e966637781223f992597cda8544eee4a3ee10b4` (Phase 15 Master Engineering Report)
+**Latest Verified Documentation Checkpoint:** `118dd1b08bb2724e466402a79bf231aa0356ad81` (CI Run #39 — ID `44604051797`, Success)
 **Historical Engineering Checkpoints:** `79928c95e52549bf0ea6547ca677254550ee1382` (Run #38), `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` (Run #36), `dd4c196b6e0276ea392238be372f822014e365e6` (Run #37), `33c2ef78f9249fc4a4dfdbbd24cb2c488b0f51f5` (Run #34), `6f8ff9c8e7d70680189ceb6d6619a095df4ee736` (Run #35), `68be13661b20201a91a463c9693a64bd246d9e95` (Run #33), `738caa3e84e488a930f14b32fd784a4440934aad` (Run #31), `74244a7f0c62bfb5e7be6afd37905ed3c9850cfc` (Run #28)
 **Railway Production URL:** [https://transify20-production.up.railway.app](https://transify20-production.up.railway.app)
 **Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149)
@@ -374,7 +374,7 @@ To institutionalize reproducible model evaluation without slowing down everyday 
 1. **Manifest Integrity Gate:** Verifies the cryptographic SHA-256 of `data/sign/annotations/dataset_master_manifest.csv` (`6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f`) and validates that exactly 1,200 rows across 8 signers and 10 classes are present.
 2. **Pre-Evaluation Checkpoint Baseline:** Hashes production model checkpoints (`models/sign/bdsl_champion_model.pkl` and `scaler.pkl`) prior to running evaluation.
 3. **Isolated Evaluation Output:** Executes `scripts/evaluate_bdsl_loso.py --output_json artifacts/bdsl_loso_evaluation_report.json` with all terminal output logged to `artifacts/loso_evaluation.log`.
-4. **8-Fold Completion & Acceptance Gate:** Verifies that all 8 folds ran to completion ($N_{\text{test}} = 150$, $N_{\text{train}} = 1,050$), and asserts that each fold meets the operational assistive viability threshold ($\ge 0.90$ accuracy).
+4. **8-Fold Completion & Acceptance Gate:** Verifies that all 8 folds ran to completion via automated verification script `scripts/verify_loso_report.py` ($N_{\text{test}} = 150$, $N_{\text{train}} = 1,050$), and asserts that each fold meets the operational assistive viability threshold ($\ge 0.90$ accuracy).
 5. **Production Checkpoint Preservation Invariant:** Computes post-evaluation SHA-256 hashes of `models/sign/bdsl_champion_model.pkl` and `scaler.pkl` and runs `diff` against the pre-evaluation hashes. Guarantees that the evaluation harness never mutates or overwrites deployed production weights.
 6. **Artifact Packaging & Archival:** Packages `bdsl_loso_evaluation_report.json`, `loso_evaluation.log`, `execution_metadata.json`, and `manifest_checksum.txt` into `transify-bdsl-loso-evaluation` with 30-day retention for auditing.
 

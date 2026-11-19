@@ -70,23 +70,7 @@ jobs:
 
       - name: Verify All 8 Folds Completed and Validate Report Schema
         run: |
-          python -c '
-          import json, sys
-          with open("artifacts/bdsl_loso_evaluation_report.json") as f:
-              d = json.load(f)
-          folds = d.get("per_signer_loso_folds", [])
-          assert len(folds) == 8, f"Expected 8 folds, got {len(folds)}"
-          for f in folds:
-              assert f["test_samples"] == 150
-              assert f["train_samples"] == 1050
-              assert f["accuracy"] >= 0.90, f"Fold {f[\"held_out_signer\"]} accuracy below threshold: {f[\"accuracy\"]}"
-          summary = d.get("training_procedure_loso_summary", {})
-          print(f"Mean Accuracy: {summary.get(\"mean_accuracy\"):.4f}")
-          print(f"Mean Macro F1: {summary.get(\"mean_macro_f1\"):.4f}")
-          print(f"Mean Calibrated Brier: {summary.get(\"mean_calibrated_brier\"):.4f}")
-          print(f"Mean Calibrated ECE: {summary.get(\"mean_calibrated_top_label_ece\"):.4f}")
-          print("[PASS] All 8 LOSO folds verified successfully.")
-          '
+          python scripts/verify_loso_report.py artifacts/bdsl_loso_evaluation_report.json
 
       - name: Verify Production Checkpoints Were Not Overwritten
         run: |
