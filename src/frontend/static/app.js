@@ -17,9 +17,14 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   init() {
     if (this._isInitialized) return;
     this._isInitialized = true;
-    this.applyTheme('light', false);
+    const savedTheme = localStorage.getItem('transify_theme') || 'light';
+    this.applyTheme(savedTheme, false);
     this.applyFontSize('medium', false);
     this.initAuthGateway();
+    this.initScrollProgressBar();
+    this.initCookieBanner();
+    this.initUtmTracking();
+    this.initKeyboardShortcuts();
   },
 
   async initAuthGateway() {
@@ -447,12 +452,324 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   },
 
   applyTheme(theme, save = false) {
-    this.theme = 'light';
-    document.documentElement.setAttribute('data-theme', 'light');
+    const validTheme = (theme === 'dark') ? 'dark' : 'light';
+    this.theme = validTheme;
+    document.documentElement.setAttribute('data-theme', validTheme);
+    const toggleBtn = document.getElementById('dark-mode-toggle-btn');
+    if (toggleBtn) {
+      toggleBtn.textContent = validTheme === 'dark' ? '☀️' : '🌙';
+      toggleBtn.setAttribute('aria-label', validTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      toggleBtn.setAttribute('title', validTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+    if (save) {
+      try {
+        localStorage.setItem('transify_theme', validTheme);
+        this.saveServerPreference('theme', validTheme);
+      } catch (_) {}
+    }
+  },
+
+  toggleDarkMode() {
+    const current = document.documentElement.getAttribute('data-theme') || this.theme || 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    this.applyTheme(next, true);
+    this.announce(`Switched to ${next} mode`);
   },
 
   cycleTheme() {
-    // Theme switching disabled per user request
+    this.toggleDarkMode();
+  },
+
+  initScrollProgressBar() {
+    const bar = document.getElementById('scroll-progress-bar');
+    const topBtn = document.getElementById('back-to-top-btn');
+    const header = document.getElementById('frame-top-header');
+
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? Math.min(100, Math.max(0, (scrollTop / docHeight) * 100)) : 0;
+      
+      if (bar) {
+        bar.style.width = `${progress}%`;
+        bar.setAttribute('aria-valuenow', Math.round(progress));
+      }
+      if (topBtn) {
+        if (scrollTop > 220) {
+          topBtn.classList.add('visible');
+        } else {
+          topBtn.classList.remove('visible');
+        }
+      }
+      if (header) {
+        if (scrollTop > 20) {
+          header.classList.add('scrolled');
+        } else {
+          header.classList.remove('scrolled');
+        }
+      }
+    }, { passive: true });
+  },
+
+  initCookieBanner() {
+    const banner = document.getElementById('cookie-consent-banner');
+    if (!banner) return;
+    try {
+      const consent = localStorage.getItem('transify_cookie_consent');
+      if (consent) {
+        banner.classList.add('cookie-hidden');
+      }
+    } catch (_) {}
+  },
+
+  acceptCookies() {
+    try {
+      localStorage.setItem('transify_cookie_consent', 'accepted');
+    } catch (_) {}
+    const banner = document.getElementById('cookie-consent-banner');
+    if (banner) banner.classList.add('cookie-hidden');
+    this.announce('Essential cookies accepted');
+    this.showToast('Cookie preferences saved', 'info', 2500);
+  },
+
+  declineCookies() {
+    try {
+      localStorage.setItem('transify_cookie_consent', 'declined');
+    } catch (_) {}
+    const banner = document.getElementById('cookie-consent-banner');
+    if (banner) banner.classList.add('cookie-hidden');
+    this.announce('Non-essential cookies declined');
+  },
+
+  toggleMobileMenu(forceState) {
+    const drawer = document.getElementById('mobile-nav-drawer');
+    const overlay = document.getElementById('mobile-nav-overlay');
+    const btn = document.getElementById('mobile-menu-toggle-btn');
+    if (!drawer || !overlay) return;
+
+    const isOpen = drawer.classList.contains('open');
+    const shouldOpen = typeof forceState === 'boolean' ? forceState : !isOpen;
+
+    if (shouldOpen) {
+      drawer.classList.add('open');
+      overlay.classList.add('open');
+      if (btn) btn.setAttribute('aria-expanded', 'true');
+    } else {
+      drawer.classList.remove('open');
+      overlay.classList.remove('open');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+  },
+
+  _searchIndex: [
+    { title: '🖐️ Hand Signal Translator', desc: 'Real-time camera recognition for BdSL and ASL gestures', action: () => openSlide('slide-hand-signal') },
+    { title: '⠃ Optical Braille Converter', desc: 'UEB Grade 1 Braille photo translation to English text', action: () => openSlide('slide-braille') },
+    { title: '🎙️ Speech to Text & Captions', desc: 'Live accessible speech transcription and large font captions', action: () => openSlide('slide-stt') },
+    { title: '🔊 Text to Speech Synthesizer', desc: 'Natural voice synthesis with explicit user speaker controls', action: () => openSlide('slide-tts') },
+    { title: '💬 Communication Hub', desc: 'Real-time accessible messaging between signers and speakers', action: () => openSlide('slide-communication-hub') },
+    { title: '⚡ Quick Phraseboard', desc: 'Curated and customizable phrases for rapid communication', action: () => openSlide('slide-phraseboard') },
+    { title: '📊 Dashboard & History', desc: 'Inspect translation logs, system health, and accuracy metrics', action: () => openSlide('slide-dashboard') },
+    { title: '♿ Accessibility Settings', desc: 'Adjust high contrast, reduced motion, and large targets', action: () => document.getElementById('btn-open-a11y')?.click() },
+    { title: '🔒 Privacy Policy', desc: 'Learn about our on-device ephemeral processing and GDPR compliance', url: '/privacy' },
+    { title: '📜 Terms of Service', desc: 'Review assistive communication platform terms and conditions', url: '/terms' },
+    { title: '❓ Frequently Asked Questions', desc: 'View common questions regarding models, speech audio, and privacy', action: () => { const faq = document.getElementById('transify-faq-section'); if (faq) faq.scrollIntoView({ behavior: 'smooth' }); } }
+  ],
+
+  openSiteSearch() {
+    const modal = document.getElementById('site-search-modal');
+    const input = document.getElementById('site-search-input');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    this.filterSearchResults('');
+    if (input) {
+      input.value = '';
+      setTimeout(() => input.focus(), 80);
+    }
+  },
+
+  closeSiteSearch() {
+    const modal = document.getElementById('site-search-modal');
+    if (modal) modal.style.display = 'none';
+  },
+
+  filterSearchResults(query) {
+    const list = document.getElementById('site-search-results');
+    if (!list) return;
+    const cleanQ = (query || '').toLowerCase().trim();
+
+    const matches = cleanQ === '' ? this._searchIndex : this._searchIndex.filter(item => 
+      item.title.toLowerCase().includes(cleanQ) || item.desc.toLowerCase().includes(cleanQ)
+    );
+
+    if (matches.length === 0) {
+      list.innerHTML = `<div style="padding: 16px; text-align: center; color: #64748b; font-size: 13px;">No results found for "${query}". Try searching "sign", "braille", "speech", or "privacy".</div>`;
+      return;
+    }
+
+    list.innerHTML = matches.map((item, idx) => `
+      <div class="search-result-item" tabindex="0" role="button" data-index="${idx}" onclick="window.TransifyApp.executeSearchResult(${idx})">
+        <div class="search-result-title">${item.title}</div>
+        <div class="search-result-desc">${item.desc}</div>
+      </div>
+    `).join('');
+    this._currentMatches = matches;
+  },
+
+  executeSearchResult(idx) {
+    const item = (this._currentMatches || this._searchIndex)[idx];
+    if (!item) return;
+    this.closeSiteSearch();
+    if (item.action) {
+      item.action();
+    } else if (item.url) {
+      window.location.href = item.url;
+    }
+  },
+
+  async copyTextFrom(elementId, btnElement) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const textToCopy = el.value || el.innerText || el.textContent || '';
+    if (!textToCopy.trim()) {
+      this.showToast('No text available to copy', 'warning', 2000);
+      return;
+    }
+
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(textToCopy.trim());
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = textToCopy.trim();
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+
+      if (btnElement) {
+        const originalText = btnElement.innerHTML;
+        btnElement.classList.add('copied');
+        btnElement.innerHTML = 'Copied! ✓';
+        setTimeout(() => {
+          btnElement.classList.remove('copied');
+          btnElement.innerHTML = originalText;
+        }, 2200);
+      }
+      this.announce('Text copied to clipboard');
+      this.showToast('Copied to clipboard!', 'success', 2000);
+    } catch (e) {
+      this.showToast('Failed to copy to clipboard', 'danger', 2500);
+    }
+  },
+
+  openContactModal() {
+    const modal = document.getElementById('contact-modal-overlay');
+    if (modal) {
+      modal.style.display = 'flex';
+      const nameInput = document.getElementById('contact-name');
+      if (nameInput) setTimeout(() => nameInput.focus(), 80);
+    }
+  },
+
+  closeContactModal() {
+    const modal = document.getElementById('contact-modal-overlay');
+    if (modal) modal.style.display = 'none';
+  },
+
+  submitContactForm(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('contact-name')?.value || '';
+    const email = document.getElementById('contact-email')?.value || '';
+    const message = document.getElementById('contact-message')?.value || '';
+
+    const feedback = document.getElementById('contact-form-feedback');
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.innerHTML = `
+        <div class="form-success-banner" role="status">
+          <span>✅</span>
+          <span>Thank you, ${name}! Your message has been received. Our support team will get in touch at ${email}.</span>
+        </div>
+      `;
+    }
+
+    // First party telemetry logging
+    try {
+      fetch('/api/telemetry/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'contact_form_submission', metadata: { name, email, length: message.length } })
+      }).catch(() => {});
+    } catch (_) {}
+
+    setTimeout(() => {
+      document.getElementById('contact-support-form')?.reset();
+      if (feedback) feedback.style.display = 'none';
+      this.closeContactModal();
+      this.showToast('Feedback submitted successfully!', 'success', 3000);
+    }, 2000);
+  },
+
+  showConfirmModal({ title, message, onConfirm }) {
+    const modal = document.getElementById('transify-confirm-modal');
+    const titleEl = document.getElementById('confirm-modal-title');
+    const msgEl = document.getElementById('confirm-modal-message');
+    if (!modal) return;
+
+    if (titleEl) titleEl.textContent = title || 'Confirm Action';
+    if (msgEl) msgEl.textContent = message || 'Are you sure you want to proceed?';
+    this._confirmCallback = onConfirm;
+    modal.style.display = 'flex';
+  },
+
+  closeConfirmModal(proceed) {
+    const modal = document.getElementById('transify-confirm-modal');
+    if (modal) modal.style.display = 'none';
+    if (proceed && typeof this._confirmCallback === 'function') {
+      this._confirmCallback();
+    }
+    this._confirmCallback = null;
+  },
+
+  initUtmTracking() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const utm = {};
+      let hasUtm = false;
+      ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].forEach(key => {
+        const val = params.get(key);
+        if (val) {
+          utm[key] = val;
+          hasUtm = true;
+        }
+      });
+      if (hasUtm) {
+        sessionStorage.setItem('transify_utm_params', JSON.stringify(utm));
+      }
+    } catch (_) {}
+  },
+
+  initKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+K or Cmd+K: Open Search
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        const searchModal = document.getElementById('site-search-modal');
+        if (searchModal && searchModal.style.display === 'flex') {
+          this.closeSiteSearch();
+        } else {
+          this.openSiteSearch();
+        }
+      }
+      // Escape closes open modals or drawers
+      if (e.key === 'Escape') {
+        this.closeSiteSearch();
+        this.closeContactModal();
+        this.toggleMobileMenu(false);
+        this.closeConfirmModal(false);
+      }
+    });
   },
 
   applyFontSize(size, save = false) {

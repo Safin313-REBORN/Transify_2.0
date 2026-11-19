@@ -196,3 +196,104 @@ def test_email_verification_and_client_telemetry(client):
     })
     assert t_resp.status_code == 200
     assert t_resp.json()["status"] == "logged"
+
+
+def test_20_frontend_ux_components_rendered():
+    """Verifies that all 20 requested frontend UX/UI features exist in templates and styles."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+    index_path = os.path.join(frontend_dir, "index.html")
+    styles_path = os.path.join(frontend_dir, "static/styles.css")
+    app_path = os.path.join(frontend_dir, "static/app.js")
+
+    with open(index_path, "r", encoding="utf-8") as f:
+        html = f.read()
+    with open(styles_path, "r", encoding="utf-8") as f:
+        css = f.read()
+    with open(app_path, "r", encoding="utf-8") as f:
+        js = f.read()
+
+    # 1. Dark mode toggle
+    assert 'id="dark-mode-toggle-btn"' in html
+    assert '[data-theme="dark"]' in css
+    assert 'toggleDarkMode' in js
+
+    # 2. Simple cookie banner
+    assert 'id="cookie-consent-banner"' in html
+    assert 'id="btn-accept-cookies"' in html
+    assert 'acceptCookies' in js
+
+    # 3. Site search
+    assert 'id="site-search-btn"' in html
+    assert 'id="site-search-modal"' in html
+    assert 'openSiteSearch' in js
+
+    # 4. Back to top button
+    assert 'id="back-to-top-btn"' in html
+    assert '.back-to-top-btn' in css
+
+    # 5. Mobile menu
+    assert 'id="mobile-menu-toggle-btn"' in html
+    assert 'id="mobile-nav-drawer"' in html
+    assert 'toggleMobileMenu' in js
+
+    # 6. Loading animations
+    assert 'transify-shimmer' in css or 'transify-pulse' in css or 'loading-shimmer' in css
+
+    # 7. Hover states
+    assert ':hover' in css
+    assert ':focus-visible' in css
+
+    # 8. Scroll progress bar
+    assert 'id="scroll-progress-bar"' in html
+    assert '.scroll-progress-bar' in css
+    assert 'initScrollProgressBar' in js
+
+    # 9. Copy button
+    assert 'copy-btn' in html or 'btn-copy' in html
+    assert 'copyTextFrom' in js
+
+    # 10. Print stylesheet
+    assert '@media print' in css
+
+    # 11. Sticky header
+    assert 'sticky-header' in html
+    assert '.sticky-header' in css
+
+    # 12. Skip to content link
+    assert 'class="skip-link"' in html
+    assert 'id="main-content"' in html
+
+    # 13. Password visibility toggle
+    assert 'togglePasswordVisibility' in html
+    assert 'password-toggle' in css or 'togglePasswordVisibility' in js
+
+    # 14. UTM tracking
+    assert 'utm_source' in js
+    assert 'initUtmTracking' in js
+
+    # 15. Form success state
+    assert '.form-success-banner' in css
+    assert 'form-success-banner' in js
+
+    # 16. Form error state
+    assert '.form-error-banner' in css
+    assert '.has-field-error' in css or '.field-error' in css
+
+    # 17. Confirmation modals
+    assert 'id="transify-confirm-modal"' in html
+    assert 'showConfirmModal' in js
+
+    # 18. Last updated date
+    assert 'class="last-updated-text"' in html
+    assert 'Last updated:' in html
+
+    # 19. Expandable FAQ
+    assert 'id="transify-faq-section"' in html
+    assert '<details' in html
+    assert '<summary' in html
+
+    # 20. Floating contact button
+    assert 'id="floating-contact-btn"' in html
+    assert 'id="contact-modal-overlay"' in html
+    assert 'openContactModal' in js
+
