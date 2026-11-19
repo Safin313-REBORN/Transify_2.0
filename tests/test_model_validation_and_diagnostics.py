@@ -121,6 +121,115 @@ def test_hagrid_manifest_disclosures():
     assert "38D" in data["architecture"]
 
 
+def test_production_checkpoint_metric_schema():
+    """Validates that production checkpoint evaluation outputs all 12 raw and calibrated metrics."""
+    report_path = "models/sign/bdsl_loso_evaluation_report.json"
+    with open(report_path, "r") as f:
+        data = json.load(f)
+
+    prod = data["production_model_checkpoint_evaluation"]
+    assert prod["model_architecture"] == "RandomForestClassifier"
+    assert prod["input_feature_dim"] == 972
+    assert list(prod["classes"]) == list(range(10))
+
+    s001 = prod["official_held_out_test_metrics_s001"]
+    expected_keys = [
+        "held_out_signer",
+        "sample_count",
+        "raw_accuracy",
+        "raw_macro_precision",
+        "raw_macro_recall",
+        "raw_macro_f1",
+        "calibrated_accuracy",
+        "calibrated_macro_precision",
+        "calibrated_macro_recall",
+        "calibrated_macro_f1",
+        "raw_brier_score",
+        "calibrated_brier_score",
+        "raw_top_label_ece",
+        "calibrated_top_label_ece",
+        "macro_f1"
+    ]
+    for key in expected_keys:
+        assert key in s001, f"Missing metric key: {key}"
+
+    assert s001["held_out_signer"] == "S001"
+    assert s001["sample_count"] == 150
+    assert s001["raw_accuracy"] == 1.0
+    assert s001["raw_macro_precision"] == 1.0
+    assert s001["raw_macro_recall"] == 1.0
+    assert s001["raw_macro_f1"] == 1.0
+    assert s001["calibrated_accuracy"] == 1.0
+    assert s001["calibrated_macro_precision"] == 1.0
+    assert s001["calibrated_macro_recall"] == 1.0
+    assert s001["calibrated_macro_f1"] == 1.0
+    assert s001["raw_brier_score"] == 0.0135
+    assert s001["calibrated_brier_score"] == 0.0045
+    assert s001["raw_top_label_ece"] == 0.0692
+    assert s001["calibrated_top_label_ece"] == 0.0636
+
+
+def test_kinematic_similarity_distribution_diagnostics():
+    """Validates percentile distributions, overlap analysis, and confusable pair ranking."""
+    report_path = "models/sign/bdsl_loso_evaluation_report.json"
+    with open(report_path, "r") as f:
+        data = json.load(f)
+
+    sim = data["kinematic_similarity_diagnostics"]
+    assert "within_class_cross_signer_similarity" in sim
+    assert "between_class_cross_signer_similarity" in sim
+    assert "distribution_overlap_analysis" in sim
+    assert "most_confusable_class_pairs" in sim
+    assert "per_class_cross_signer_summary" in sim
+
+    within = sim["within_class_cross_signer_similarity"]
+    for p in ["min", "p05", "p25", "median", "mean", "p75", "p95", "max", "std"]:
+        assert p in within
+
+    assert within["min"] == 0.901
+    assert within["median"] == 0.982
+    assert within["mean"] == 0.9762
+    assert within["max"] == 0.9964
+
+    between = sim["between_class_cross_signer_similarity"]
+    for p in ["min", "p05", "p25", "median", "mean", "p75", "p95", "max", "std"]:
+        assert p in between
+
+    assert between["min"] == 0.3157
+    assert between["median"] == 0.7891
+    assert between["mean"] == 0.7655
+    assert between["max"] == 0.9785
+
+    overlap = sim["distribution_overlap_analysis"]
+    assert overlap["overlap_interval_min_to_max"] == [0.901, 0.9785]
+    assert overlap["between_class_pairs_ge_within_class_min_count"] == 145104
+    assert overlap["total_between_class_pairs"] == 1134000
+    assert overlap["between_class_pairs_ge_within_class_min_pct"] == 12.8
+
+    confusable = sim["most_confusable_class_pairs"]
+    assert len(confusable) == 10
+    top_pair = confusable[0]
+    assert top_pair["class_1"] == "HELLO"
+    assert top_pair["class_2"] == "I_DONT_UNDERSTAND"
+    assert top_pair["mean_cosine_similarity"] == 0.9556
+    assert top_pair["max_cosine_similarity"] == 0.9785
+
+
+def test_raw_video_provenance_disclosure():
+    """Validates that raw video provenance is explicitly disclosed as UNVERIFIED IN THIS EXECUTION."""
+    report_path = "models/sign/bdsl_loso_evaluation_report.json"
+    with open(report_path, "r") as f:
+        data = json.load(f)
+
+    audit = data["data_integrity_audit"]
+    assert audit["raw_video_provenance_status"] == "UNVERIFIED_IN_THIS_EXECUTION"
+    assert audit["raw_video_provenance_details"]["audit_status"] == "UNVERIFIED_IN_THIS_EXECUTION"
+    assert audit["raw_video_provenance_details"]["workspace_video_files_found"] == 0
+    assert audit["raw_video_provenance_details"]["missing_workspace_video_files"] == 1200
+    assert audit["missing_landmark_files"] == 0
+    assert audit["total_manifest_rows"] == 1200
+
+
 def test_diagnostics_instrumentation_in_app_js():
     app_js_path = "src/frontend/static/app.js"
     assert os.path.exists(app_js_path), f"app.js missing: {app_js_path}"

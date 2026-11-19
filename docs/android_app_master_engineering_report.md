@@ -3,21 +3,20 @@
 **Repository:** `Safin313-REBORN/Transify_2.0`
 **Active Branch:** `feat/auth-repair-communication-hub`
 **Target Branch:** `main`
-**Latest Verified Implementation Checkpoint:** `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` (CI Run #36 — ID `44587234054`)
-**Previous Implementation Checkpoint:** `33c2ef78f9249fc4a4dfdbbd24cb2c488b0f51f5` (CI Run #34 — ID `44581682901`, Success)
-**Previous Documentation Checkpoint:** `6f8ff9c8e7d70680189ceb6d6619a095df4ee736` (CI Run #35 — ID `44582461020`, Success)
-**Historical Engineering Checkpoints:** `68be13661b20201a91a463c9693a64bd246d9e95` (Run #33), `738caa3e84e488a930f14b32fd784a4440934aad` (Run #31), `74244a7f0c62bfb5e7be6afd37905ed3c9850cfc` (Run #28)
+**Latest Verified Implementation Checkpoint:** `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` (CI Run #36 — ID `44587234054`, Success)
+**Latest Verified Documentation Checkpoint:** `dd4c196b6e0276ea392238be372f822014e365e6` (CI Run #37 — ID `44588195810`, Success)
+**Historical Engineering Checkpoints:** `33c2ef78f9249fc4a4dfdbbd24cb2c488b0f51f5` (Run #34), `6f8ff9c8e7d70680189ceb6d6619a095df4ee736` (Run #35), `68be13661b20201a91a463c9693a64bd246d9e95` (Run #33), `738caa3e84e488a930f14b32fd784a4440934aad` (Run #31), `74244a7f0c62bfb5e7be6afd37905ed3c9850cfc` (Run #28)
 **Railway Production URL:** [https://transify20-production.up.railway.app](https://transify20-production.up.railway.app)
 **Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149)
 **Active Railway Deployment ID:** `a988526c-9357-431d-9539-e2b423098149` (Status: ● Online / Healthy)
 **Date:** November 19, 2026
-**Document Status:** Complete Physical Device Acceptance Audit, Model Metric Audit, Evaluation Integrity & Production Release Validation (Phase 13)
+**Document Status:** Complete Physical Device Acceptance Audit, Model Metric Reconciliation, Reproducibility & Release Quality Gate (Phase 14)
 
 ---
 
 ## 1. Executive Summary
 
-This engineering report delivers the post-deployment device acceptance audit, rigorous model metric evaluation, evaluation methodology remediation, camera performance verification, and final production validation for the **Transify 2.0 Assistive Platform**.
+This engineering report delivers the post-deployment device acceptance audit, rigorous model metric reconciliation, evaluation methodology reproducibility, camera performance verification, and final production validation for the **Transify 2.0 Assistive Platform**.
 
 Transify 2.0 bridges communication for non-verbal, deaf, and blind individuals through a hybrid native Android application container and a Python FastAPI backend deployed on Railway Cloud infrastructure. This validation phase replaces all informal assumptions with empirical, reproducible evidence across test suites, model manifests, browser runs, and live cloud endpoints.
 
@@ -25,11 +24,18 @@ Transify 2.0 bridges communication for non-verbal, deaf, and blind individuals t
 1. **Strict Zero Auto-Audio Policy:** Fully validated across native Android host (`settings.mediaPlaybackRequiresUserGesture = true`, `TransifyTTSBridge.stop()` queue clearing) and web interfaces (auto-speak checkboxes removed). Verified via 5 Playwright production browser tests and 10 Android unit tests.
 2. **Transparent Hardware Status:** Running `adb devices -l` reveals 0 attached physical devices or emulators in the host environment. Android instrumentation test packages are compiled and verified at bytecode level; on-device test execution is transparently classified as **PARTIAL / PENDING PHYSICAL HARDWARE**.
 3. **Realistic Camera & Frame Cadence:** Hardware camera sensor frame rate is unconstrained in media requests and governed by the device Camera2 HAL. Client UI canvas guides have a configured 40 ms timer interval (nominal 25 FPS cadence). Frame submission to `/api/sign/process_frame` operates at an estimated nominal cadence of approximately 5 FPS (~180–220 ms interval), throttled by client JPEG compression, network latency, and server-side MediaPipe landmark inference (~60–120 ms). Browser `requestVideoFrameCallback` frame delivery cadence is instrumented without storing pixel data.
-4. **Model Metrics Audited Against Manifests & Limitations:**
-   - **HaGRID 24-class Gesture Classifier:** 86.83% test accuracy on 2,400 stratified held-out 3D landmark feature vectors (12,000 total augmented samples). Audited discrepancy resolved: feature space is strictly 38-dimensional (the manifest description's "45D" text was a legacy design label). Data leakage disclosed: all samples were augmented from a single canonical pose per class; accuracy measures perturbation tolerance around synthetic templates rather than in-the-wild generalization.
-   - **BdSL 10-class Temporal Model:** Evaluated across a comprehensive 8-fold Leave-One-Signer-Out (LOSO) cross-validation across all 8 signers (1,200 samples total, 150 samples per signer) using fold-local preprocessing pipelines (`Pipeline([StandardScaler, Champion MLP])`) and nested 3-fold cross-validation probability calibration (`CalibratedClassifierCV`). Achieves **100.00% ± 0.00% mean accuracy** and **1.0000 ± 0.0000 macro F1** across all 8 held-out folds, with mean calibrated Brier score of 0.0009 and ECE of 0.0285. Separately saved production checkpoint (`bdsl_champion_model.pkl`) independently evaluated on official held-out test split S001 (100.00% accuracy, 1.0000 macro F1, 0.0009 Brier, 0.0284 ECE). Generalization across the 8 dataset signers under SES01 laboratory conditions is empirically verified; multi-session and cross-environment collection (`SES02+`) is documented with a repeatable protocol.
-   - **Unified English Braille (UEB) Grade 1 OCR:** Evaluated on Document-Independent Partitioning (DOC009, DOC010). Achieves 100% exact cell accuracy (CER=0.0, WER=0.0) on usable held-out documents; 20% rejection rate on blurry/degraded inputs via Image Quality Assessment (IQA); 80% document match rate across all 10 images including rejected inputs.
-5. **Production Cloud Health:** Live deployment `a988526c-9357-431d-9539-e2b423098149` on Railway is healthy, with persistent volume mounted at `/app/data` (64 MB used) and all 6 core endpoints responding with HTTP 200 (latencies 356–501 ms).
+4. **Rigorous Model Metric Reconciliation & Separation:**
+   - **Model A: 8-Fold LOSO Training Procedure (Deep MLP):** Evaluated across an 8-fold Leave-One-Signer-Out cross-validation across all 8 signers (1,200 samples total, 150 samples per signer) using fold-local preprocessing pipelines (`Pipeline([StandardScaler, Champion Deep MLP])`) and nested 3-fold cross-validation probability calibration (`CalibratedClassifierCV`). Achieves **100.00% ± 0.00% mean accuracy** and **1.0000 ± 0.0000 macro F1** across all 8 held-out folds, with mean calibrated Brier score of **0.0009 ± 0.0000** and calibrated ECE of **0.0285 ± 0.0003** (total runtime 262.84s).
+   - **Model B: Saved Production Checkpoint (RandomForestClassifier):** Evaluated separately on official held-out test split `S001` ($N=150$). Reports:
+     - Raw Accuracy: **1.0000 (100.00%)** | Raw Macro Precision: **1.0000** | Raw Macro Recall: **1.0000** | Raw Macro F1: **1.0000**
+     - Calibrated Accuracy: **1.0000 (100.00%)** | Calibrated Macro Precision: **1.0000** | Calibrated Macro Recall: **1.0000** | Calibrated Macro F1: **1.0000**
+     - Raw Brier Score: **0.0135** | Calibrated Brier Score: **0.0045**
+     - Raw Top-Label ECE: **0.0692** | Calibrated Top-Label ECE: **0.0636**
+     - Validation Split (`S006`) Accuracy: **100.00%** | Training Split Accuracy: **100.00%**
+   - **HaGRID 24-class Gesture Classifier:** 86.83% test accuracy on 2,400 stratified held-out 3D landmark feature vectors (12,000 total augmented samples). Feature dimension strictly 38D. Synthetic template leakage disclosed: samples were perturbed from a single canonical pose per class; accuracy measures geometric perturbation tolerance around synthetic templates rather than in-the-wild generalization.
+   - **Unified English Braille (UEB) Grade 1 OCR:** Evaluated on Document-Independent Partitioning (`DOC009`, `DOC010`). Achieves 100% exact cell accuracy (CER=0.0, WER=0.0) on usable held-out documents; 20% rejection rate on blurry/degraded inputs via Image Quality Assessment (IQA); 80% document match rate across all 10 images including rejected inputs.
+5. **Raw Video Provenance Status:** Transparently marked as `UNVERIFIED_IN_THIS_EXECUTION`. The 1,200 $(30, 162)$ processed landmark arrays are fully verified on disk (0 NaNs, 0 missing). The 1,200 raw MP4 source recordings are maintained in an offline archive vault not mounted in this execution container. No original video integrity or consent forms were audited in this environment.
+6. **Production Cloud Health:** Live deployment `a988526c-9357-431d-9539-e2b423098149` on Railway is healthy, with persistent volume mounted at `/app/data` (64 MB used) and all 6 core endpoints responding with HTTP 200 (latencies 356–501 ms).
 
 ---
 
@@ -146,7 +152,7 @@ A dedicated diagnostics module is implemented (`window.TransifySignDiagnostics` 
 - **Data Leakage Assessment:** Because all 500 samples in a class were generated from the **exact same single base canonical pose**, perturbed variants of the same canonical template exist in both the training split (400 samples/class) and test split (100 samples/class). This constitutes synthetic template leakage.
 - **Empirical Limitations:** The reported **86.83% test accuracy** measures the Random Forest's resilience to synthetic geometric noise around the 24 canonical templates; it does **NOT** prove generalization to real human hands with differing morphology, skin tones, or camera angles in the wild. This classifier operates strictly as a geometric prototype.
 
-### B. Bangladesh Sign Language (BdSL) Temporal Model Audit & Multi-Signer LOSO Cross-Validation
+### B. Bangladesh Sign Language (BdSL) Temporal Model Audit & Empirical Reconciliation
 
 #### Data Integrity Audit
 To ensure absolute evaluation validity, an exhaustive data integrity audit was executed across the entire BdSL corpus (`models/sign/bdsl_loso_evaluation_report.json`):
@@ -156,58 +162,109 @@ To ensure absolute evaluation validity, an exhaustive data integrity audit was e
 - **Coordinate Integrity Check:** **0 missing values, 0 NaNs, 0 Infs** across all 1,200 sequences (each sequence: 30 frames $\times$ 162 coordinates = 4,860 values).
 - **Dimension Check:** Every single sequence exactly conforms to $(30, 162)$.
 - **Class Balance Check:** Exactly **15 samples per class** across all 10 classes for each of the 8 signers (150 samples per signer, 120 samples per class overall). Balance ratio: 1.000.
-- **Cross-Signer Landmark Cosine Similarity Diagnostics:**
-  - Within-Class Mean Cosine Similarity: **0.9762** (std: 0.0101, min: 0.9327, max: 0.9964)
-  - Between-Class Mean Cosine Similarity: **0.7655** (std: 0.0987, min: 0.3644, max: 0.9785)
-  - Clear kinematic separation is demonstrated between distinct classes, while high consistency is maintained within identical gesture classes across different individuals.
 
-#### Evaluation Methodology Remediation
-The evaluation methodology was hardened to eliminate any risk of test-set information leakage:
-1. **Fold-Local Preprocessing Pipeline:** Feature scaling (`StandardScaler`) is encapsulated inside `sklearn.pipeline.Pipeline([('scaler', StandardScaler()), ('classifier', build_champion_classifier(random_state=seed))])`. The scaler is fitted exclusively on the 7 training signers ($N=1,050$) in each fold. The held-out test signer ($N=150$) is transformed using the training fold's parameters.
-2. **Probability Calibration Inside Fold:** Platt probability calibration (`CalibratedClassifierCV(estimator=pipeline, method='sigmoid', cv=StratifiedKFold(n_splits=3, shuffle=True, random_state=seed))`) wraps the pipeline. Calibration fits its sigmoid mapping on internal 3-fold stratified splits of the training signers. The held-out test signer is evaluated strictly on the out-of-fold calibrated pipeline.
-3. **Reproducible Seeding:** Explicit random state (`random_state=42`) is passed to both the Deep MLP architecture and the calibration CV splitters.
-4. **Separation of Training Procedure CV vs. Static Production Model Checkpoint:**
-   - **8-Fold LOSO Cross-Validation:** Validates the *training methodology and feature representation*, training 8 fresh models from scratch on 7 signers and evaluating on the 8th held-out signer.
-   - **Production Model Checkpoint:** Evaluates the *actual deployed artifacts* (`models/sign/bdsl_champion_model.pkl`, `scaler.pkl`, `calibrated_classifier.pkl`). Evaluated on the official held-out test split `S001` (150 samples), the validation split `S006` (150 samples), and the training split ($N=900$).
-5. **Expected Calibration Error (ECE) Formulation:** Evaluated using top-label multiclass ECE across 10 equal-width confidence bins ($B_m \subset [0, 1]$):
-   $$\text{ECE} = \sum_{m=1}^{10} \frac{|B_m|}{N} \left| \text{acc}(B_m) - \text{conf}(B_m) \right|$$
+#### Raw Video Provenance Disclosure
+- **Audit Status:** **UNVERIFIED IN THIS EXECUTION**.
+- **Landmark File Verification:** 1,200 of 1,200 $(30, 162)$ NumPy landmark files are present, valid, and fully verified on disk.
+- **Workspace Video Status:** 0 of 1,200 raw MP4 videos exist in the local workspace directory.
+- **Provenance Distinction:** The raw MP4 source recordings are maintained in an offline archive vault that is not mounted in this execution environment. Because the physical storage vault was unmounted, original raw video file readability, checksum hashes, recording metadata, and participant consent records could not be and were not audited in this environment. No consent evidence or raw video integrity has been manufactured.
 
-#### 8-Fold Leave-One-Signer-Out (LOSO) Cross-Validation Results
+#### Kinematic Cosine Similarity Distribution & Overlap Analysis
+Evaluated across all cross-signer pairs ($N_{\text{diff\_signer}} = 1,188,000$ comparisons across 8 signers):
+
+| Metric | Within-Class Cross-Signer | Between-Class Cross-Signer |
+| :--- | :---: | :---: |
+| **Minimum** | 0.9010 | 0.3157 |
+| **5th Percentile (P05)** | 0.9367 | 0.5013 |
+| **25th Percentile (P25)** | 0.9727 | 0.6996 |
+| **Median (P50)** | **0.9820** | **0.7891** |
+| **Mean** | **0.9762** | **0.7655** |
+| **75th Percentile (P75)** | 0.9864 | 0.8590 |
+| **95th Percentile (P95)** | 0.9911 | 0.9317 |
+| **Maximum** | **0.9964** | **0.9785** |
+| **Standard Deviation** | 0.0164 | 0.1291 |
+
+#### Distribution Overlap & Separability Analysis
+- **Overlap Interval:** $[0.9010, 0.9785]$
+- **Between-Class Pairs $\ge$ Within-Class Minimum (0.9010):** **145,104 / 1,134,000 pairs (12.80%)**
+- **Between-Class Pairs $\ge$ Within-Class 5th Percentile (0.9367):** 48,228 / 1,134,000 pairs (4.25%)
+- **Within-Class Pairs $\le$ Between-Class Maximum (0.9785):** 19,900 / 54,000 pairs (36.85%)
+- **Scientific Interpretation:** Although the mean between-class similarity (0.7655) is substantially lower than within-class similarity (0.9762), 12.80% of between-class pairs exhibit cosine similarities that overlap the lower tail of within-class similarities. **Therefore, a lower mean cosine similarity does NOT prove that all gesture classes are linearly separable in raw landmark space.** This empirical finding justifies why non-linear multilayer perceptron decision boundaries and multi-dimensional temporal velocity features are necessary to disambiguate geometrically proximate gesture pairs.
+
+#### Most-Confusable Class Pairs (Cross-Signer Cosine Similarity)
+
+| Rank | Class Pair | Mean Similarity | Median Similarity | P95 Similarity | Max Similarity |
+| :---: | :--- | :---: | :---: | :---: | :---: |
+| **1** | `HELLO` $\leftrightarrow$ `I_DONT_UNDERSTAND` | **0.9556** | 0.9615 | 0.9737 | **0.9785** |
+| **2** | `OKAY` $\leftrightarrow$ `STOP` | **0.9296** | 0.9381 | 0.9521 | **0.9589** |
+| **3** | `OKAY` $\leftrightarrow$ `YES` | **0.9294** | 0.9357 | 0.9628 | **0.9706** |
+| **4** | `I_DONT_UNDERSTAND` $\leftrightarrow$ `THANK_YOU` | **0.9107** | 0.9184 | 0.9311 | **0.9377** |
+| **5** | `NO` $\leftrightarrow$ `PLEASE` | **0.8994** | 0.9075 | 0.9320 | **0.9448** |
+| **6** | `HELLO` $\leftrightarrow$ `THANK_YOU` | **0.8871** | 0.8932 | 0.9188 | **0.9345** |
+| **7** | `I_NEED_HELP` $\leftrightarrow$ `YOURE_WELCOME` | **0.8795** | 0.8841 | 0.9076 | **0.9281** |
+| **8** | `STOP` $\leftrightarrow$ `YES` | **0.8712** | 0.8790 | 0.9015 | **0.9234** |
+| **9** | `PLEASE` $\leftrightarrow$ `THANK_YOU` | **0.8654** | 0.8710 | 0.8942 | **0.9150** |
+| **10** | `NO` $\leftrightarrow$ `OKAY` | **0.8592** | 0.8643 | 0.8891 | **0.9122** |
+
+---
+
+### C. Separate Model Evaluations: LOSO Training Procedure vs. Saved Production Checkpoint
+
+To eliminate ambiguity, the two distinct evaluations are documented independently:
+
+#### 1. Model A: 8-Fold Leave-One-Signer-Out (LOSO) Training Procedure
+- **Model Architecture:** Champion Deep MLP (`hidden_layer_sizes=(384, 192, 96)`, ReLU, Adam, early stopping, L2 $\alpha=10^{-4}$).
+- **Evaluation Purpose:** Validates the *training methodology and feature representation*, training 8 models from scratch with fold-local preprocessing pipelines (`Pipeline([StandardScaler, Deep MLP])`) and nested 3-fold cross-validation probability calibration (`CalibratedClassifierCV(cv=StratifiedKFold(3))`).
+- **Reproducibility Execution:** Recomputed across all 8 folds in **262.84s** using `scripts/evaluate_bdsl_loso.py`.
 
 | Fold | Held-Out Signer | Train Samples | Test Samples | Accuracy | Macro F1 | Calibrated Brier | Calibrated ECE | Fold Train Time |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Fold 1** | `S001` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 1.6s |
-| **Fold 2** | `S002` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 10.9s |
-| **Fold 3** | `S003` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 6.2s |
-| **Fold 4** | `S004` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 6.0s |
-| **Fold 5** | `S005` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0285 | 6.6s |
-| **Fold 6** | `S006` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 5.6s |
-| **Fold 7** | `S007` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0285 | 6.4s |
-| **Fold 8** | `S008` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 5.7s |
-| **Mean ± Std** | **All 8 Signers** | **1,050** | **150** | **100.00% ± 0.00%** | **1.0000 ± 0.0000** | **0.0009 ± 0.0000** | **0.0285 ± 0.0003** | **Total: 169.7s** |
+| **Fold 1** | `S001` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0010 | 0.0293 | 18.7s |
+| **Fold 2** | `S002` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 13.4s |
+| **Fold 3** | `S003` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 6.0s |
+| **Fold 4** | `S004` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 10.0s |
+| **Fold 5** | `S005` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 12.7s |
+| **Fold 6** | `S006` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 7.7s |
+| **Fold 7** | `S007` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0286 | 8.6s |
+| **Fold 8** | `S008` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 9.5s |
+| **Mean ± Std** | **All 8 Signers** | **1,050** | **150** | **100.00% ± 0.00%** | **1.0000 ± 0.0000** | **0.0009 ± 0.0000** | **0.0285 ± 0.0003** | **Total: 262.84s** |
 
-#### Independent Production Model Checkpoint Evaluation
-Evaluating the static serialized production checkpoint (`models/sign/bdsl_champion_model.pkl` + `scaler.pkl` + `calibrated_classifier.pkl`):
-- **Held-Out Test Split (`S001`, $N=150$):**
-  - Accuracy: **100.00%** (150/150 correct)
-  - Macro F1: **1.0000**
-  - Calibrated Brier Score: **0.0009**
-  - Calibrated ECE: **0.0284**
-- **Validation Split (`S006`, $N=150$):**
-  - Accuracy: **100.00%** (150/150 correct)
-- **Training Split (`S002..S005, S007..S008`, $N=900$):**
-  - Accuracy: **100.00%** (900/900 correct)
+#### 2. Model B: Saved Production Checkpoint (Random Forest)
+- **Model Architecture:** `RandomForestClassifier(max_depth=16, n_estimators=150, n_jobs=-1, random_state=42)`
+- **Artifact Files:** `models/sign/bdsl_champion_model.pkl`, `models/sign/scaler.pkl`, `models/sign/calibrated_classifier.pkl`
+- **Evaluation Purpose:** Evaluates the *actual deployed production weights* on the officially designated held-out test split (`S001`), validation split (`S006`), and training split ($N=900$).
+- **Partition Integrity:** Test samples were NEVER used to fit the scaler, train the forest, or fit the sigmoid probability calibrator.
 
-#### Cross-Session & Real-World Generalization Boundaries
+| Metric Type | Metric Name | Official Test Split (`S001`, $N=150$) | Validation Split (`S006`, $N=150$) | Training Split ($N=900$) |
+| :--- | :--- | :---: | :---: | :---: |
+| **Classification Accuracy** | **Raw Accuracy** | **1.0000 (100.00%)** | **1.0000 (100.00%)** | **1.0000 (100.00%)** |
+| | **Calibrated Accuracy** | **1.0000 (100.00%)** | **1.0000 (100.00%)** | **1.0000 (100.00%)** |
+| **Macro Precision** | **Raw Macro Precision** | **1.0000** | — | — |
+| | **Calibrated Macro Precision** | **1.0000** | — | — |
+| **Macro Recall** | **Raw Macro Recall** | **1.0000** | — | — |
+| | **Calibrated Macro Recall** | **1.0000** | — | — |
+| **Macro F1-Score** | **Raw Macro F1** | **1.0000** | — | — |
+| | **Calibrated Macro F1** | **1.0000** | — | — |
+| **Probability Calibration**| **Raw Brier Score** | **0.0135** | — | — |
+| | **Calibrated Brier Score** | **0.0045** | — | — |
+| **Expected Calibration Error**| **Raw Top-Label ECE** | **0.0692** | — | — |
+| | **Calibrated Top-Label ECE** | **0.0636** | — | — |
+
+*Key Finding: Probability calibration with sigmoid Platt scaling substantially improves the Brier score from 0.0135 down to 0.0045 and reduces Expected Calibration Error from 0.0692 down to 0.0636 while preserving 100.00% classification accuracy.*
+
+---
+
+### D. Cross-Session & Real-World Generalization Boundaries
 - **Empirical Scope:** The 100% LOSO accuracy demonstrates that the 972D kinematic representation is invariant across the physical morphological differences of all 8 individuals in the dataset.
 - **Session Uniformity Disclosure:** All 1,200 recordings in the present dataset were captured during a single structured laboratory session (`SES01`) under uniform environmental conditions (640x480 resolution, 30 FPS, uniform lighting, frontal posture). Cross-session variance (fatigue, day-to-day signing speed differences, varied clothing/backgrounds) was not varied across recording days.
 - **Repeatable Protocol for Multi-Session Data Collection (`SES02+`):**
-  To systematically evaluate out-of-distribution temporal variance in subsequent releases:
   1. Recruit 4 additional signers plus 2 existing signers across 3 distinct calendar sessions separated by at least 7 days.
   2. Introduce 3 lighting levels (nominal 300 lux, low 80 lux, high backlight 800 lux) and 2 camera angles ($\pm 20^\circ$ yaw).
   3. Perform Leave-One-Session-Out and Leave-One-Signer-and-Session-Out cross-validation using the same automated evaluation harness (`scripts/evaluate_bdsl_loso.py`).
 
-### C. Unified English Braille (UEB) Grade 1 OCR Champion Audit
+---
+
+### E. Unified English Braille (UEB) Grade 1 OCR Champion Audit
 - **Model Artifact:** `models/braille/braille_champion_model.pkl` (Multi-Output ExtraTrees, 150 trees, `max_depth=16`).
 - **Manifest & Results:** `models/braille/exported/model_manifest.json` and `models/braille/evaluation_results.json`.
 - **Target Standard:** ICEB Rules of Unified English Braille (2024) Grade 1.
@@ -294,12 +351,12 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
 ## 8. Test Execution Metrics & Packaging Summary
 
 ### Test Summary
-- **Backend & Browser Pytest Suite:** **220 passed, 1 warning in 55.72s** (0 failed, 0 skipped).
+- **Backend & Browser Pytest Suite:** **223 passed, 1 warning in 72.28s** (0 failed, 0 skipped).
   - Includes 19 Playwright baseline responsive tests across 4 viewports.
   - Includes 5 Playwright production zero auto-audio browser tests.
-  - Includes 5 automated validation tests for BdSL LOSO methodology, data integrity audit, production model loading, HaGRID disclosures, and diagnostics instrumentation.
-- **Android JVM Unit Tests:** **40 passed, 0 failed, 0 skipped** across 7 test suites (26 actionable tasks executed).
-- **Total Executed Automated Tests:** **260 tests passed (100% pass rate)**.
+  - Includes 8 automated validation tests for BdSL LOSO methodology, data integrity, production checkpoint schema, similarity distributions, raw video provenance, HaGRID disclosures, and diagnostics instrumentation.
+- **Android JVM Unit Tests:** **40 passed, 0 failed, 0 skipped** across 7 test suites (26 actionable tasks executed in 12s).
+- **Total Executed Automated Tests:** **263 tests passed (100% pass rate)**.
 
 ### Build Artifact Inventory
 1. **Transify Android Debug APK:**
@@ -325,12 +382,12 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
 | :--- | :--- | :--- | :--- |
 | **Gate 1: Zero Auto-Audio Policy** | Zero audio on load, route navigation, or model detections without explicit button tap | 5 Playwright tests passed; 10 Android unit tests passed; media playback gestures enforced | **PASS** |
 | **Gate 2: Android JVM Unit Tests** | All native Kotlin unit tests pass | 40 passed, 0 failed, 0 skipped across 7 suites | **PASS** |
-| **Gate 3: Backend & Web Pytest** | Complete pytest regression suite passes | 220 passed, 1 warning, 0 failed, 0 skipped | **PASS** |
+| **Gate 3: Backend & Web Pytest** | Complete pytest regression suite passes | 223 passed, 1 warning, 0 failed, 0 skipped | **PASS** |
 | **Gate 4: Android Test Packaging** | Instrumentation APK compiles cleanly | `app-debug-androidTest.apk` assembled (619 KB) | **PASS** |
 | **Gate 5: Debug APK Packaging** | Android application debug APK compiles cleanly | `app-debug.apk` assembled (6.18 MB) | **PASS** |
 | **Gate 6: API Contract Alignment** | Endpoints match `src/api/server.py` Pydantic schemas | Validated: JSON auth, multipart Braille, JSON TTS directive | **PASS** |
 | **Gate 7: Security & Sandboxing** | Strict WebView sandboxing, exact origin check, secure cookies | Validated: allowFileAccess=false, SameSite=Lax, HttpOnly | **PASS** |
-| **Gate 8: Cloud Deployment** | Backend running and healthy on Railway | 6 live endpoints verified; all models loaded; latency < 650 ms | **PASS** |
+| **Gate 8: Cloud Deployment** | Backend running and healthy on Railway | 6 live endpoints verified; all models loaded; latency < 505 ms | **PASS** |
 | **Gate 9: Physical Device Run** | Execution on physical hardware | `adb devices -l` showed 0 attached devices | **PARTIAL** (Disclosed) |
 | **Gate 10: Camera Sensor Benchmark**| Hardware camera FPS measurement | Unmeasured on hardware; ~5 FPS submission documented | **PARTIAL** (Disclosed) |
 

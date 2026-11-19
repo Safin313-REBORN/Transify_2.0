@@ -1,6 +1,6 @@
 {
   "evaluation_name": "BdSL Multi-Signer Leave-One-Signer-Out (LOSO) Cross-Validation & Production Verification",
-  "timestamp": "2026-11-19 18:15:42 UTC",
+  "timestamp": "2026-11-19 18:55:53 UTC",
   "manifest_path": "data/sign/annotations/dataset_master_manifest.csv",
   "manifest_sha256": "6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f",
   "random_seed": 42,
@@ -31,7 +31,14 @@
     "duplicate_landmark_paths": 0,
     "missing_landmark_files": 0,
     "missing_raw_video_files": 1200,
-    "raw_videos_note": "Raw MP4 videos were preprocessed into 30x162 landmark tensors; raw videos are stored in offline raw vault and omitted from git repository.",
+    "raw_video_provenance_status": "UNVERIFIED_IN_THIS_EXECUTION",
+    "raw_video_provenance_details": {
+      "audit_status": "UNVERIFIED_IN_THIS_EXECUTION",
+      "workspace_video_files_found": 0,
+      "missing_workspace_video_files": 1200,
+      "explanation": "Processed (30, 162) NumPy landmark files are fully committed in the repository (1,200/1,200 verified). The 1,200 raw MP4 source videos are archived in an offline storage vault not mounted in this execution environment. Because the raw storage vault is unmounted, raw video file readability, checksum hashes, recording metadata, and consent form documentation are UNVERIFIED in this execution environment.",
+      "distinction": "Missing workspace files reflect selective repository tracking of lightweight extracted landmark tensors, not proven loss of underlying source recordings."
+    },
     "exact_file_content_duplicates": 0,
     "duplicate_hash_pairs": [],
     "non_finite_coordinates_count": 0,
@@ -61,14 +68,184 @@
   },
   "kinematic_similarity_diagnostics": {
     "within_class_cross_signer_similarity": {
-      "max": 0.9964,
+      "min": 0.901,
+      "p05": 0.9367,
+      "p25": 0.9727,
+      "median": 0.982,
       "mean": 0.9762,
-      "interpretation": "High similarity reflects authentic standardized execution of identical sign language kinematics across all 8 signers."
+      "p75": 0.9864,
+      "p95": 0.9911,
+      "max": 0.9964,
+      "std": 0.0164,
+      "interpretation": "High intra-class kinematic consistency across signers (median 0.9820, mean 0.9762)."
     },
     "between_class_cross_signer_similarity": {
-      "max": 0.9785,
+      "min": 0.3157,
+      "p05": 0.5013,
+      "p25": 0.6996,
+      "median": 0.7891,
       "mean": 0.7655,
-      "interpretation": "Substantially lower similarity confirms strong separability between distinct gesture phrases."
+      "p75": 0.859,
+      "p95": 0.9317,
+      "max": 0.9785,
+      "std": 0.1291,
+      "interpretation": "Lower central tendency (mean 0.7655, median 0.7891) confirms distinct kinematic profiles, but upper tail overlaps within-class minimum."
+    },
+    "distribution_overlap_analysis": {
+      "overlap_interval_min_to_max": [
+        0.901,
+        0.9785
+      ],
+      "between_class_pairs_ge_within_class_min_count": 145104,
+      "total_between_class_pairs": 1134000,
+      "between_class_pairs_ge_within_class_min_pct": 12.8,
+      "between_class_pairs_ge_within_class_p05_pct": 4.25,
+      "within_class_pairs_le_between_class_max_pct": 36.85,
+      "scientific_interpretation": "Although the mean between-class similarity (0.7655) is substantially lower than within-class similarity (0.9762), 12.80% of between-class pairs overlap the within-class range [0.9010, 0.9785]. Therefore, linear separability cannot be assumed from mean separation alone; non-linear MLP decision boundaries and temporal sequence features are required to disambiguate geometrically proximate gesture pairs."
+    },
+    "most_confusable_class_pairs": [
+      {
+        "class_1": "HELLO",
+        "class_2": "I_DONT_UNDERSTAND",
+        "mean_cosine_similarity": 0.9556,
+        "median_cosine_similarity": 0.9615,
+        "p95_cosine_similarity": 0.9737,
+        "max_cosine_similarity": 0.9785
+      },
+      {
+        "class_1": "OKAY",
+        "class_2": "STOP",
+        "mean_cosine_similarity": 0.9296,
+        "median_cosine_similarity": 0.9381,
+        "p95_cosine_similarity": 0.9521,
+        "max_cosine_similarity": 0.9589
+      },
+      {
+        "class_1": "OKAY",
+        "class_2": "YES",
+        "mean_cosine_similarity": 0.9294,
+        "median_cosine_similarity": 0.9357,
+        "p95_cosine_similarity": 0.9628,
+        "max_cosine_similarity": 0.9706
+      },
+      {
+        "class_1": "I_DONT_UNDERSTAND",
+        "class_2": "THANK_YOU",
+        "mean_cosine_similarity": 0.9107,
+        "median_cosine_similarity": 0.9184,
+        "p95_cosine_similarity": 0.9311,
+        "max_cosine_similarity": 0.9377
+      },
+      {
+        "class_1": "NO",
+        "class_2": "PLEASE",
+        "mean_cosine_similarity": 0.8994,
+        "median_cosine_similarity": 0.9075,
+        "p95_cosine_similarity": 0.932,
+        "max_cosine_similarity": 0.9448
+      },
+      {
+        "class_1": "I_NEED_HELP",
+        "class_2": "YOURE_WELCOME",
+        "mean_cosine_similarity": 0.8928,
+        "median_cosine_similarity": 0.8982,
+        "p95_cosine_similarity": 0.9196,
+        "max_cosine_similarity": 0.9254
+      },
+      {
+        "class_1": "PLEASE",
+        "class_2": "YES",
+        "mean_cosine_similarity": 0.8914,
+        "median_cosine_similarity": 0.8979,
+        "p95_cosine_similarity": 0.9221,
+        "max_cosine_similarity": 0.9294
+      },
+      {
+        "class_1": "STOP",
+        "class_2": "YES",
+        "mean_cosine_similarity": 0.8895,
+        "median_cosine_similarity": 0.8961,
+        "p95_cosine_similarity": 0.9288,
+        "max_cosine_similarity": 0.9374
+      },
+      {
+        "class_1": "HELLO",
+        "class_2": "THANK_YOU",
+        "mean_cosine_similarity": 0.877,
+        "median_cosine_similarity": 0.885,
+        "p95_cosine_similarity": 0.9048,
+        "max_cosine_similarity": 0.9121
+      },
+      {
+        "class_1": "NO",
+        "class_2": "OKAY",
+        "mean_cosine_similarity": 0.8752,
+        "median_cosine_similarity": 0.8819,
+        "p95_cosine_similarity": 0.9188,
+        "max_cosine_similarity": 0.9346
+      }
+    ],
+    "per_class_cross_signer_summary": {
+      "HELLO": {
+        "within_class_cross_signer_mean": 0.9845,
+        "highest_cross_signer_confusable_class": "I_DONT_UNDERSTAND",
+        "highest_cross_signer_confusable_mean": 0.9556,
+        "highest_cross_signer_confusable_max": 0.9785
+      },
+      "I_DONT_UNDERSTAND": {
+        "within_class_cross_signer_mean": 0.9815,
+        "highest_cross_signer_confusable_class": "HELLO",
+        "highest_cross_signer_confusable_mean": 0.9556,
+        "highest_cross_signer_confusable_max": 0.9785
+      },
+      "I_NEED_HELP": {
+        "within_class_cross_signer_mean": 0.9737,
+        "highest_cross_signer_confusable_class": "YOURE_WELCOME",
+        "highest_cross_signer_confusable_mean": 0.8928,
+        "highest_cross_signer_confusable_max": 0.9254
+      },
+      "NO": {
+        "within_class_cross_signer_mean": 0.9738,
+        "highest_cross_signer_confusable_class": "PLEASE",
+        "highest_cross_signer_confusable_mean": 0.8994,
+        "highest_cross_signer_confusable_max": 0.9448
+      },
+      "OKAY": {
+        "within_class_cross_signer_mean": 0.9685,
+        "highest_cross_signer_confusable_class": "STOP",
+        "highest_cross_signer_confusable_mean": 0.9296,
+        "highest_cross_signer_confusable_max": 0.9589
+      },
+      "PLEASE": {
+        "within_class_cross_signer_mean": 0.9774,
+        "highest_cross_signer_confusable_class": "NO",
+        "highest_cross_signer_confusable_mean": 0.8994,
+        "highest_cross_signer_confusable_max": 0.9448
+      },
+      "STOP": {
+        "within_class_cross_signer_mean": 0.9735,
+        "highest_cross_signer_confusable_class": "OKAY",
+        "highest_cross_signer_confusable_mean": 0.9296,
+        "highest_cross_signer_confusable_max": 0.9589
+      },
+      "THANK_YOU": {
+        "within_class_cross_signer_mean": 0.9753,
+        "highest_cross_signer_confusable_class": "I_DONT_UNDERSTAND",
+        "highest_cross_signer_confusable_mean": 0.9107,
+        "highest_cross_signer_confusable_max": 0.9377
+      },
+      "YES": {
+        "within_class_cross_signer_mean": 0.9731,
+        "highest_cross_signer_confusable_class": "OKAY",
+        "highest_cross_signer_confusable_mean": 0.9294,
+        "highest_cross_signer_confusable_max": 0.9706
+      },
+      "YOURE_WELCOME": {
+        "within_class_cross_signer_mean": 0.9805,
+        "highest_cross_signer_confusable_class": "I_NEED_HELP",
+        "highest_cross_signer_confusable_mean": 0.8928,
+        "highest_cross_signer_confusable_max": 0.9254
+      }
     }
   },
   "production_model_checkpoint_evaluation": {
@@ -99,11 +276,18 @@
       "held_out_signer": "S001",
       "sample_count": 150,
       "raw_accuracy": 1.0,
-      "macro_f1": 1.0,
+      "raw_macro_precision": 1.0,
+      "raw_macro_recall": 1.0,
+      "raw_macro_f1": 1.0,
+      "calibrated_accuracy": 1.0,
+      "calibrated_macro_precision": 1.0,
+      "calibrated_macro_recall": 1.0,
+      "calibrated_macro_f1": 1.0,
       "raw_brier_score": 0.0135,
-      "raw_top_label_ece": 0.0692,
       "calibrated_brier_score": 0.0045,
-      "calibrated_top_label_ece": 0.0636
+      "raw_top_label_ece": 0.0692,
+      "calibrated_top_label_ece": 0.0636,
+      "macro_f1": 1.0
     },
     "validation_accuracy_s006": 1.0,
     "train_split_accuracy": 1.0,
@@ -161,7 +345,7 @@
     "std_calibrated_top_label_ece": 0.0003,
     "min_accuracy": 1.0,
     "max_accuracy": 1.0,
-    "total_runtime_sec": 169.67
+    "total_runtime_sec": 262.84
   },
   "per_signer_loso_folds": [
     {
@@ -186,8 +370,8 @@
       "top_label_ece_raw": 0.0044,
       "brier_score_calibrated": 0.001,
       "top_label_ece_calibrated": 0.0293,
-      "training_time_sec": 1.17,
-      "calibration_time_sec": 3.98,
+      "training_time_sec": 18.68,
+      "calibration_time_sec": 31.12,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -405,8 +589,8 @@
       "top_label_ece_raw": 0.0006,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 2.35,
-      "calibration_time_sec": 13.25,
+      "training_time_sec": 13.38,
+      "calibration_time_sec": 13.89,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -624,8 +808,8 @@
       "top_label_ece_raw": 0.0005,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0284,
-      "training_time_sec": 6.44,
-      "calibration_time_sec": 17.63,
+      "training_time_sec": 6.03,
+      "calibration_time_sec": 15.06,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -843,8 +1027,8 @@
       "top_label_ece_raw": 0.0003,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 8.46,
-      "calibration_time_sec": 16.29,
+      "training_time_sec": 9.98,
+      "calibration_time_sec": 26.47,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1062,8 +1246,8 @@
       "top_label_ece_raw": 0.0003,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 8.21,
-      "calibration_time_sec": 13.85,
+      "training_time_sec": 12.74,
+      "calibration_time_sec": 20.46,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1281,8 +1465,8 @@
       "top_label_ece_raw": 0.0011,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0284,
-      "training_time_sec": 6.04,
-      "calibration_time_sec": 17.64,
+      "training_time_sec": 7.68,
+      "calibration_time_sec": 23.38,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1500,8 +1684,8 @@
       "top_label_ece_raw": 0.0002,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0286,
-      "training_time_sec": 10.48,
-      "calibration_time_sec": 21.14,
+      "training_time_sec": 8.61,
+      "calibration_time_sec": 19.82,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1719,8 +1903,8 @@
       "top_label_ece_raw": 0.0002,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 5.55,
-      "calibration_time_sec": 15.89,
+      "training_time_sec": 9.5,
+      "calibration_time_sec": 24.39,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
