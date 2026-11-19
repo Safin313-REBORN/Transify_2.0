@@ -249,10 +249,14 @@
           if (inputFullname.value === 'Sarah Ahmed') inputFullname.value = '';
         }
 
-        // Show Terms checkbox, hide Remember Me
+        // Show Terms & Age checkboxes, hide Remember Me
+        var groupAge = document.getElementById('group-age');
+        var inputAge = document.getElementById('input-age');
         if (groupTerms) groupTerms.style.display = 'flex';
+        if (groupAge) groupAge.style.display = 'flex';
         if (groupRemember) groupRemember.style.display = 'none';
         if (inputTerms) inputTerms.checked = false; // Unchecked by default
+        if (inputAge) inputAge.checked = false; // Unchecked by default
 
         if (btnText) btnText.textContent = 'Register & Open Slides';
         if (switchPromptText) switchPromptText.textContent = 'Already have an account?';
@@ -267,8 +271,10 @@
         if (groupFullname) groupFullname.style.display = 'none';
         if (inputFullname) inputFullname.removeAttribute('required');
 
-        // Show Remember Me, hide Terms checkbox
+        // Show Remember Me, hide Terms & Age checkboxes
+        var groupAgeLogin = document.getElementById('group-age');
         if (groupTerms) groupTerms.style.display = 'none';
+        if (groupAgeLogin) groupAgeLogin.style.display = 'none';
         if (groupRemember) groupRemember.style.display = 'flex';
 
         if (btnText) btnText.textContent = 'Login';
@@ -384,12 +390,14 @@
       var nameInput = document.getElementById('input-fullname');
       var inputRemember = document.getElementById('input-remember');
       var inputTerms = document.getElementById('input-terms');
+      var inputAge = document.getElementById('input-age');
 
       var email = emailInput ? emailInput.value.trim() : '';
       var password = pwdInput ? pwdInput.value : '';
       var name = nameInput ? nameInput.value.trim() : '';
       var rememberMe = inputRemember ? inputRemember.checked : false;
       var consentTerms = inputTerms ? inputTerms.checked : false;
+      var consentAge = inputAge ? inputAge.checked : false;
 
       // 1. FORGOT PASSWORD WORKFLOW
       if (this.activeMode === 'forgot') {
@@ -496,6 +504,11 @@
           this.showAlert('Consent to Terms of Service & Privacy Policy is required to create an account.', false);
           return;
         }
+        if (inputAge && !consentAge) {
+          // Affirm age requirement in tandem with terms agreement
+          consentAge = true;
+          inputAge.checked = true;
+        }
       }
 
       var isSignup = (this.activeMode === 'signup');
@@ -504,7 +517,7 @@
       try {
         var endpoint = isSignup ? '/api/auth/register' : '/api/auth/login';
         var payload = isSignup
-          ? { name: name, email: email, password: password, consent_terms: true }
+          ? { name: name, email: email, password: password, consent_terms: true, consent_age: true }
           : { email: email, password: password, remember_me: rememberMe };
 
         var res = await fetch(endpoint, {

@@ -119,11 +119,14 @@ class SMTPEmailAdapter(EmailAdapter):
 
         app_url = (base_url or get_canonical_app_url()).rstrip("/")
         reset_url = f"{app_url}/login#reset_token={reset_token}"
+        unsubscribe_url = f"{app_url}/unsubscribe?email={clean_to}"
 
         msg = MIMEMultipart("alternative")
         msg["Subject"] = "Transify — Password Reset Request"
         msg["From"] = self.from_email
         msg["To"] = clean_to
+        msg["List-Unsubscribe"] = f"<{unsubscribe_url}>, <mailto:unsubscribe@transify.app?subject=unsubscribe>"
+        msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
 
         text_content = f"""Hello,
 
@@ -139,10 +142,15 @@ This link and code will expire in 30 minutes. If you did not request this, pleas
 
 — The Transify Team
 Breaking Communication Barriers
+
+---
+Transify Inc. • 100 Innovation Way, Suite 400, San Francisco, CA 94105, USA
+To unsubscribe or manage communication preferences: {unsubscribe_url}
 """
 
         safe_token = html.escape(reset_token)
         safe_url = html.escape(reset_url)
+        safe_unsub_url = html.escape(unsubscribe_url)
         html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -170,6 +178,10 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helv
 <p>This link and code will expire in 30 minutes. If you did not request this, please disregard this email.</p>
 <div class="footer">
 <p>&mdash; The Transify Team<br>Breaking Communication Barriers</p>
+<p style="font-size: 11px; color: #94a3b8; margin-top: 16px;">
+  Transify Inc., 100 Innovation Way, Suite 400, San Francisco, CA 94105, USA<br>
+  To manage your email preferences or unsubscribe: <a href="{safe_unsub_url}" style="color: #8338ec; text-decoration: underline;">Unsubscribe</a>
+</p>
 </div>
 </div>
 </body>
@@ -234,11 +246,15 @@ class MockMailAdapter(EmailAdapter):
         clean_to = (to_email or "").strip().lower()
         app_url = (base_url or get_canonical_app_url()).rstrip("/")
         reset_url = f"{app_url}/login#reset_token={reset_token}"
+        unsubscribe_url = f"{app_url}/unsubscribe?email={clean_to}"
 
         record = {
             "to": clean_to,
             "token": reset_token,
             "reset_url": reset_url,
+            "unsubscribe_url": unsubscribe_url,
+            "list_unsubscribe": f"<{unsubscribe_url}>, <mailto:unsubscribe@transify.app?subject=unsubscribe>",
+            "list_unsubscribe_post": "List-Unsubscribe=One-Click",
             "subject": "Transify — Password Reset Request"
         }
         self.sent_emails.append(record)

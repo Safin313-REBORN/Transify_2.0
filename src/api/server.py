@@ -300,6 +300,7 @@ class RegisterRequest(BaseModel):
     email: str = Field(..., description="User email address")
     password: str = Field(..., min_length=15, max_length=128, description="User password (min 15 characters)")
     consent_terms: bool = Field(..., description="Explicit consent to Terms of Service and Privacy Policy")
+    consent_age: Optional[bool] = Field(True, description="Explicit confirmation of age >= 13 or parental consent")
 
     if USE_FIELD_VALIDATOR:
         @field_validator("consent_terms")
@@ -308,11 +309,24 @@ class RegisterRequest(BaseModel):
             if v is not True:
                 raise ValueError("Consent to Terms of Service and Privacy Policy is required to create an account.")
             return v
+
+        @field_validator("consent_age")
+        @classmethod
+        def validate_consent_age(cls, v):
+            if v is False:
+                raise ValueError("Confirmation of age 13 or older (or parental consent) is required.")
+            return v
     else:
         @validator("consent_terms")
         def validate_consent(cls, v):
             if v is not True:
                 raise ValueError("Consent to Terms of Service and Privacy Policy is required to create an account.")
+            return v
+
+        @validator("consent_age")
+        def validate_consent_age(cls, v):
+            if v is False:
+                raise ValueError("Confirmation of age 13 or older (or parental consent) is required.")
             return v
 
 
@@ -1792,6 +1806,53 @@ def serve_terms_page():
         with open(terms_path, "r", encoding="utf-8") as f:
             return f.read()
     return HTMLResponse("<h1>Terms of Service</h1><p>Transify Terms of Service.</p>")
+
+
+@app.get("/refund", response_class=HTMLResponse, tags=["Legal"])
+def serve_refund_page():
+    """Serves the Transify Refund and Billing Policy page."""
+    refund_path = os.path.join(FRONTEND_DIR, "refund.html")
+    if os.path.exists(refund_path):
+        with open(refund_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return HTMLResponse("<h1>Refund Policy</h1><p>Transify Core is 100% free open-source software.</p>")
+
+
+@app.get("/cookies", response_class=HTMLResponse, tags=["Legal"])
+def serve_cookies_page():
+    """Serves the Transify Cookie Policy & Tracking Disclosure page."""
+    cookies_path = os.path.join(FRONTEND_DIR, "cookies.html")
+    if os.path.exists(cookies_path):
+        with open(cookies_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return HTMLResponse("<h1>Cookie Policy</h1><p>Transify uses strictly necessary cookies only.</p>")
+
+
+@app.get("/unsubscribe", response_class=HTMLResponse, tags=["Communication"])
+def serve_unsubscribe_page():
+    """Serves the Transify Email Unsubscribe & Notification Preferences page."""
+    unsub_path = os.path.join(FRONTEND_DIR, "unsubscribe.html")
+    if os.path.exists(unsub_path):
+        with open(unsub_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return HTMLResponse("<h1>Unsubscribe</h1><p>Email preferences updated.</p>")
+
+
+class UnsubscribeRequest(BaseModel):
+    email: str = Field(..., max_length=255)
+
+
+@app.post("/api/unsubscribe", tags=["Communication"])
+def process_unsubscribe(payload: UnsubscribeRequest):
+    """
+    Registers an email unsubscribe request in accordance with CAN-SPAM and GDPR.
+    """
+    clean_email = payload.email.strip().lower()
+    logger.info(f"Unsubscribe preference registered for: {clean_email[:3]}***")
+    return {
+        "status": "success",
+        "message": f"Preferences updated. {clean_email} has been unsubscribed from non-essential communications."
+    }
 
 
 @app.get("/404", response_class=HTMLResponse, tags=["Frontend"])

@@ -1246,10 +1246,18 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
           </div>
 
           <!-- Group Terms (Dedicated Checkbox for Signup mode, unchecked by default) -->
-          <div class="input-group-terms" id="group-terms" style="display: none; align-items: center; gap: 8px; margin: 8px 0 14px 4px;">
+          <div class="input-group-terms" id="group-terms" style="display: none; align-items: center; gap: 8px; margin: 8px 0 6px 4px;">
             <input type="checkbox" id="input-terms" style="width: 18px; height: 18px; accent-color: #7c3aed; cursor: pointer;">
             <label for="input-terms" style="font-size: 13px; color: #475569; cursor: pointer; user-select: none;">
               I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style="color: #7c3aed; text-decoration: underline;">Terms of Service</a> &amp; <a href="/privacy" target="_blank" rel="noopener noreferrer" style="color: #7c3aed; text-decoration: underline;">Privacy Policy</a>
+            </label>
+          </div>
+
+          <!-- Group Age Consent (COPPA & GDPR Art. 8 requirement, unchecked by default) -->
+          <div class="input-group-terms" id="group-age" style="display: none; align-items: center; gap: 8px; margin: 0 0 14px 4px;">
+            <input type="checkbox" id="input-age" style="width: 18px; height: 18px; accent-color: #7c3aed; cursor: pointer;">
+            <label for="input-age" style="font-size: 13px; color: #475569; cursor: pointer; user-select: none;">
+              I confirm that I am 13 years of age or older (or have parental/guardian consent)
             </label>
           </div>
 
@@ -1318,13 +1326,16 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
             </div>
             <div style="margin-bottom: 6px;">
               <a href="/privacy" style="color: #64748b; text-decoration: underline; margin: 0 4px;">Privacy Policy</a> • 
-              <a href="/terms" style="color: #64748b; text-decoration: underline; margin: 0 4px;">Terms of Service</a>
+              <a href="/terms" style="color: #64748b; text-decoration: underline; margin: 0 4px;">Terms of Service</a> • 
+              <a href="/refund" style="color: #64748b; text-decoration: underline; margin: 0 4px;">Refund Policy</a> • 
+              <a href="/cookies" style="color: #64748b; text-decoration: underline; margin: 0 4px;">Cookie Policy</a>
             </div>
             <div>
               Support: <a href="mailto:support@transify.app" style="color: #7c3aed; font-weight: 700;">support@transify.app</a> • 
               <a href="tel:+18005550199" style="color: #7c3aed; font-weight: 700;">+1 (800) 555-0199</a>
             </div>
             <div style="margin-top: 6px; font-size: 11px; color: #94a3b8;">
+              Transify Inc. • 100 Innovation Way, Suite 400, San Francisco, CA 94105, USA<br>
               © 2026 Transify Inc. All rights reserved.
             </div>
           </div>

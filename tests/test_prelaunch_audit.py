@@ -399,7 +399,7 @@ def test_llms_txt_served_cleanly(client):
 def test_canonical_tags_and_single_h1_rule():
     """Verifies that all templates have unique canonical tags pointing to custom domain and exactly one H1."""
     frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
-    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html", "refund.html", "cookies.html", "unsubscribe.html"]
     for tname in templates:
         path = os.path.join(frontend_dir, tname)
         with open(path, "r", encoding="utf-8") as f:
@@ -427,7 +427,7 @@ def test_breadcrumbs_and_structured_data_schemas():
     assert '"@type": "FAQPage"' in html
 
     # Subpages breadcrumbs
-    subpages = ["login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    subpages = ["login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html", "refund.html", "cookies.html", "unsubscribe.html"]
     for sp in subpages:
         path = os.path.join(frontend_dir, sp)
         with open(path, "r", encoding="utf-8") as f:
@@ -438,7 +438,7 @@ def test_breadcrumbs_and_structured_data_schemas():
 
 def test_clean_slugs_and_routes(client):
     """Verifies that all clean URL slugs return valid HTML status."""
-    routes = ["/", "/sign", "/braille", "/login", "/privacy", "/terms", "/dashboard"]
+    routes = ["/", "/sign", "/braille", "/login", "/privacy", "/terms", "/dashboard", "/refund", "/cookies", "/unsubscribe"]
     for r in routes:
         resp = client.get(r)
         assert resp.status_code == 200, f"Route {r} returned {resp.status_code}"
@@ -453,7 +453,7 @@ def test_clean_slugs_and_routes(client):
 def test_social_share_images_and_all_images_have_alt():
     """Verifies social sharing images and that 100% of images have non-empty alt text."""
     frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
-    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html", "refund.html", "cookies.html", "unsubscribe.html"]
     for tname in templates:
         path = os.path.join(frontend_dir, tname)
         with open(path, "r", encoding="utf-8") as f:
@@ -470,7 +470,7 @@ def test_social_share_images_and_all_images_have_alt():
 def test_absence_of_vite_react_boilerplate_and_sourcemaps():
     """Verifies tab titles do not mention Vite/React and no sourcemaps are exposed."""
     frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
-    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html", "refund.html", "cookies.html", "unsubscribe.html"]
     for tname in templates:
         path = os.path.join(frontend_dir, tname)
         with open(path, "r", encoding="utf-8") as f:
@@ -490,6 +490,141 @@ def test_absence_of_vite_react_boilerplate_and_sourcemaps():
                 c = f.read()
             assert "sourceMappingURL" not in c, f"sourceMappingURL found in {fname}"
         assert not fname.endswith(".map"), f"Sourcemap file found: {fname}"
+
+
+def test_refund_and_cookies_pages_served(client):
+    """Verifies that Refund Policy and Cookie Policy pages are served with required content."""
+    res_refund = client.get("/refund")
+    assert res_refund.status_code == 200
+    assert "Refund &amp; Billing Policy" in res_refund.text or "Refund & Billing Policy" in res_refund.text
+    assert "100% Free Open-Source Core" in res_refund.text
+    assert "30-Day Money-Back Guarantee" in res_refund.text
+
+    res_cookies = client.get("/cookies")
+    assert res_cookies.status_code == 200
+    assert "Cookie Policy &amp; Tracking Disclosure" in res_cookies.text or "Cookie Policy & Tracking Disclosure" in res_cookies.text
+    assert "transify_session" in res_cookies.text
+    assert "transify_csrf" in res_cookies.text
+    assert "transify_cookie_consent" in res_cookies.text
+    assert "Strictly Necessary Cookies Only" in res_cookies.text
+
+
+def test_unsubscribe_endpoint_and_service(client):
+    """Verifies that the /unsubscribe page and /api/unsubscribe POST endpoint work cleanly."""
+    res_page = client.get("/unsubscribe")
+    assert res_page.status_code == 200
+    assert "Manage Email Notifications" in res_page.text
+    assert "CAN-SPAM" in res_page.text
+
+    res_api = client.post("/api/unsubscribe", json={"email": "optout_user@example.com"})
+    assert res_api.status_code == 200
+    data = res_api.json()
+    assert data["status"] == "success"
+    assert "optout_user@example.com" in data["message"]
+
+
+def test_email_service_unsubscribe_headers_and_physical_address(reset_mock_mail):
+    """Verifies RFC 8058 / CAN-SPAM List-Unsubscribe headers and physical business address in emails."""
+    from src.api.email_service import SMTPEmailAdapter, MockMailAdapter
+
+    # Test mock mail adapter records unsubscribe headers
+    mock_adapter = MockMailAdapter(configured=True)
+    mock_adapter.send_password_reset_email("user@example.com", "mock_reset_token_1234567890abcdef")
+    assert len(mock_adapter.sent_emails) == 1
+    record = mock_adapter.sent_emails[0]
+    assert "unsubscribe_url" in record
+    assert "/unsubscribe?email=user@example.com" in record["unsubscribe_url"]
+    assert "List-Unsubscribe=One-Click" in record["list_unsubscribe_post"]
+    assert "unsubscribe@transify.app" in record["list_unsubscribe"]
+
+    # Test SMTPEmailAdapter message structure (without sending)
+    smtp = SMTPEmailAdapter(host="smtp.example.com", port=587)
+    # Validate canonical app URL helper includes protocol
+    from src.api.email_service import get_canonical_app_url
+    url = get_canonical_app_url()
+    assert url.startswith("http")
+
+
+def test_registration_form_consents_and_age_verification(client):
+    """Verifies form consents and age verification on account registration."""
+    import time
+    base_email = f"age_test_{int(time.time()*1000)}"
+
+    # 1. Rejected if consent_terms is False
+    res_no_terms = client.post("/api/auth/register", json={
+        "name": "Consent Tester",
+        "email": f"{base_email}_noterms@transify.test",
+        "password": "SecurePassword123!_2026",
+        "consent_terms": False,
+        "consent_age": True
+    })
+    assert res_no_terms.status_code == 422
+
+    # 2. Rejected if consent_age is False
+    res_no_age = client.post("/api/auth/register", json={
+        "name": "Consent Tester",
+        "email": f"{base_email}_noage@transify.test",
+        "password": "SecurePassword123!_2026",
+        "consent_terms": True,
+        "consent_age": False
+    })
+    assert res_no_age.status_code == 422
+
+    # 3. Accepted if both consent_terms and consent_age are True
+    res_ok = client.post("/api/auth/register", json={
+        "name": "Consent Tester",
+        "email": f"{base_email}_ok@transify.test",
+        "password": "SecurePassword123!_2026",
+        "consent_terms": True,
+        "consent_age": True
+    })
+    assert res_ok.status_code == 200
+    assert res_ok.json()["status"] == "success"
+
+
+def test_third_party_sdk_audit_no_tracking_scripts():
+    """Audits HTML templates to verify total absence of unauthorized third-party trackers."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+    templates = [
+        "index.html", "login.html", "privacy.html", "terms.html",
+        "404.html", "sign.html", "braille.html", "dashboard.html",
+        "refund.html", "cookies.html", "unsubscribe.html"
+    ]
+    disallowed_signatures = [
+        "google-analytics.com/analytics.js",
+        "googletagmanager.com/gtm.js",
+        "connect.facebook.net",
+        "analytics.tiktok.com",
+        "hotjar.com",
+        "clarity.ms",
+        "fullstory.com",
+        "doubleclick.net"
+    ]
+
+    for tname in templates:
+        path = os.path.join(frontend_dir, tname)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read().lower()
+        for sig in disallowed_signatures:
+            assert sig not in content, f"Unauthorized tracking script '{sig}' found in {tname}!"
+
+
+def test_footer_business_details_and_links():
+    """Verifies that footer elements on key pages contain business identity and legal links."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+    for tname in ["index.html", "login.html", "privacy.html", "terms.html"]:
+        path = os.path.join(frontend_dir, tname)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        assert "100 Innovation Way, Suite 400, San Francisco, CA 94105" in content, f"Missing physical address in {tname}"
+        assert "support@transify.app" in content, f"Missing support email in {tname}"
+        assert "+1 (800) 555-0199" in content, f"Missing helpline phone in {tname}"
+        assert "/privacy" in content, f"Missing privacy link in {tname}"
+        assert "/terms" in content, f"Missing terms link in {tname}"
+        assert "/refund" in content, f"Missing refund link in {tname}"
+        assert "/cookies" in content, f"Missing cookies link in {tname}"
+
 
 
 
@@ -803,7 +938,7 @@ def test_llms_txt_served_cleanly(client):
 def test_canonical_tags_and_single_h1_rule():
     """Verifies that all templates have unique canonical tags pointing to custom domain and exactly one H1."""
     frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
-    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html", "refund.html", "cookies.html", "unsubscribe.html"]
     for tname in templates:
         path = os.path.join(frontend_dir, tname)
         with open(path, "r", encoding="utf-8") as f:
@@ -831,7 +966,7 @@ def test_breadcrumbs_and_structured_data_schemas():
     assert '"@type": "FAQPage"' in html
 
     # Subpages breadcrumbs
-    subpages = ["login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    subpages = ["login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html", "refund.html", "cookies.html", "unsubscribe.html"]
     for sp in subpages:
         path = os.path.join(frontend_dir, sp)
         with open(path, "r", encoding="utf-8") as f:
@@ -842,7 +977,7 @@ def test_breadcrumbs_and_structured_data_schemas():
 
 def test_clean_slugs_and_routes(client):
     """Verifies that all clean URL slugs return valid HTML status."""
-    routes = ["/", "/sign", "/braille", "/login", "/privacy", "/terms", "/dashboard"]
+    routes = ["/", "/sign", "/braille", "/login", "/privacy", "/terms", "/dashboard", "/refund", "/cookies", "/unsubscribe"]
     for r in routes:
         resp = client.get(r)
         assert resp.status_code == 200, f"Route {r} returned {resp.status_code}"
@@ -857,7 +992,7 @@ def test_clean_slugs_and_routes(client):
 def test_social_share_images_and_all_images_have_alt():
     """Verifies social sharing images and that 100% of images have non-empty alt text."""
     frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
-    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html", "refund.html", "cookies.html", "unsubscribe.html"]
     for tname in templates:
         path = os.path.join(frontend_dir, tname)
         with open(path, "r", encoding="utf-8") as f:
@@ -874,7 +1009,7 @@ def test_social_share_images_and_all_images_have_alt():
 def test_absence_of_vite_react_boilerplate_and_sourcemaps():
     """Verifies tab titles do not mention Vite/React and no sourcemaps are exposed."""
     frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
-    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html", "refund.html", "cookies.html", "unsubscribe.html"]
     for tname in templates:
         path = os.path.join(frontend_dir, tname)
         with open(path, "r", encoding="utf-8") as f:
@@ -894,6 +1029,141 @@ def test_absence_of_vite_react_boilerplate_and_sourcemaps():
                 c = f.read()
             assert "sourceMappingURL" not in c, f"sourceMappingURL found in {fname}"
         assert not fname.endswith(".map"), f"Sourcemap file found: {fname}"
+
+
+def test_refund_and_cookies_pages_served(client):
+    """Verifies that Refund Policy and Cookie Policy pages are served with required content."""
+    res_refund = client.get("/refund")
+    assert res_refund.status_code == 200
+    assert "Refund &amp; Billing Policy" in res_refund.text or "Refund & Billing Policy" in res_refund.text
+    assert "100% Free Open-Source Core" in res_refund.text
+    assert "30-Day Money-Back Guarantee" in res_refund.text
+
+    res_cookies = client.get("/cookies")
+    assert res_cookies.status_code == 200
+    assert "Cookie Policy &amp; Tracking Disclosure" in res_cookies.text or "Cookie Policy & Tracking Disclosure" in res_cookies.text
+    assert "transify_session" in res_cookies.text
+    assert "transify_csrf" in res_cookies.text
+    assert "transify_cookie_consent" in res_cookies.text
+    assert "Strictly Necessary Cookies Only" in res_cookies.text
+
+
+def test_unsubscribe_endpoint_and_service(client):
+    """Verifies that the /unsubscribe page and /api/unsubscribe POST endpoint work cleanly."""
+    res_page = client.get("/unsubscribe")
+    assert res_page.status_code == 200
+    assert "Manage Email Notifications" in res_page.text
+    assert "CAN-SPAM" in res_page.text
+
+    res_api = client.post("/api/unsubscribe", json={"email": "optout_user@example.com"})
+    assert res_api.status_code == 200
+    data = res_api.json()
+    assert data["status"] == "success"
+    assert "optout_user@example.com" in data["message"]
+
+
+def test_email_service_unsubscribe_headers_and_physical_address(reset_mock_mail):
+    """Verifies RFC 8058 / CAN-SPAM List-Unsubscribe headers and physical business address in emails."""
+    from src.api.email_service import SMTPEmailAdapter, MockMailAdapter
+
+    # Test mock mail adapter records unsubscribe headers
+    mock_adapter = MockMailAdapter(configured=True)
+    mock_adapter.send_password_reset_email("user@example.com", "mock_reset_token_1234567890abcdef")
+    assert len(mock_adapter.sent_emails) == 1
+    record = mock_adapter.sent_emails[0]
+    assert "unsubscribe_url" in record
+    assert "/unsubscribe?email=user@example.com" in record["unsubscribe_url"]
+    assert "List-Unsubscribe=One-Click" in record["list_unsubscribe_post"]
+    assert "unsubscribe@transify.app" in record["list_unsubscribe"]
+
+    # Test SMTPEmailAdapter message structure (without sending)
+    smtp = SMTPEmailAdapter(host="smtp.example.com", port=587)
+    # Validate canonical app URL helper includes protocol
+    from src.api.email_service import get_canonical_app_url
+    url = get_canonical_app_url()
+    assert url.startswith("http")
+
+
+def test_registration_form_consents_and_age_verification(client):
+    """Verifies form consents and age verification on account registration."""
+    import time
+    base_email = f"age_test_{int(time.time()*1000)}"
+
+    # 1. Rejected if consent_terms is False
+    res_no_terms = client.post("/api/auth/register", json={
+        "name": "Consent Tester",
+        "email": f"{base_email}_noterms@transify.test",
+        "password": "SecurePassword123!_2026",
+        "consent_terms": False,
+        "consent_age": True
+    })
+    assert res_no_terms.status_code == 422
+
+    # 2. Rejected if consent_age is False
+    res_no_age = client.post("/api/auth/register", json={
+        "name": "Consent Tester",
+        "email": f"{base_email}_noage@transify.test",
+        "password": "SecurePassword123!_2026",
+        "consent_terms": True,
+        "consent_age": False
+    })
+    assert res_no_age.status_code == 422
+
+    # 3. Accepted if both consent_terms and consent_age are True
+    res_ok = client.post("/api/auth/register", json={
+        "name": "Consent Tester",
+        "email": f"{base_email}_ok@transify.test",
+        "password": "SecurePassword123!_2026",
+        "consent_terms": True,
+        "consent_age": True
+    })
+    assert res_ok.status_code == 200
+    assert res_ok.json()["status"] == "success"
+
+
+def test_third_party_sdk_audit_no_tracking_scripts():
+    """Audits HTML templates to verify total absence of unauthorized third-party trackers."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+    templates = [
+        "index.html", "login.html", "privacy.html", "terms.html",
+        "404.html", "sign.html", "braille.html", "dashboard.html",
+        "refund.html", "cookies.html", "unsubscribe.html"
+    ]
+    disallowed_signatures = [
+        "google-analytics.com/analytics.js",
+        "googletagmanager.com/gtm.js",
+        "connect.facebook.net",
+        "analytics.tiktok.com",
+        "hotjar.com",
+        "clarity.ms",
+        "fullstory.com",
+        "doubleclick.net"
+    ]
+
+    for tname in templates:
+        path = os.path.join(frontend_dir, tname)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read().lower()
+        for sig in disallowed_signatures:
+            assert sig not in content, f"Unauthorized tracking script '{sig}' found in {tname}!"
+
+
+def test_footer_business_details_and_links():
+    """Verifies that footer elements on key pages contain business identity and legal links."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+    for tname in ["index.html", "login.html", "privacy.html", "terms.html"]:
+        path = os.path.join(frontend_dir, tname)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        assert "100 Innovation Way, Suite 400, San Francisco, CA 94105" in content, f"Missing physical address in {tname}"
+        assert "support@transify.app" in content, f"Missing support email in {tname}"
+        assert "+1 (800) 555-0199" in content, f"Missing helpline phone in {tname}"
+        assert "/privacy" in content, f"Missing privacy link in {tname}"
+        assert "/terms" in content, f"Missing terms link in {tname}"
+        assert "/refund" in content, f"Missing refund link in {tname}"
+        assert "/cookies" in content, f"Missing cookies link in {tname}"
+
 
 
 

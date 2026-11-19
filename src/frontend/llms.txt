@@ -10,6 +10,9 @@
 - Account Access & Authentication: https://transify.app/login
 - Privacy Policy: https://transify.app/privacy
 - Terms of Service: https://transify.app/terms
+- Refund & Billing Policy: https://transify.app/refund
+- Cookie Policy & Tracking Disclosure: https://transify.app/cookies
+- Email Unsubscribe & Preferences: https://transify.app/unsubscribe
 - Custom Error Page: https://transify.app/404
 - Machine Documentation: https://transify.app/llms.txt
 - XML Sitemap: https://transify.app/sitemap.xml
@@ -55,6 +58,7 @@
 - `POST /api/auth/forgot-password`: Generates secure password-reset link with URL fragment `#reset_token=...`.
 - `POST /api/auth/reset-password`: Consumes one-time password-reset token.
 - `DELETE /api/auth/me`: Permanently deletes user account and all personal records.
+- `POST /api/unsubscribe`: Registers email preference to opt-out of non-essential communications.
 - `POST /api/telemetry/error`: Captures client-side JavaScript error reports.
 
 ## Developer & Contact Information
