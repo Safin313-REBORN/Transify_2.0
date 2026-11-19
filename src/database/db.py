@@ -836,6 +836,44 @@ def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
     return dict(row)
 
 
+def delete_user_account(user_id: int) -> bool:
+    """
+    Permanently deletes a user account and cascades deletion across all personal resources
+    (sessions, preferences, translation history, reset tokens, conversations, messages, phrases).
+    Enforces GDPR Right to Be Forgotten.
+    """
+    conn = get_connection()
+    try:
+        with conn:
+            cursor = conn.cursor()
+            # 1. Delete user messages and conversations
+            cursor.execute("SELECT id FROM hub_conversations WHERE user_id = ?;", (user_id,))
+            conv_ids = [row[0] for row in cursor.fetchall()]
+            for cid in conv_ids:
+                cursor.execute("DELETE FROM hub_messages WHERE conversation_id = ?;", (cid,))
+            cursor.execute("DELETE FROM hub_conversations WHERE user_id = ?;", (user_id,))
+
+            # 2. Delete custom phrases
+            cursor.execute("DELETE FROM user_phrases WHERE user_id = ?;", (user_id,))
+
+            # 3. Delete translation history
+            cursor.execute("DELETE FROM translation_history WHERE user_id = ?;", (user_id,))
+
+            # 4. Delete user preferences
+            cursor.execute("DELETE FROM user_preferences WHERE user_id = ?;", (user_id,))
+
+            # 5. Delete sessions and tokens
+            cursor.execute("DELETE FROM user_sessions WHERE user_id = ?;", (user_id,))
+            cursor.execute("DELETE FROM password_reset_tokens WHERE user_id = ?;", (user_id,))
+
+            # 6. Delete user record
+            cursor.execute("DELETE FROM users WHERE id = ?;", (user_id,))
+            logger.info(f"User account id={user_id} and all associated data permanently deleted.")
+            return True
+    finally:
+        conn.close()
+
+
 # --- Cryptographic Token Hash Session Management ---
 
 def create_session(user_id: int, duration_days: int = 30) -> str:

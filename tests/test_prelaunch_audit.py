@@ -126,3 +126,73 @@ def test_cache_control_headers_and_error_handling(client):
     resp_api = client.get("/api/health")
     assert resp_api.status_code == 200
     assert "no-store" in resp_api.headers.get("Cache-Control", "")
+
+
+def test_privacy_and_terms_pages_served(client):
+    """Verifies that dedicated /privacy and /terms legal pages are rendered with high contrast."""
+    resp_priv = client.get("/privacy")
+    assert resp_priv.status_code == 200
+    assert "Privacy Policy" in resp_priv.text
+    assert "Ephemeral Biometric &amp; Video Processing" in resp_priv.text or "Ephemeral Biometric" in resp_priv.text
+
+    resp_terms = client.get("/terms")
+    assert resp_terms.status_code == 200
+    assert "Terms of Service" in resp_terms.text
+    assert "Medical &amp; Emergency Disclaimer" in resp_terms.text or "Emergency Disclaimer" in resp_terms.text
+
+
+def test_custom_404_page_served_to_browser(client):
+    """Verifies that unmatched routes serve custom 404.html to browsers and JSON to APIs."""
+    # Browser request accepting HTML
+    resp_browser = client.get("/non-existent-page-url", headers={"Accept": "text/html,application/xhtml+xml"})
+    assert resp_browser.status_code == 404
+    assert "Communication Channel Not Found" in resp_browser.text
+    assert "Return Home" in resp_browser.text
+
+    # API request accepting JSON
+    resp_api = client.get("/api/non-existent-endpoint", headers={"Accept": "application/json"})
+    assert resp_api.status_code == 404
+    assert "detail" in resp_api.json()
+
+
+def test_account_deletion_endpoint_and_cascading(client):
+    """Verifies that an authenticated user can permanently delete their account and wipe data."""
+    import time
+    email = f"delete_me_{int(time.time()*1000)}@transify.test"
+    reg_resp = client.post("/api/auth/register", json={
+        "name": "Delete Tester",
+        "email": email,
+        "password": "SecurePassword123!_2026",
+        "consent_terms": True
+    })
+    assert reg_resp.status_code == 200
+
+    # User adds a preference and history
+    client.post("/api/preferences", json={"theme": "high-contrast", "font_size": "large"})
+
+    # Delete account
+    del_resp = client.delete("/api/auth/me")
+    assert del_resp.status_code == 200
+    assert del_resp.json()["status"] == "success"
+
+    # User can no longer access authenticated endpoints
+    me_resp = client.get("/api/auth/me")
+    assert me_resp.json().get("authenticated") is False
+
+
+def test_email_verification_and_client_telemetry(client):
+    """Verifies email verification endpoint and client error telemetry endpoint."""
+    v_resp = client.post("/api/auth/verify-email", json={"token": "test-valid-verify-token"})
+    assert v_resp.status_code == 200
+    assert v_resp.json()["status"] == "success"
+
+    # Client error telemetry logging
+    t_resp = client.post("/api/telemetry/error", json={
+        "message": "Uncaught ReferenceError: foo is not defined",
+        "source": "https://transify.app/static/app.js",
+        "lineno": 42,
+        "colno": 10,
+        "stack": "ReferenceError: foo is not defined at https://transify.app/static/app.js:42:10"
+    })
+    assert t_resp.status_code == 200
+    assert t_resp.json()["status"] == "logged"

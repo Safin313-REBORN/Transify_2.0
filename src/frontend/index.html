@@ -1581,7 +1581,7 @@
             <div class="auth-input-row" id="group-terms" style="display: none; align-items: center; gap: 8px; margin: 8px 0 14px 4px;">
               <input type="checkbox" id="input-terms" style="width: 18px; height: 18px; accent-color: #7c3aed; cursor: pointer;">
               <label for="input-terms" style="font-size: 13px; color: #475569; cursor: pointer; user-select: none;">
-                I agree to the <a href="#" onclick="alert('Transify Terms of Service & Privacy Policy'); return false;" style="color: #7c3aed; text-decoration: underline;">Terms of Service</a> &amp; <a href="#" onclick="alert('Transify Privacy Policy'); return false;" style="color: #7c3aed; text-decoration: underline;">Privacy Policy</a>
+                I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style="color: #7c3aed; text-decoration: underline;">Terms of Service</a> &amp; <a href="/privacy" target="_blank" rel="noopener noreferrer" style="color: #7c3aed; text-decoration: underline;">Privacy Policy</a>
               </label>
             </div>
 
@@ -2195,7 +2195,7 @@
             </div>
           </div>
 
-          <div id="stt-live-caption-box" style="font-size: 20px; font-weight: 600; line-height: 1.6; min-height: 100px; color: #1e1b4b; word-wrap: break-word;">
+          <div id="stt-live-caption-box" role="region" aria-live="polite" aria-label="Live speech captions" style="font-size: 20px; font-weight: 600; line-height: 1.6; min-height: 100px; color: #1e1b4b; word-wrap: break-word;">
             <span id="stt-placeholder" style="color: #9ca3af; font-weight: 500; font-size: 16px;">
               Click microphone to start listening and speak...
             </span>
@@ -2692,6 +2692,33 @@
         <button type="button" id="profile-close-btn" style="flex: 1; padding: 10px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 12px; font-weight: 700; cursor: pointer;" onclick="window.TransifyApp.closeProfileModal()">
           Close
         </button>
+      </div>
+      <div style="margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+        <button type="button" id="profile-delete-btn" style="width: 100%; padding: 8px 10px; background: none; color: #dc2626; border: none; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;" onclick="window.TransifyApp.handleDeleteAccount()">
+          🗑️ Permanently Delete Account (GDPR)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Quick-Start Onboarding Walkthrough Modal -->
+  <div id="onboarding-modal-overlay" class="profile-modal-overlay" role="dialog" aria-modal="true" aria-label="Welcome to Transify Onboarding Tour" style="display: none;">
+    <div class="profile-modal-card" style="max-width: 440px; text-align: left; padding: 28px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <span class="badge badge-info" id="onboarding-step-badge" style="font-size: 11px; text-transform: uppercase;">Step 1 of 4</span>
+        <button type="button" id="onboarding-close-btn" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;" onclick="window.TransifyApp.closeOnboarding()">✕</button>
+      </div>
+
+      <div id="onboarding-step-content" style="min-height: 160px;">
+        <h4 id="onboarding-title" style="font-size: 17px; font-weight: 800; color: #1e1b4b; margin: 0 0 8px 0;">Welcome to Transify 2.0</h4>
+        <p id="onboarding-desc" style="font-size: 13.5px; color: #64748b; line-height: 1.6; margin: 0 0 16px 0;">
+          Transify is your all-in-one assistive platform connecting Sign Language (BdSL & ASL), Optical Braille (UEB Grade 1), Speech-to-Text captions, and natural Text-to-Speech into a unified accessible feed.
+        </p>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+        <button type="button" id="onboarding-prev-btn" class="btn btn-secondary btn-sm" style="display: none;" onclick="window.TransifyApp.prevOnboardingStep()">← Previous</button>
+        <button type="button" id="onboarding-next-btn" class="btn btn-primary btn-sm" style="margin-left: auto;" onclick="window.TransifyApp.nextOnboardingStep()">Next →</button>
       </div>
     </div>
   </div>

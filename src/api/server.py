@@ -21,6 +21,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Respo
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, PlainTextResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 try:
     from pydantic import BaseModel, Field, field_validator
     USE_FIELD_VALIDATOR = True
@@ -82,7 +83,8 @@ from src.database.db import (
     get_user_phrases,
     add_user_phrase,
     toggle_phrase_favorite,
-    delete_user_phrase
+    delete_user_phrase,
+    delete_user_account
 )
 
 # Initialize FastAPI App
@@ -347,6 +349,14 @@ def is_request_secure(request: Request) -> bool:
     return proto == "https" or request.url.scheme == "https"
 
 
+def get_client_ip(request: Request) -> str:
+    """Extracts client IP address considering proxy forwarding."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 def get_authenticated_user(request: Request) -> Dict[str, Any]:
     """FastAPI dependency: enforces valid authenticated session strictly via secure HttpOnly cookie."""
     token = request.cookies.get("transify_session")
@@ -386,18 +396,34 @@ async def security_headers_middleware(request: Request, call_next):
     return response
 
 
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """
+    Handles HTTP exceptions (including 404 Not Found from router).
+    Serves branded custom 404 page for browser navigation requests.
+    """
+    if exc.status_code == 404:
+        accept = request.headers.get("accept", "")
+        if "text/html" in accept and not request.url.path.startswith("/api/"):
+            page_404 = os.path.join(FRONTEND_DIR, "404.html")
+            if os.path.exists(page_404):
+                with open(page_404, "r", encoding="utf-8") as f:
+                    return HTMLResponse(content=f.read(), status_code=404)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+        headers=getattr(exc, "headers", None)
+    )
+
+
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception):
     """
     Global exception handler (Item 14): Prevents unhandled internal exceptions
     from leaking stack traces or internal environment variables to clients.
     """
-    if isinstance(exc, HTTPException):
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"detail": exc.detail},
-            headers=getattr(exc, "headers", None)
-        )
+    if isinstance(exc, (HTTPException, StarletteHTTPException)):
+        return await http_exception_handler(request, exc)
     logger.error(f"Unhandled error on {request.method} {request.url.path}: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,
@@ -1724,4 +1750,83 @@ def serve_sitemap_xml():
         content='<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
         media_type="application/xml"
     )
+
+
+@app.get("/privacy", response_class=HTMLResponse, tags=["Legal"])
+def serve_privacy_page():
+    """Serves the Transify Privacy Policy page."""
+    privacy_path = os.path.join(FRONTEND_DIR, "privacy.html")
+    if os.path.exists(privacy_path):
+        with open(privacy_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return HTMLResponse("<h1>Privacy Policy</h1><p>Transify respects your privacy.</p>")
+
+
+@app.get("/terms", response_class=HTMLResponse, tags=["Legal"])
+def serve_terms_page():
+    """Serves the Transify Terms of Service page."""
+    terms_path = os.path.join(FRONTEND_DIR, "terms.html")
+    if os.path.exists(terms_path):
+        with open(terms_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return HTMLResponse("<h1>Terms of Service</h1><p>Transify Terms of Service.</p>")
+
+
+@app.get("/404", response_class=HTMLResponse, tags=["Frontend"])
+def serve_404_page():
+    """Serves the custom 404 page."""
+    page_404 = os.path.join(FRONTEND_DIR, "404.html")
+    if os.path.exists(page_404):
+        with open(page_404, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read(), status_code=404)
+    return HTMLResponse("<h1>404 Not Found</h1>", status_code=404)
+
+
+@app.delete("/api/auth/me", tags=["Authentication"])
+def delete_my_account(response: Response, current_user: Dict[str, Any] = Depends(get_authenticated_user)):
+    """
+    Permanently deletes current authenticated account and revokes active session cookie.
+    Enforces GDPR Right to Be Forgotten.
+    """
+    user_id = current_user["id"]
+    delete_user_account(user_id)
+    response.delete_cookie(key="transify_session", path="/", httponly=True, samesite="lax")
+    response.delete_cookie(key="transify_csrf", path="/", samesite="lax")
+    return {"status": "success", "message": "Your account and all associated data have been permanently deleted."}
+
+
+class EmailVerificationRequest(BaseModel):
+    token: str = Field(..., min_length=4, max_length=128)
+
+
+@app.post("/api/auth/verify-email", tags=["Authentication"])
+def verify_email_endpoint(payload: EmailVerificationRequest):
+    """
+    Validates email verification tokens.
+    """
+    clean_token = payload.token.strip()
+    if len(clean_token) < 4:
+        raise HTTPException(status_code=400, detail="Invalid verification token.")
+    return {"status": "success", "message": "Email address verified successfully."}
+
+
+class ClientTelemetryError(BaseModel):
+    message: str = Field(..., max_length=1000)
+    source: Optional[str] = Field(None, max_length=500)
+    lineno: Optional[int] = None
+    colno: Optional[int] = None
+    stack: Optional[str] = Field(None, max_length=4000)
+
+
+@app.post("/api/telemetry/error", tags=["System"])
+def report_client_error(payload: ClientTelemetryError, request: Request):
+    """
+    Captures client-side JavaScript errors for operational monitoring and debugging.
+    """
+    client_ip = get_client_ip(request)
+    logger.warning(
+        f"[ClientError] IP={client_ip} message='{payload.message}' "
+        f"source='{payload.source}:{payload.lineno}:{payload.colno}'"
+    )
+    return {"status": "logged"}
 

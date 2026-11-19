@@ -306,6 +306,110 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     }
   },
 
+  async handleDeleteAccount() {
+    this.closeProfileModal();
+    if (!confirm('Are you absolutely sure you want to permanently delete your Transify account? All your saved phrases, sessions, and translation history will be permanently erased. This action cannot be undone.')) {
+      return;
+    }
+    try {
+      const res = await fetch('/api/auth/me', {
+        method: 'DELETE',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (res.ok) {
+        alert('Your account and all associated data have been permanently deleted.');
+        try {
+          localStorage.clear();
+        } catch (_) {}
+        window.location.href = '/login';
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.detail || 'Failed to delete account. Please try again.');
+      }
+    } catch (e) {
+      alert('Network error while attempting to delete account.');
+    }
+  },
+
+  onboardingStep: 1,
+  onboardingTotalSteps: 4,
+  onboardingStepsData: [
+    {
+      title: "Welcome to Transify 2.0",
+      badge: "Step 1 of 4",
+      desc: "Transify bridges critical communication divides through AI. Seamlessly translate between Bangladesh Sign Language (BdSL), ASL, Optical Braille (UEB Grade 1), Speech Captions, and Text-to-Speech in one unified assistive app."
+    },
+    {
+      title: "Camera Target Box Guide",
+      badge: "Step 2 of 4",
+      desc: "In Live Sign Translation, keep your hand inside the visible Camera Target Box. Hold your gesture steady for 30 consecutive frames so our consensus filter confirms your translation with 98%+ confidence."
+    },
+    {
+      title: "Optical Braille & CLAHE Vision",
+      badge: "Step 3 of 4",
+      desc: "Capture or upload unconstrained photos of embossed Braille documents. Our ExtraTrees classifier decodes standard ICEB 2024 UEB Grade 1 cells with adaptive illumination correction."
+    },
+    {
+      title: "Audio Safety & Communication Hub",
+      badge: "Step 4 of 4",
+      desc: "We enforce a strict Zero Auto-Audio policy: audio never plays automatically in public. Translations appear as text first, and audio plays strictly when you tap the 🔊 speaker button. All conversations sync to your private Hub."
+    }
+  ],
+
+  openOnboarding() {
+    this.onboardingStep = 1;
+    this.renderOnboardingStep();
+    const modal = document.getElementById('onboarding-modal-overlay');
+    if (modal) modal.style.display = 'flex';
+  },
+
+  closeOnboarding() {
+    const modal = document.getElementById('onboarding-modal-overlay');
+    if (modal) modal.style.display = 'none';
+    try {
+      localStorage.setItem('transify_onboarding_completed', 'true');
+    } catch (_) {}
+  },
+
+  nextOnboardingStep() {
+    if (this.onboardingStep < this.onboardingTotalSteps) {
+      this.onboardingStep++;
+      this.renderOnboardingStep();
+    } else {
+      this.closeOnboarding();
+      this.showToast('Onboarding complete! Enjoy Transify.', 'success');
+    }
+  },
+
+  prevOnboardingStep() {
+    if (this.onboardingStep > 1) {
+      this.onboardingStep--;
+      this.renderOnboardingStep();
+    }
+  },
+
+  renderOnboardingStep() {
+    const data = this.onboardingStepsData[this.onboardingStep - 1];
+    if (!data) return;
+    const badge = document.getElementById('onboarding-step-badge');
+    const content = document.getElementById('onboarding-step-content');
+    const prevBtn = document.getElementById('onboarding-prev-btn');
+    const nextBtn = document.getElementById('onboarding-next-btn');
+
+    if (badge) badge.textContent = data.badge;
+    if (content) {
+      content.innerHTML = `
+        <h4 style="font-size: 17px; font-weight: 800; color: #1e1b4b; margin: 0 0 8px 0;">${data.title}</h4>
+        <p style="font-size: 13.5px; color: #64748b; line-height: 1.6; margin: 0 0 16px 0;">${data.desc}</p>
+      `;
+    }
+    if (prevBtn) prevBtn.style.display = this.onboardingStep > 1 ? 'inline-block' : 'none';
+    if (nextBtn) nextBtn.textContent = this.onboardingStep === this.onboardingTotalSteps ? 'Finish & Explore 🚀' : 'Next →';
+  },
+
   initSplashScreen(durationMs = 3500) {
     const splash = document.getElementById('transify-splash-screen');
     if (!splash) return;
@@ -3706,3 +3810,22 @@ window.showTransifySplashScreen = function(durationMs = 3500) {
   if (fill) fill.style.width = '0%';
   TransifyApp.initSplashScreen(durationMs);
 };
+
+// Client Error Tracking (Item 15)
+window.addEventListener('error', function(event) {
+  if (event.filename && (event.filename.includes('app.js') || event.filename.includes('auth-controller.js'))) {
+    try {
+      fetch('/api/telemetry/error', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: event.message || 'Unknown Client Error',
+          source: event.filename || '',
+          lineno: event.lineno || 0,
+          colno: event.colno || 0,
+          stack: event.error ? event.error.stack : ''
+        })
+      }).catch(function() {});
+    } catch (_) {}
+  }
+});
