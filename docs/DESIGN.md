@@ -121,3 +121,4 @@ Transitions follow calibrated physical timing models:
 ### 3. Touch Targets & Focus Indicators
 - All interactive controls maintain a minimum touch bounding box of $48 \times 48\text{ px}$.
 - Visible 3px violet focus rings (`outline: 3px solid #7c3aed; outline-offset: 2px`) are displayed on keyboard navigation (`:focus-visible`).
+

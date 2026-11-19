@@ -2,8 +2,10 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>Transify — Page Not Found (404)</title>
+  <meta name="description" content="Page not found. Return to Transify assistive communication platform home, live sign translator, or optical Braille OCR.">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
   <link rel="stylesheet" href="/static/styles.css?v=20261118_authfix_v9">
   <style>
@@ -14,24 +16,33 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       margin: 0;
-      padding: 24px;
+      padding: 24px 16px;
       box-sizing: border-box;
+      overflow-x: hidden !important;
+      width: 100% !important;
+      max-width: 100vw !important;
     }
     .error-card {
       background: #ffffff;
       max-width: 540px;
       width: 100%;
       border-radius: 24px;
-      padding: 44px 36px;
+      padding: 40px 32px;
       text-align: center;
       box-shadow: 0 20px 40px -15px rgba(124, 58, 237, 0.15);
       border: 1px solid rgba(131, 56, 236, 0.14);
+      box-sizing: border-box;
+    }
+    .error-logo-wrap {
+      margin-bottom: 20px;
+      display: inline-block;
     }
     .error-code {
-      font-size: 72px;
+      font-size: 68px;
       font-weight: 900;
       line-height: 1;
       background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
@@ -49,7 +60,7 @@
       font-size: 15px;
       color: #64748b;
       line-height: 1.6;
-      margin: 0 0 32px;
+      margin: 0 0 28px;
     }
     .actions-grid {
       display: grid;
@@ -58,6 +69,8 @@
     }
     @media (max-width: 480px) {
       .actions-grid { grid-template-columns: 1fr; }
+      .error-card { padding: 32px 20px; }
+      .error-code { font-size: 56px; }
     }
     .btn-action {
       display: inline-flex;
@@ -90,10 +103,30 @@
       background: #e2e8f0;
       color: #0f172a;
     }
+    .error-footer {
+      margin-top: 24px;
+      font-size: 13px;
+      color: #64748b;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .error-footer a {
+      color: #7c3aed;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .error-footer a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <main class="error-card" role="main" aria-labelledby="error-heading">
+    <div class="error-logo-wrap">
+      <a href="/" aria-label="Transify Home">
+        <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 32px; width: auto; max-width: 100%;">
+      </a>
+    </div>
     <div class="error-code" aria-hidden="true">404</div>
     <h1 class="error-title" id="error-heading">Communication Channel Not Found</h1>
     <p class="error-desc">
@@ -114,5 +147,16 @@
       </a>
     </div>
   </main>
+
+  <footer class="error-footer" role="contentinfo">
+    <div style="margin-bottom: 6px;">
+      <span>Need help? Contact <a href="mailto:support@transify.app" class="email-link">support@transify.app</a></span>
+      <span> • </span>
+      <span>Helpline: <a href="tel:+18005550199" class="phone-link">+1 (800) 555-0199</a></span>
+    </div>
+    <p style="margin: 0;">
+      <time datetime="2026-11-19">Last updated: November 19, 2026</time> • © 2026 Transify Inc. All rights reserved.
+    </p>
+  </footer>
 </body>
 </html>

@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Transify — Login & Registration</title>
-  <meta name="description" content="Sign in or register for Transify, the AI-powered assistive communication platform.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>Transify — Sign In & Account Access</title>
+  <meta name="description" content="Secure account login and registration for Transify Assistive AI Platform. Access custom phraseboards, personal preferences, and translation history.">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
   
   <!-- Open Graph & WhatsApp Link Preview Meta Tags -->
   <meta property="og:type" content="website">
@@ -1262,7 +1264,7 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
               <input type="checkbox" id="input-remember" checked>
               <span id="remember-label-text">Remember me</span>
             </label>
-            <a href="#" class="forgot-link" id="forgot-password-link" onclick="handleForgotPassword(event)">Forgot password?</a>
+            <a href="javascript:void(0)" class="forgot-link" id="forgot-password-link" onclick="handleForgotPassword(event)">Forgot password?</a>
           </div>
 
           <!-- Primary Submit Button -->
@@ -1290,8 +1292,26 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
           <!-- Bottom Prompt to Switch Mode inside Sheet -->
           <p class="auth-switch-prompt" id="auth-switch-prompt" style="text-align: center; font-size: 13.5px; color: #64748b; margin-top: 14px;">
             <span id="switch-prompt-text">Don't have an account?</span>
-            <a href="#" id="switch-prompt-link" onclick="setMode(activeMode === 'login' ? 'signup' : 'login'); return false;" style="color: #7c3aed; font-weight: 700; text-decoration: none; margin-left: 4px;">Sign Up</a>
+            <a href="javascript:void(0)" id="switch-prompt-link" onclick="setMode(activeMode === 'login' ? 'signup' : 'login'); return false;" style="color: #7c3aed; font-weight: 700; text-decoration: none; margin-left: 4px;">Sign Up</a>
           </p>
+
+          <!-- Support & Legal Footer -->
+          <div style="text-align: center; margin-top: 22px; padding-top: 14px; border-top: 1px solid #f1f5f9; font-size: 12px; color: #64748b;">
+            <div style="margin-bottom: 6px;">
+              <a href="/" style="color: #7c3aed; text-decoration: none; font-weight: 700;">← Return to Transify Home</a>
+            </div>
+            <div style="margin-bottom: 6px;">
+              <a href="/privacy" style="color: #64748b; text-decoration: underline; margin: 0 4px;">Privacy Policy</a> • 
+              <a href="/terms" style="color: #64748b; text-decoration: underline; margin: 0 4px;">Terms of Service</a>
+            </div>
+            <div>
+              Support: <a href="mailto:support@transify.app" style="color: #7c3aed; font-weight: 700;">support@transify.app</a> • 
+              <a href="tel:+18005550199" style="color: #7c3aed; font-weight: 700;">+1 (800) 555-0199</a>
+            </div>
+            <div style="margin-top: 6px; font-size: 11px; color: #94a3b8;">
+              © 2026 Transify Inc. All rights reserved.
+            </div>
+          </div>
 
         </form>
 

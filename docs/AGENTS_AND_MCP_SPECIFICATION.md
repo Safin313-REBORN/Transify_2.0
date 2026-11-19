@@ -117,3 +117,4 @@ flowchart TD
 1. **Safety Bounding:** The agent can never invent new classes outside the verified BdSL/HaGRID registries.
 2. **Audio Boundary:** The agent NEVER instructs the client to play audio automatically; it only sets `display_text`.
 3. **Execution Timeout:** The agentic resolution pipeline is bounded by a strict 1.8-second timeout, falling back gracefully to the highest local candidate if interrupted.
+

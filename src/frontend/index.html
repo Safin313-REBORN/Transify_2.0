@@ -2,9 +2,11 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Transify — Assistive AI Platform</title>
-  <meta name="description" content="AI-Powered Assistive Communication Platform for Hand Signal and Braille Language Recognition.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>Transify — Assistive AI Platform for Sign Language & Braille</title>
+  <meta name="description" content="AI-Powered Assistive Communication Platform for Hand Signal (BdSL & ASL) and Optical Braille Recognition, Live Speech Captions, and Natural Voice Synthesis.">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
   
   <!-- Open Graph & WhatsApp Link Preview Meta Tags -->
   <meta property="og:type" content="website">
@@ -1615,7 +1617,7 @@
                 <input type="checkbox" id="input-remember" checked>
                 <span id="remember-label-text">Remember me</span>
               </label>
-              <a href="#" class="auth-pwd-link" id="forgot-password-link" onclick="window.TransifyApp.handleForgotPassword(event)">Forgot password?</a>
+              <a href="javascript:void(0)" role="button" class="auth-pwd-link" id="forgot-password-link" onclick="window.TransifyApp.handleForgotPassword(event)">Forgot password?</a>
             </div>
 
             <!-- Primary Submit Button -->
@@ -1649,7 +1651,7 @@
             <!-- Bottom Prompt to Switch Mode inside Sheet -->
             <p class="auth-switch-prompt" id="auth-switch-prompt">
               <span id="switch-prompt-text">Don't have an account?</span>
-              <a href="#" id="switch-prompt-link" onclick="window.TransifyApp.switchAuthTab(window.TransifyApp.activeAuthMode === 'login' ? 'signup' : 'login'); return false;">Sign Up</a>
+              <a href="javascript:void(0)" role="button" id="switch-prompt-link" onclick="window.TransifyApp.switchAuthTab(window.TransifyApp.activeAuthMode === 'login' ? 'signup' : 'login'); return false;">Sign Up</a>
             </p>
 
           </form>
@@ -1846,10 +1848,20 @@
       </details>
     </section>
 
-    <!-- 18. Footer & Last Updated Timestamp -->
+    <!-- 18. Footer, Clickable Contact Info & Copyright Year -->
     <footer class="transify-footer" role="contentinfo">
+      <div style="margin-bottom: 8px; display: flex; justify-content: center; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <a href="/" aria-label="Transify Home" style="display: inline-flex; align-items: center; text-decoration: none;">
+          <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 26px; width: auto;">
+        </a>
+      </div>
+      <div style="margin-bottom: 8px; font-size: 13px; color: #475569; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+        <span>Support: <a href="mailto:support@transify.app" class="email-link" style="color: #8338ec; font-weight: 700; text-decoration: none;">support@transify.app</a></span>
+        <span>•</span>
+        <span>Helpline: <a href="tel:+18005550199" class="phone-link" style="color: #8338ec; font-weight: 700; text-decoration: none;">+1 (800) 555-0199</a></span>
+      </div>
       <p class="last-updated-text">
-        <time datetime="2026-11-19">Last updated: November 19, 2026</time> • Transify Release Candidate 2.0
+        <time datetime="2026-11-19">Last updated: November 19, 2026</time> • © 2026 Transify Inc. All rights reserved.
       </p>
       <div class="footer-links">
         <a href="/privacy">Privacy Policy</a> • 
@@ -2890,7 +2902,9 @@
   <div id="mobile-nav-overlay" class="mobile-nav-overlay" onclick="window.TransifyApp.toggleMobileMenu(false)"></div>
   <aside id="mobile-nav-drawer" class="mobile-nav-drawer" aria-label="Mobile Navigation" role="dialog" aria-modal="true">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(131,56,236,0.15); padding-bottom: 12px;">
-      <img src="/static/logo-horizontal-transparent.png" alt="Transify" style="height: 32px; width: auto;">
+      <a href="/" aria-label="Transify Home" onclick="window.TransifyApp.toggleMobileMenu(false)">
+        <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 32px; width: auto;">
+      </a>
       <button type="button" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #64748b;" onclick="window.TransifyApp.toggleMobileMenu(false)" aria-label="Close menu">✕</button>
     </div>
     <nav style="display: flex; flex-direction: column; gap: 6px;">
@@ -2905,6 +2919,11 @@
       <a href="/privacy" class="mobile-nav-link"><span>🔒</span> Privacy Policy</a>
       <a href="/terms" class="mobile-nav-link"><span>📜</span> Terms of Service</a>
       <a href="javascript:void(0)" onclick="window.TransifyApp.openContactModal(); window.TransifyApp.toggleMobileMenu(false);" class="mobile-nav-link"><span>📬</span> Contact & Feedback</a>
+      <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(131,56,236,0.15); font-size: 12px; color: #64748b; display: flex; flex-direction: column; gap: 6px;">
+        <div>📞 <a href="tel:+18005550199" style="color: #8338ec; font-weight: 700; text-decoration: none;">+1 (800) 555-0199</a></div>
+        <div>✉️ <a href="mailto:support@transify.app" style="color: #8338ec; font-weight: 700; text-decoration: none;">support@transify.app</a></div>
+        <div style="margin-top: 4px; font-size: 11px;">© 2026 Transify Inc.</div>
+      </div>
     </nav>
   </aside>
 

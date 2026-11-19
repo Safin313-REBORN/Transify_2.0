@@ -1679,6 +1679,18 @@ os.makedirs(os.path.join(FRONTEND_DIR, "static"), exist_ok=True)
 app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR, "static")), name="static")
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+def serve_favicon():
+    """Serves the root favicon.ico to prevent 404 console errors in web browsers."""
+    favicon_path = os.path.join(FRONTEND_DIR, "static", "favicon.ico")
+    if os.path.exists(favicon_path):
+        return FileResponse(favicon_path, media_type="image/x-icon")
+    png_path = os.path.join(FRONTEND_DIR, "static", "favicon.png")
+    if os.path.exists(png_path):
+        return FileResponse(png_path, media_type="image/png")
+    raise HTTPException(status_code=404, detail="Favicon not found")
+
+
 @app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse, tags=["Frontend"])
 def serve_landing_page():
     """Serves the Transify public landing page."""

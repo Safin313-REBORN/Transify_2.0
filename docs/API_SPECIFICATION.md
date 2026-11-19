@@ -117,3 +117,4 @@ All state-changing requests (`POST`, `PUT`, `DELETE`, `PATCH`) require:
 | `GET` | `/dashboard` | Public | Central assistive dashboard. |
 | `GET` | `/sign` | Public | Live Sign Language translator panel. |
 | `GET` | `/braille` | Public | Optical Braille translator panel. |
+
