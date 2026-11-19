@@ -2,22 +2,33 @@ name: BdSL LOSO Model Evaluation & Methodology Verification
 
 on:
   workflow_dispatch:
+    inputs:
+      seed:
+        description: 'Random seed for reproducible evaluation'
+        required: false
+        default: '42'
   push:
     branches: [ main, 'feat/**', 'fix/**' ]
     paths:
       - 'data/sign/**'
       - 'models/sign/**'
       - 'scripts/evaluate_bdsl_loso.py'
+      - 'scripts/verify_loso_report.py'
+      - 'tests/test_model_validation_and_diagnostics.py'
       - 'src/models/**'
       - '.github/workflows/model-evaluation.yml'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'data/sign/**'
       - 'models/sign/**'
       - 'scripts/evaluate_bdsl_loso.py'
+      - 'scripts/verify_loso_report.py'
+      - 'tests/test_model_validation_and_diagnostics.py'
       - 'src/models/**'
       - '.github/workflows/model-evaluation.yml'
+      - '.github/workflows/ci.yml'
 
 jobs:
   bdsl-loso-evaluation:
@@ -48,7 +59,8 @@ jobs:
 
       - name: Verify Dataset Manifest & Landmark Integrity Checksum
         run: |
-          echo "=== Manifest Checksum ==="
+          echo "=== Manifest Checksum Verification ==="
+          sha256sum -c data/sign/annotations/dataset_master_manifest.csv.sha256
           sha256sum data/sign/annotations/dataset_master_manifest.csv | tee manifest_checksum.txt
           echo "=== Sample Count Verification ==="
           python -c '
@@ -62,11 +74,12 @@ jobs:
         run: |
           sha256sum models/sign/bdsl_champion_model.pkl | tee model_pre_sha.txt
           sha256sum models/sign/scaler.pkl | tee scaler_pre_sha.txt
+          sha256sum models/sign/calibrated_classifier.pkl | tee calibrated_pre_sha.txt
 
       - name: Execute 8-Fold LOSO Evaluation Harness
         run: |
           mkdir -p artifacts
-          python scripts/evaluate_bdsl_loso.py --output_json artifacts/bdsl_loso_evaluation_report.json 2>&1 | tee artifacts/loso_evaluation.log
+          python scripts/evaluate_bdsl_loso.py --seed ${{ inputs.seed || '42' }} --output_json artifacts/bdsl_loso_evaluation_report.json 2>&1 | tee artifacts/loso_evaluation.log
 
       - name: Verify All 8 Folds Completed and Validate Report Schema
         run: |
@@ -76,8 +89,10 @@ jobs:
         run: |
           sha256sum models/sign/bdsl_champion_model.pkl | tee model_post_sha.txt
           sha256sum models/sign/scaler.pkl | tee scaler_post_sha.txt
+          sha256sum models/sign/calibrated_classifier.pkl | tee calibrated_post_sha.txt
           diff model_pre_sha.txt model_post_sha.txt
           diff scaler_pre_sha.txt scaler_post_sha.txt
+          diff calibrated_pre_sha.txt calibrated_post_sha.txt
           echo "[PASS] Production model checkpoints preserved intact."
 
       - name: Prepare Execution Metadata Summary

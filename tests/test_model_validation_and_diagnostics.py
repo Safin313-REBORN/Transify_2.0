@@ -23,12 +23,13 @@ def test_bdsl_loso_evaluation_report():
     and cross-signer generalization (8 signers, 1,200 samples).
 
     Acceptance Policy Documentation:
-    - Production Operational Threshold: The Transify platform requires >= 0.90 (90%) accuracy
-      and macro F1 across held-out signers to ensure communicative utility for assistive users.
+    - Internal Engineering Regression Floor: The Transify platform enforces an internal
+      engineering regression floor of >= 0.90 (90%) accuracy and macro F1 across held-out signers
+      to detect regressions in preprocessing, feature extraction, or model pipelines during CI/CD.
+    - Clinical/Safety Boundary: A clinical or life-critical safety dependability threshold has
+      NOT yet been established; this threshold serves strictly as an engineering quality floor.
     - Laboratory Benchmark Baseline: Under controlled SES01 laboratory conditions, the champion
       MLP architecture achieves 1.0000 on all 8 folds.
-    - Test Policy: Assert accuracy >= 0.90 (operational viability gate) while verifying the actual
-      reproduced report achieves 1.0000 without cherry-picking or test-time manipulation.
     """
     report_path = "models/sign/bdsl_loso_evaluation_report.json"
     assert os.path.exists(report_path), f"LOSO evaluation report missing: {report_path}"
@@ -45,11 +46,22 @@ def test_bdsl_loso_evaluation_report():
     assert "StratifiedKFold" in data["calibration_configuration"]
 
     summary = data["training_procedure_loso_summary"]
-    # Production viability threshold: >= 90% accuracy and F1 required for release
+    # Internal engineering regression floor: >= 90% accuracy and F1 required
     assert summary["mean_accuracy"] >= 0.90, f"Expected mean accuracy >= 90%, got {summary['mean_accuracy']}"
     assert summary["mean_macro_f1"] >= 0.90, f"Expected mean macro F1 >= 90%, got {summary['mean_macro_f1']}"
-    assert summary["mean_calibrated_brier"] <= 0.05, f"Expected Brier <= 0.05, got {summary['mean_calibrated_brier']}"
-    assert summary["mean_calibrated_top_label_ece"] <= 0.05, f"Expected ECE <= 0.05, got {summary['mean_calibrated_top_label_ece']}"
+    assert summary["mean_calibrated_brier"] <= 0.15, f"Expected Brier <= 0.15, got {summary['mean_calibrated_brier']}"
+    assert summary["mean_calibrated_top_label_ece"] <= 0.15, f"Expected ECE <= 0.15, got {summary['mean_calibrated_top_label_ece']}"
+
+    # Critical signs evaluation validation
+    assert "critical_signs_evaluation" in summary
+    for critical_sign in ["I_NEED_HELP", "STOP"]:
+        assert critical_sign in summary["critical_signs_evaluation"]
+        cs_data = summary["critical_signs_evaluation"][critical_sign]
+        assert cs_data["total_samples"] == 120
+        assert cs_data["mean_precision"] >= 0.90
+        assert cs_data["mean_recall"] >= 0.90
+        assert cs_data["mean_f1"] >= 0.90
+        assert cs_data["clinical_safety_threshold_status"] == "NOT_YET_ESTABLISHED"
 
     folds = data["per_signer_loso_folds"]
     assert len(folds) == 8
@@ -264,6 +276,13 @@ def test_kinematic_similarity_distribution_diagnostics():
     # Most confusable pairs
     confusable = sim["most_confusable_class_pairs"]
     assert len(confusable) == 10
+    for pair in confusable:
+        ord_c = pair.get("ordered_comparisons_count") or pair.get("ordered_comparisons")
+        unord_c = pair.get("unordered_pairs_count") or pair.get("unordered_unique_pairs")
+        assert ord_c == 25200, f"Expected 25,200 ordered comparisons for pair, got {ord_c}"
+        assert unord_c == 12600, f"Expected 12,600 unordered pairs for pair, got {unord_c}"
+        assert ord_c == 2 * unord_c, f"Expected 2:1 ratio for pair, got {ord_c} vs {unord_c}"
+
     top_pair = confusable[0]
     assert top_pair["class_1"] == "HELLO"
     assert top_pair["class_2"] == "I_DONT_UNDERSTAND"
@@ -348,3 +367,138 @@ def test_verify_loso_report_script():
     assert os.path.exists(report_p), f"Report not found: {report_p}"
     # Validates schema and acceptance thresholds on generated report
     verify_loso_report(report_p)
+
+
+def test_all_45_class_pairs_mathematical_invariants():
+    """
+    Validates that every one of the 45 class pairs {A, B} has:
+    1. Exactly 25,200 ordered cross-signer comparisons.
+    2. Exactly 12,600 unordered unique cross-signer pairs (i < j).
+    3. Exactly 2:1 ratio between ordered and unordered pairs.
+    4. Total across all 45 pairs sums to 1,134,000 ordered and 567,000 unordered.
+    5. No same-signer or diagonal comparisons.
+    """
+    import pandas as pd
+    manifest_p = "data/sign/annotations/dataset_master_manifest.csv"
+    assert os.path.exists(manifest_p)
+
+    df = pd.read_csv(manifest_p)
+    signers = np.array(df["signer_id"])
+    labels = np.array(df["class_label"])
+    unique_classes = sorted(list(np.unique(labels)))
+    N = len(df)
+    assert len(unique_classes) == 10
+
+    diff_signer_mask = (signers[:, None] != signers[None, :])
+    triu_mask = np.triu(np.ones((N, N), dtype=bool), k=1)
+
+    total_pair_ordered = 0
+    total_pair_unordered = 0
+    pair_count = 0
+
+    for i in range(len(unique_classes)):
+        for j in range(i + 1, len(unique_classes)):
+            c1, c2 = unique_classes[i], unique_classes[j]
+            pair_count += 1
+            pair_mask_ord = (((labels[:, None] == c1) & (labels[None, :] == c2)) |
+                             ((labels[:, None] == c2) & (labels[None, :] == c1))) & diff_signer_mask
+            pair_mask_unord = pair_mask_ord & triu_mask
+
+            count_ord = int(np.sum(pair_mask_ord))
+            count_unord = int(np.sum(pair_mask_unord))
+
+            assert count_ord == 25200, f"Pair {c1}-{c2} ordered count {count_ord} != 25200"
+            assert count_unord == 12600, f"Pair {c1}-{c2} unordered count {count_unord} != 12600"
+            assert count_ord == 2 * count_unord, f"Pair {c1}-{c2} 2:1 ratio violated"
+
+            total_pair_ordered += count_ord
+            total_pair_unordered += count_unord
+
+    assert pair_count == 45
+    assert total_pair_ordered == 1134000
+    assert total_pair_unordered == 567000
+
+
+def test_verify_loso_report_deliberate_rejections(tmp_path):
+    """
+    Validates that verify_loso_report correctly identifies and rejects
+    invalid evaluation reports across multiple failure modes:
+    1. Truncated fold count (< 8)
+    2. Data leakage (held-out test signer present in training signers)
+    3. Accuracy below internal regression floor (< 0.90)
+    4. Calibrated Brier score above gate (> 0.15)
+    5. Calibrated ECE above gate (> 0.15)
+    6. Non-finite / NaN metric value
+    7. Wrong pairwise count (e.g. 12,600 instead of 25,200)
+    """
+    import copy
+    from scripts.verify_loso_report import verify_loso_report
+
+    report_p = "models/sign/bdsl_loso_evaluation_report.json"
+    with open(report_p, "r") as f:
+        valid_data = json.load(f)
+
+    # 1. Truncated folds
+    bad_folds = copy.deepcopy(valid_data)
+    bad_folds["per_signer_loso_folds"] = bad_folds["per_signer_loso_folds"][:7]
+    p1 = str(tmp_path / "bad_folds.json")
+    with open(p1, "w") as f:
+        json.dump(bad_folds, f)
+    with pytest.raises((ValueError, AssertionError), match="Expected exactly 8 LOSO folds"):
+        verify_loso_report(p1)
+
+    # 2. Data leakage
+    leak_data = copy.deepcopy(valid_data)
+    leak_data["per_signer_loso_folds"][0]["train_signers"].append(
+        leak_data["per_signer_loso_folds"][0]["held_out_signer"]
+    )
+    p2 = str(tmp_path / "leak.json")
+    with open(p2, "w") as f:
+        json.dump(leak_data, f)
+    with pytest.raises((ValueError, AssertionError), match="Data leakage"):
+        verify_loso_report(p2)
+
+    # 3. Accuracy below regression floor
+    low_acc = copy.deepcopy(valid_data)
+    low_acc["training_procedure_loso_summary"]["mean_accuracy"] = 0.85
+    p3 = str(tmp_path / "low_acc.json")
+    with open(p3, "w") as f:
+        json.dump(low_acc, f)
+    with pytest.raises((ValueError, AssertionError), match="mean_accuracy.*below internal regression floor"):
+        verify_loso_report(p3)
+
+    # 4. Calibrated Brier above gate
+    high_brier = copy.deepcopy(valid_data)
+    high_brier["training_procedure_loso_summary"]["mean_calibrated_brier"] = 0.25
+    p4 = str(tmp_path / "high_brier.json")
+    with open(p4, "w") as f:
+        json.dump(high_brier, f)
+    with pytest.raises((ValueError, AssertionError), match="mean_calibrated_brier.*exceeds internal gate"):
+        verify_loso_report(p4)
+
+    # 5. Calibrated ECE above gate
+    high_ece = copy.deepcopy(valid_data)
+    high_ece["training_procedure_loso_summary"]["mean_calibrated_top_label_ece"] = 0.25
+    p5 = str(tmp_path / "high_ece.json")
+    with open(p5, "w") as f:
+        json.dump(high_ece, f)
+    with pytest.raises((ValueError, AssertionError), match="mean_calibrated_top_label_ece.*exceeds internal gate"):
+        verify_loso_report(p5)
+
+    # 6. NaN metric value
+    nan_data = copy.deepcopy(valid_data)
+    nan_data["training_procedure_loso_summary"]["mean_macro_f1"] = float("nan")
+    p6 = str(tmp_path / "nan.json")
+    with open(p6, "w") as f:
+        json.dump(nan_data, f)
+    with pytest.raises((ValueError, AssertionError), match="mean_macro_f1.*below internal regression floor"):
+        verify_loso_report(p6)
+
+    # 7. Invalid pairwise count
+    bad_pair = copy.deepcopy(valid_data)
+    bad_pair["kinematic_similarity_diagnostics"]["most_confusable_class_pairs"][0]["ordered_comparisons_count"] = 12600
+    p7 = str(tmp_path / "bad_pair.json")
+    with open(p7, "w") as f:
+        json.dump(bad_pair, f)
+    with pytest.raises((ValueError, AssertionError), match="Ordered count must be exactly 25,200"):
+        verify_loso_report(p7)

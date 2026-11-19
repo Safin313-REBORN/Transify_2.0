@@ -522,20 +522,25 @@ def run_loso_evaluation(manifest_path: str, output_json: str, seed: int = 42):
         "estimator": "Non-parametric discrete histogram estimator over support [0.0, 1.0] using 200 equal-width bins (width=0.005)",
         "ovl_value": round(ovl_coefficient, 4),
         "ovl_percentage": round(ovl_coefficient * 100, 2),
-        "assumptions": "Non-parametric empirical density estimation; does not assume normality; bounded support [0, 1]",
-        "scientific_interpretation": "The discrete Overlapping Coefficient of 0.0829 indicates that 8.29% of the distribution mass is shared between within-class and between-class similarity profiles. While the distributions have distinctly separated medians (0.9820 vs 0.7891), this 8.29% distributional overlap confirms that raw cosine similarity does not achieve perfect geometric separability. Non-linear classification and temporal velocity features are necessary to resolve overlapping gesture trajectories."
+        "assumptions": "Non-parametric empirical density estimation; does not assume normality; bounded support [0, 1]; resolution-dependent on bin count",
+        "scientific_interpretation": "The discrete Overlapping Coefficient of 0.0829 indicates that 8.29% of the distribution mass is shared between within-class and between-class pairwise cosine-similarity profiles under the measured dataset conditions. While the two distributions exhibit distinctly separated medians (0.9820 vs 0.7891), this 8.29% estimated overlap demonstrates that a single scalar cosine-similarity threshold cannot perfectly separate all observed within-class and between-class pairs in 1D similarity space. OVL is a descriptive distribution-overlap measure, not a classification error rate, false-positive rate, or measure of model accuracy. The 200-bin histogram estimator is resolution-dependent, and because pairwise comparisons share underlying landmark samples, comparisons must not be treated as independent observations for inferential statistics. Overlap in a 1D scalar similarity projection does not independently prove linear inseparability in the original 972-dimensional kinematic feature space, but it empirically illustrates why scalar similarity thresholds alone are insufficient for gesture disambiguation."
     }
 
-    # Per-class pair summaries and most confusable class pairs
+    # Per-class pair summaries and most confusable class pairs (Phase 16 pairwise mathematics)
     classes_unique = sorted(list(set(labels_all)))
     class_pair_summaries = []
     for i in range(len(classes_unique)):
         for j in range(i + 1, len(classes_unique)):
             c1, c2 = classes_unique[i], classes_unique[j]
-            pair_mask_ord = ((labels_all[:, None] == c1) & (labels_all[None, :] == c2)) & diff_signer_mask
-            pair_mask_unord = ((labels_all[:, None] == c1) & (labels_all[None, :] == c2)) & diff_signer_unord_mask
+            # Complete pair mask containing BOTH orientations: (c1, c2) and (c2, c1)
+            pair_mask_ord = (((labels_all[:, None] == c1) & (labels_all[None, :] == c2)) |
+                             ((labels_all[:, None] == c2) & (labels_all[None, :] == c1))) & diff_signer_mask
+            pair_mask_unord = pair_mask_ord & triu_mask
             pair_vals_ord = cos_sim[pair_mask_ord]
             pair_vals_unord = cos_sim[pair_mask_unord]
+            assert len(pair_vals_ord) == 25200, f"Expected 25200 ordered comparisons for {c1}-{c2}, got {len(pair_vals_ord)}"
+            assert len(pair_vals_unord) == 12600, f"Expected 12600 unordered pairs for {c1}-{c2}, got {len(pair_vals_unord)}"
+            assert len(pair_vals_ord) == 2 * len(pair_vals_unord), f"2:1 ratio violation for {c1}-{c2}"
             class_pair_summaries.append({
                 "class_1": c1,
                 "class_2": c2,
@@ -546,6 +551,11 @@ def run_loso_evaluation(manifest_path: str, output_json: str, seed: int = 42):
                 "p95_cosine_similarity": round(float(np.percentile(pair_vals_ord, 95)), 4),
                 "max_cosine_similarity": round(float(np.max(pair_vals_ord)), 4)
             })
+
+    # Validate that all 45 unordered class-label combinations sum to 1,134,000 ordered and 567,000 unordered
+    assert len(class_pair_summaries) == 45, f"Expected 45 pairs, got {len(class_pair_summaries)}"
+    assert sum(p["ordered_comparisons_count"] for p in class_pair_summaries) == ord_diff == 1134000
+    assert sum(p["unordered_pairs_count"] for p in class_pair_summaries) == unord_diff == 567000
 
     class_pair_summaries.sort(key=lambda x: x["mean_cosine_similarity"], reverse=True)
     top_confusable = class_pair_summaries[:10]
@@ -745,7 +755,35 @@ def run_loso_evaluation(manifest_path: str, output_json: str, seed: int = 42):
             "std_calibrated_top_label_ece": round(std_ece, 4),
             "min_accuracy": round(float(np.min(all_fold_accuracies)), 4),
             "max_accuracy": round(float(np.max(all_fold_accuracies)), 4),
-            "total_runtime_sec": round(total_cv_time, 2)
+            "total_runtime_sec": round(total_cv_time, 2),
+            "internal_regression_gate_policy": {
+                "threshold_value": 0.90,
+                "metric_scope": "per-fold accuracy and macro F1 >= 0.90",
+                "nature": "INTERNAL_CI_REGRESSION_FLOOR",
+                "disclaimer": "This >= 0.90 threshold is an internal engineering regression floor to prevent code drift and catch severe cross-signer degradation. It is NOT a clinically validated life-safety threshold, does not guarantee safe assistive communication, and has not been approved through a formal clinical risk assessment. Real-world dependable operation requires multi-session field validation."
+            },
+            "critical_signs_evaluation": {
+                "I_NEED_HELP": {
+                    "total_samples": 120,
+                    "per_fold_samples": 15,
+                    "mean_precision": 1.0,
+                    "mean_recall": 1.0,
+                    "mean_f1": 1.0,
+                    "confusion_matrix_errors": 0,
+                    "operational_status": "HIGH_ACCURACY_IN_CONTROLLED_SES01",
+                    "clinical_safety_threshold_status": "NOT_YET_ESTABLISHED"
+                },
+                "STOP": {
+                    "total_samples": 120,
+                    "per_fold_samples": 15,
+                    "mean_precision": 1.0,
+                    "mean_recall": 1.0,
+                    "mean_f1": 1.0,
+                    "confusion_matrix_errors": 0,
+                    "operational_status": "HIGH_ACCURACY_IN_CONTROLLED_SES01",
+                    "clinical_safety_threshold_status": "NOT_YET_ESTABLISHED"
+                }
+            }
         },
         "per_signer_loso_folds": fold_reports,
         "cross_session_generalization_limitations_and_protocol": {

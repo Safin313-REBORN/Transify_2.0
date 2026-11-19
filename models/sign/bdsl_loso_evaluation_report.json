@@ -1,6 +1,6 @@
 {
   "evaluation_name": "BdSL Multi-Signer Leave-One-Signer-Out (LOSO) Cross-Validation & Production Verification",
-  "timestamp": "2026-11-19 19:48:18 UTC",
+  "timestamp": "2026-11-19 20:28:08 UTC",
   "manifest_path": "data/sign/annotations/dataset_master_manifest.csv",
   "manifest_sha256": "6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f",
   "random_seed": 42,
@@ -166,15 +166,15 @@
       "estimator": "Non-parametric discrete histogram estimator over support [0.0, 1.0] using 200 equal-width bins (width=0.005)",
       "ovl_value": 0.0829,
       "ovl_percentage": 8.29,
-      "assumptions": "Non-parametric empirical density estimation; does not assume normality; bounded support [0, 1]",
-      "scientific_interpretation": "The discrete Overlapping Coefficient of 0.0829 indicates that 8.29% of the distribution mass is shared between within-class and between-class similarity profiles. While the distributions have distinctly separated medians (0.9820 vs 0.7891), this 8.29% distributional overlap confirms that raw cosine similarity does not achieve perfect geometric separability. Non-linear classification and temporal velocity features are necessary to resolve overlapping gesture trajectories."
+      "assumptions": "Non-parametric empirical density estimation; does not assume normality; bounded support [0, 1]; resolution-dependent on bin count",
+      "scientific_interpretation": "The discrete Overlapping Coefficient of 0.0829 indicates that 8.29% of the distribution mass is shared between within-class and between-class pairwise cosine-similarity profiles under the measured dataset conditions. While the two distributions exhibit distinctly separated medians (0.9820 vs 0.7891), this 8.29% estimated overlap demonstrates that a single scalar cosine-similarity threshold cannot perfectly separate all observed within-class and between-class pairs in 1D similarity space. OVL is a descriptive distribution-overlap measure, not a classification error rate, false-positive rate, or measure of model accuracy. The 200-bin histogram estimator is resolution-dependent, and because pairwise comparisons share underlying landmark samples, comparisons must not be treated as independent observations for inferential statistics. Overlap in a 1D scalar similarity projection does not independently prove linear inseparability in the original 972-dimensional kinematic feature space, but it empirically illustrates why scalar similarity thresholds alone are insufficient for gesture disambiguation."
     },
     "most_confusable_class_pairs": [
       {
         "class_1": "HELLO",
         "class_2": "I_DONT_UNDERSTAND",
-        "ordered_comparisons_count": 12600,
-        "unordered_pairs_count": 6300,
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
         "mean_cosine_similarity": 0.9556,
         "median_cosine_similarity": 0.9615,
         "p95_cosine_similarity": 0.9737,
@@ -183,8 +183,8 @@
       {
         "class_1": "OKAY",
         "class_2": "STOP",
-        "ordered_comparisons_count": 12600,
-        "unordered_pairs_count": 6300,
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
         "mean_cosine_similarity": 0.9296,
         "median_cosine_similarity": 0.9381,
         "p95_cosine_similarity": 0.9521,
@@ -193,8 +193,8 @@
       {
         "class_1": "OKAY",
         "class_2": "YES",
-        "ordered_comparisons_count": 12600,
-        "unordered_pairs_count": 6300,
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
         "mean_cosine_similarity": 0.9294,
         "median_cosine_similarity": 0.9357,
         "p95_cosine_similarity": 0.9628,
@@ -203,8 +203,8 @@
       {
         "class_1": "I_DONT_UNDERSTAND",
         "class_2": "THANK_YOU",
-        "ordered_comparisons_count": 12600,
-        "unordered_pairs_count": 6300,
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
         "mean_cosine_similarity": 0.9107,
         "median_cosine_similarity": 0.9184,
         "p95_cosine_similarity": 0.9311,
@@ -213,8 +213,8 @@
       {
         "class_1": "NO",
         "class_2": "PLEASE",
-        "ordered_comparisons_count": 12600,
-        "unordered_pairs_count": 6300,
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
         "mean_cosine_similarity": 0.8994,
         "median_cosine_similarity": 0.9075,
         "p95_cosine_similarity": 0.932,
@@ -223,8 +223,8 @@
       {
         "class_1": "I_NEED_HELP",
         "class_2": "YOURE_WELCOME",
-        "ordered_comparisons_count": 12600,
-        "unordered_pairs_count": 6300,
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
         "mean_cosine_similarity": 0.8928,
         "median_cosine_similarity": 0.8982,
         "p95_cosine_similarity": 0.9196,
@@ -233,8 +233,8 @@
       {
         "class_1": "PLEASE",
         "class_2": "YES",
-        "ordered_comparisons_count": 12600,
-        "unordered_pairs_count": 6300,
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
         "mean_cosine_similarity": 0.8914,
         "median_cosine_similarity": 0.8979,
         "p95_cosine_similarity": 0.9221,
@@ -243,8 +243,8 @@
       {
         "class_1": "STOP",
         "class_2": "YES",
-        "ordered_comparisons_count": 12600,
-        "unordered_pairs_count": 6300,
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
         "mean_cosine_similarity": 0.8895,
         "median_cosine_similarity": 0.8961,
         "p95_cosine_similarity": 0.9288,
@@ -253,8 +253,8 @@
       {
         "class_1": "HELLO",
         "class_2": "THANK_YOU",
-        "ordered_comparisons_count": 12600,
-        "unordered_pairs_count": 6300,
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
         "mean_cosine_similarity": 0.877,
         "median_cosine_similarity": 0.885,
         "p95_cosine_similarity": 0.9048,
@@ -263,8 +263,8 @@
       {
         "class_1": "NO",
         "class_2": "OKAY",
-        "ordered_comparisons_count": 12600,
-        "unordered_pairs_count": 6300,
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
         "mean_cosine_similarity": 0.8752,
         "median_cosine_similarity": 0.8819,
         "p95_cosine_similarity": 0.9188,
@@ -431,7 +431,35 @@
     "std_calibrated_top_label_ece": 0.0003,
     "min_accuracy": 1.0,
     "max_accuracy": 1.0,
-    "total_runtime_sec": 280.57
+    "total_runtime_sec": 362.31,
+    "internal_regression_gate_policy": {
+      "threshold_value": 0.9,
+      "metric_scope": "per-fold accuracy and macro F1 >= 0.90",
+      "nature": "INTERNAL_CI_REGRESSION_FLOOR",
+      "disclaimer": "This >= 0.90 threshold is an internal engineering regression floor to prevent code drift and catch severe cross-signer degradation. It is NOT a clinically validated life-safety threshold, does not guarantee safe assistive communication, and has not been approved through a formal clinical risk assessment. Real-world dependable operation requires multi-session field validation."
+    },
+    "critical_signs_evaluation": {
+      "I_NEED_HELP": {
+        "total_samples": 120,
+        "per_fold_samples": 15,
+        "mean_precision": 1.0,
+        "mean_recall": 1.0,
+        "mean_f1": 1.0,
+        "confusion_matrix_errors": 0,
+        "operational_status": "HIGH_ACCURACY_IN_CONTROLLED_SES01",
+        "clinical_safety_threshold_status": "NOT_YET_ESTABLISHED"
+      },
+      "STOP": {
+        "total_samples": 120,
+        "per_fold_samples": 15,
+        "mean_precision": 1.0,
+        "mean_recall": 1.0,
+        "mean_f1": 1.0,
+        "confusion_matrix_errors": 0,
+        "operational_status": "HIGH_ACCURACY_IN_CONTROLLED_SES01",
+        "clinical_safety_threshold_status": "NOT_YET_ESTABLISHED"
+      }
+    }
   },
   "per_signer_loso_folds": [
     {
@@ -456,8 +484,8 @@
       "top_label_ece_raw": 0.0044,
       "brier_score_calibrated": 0.001,
       "top_label_ece_calibrated": 0.0293,
-      "training_time_sec": 2.39,
-      "calibration_time_sec": 16.37,
+      "training_time_sec": 11.02,
+      "calibration_time_sec": 32.89,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -675,8 +703,8 @@
       "top_label_ece_raw": 0.0006,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 12.0,
-      "calibration_time_sec": 21.65,
+      "training_time_sec": 10.45,
+      "calibration_time_sec": 26.64,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -894,8 +922,8 @@
       "top_label_ece_raw": 0.0005,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0284,
-      "training_time_sec": 13.8,
-      "calibration_time_sec": 23.34,
+      "training_time_sec": 17.39,
+      "calibration_time_sec": 36.87,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1113,8 +1141,8 @@
       "top_label_ece_raw": 0.0003,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 11.13,
-      "calibration_time_sec": 33.15,
+      "training_time_sec": 14.3,
+      "calibration_time_sec": 28.9,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1332,8 +1360,8 @@
       "top_label_ece_raw": 0.0003,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 19.46,
-      "calibration_time_sec": 22.9,
+      "training_time_sec": 11.97,
+      "calibration_time_sec": 33.93,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1551,8 +1579,8 @@
       "top_label_ece_raw": 0.0011,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0284,
-      "training_time_sec": 10.0,
-      "calibration_time_sec": 18.34,
+      "training_time_sec": 15.54,
+      "calibration_time_sec": 39.91,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1770,7 +1798,7 @@
       "top_label_ece_raw": 0.0002,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0286,
-      "training_time_sec": 13.75,
+      "training_time_sec": 10.59,
       "calibration_time_sec": 28.07,
       "per_class_metrics": {
         "HELLO": {
@@ -1989,8 +2017,8 @@
       "top_label_ece_raw": 0.0002,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 10.4,
-      "calibration_time_sec": 22.17,
+      "training_time_sec": 11.88,
+      "calibration_time_sec": 29.53,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,

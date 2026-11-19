@@ -63,9 +63,7 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" testDebugUnitTest
-          ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" assembleDebug --stacktrace
-          ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" assembleDebugAndroidTest --stacktrace
+          ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" testDebugUnitTest assembleDebug assembleDebugAndroidTest --stacktrace --no-daemon
 
       - name: Upload Android Debug APK
         uses: actions/upload-artifact@v4

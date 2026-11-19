@@ -3,14 +3,14 @@
 **Repository:** `Safin313-REBORN/Transify_2.0`
 **Active Branch:** `feat/auth-repair-communication-hub`
 **Target Branch:** `main`
-**Latest Verified Implementation Checkpoint:** `7e966637781223f992597cda8544eee4a3ee10b4` (Phase 15 Verification & Packaging)
+**Latest Verified Implementation Checkpoint:** `dc03786e548686e9bf5482c3bc08f387c2577664` (Phase 16 Pairwise Mathematics, Verifier Hardening & CI Resilience)
 **Latest Verified Documentation Checkpoint:** `118dd1b08bb2724e466402a79bf231aa0356ad81` (CI Run #39 — ID `44604051797`, Success)
-**Historical Engineering Checkpoints:** `79928c95e52549bf0ea6547ca677254550ee1382` (Run #38), `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` (Run #36), `dd4c196b6e0276ea392238be372f822014e365e6` (Run #37), `33c2ef78f9249fc4a4dfdbbd24cb2c488b0f51f5` (Run #34), `6f8ff9c8e7d70680189ceb6d6619a095df4ee736` (Run #35), `68be13661b20201a91a463c9693a64bd246d9e95` (Run #33), `738caa3e84e488a930f14b32fd784a4440934aad` (Run #31), `74244a7f0c62bfb5e7be6afd37905ed3c9850cfc` (Run #28)
+**Historical Engineering Checkpoints:** `7e966637781223f992597cda8544eee4a3ee10b4` (Phase 15 Verification), `79928c95e52549bf0ea6547ca677254550ee1382` (Run #38), `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` (Run #36), `dd4c196b6e0276ea392238be372f822014e365e6` (Run #37), `33c2ef78f9249fc4a4dfdbbd24cb2c488b0f51f5` (Run #34), `6f8ff9c8e7d70680189ceb6d6619a095df4ee736` (Run #35), `68be13661b20201a91a463c9693a64bd246d9e95` (Run #33), `738caa3e84e488a930f14b32fd784a4440934aad` (Run #31), `74244a7f0c62bfb5e7be6afd37905ed3c9850cfc` (Run #28)
 **Railway Production URL:** [https://transify20-production.up.railway.app](https://transify20-production.up.railway.app)
 **Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149)
 **Active Railway Deployment ID:** `a988526c-9357-431d-9539-e2b423098149` (Status: ● Online / Healthy)
-**Date:** November 19, 2026
-**Document Status:** Complete Physical Device Acceptance Audit, Model Metric Reconciliation, Mathematical Invariant Proof, Statistical Overlap Analysis, Dedicated Evaluation Workflow & Final Release Quality Gate (Phase 15)
+**Date:** November 20, 2026
+**Document Status:** Complete Pairwise Mathematics Correction, LOSO CI Hardening, Scientific Interpretation Remediation & Final Engineering Sign-Off (Phase 16)
 
 ---
 
@@ -35,12 +35,13 @@ Transify 2.0 bridges communication for non-verbal, deaf, and blind individuals t
    - **HaGRID 24-class Gesture Classifier:** 86.83% test accuracy on 2,400 stratified held-out 3D landmark feature vectors (12,000 total augmented samples). Feature dimension strictly 38D. Synthetic template leakage disclosed: samples were perturbed from a single canonical pose per class; accuracy measures geometric perturbation tolerance around synthetic templates rather than in-the-wild generalization.
    - **Unified English Braille (UEB) Grade 1 OCR:** Evaluated on Document-Independent Partitioning (`DOC009`, `DOC010`). Achieves 100% exact cell accuracy (CER=0.0, WER=0.0) on usable held-out documents; 20% rejection rate on blurry/degraded inputs via Image Quality Assessment (IQA); 80% document match rate across all 10 images including rejected inputs.
 5. **Exact Kinematic Similarity Mathematics & Non-Parametric Overlap:**
-   - Full mathematical derivation and combinatorial partition proofs resolve previous Phase 14 reporting discrepancies. For $N=1,200$ across 8 signers (150/signer) and 10 classes (15/class/signer), ordered cross-signer comparisons total **1,260,000** (126,000 same-class, 1,134,000 diff-class); unique unordered pairs ($i < j$) total **630,000** (63,000 same-class, 567,000 diff-class).
+   - Full mathematical derivation and combinatorial partition proofs resolve previous class-pair counting discrepancies. For $N=1,200$ across 8 signers (150/signer) and 10 classes (15/class/signer), ordered cross-signer comparisons total **1,260,000** (126,000 same-class, 1,134,000 diff-class); unique unordered pairs ($i < j$) total **630,000** (63,000 same-class, 567,000 diff-class).
+   - For every one of the 45 unique unordered class pairs $\{A, B\}$, complete bidirectional cross-signer masks yield exactly **25,200 ordered comparisons** ($8 \times 7 \times 15 \times 15 = 12,600$ for $A \to B$ plus $12,600$ for $B \to A$) and **12,600 unordered unique sample pairs** ($i < j$), strictly satisfying the 2:1 symmetry ratio. All 45 pairs aggregate to exactly $45 \times 25,200 = 1,134,000$ ordered comparisons and $45 \times 12,600 = 567,000$ unordered pairs.
    - Weitzman Overlapping Coefficient ($\text{OVL} = \int \min(f_1(x), f_2(x)) dx$) computed via a discrete 200-bin histogram estimator on $[0.0, 1.0]$ equals **0.0829 (8.29% shared density mass)**.
-   - 12.80% of between-class comparisons (145,104 ordered / 72,552 unordered) overlap into the within-class range $[0.9010, 0.9785]$, refuting claims of complete linear geometric separability in raw cosine similarity space and proving why multi-dimensional non-linear classification with temporal velocity features is required.
+   - 12.80% of between-class comparisons (145,104 ordered / 72,552 unordered) overlap into the within-class range $[0.9010, 0.9785]$. Pairwise cosine similarity is a 1D scalar projection of the 972-dimensional feature space; this 1D distribution overlap confirms that a single scalar similarity threshold cannot separate observed pairs, but does not independently prove high-dimensional linear inseparability.
 6. **Raw Video Provenance Status:** Transparently marked as `UNVERIFIED_IN_THIS_EXECUTION`. The 1,200 $(30, 162)$ processed landmark arrays are fully verified on disk (0 NaNs, 0 missing). The 1,200 raw MP4 source recordings are maintained in an offline archive vault not mounted in this execution container. No original video integrity or consent forms were audited in this environment.
-7. **Dedicated GitHub LOSO Evaluation CI Workflow:** Created `.github/workflows/model-evaluation.yml` featuring `workflow_dispatch` manual triggering, path filtering on model/dataset changes, dataset manifest SHA-256 verification, landmark completeness checks, evaluation output isolated to `artifacts/bdsl_loso_evaluation_report.json`, production checkpoint preservation verification (`diff` pre vs post SHA-256), and automated artifact upload with 30-day retention.
-8. **Automated Android CI Instrumentation APK Packaging:** Upgraded `.github/workflows/ci.yml` to compile `assembleDebugAndroidTest` alongside unit tests and upload `transify-android-instrumentation-apk` (`app-debug-androidTest.apk`, 619,819 bytes) as a verified CI artifact on every commit.
+7. **Dedicated GitHub LOSO Evaluation CI Workflow:** Hardened `.github/workflows/model-evaluation.yml` featuring `workflow_dispatch` with validated seed input (default `42`), expanded path filtering, tracked dataset manifest checksum verification (`sha256sum -c data/sign/annotations/dataset_master_manifest.csv.sha256`), 3-checkpoint pre/post preservation verification (`bdsl_champion_model.pkl`, `scaler.pkl`, `calibrated_classifier.pkl`), automated validation gate (`scripts/verify_loso_report.py`), and artifact upload with 30-day retention.
+8. **Automated Android CI Compilation & Memory Optimization:** Streamlined `.github/workflows/ci.yml` into a single `./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest --stacktrace --no-daemon` execution, resolving daemon state exhaustion and reliably uploading `transify-android-instrumentation-apk` (`app-debug-androidTest.apk`, 619,819 bytes) and `transify-android-debug-apk` (6,176,952 bytes) on every commit.
 9. **Production Cloud Health:** Live deployment `a988526c-9357-431d-9539-e2b423098149` on Railway is healthy, with persistent volume mounted at `/app/data` (64 MB used) and all 6 core endpoints responding with HTTP 200 (latencies 356–501 ms). Redundant redeployment is strictly avoided per project release policies.
 
 ---
@@ -243,25 +244,30 @@ $$\text{OVL} = \int_{0}^{1} \min(f_{\text{within}}(x), f_{\text{between}}(x)) \,
   $$\widehat{\text{OVL}} = \sum_{k=1}^{200} \min(\widehat{f}_{\text{within}}(x_k), \widehat{f}_{\text{between}}(x_k)) \cdot \Delta x$$
 - **Density Normalization Condition:** Both empirical densities satisfy $\sum_{k=1}^{200} \widehat{f}(x_k) \cdot \Delta x = 1.0$.
 - **Empirical OVL Result:** **$\text{OVL} = 0.0829$ (8.29% shared density mass)**.
-- **Scientific Interpretation & Refutation of Linear Geometric Separability:**
-  The discrete Overlapping Coefficient of $0.0829$ confirms that within-class and between-class similarity profiles share $8.29\%$ of their probability mass. Although the medians are well-separated ($0.9820$ vs $0.7891$), this $8.29\%$ shared density mass—combined with the fact that $12.80\%$ of all between-class pairs exhibit similarities exceeding the minimum within-class similarity—**empirically disproves any claim of complete linear geometric separability in raw 1D cosine similarity space**.
+- **Scientific Interpretation & 1D Metric Projection Context:**
+  The discrete Overlapping Coefficient of $0.0829$ estimates that within-class and between-class pairwise cosine similarity distributions share approximately $8.29\%$ of their probability mass under a 200-bin histogram discretization. While the medians are well-separated ($0.9820$ within-class vs $0.7891$ between-class), $12.80\%$ of all between-class cross-signer comparisons exceed the minimum within-class similarity ($0.9010$).
 
-  Consequently, scalar thresholding or linear separation on raw landmark vectors is insufficient. This mathematical proof justifies the architectural necessity of non-linear classification models (champion Deep MLP and Random Forest) combined with multi-dimensional temporal velocity features ($v = \Delta x / \Delta t$) to disambiguate geometrically proximate gesture trajectories.
+  **Key Methodological Nuances:**
+  1. **1D Projection Caveat:** Pairwise cosine similarity is a one-dimensional scalar projection of a 972-dimensional feature space ($\mathbb{R}^{972} \to [-1, 1]$). Distributional overlap in this scalar projection proves that a single scalar similarity threshold cannot separate observed gesture pairs under the measured dataset conditions. However, it does **not** independently prove that the underlying 972-dimensional feature representations are linearly inseparable; multi-dimensional linear hyperplanes (or non-linear boundaries) can readily separate high-dimensional clusters whose 1D scalar projections overlap.
+  2. **Sample Dependency & Non-Independence:** The 1,260,000 ordered comparisons (630,000 unique pairs) are derived from 1,200 underlying kinematic sequences. Because each sample participates in multiple pairwise comparisons across signers, individual comparison values are statistically dependent rather than independent identically distributed (i.i.d.) observations.
+  3. **Discretization Sensitivity:** The empirical $\widehat{\text{OVL}}$ value is an estimated descriptive measure of shared density mass conditional on histogram resolution ($K = 200$ bins) and support bounds. It serves as an exploratory diagnostic rather than an intrinsic classification error rate.
 
 #### Most-Confusable Class Pairs (Cross-Signer Cosine Similarity)
 
+For every unordered class pair $\{A, B\}$, the complete bidirectional cross-signer mask covers both directed orientations ($A \to B$ and $B \to A$), giving exactly **25,200 ordered comparisons** ($8 \times 7 \times 15 \times 15 = 12,600$ in each direction) and **12,600 unique unordered pairs** ($i < j$). All 45 unordered class combinations sum to $45 \times 25,200 = 1,134,000$ ordered comparisons and $45 \times 12,600 = 567,000$ unique pairs, strictly obeying the 2:1 symmetry ratio.
+
 | Rank | Class Pair | Ordered Count | Unordered Count | Mean Similarity | Median Similarity | P95 Similarity | Max Similarity |
 | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **1** | `HELLO` $\leftrightarrow$ `I_DONT_UNDERSTAND` | 12,600 | 6,300 | **0.9556** | 0.9615 | 0.9737 | **0.9785** |
-| **2** | `OKAY` $\leftrightarrow$ `STOP` | 12,600 | 6,300 | **0.9296** | 0.9381 | 0.9521 | **0.9589** |
-| **3** | `OKAY` $\leftrightarrow$ `YES` | 12,600 | 6,300 | **0.9294** | 0.9357 | 0.9628 | **0.9706** |
-| **4** | `I_DONT_UNDERSTAND` $\leftrightarrow$ `THANK_YOU` | 12,600 | 6,300 | **0.9107** | 0.9184 | 0.9311 | **0.9377** |
-| **5** | `NO` $\leftrightarrow$ `PLEASE` | 12,600 | 6,300 | **0.8994** | 0.9075 | 0.9320 | **0.9448** |
-| **6** | `I_NEED_HELP` $\leftrightarrow$ `YOURE_WELCOME` | 12,600 | 6,300 | **0.8928** | 0.8982 | 0.9196 | **0.9254** |
-| **7** | `PLEASE` $\leftrightarrow$ `YES` | 12,600 | 6,300 | **0.8914** | 0.8979 | 0.9221 | **0.9294** |
-| **8** | `STOP` $\leftrightarrow$ `YES` | 12,600 | 6,300 | **0.8895** | 0.8961 | 0.9288 | **0.9374** |
-| **9** | `HELLO` $\leftrightarrow$ `THANK_YOU` | 12,600 | 6,300 | **0.8770** | 0.8850 | 0.9048 | **0.9121** |
-| **10** | `NO` $\leftrightarrow$ `OKAY` | 12,600 | 6,300 | **0.8752** | 0.8819 | 0.9188 | **0.9346** |
+| **1** | `HELLO` $\leftrightarrow$ `I_DONT_UNDERSTAND` | **25,200** | **12,600** | **0.9556** | 0.9615 | 0.9737 | **0.9785** |
+| **2** | `OKAY` $\leftrightarrow$ `STOP` | **25,200** | **12,600** | **0.9296** | 0.9381 | 0.9521 | **0.9589** |
+| **3** | `OKAY` $\leftrightarrow$ `YES` | **25,200** | **12,600** | **0.9294** | 0.9357 | 0.9628 | **0.9706** |
+| **4** | `I_DONT_UNDERSTAND` $\leftrightarrow$ `THANK_YOU` | **25,200** | **12,600** | **0.9107** | 0.9184 | 0.9311 | **0.9377** |
+| **5** | `NO` $\leftrightarrow$ `PLEASE` | **25,200** | **12,600** | **0.8994** | 0.9075 | 0.9320 | **0.9448** |
+| **6** | `I_NEED_HELP` $\leftrightarrow$ `YOURE_WELCOME` | **25,200** | **12,600** | **0.8928** | 0.8982 | 0.9196 | **0.9254** |
+| **7** | `PLEASE` $\leftrightarrow$ `YES` | **25,200** | **12,600** | **0.8914** | 0.8979 | 0.9221 | **0.9294** |
+| **8** | `STOP` $\leftrightarrow$ `YES` | **25,200** | **12,600** | **0.8895** | 0.8961 | 0.9288 | **0.9374** |
+| **9** | `HELLO` $\leftrightarrow$ `THANK_YOU` | **25,200** | **12,600** | **0.8770** | 0.8850 | 0.9048 | **0.9121** |
+| **10** | `NO` $\leftrightarrow$ `OKAY` | **25,200** | **12,600** | **0.8752** | 0.8819 | 0.9188 | **0.9346** |
 
 ---
 
@@ -272,27 +278,29 @@ To eliminate ambiguity, the two distinct evaluations are documented independentl
 #### 1. Model A: 8-Fold Leave-One-Signer-Out (LOSO) Training Procedure
 - **Model Architecture:** Champion Deep MLP (`hidden_layer_sizes=(384, 192, 96)`, ReLU, Adam, early stopping, L2 $\alpha=10^{-4}$).
 - **Evaluation Purpose:** Validates the *training methodology and feature representation*, training 8 models from scratch with fold-local preprocessing pipelines (`Pipeline([StandardScaler, Deep MLP])`) and nested 3-fold cross-validation probability calibration (`CalibratedClassifierCV(cv=StratifiedKFold(3))`).
-- **Reproducibility Execution:** Recomputed across all 8 folds in **280.57s** using `scripts/evaluate_bdsl_loso.py`.
+- **Reproducibility Execution:** Recomputed across all 8 folds in **362.31s** using `scripts/evaluate_bdsl_loso.py`.
 
 | Fold | Held-Out Signer | Train Samples | Test Samples | Accuracy | Macro F1 | Calibrated Brier | Calibrated ECE | Fold Train Time |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Fold 1** | `S001` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0010 | 0.0293 | 18.8s |
-| **Fold 2** | `S002` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 33.6s |
-| **Fold 3** | `S003` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 37.1s |
-| **Fold 4** | `S004` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 44.3s |
-| **Fold 5** | `S005` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 42.4s |
-| **Fold 6** | `S006` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 28.3s |
-| **Fold 7** | `S007` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0286 | 41.8s |
-| **Fold 8** | `S008` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 32.6s |
-| **Mean ± Std** | **All 8 Signers** | **1,050** | **150** | **100.00% ± 0.00%** | **1.0000 ± 0.0000** | **0.0009 ± 0.0000** | **0.0285 ± 0.0003** | **Total: 280.57s** |
+| **Fold 1** | `S001` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0010 | 0.0293 | 11.0s |
+| **Fold 2** | `S002` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 10.5s |
+| **Fold 3** | `S003` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 17.4s |
+| **Fold 4** | `S004` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 14.3s |
+| **Fold 5** | `S005` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 12.0s |
+| **Fold 6** | `S006` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 15.5s |
+| **Fold 7** | `S007` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0286 | 10.6s |
+| **Fold 8** | `S008` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 11.9s |
+| **Mean ± Std** | **All 8 Signers** | **1,050** | **150** | **100.00% ± 0.00%** | **1.0000 ± 0.0000** | **0.0009 ± 0.0000** | **0.0285 ± 0.0003** | **Total: 362.31s** |
 
-##### Regression Test Acceptance Policy Justification
-In `tests/test_model_validation_and_diagnostics.py`, regression tests enforce the following acceptance thresholds for Model A LOSO cross-validation:
-- **Accuracy Threshold:** $\ge 0.90$ across all 8 folds and mean.
-- **Macro F1 Threshold:** $\ge 0.90$ across all 8 folds and mean.
-
-**Operational Viability Rationale:**
-In assistive and life-safety communication software, sign language recognition must maintain dependable accuracy across diverse individual users. Critical signs such as `I_NEED_HELP` and `STOP` must not suffer catastrophic failure when encountered on an unseen signer. An acceptance threshold of $\ge 0.90$ guarantees that any code or feature alteration that introduces unacceptable cross-signer performance regression will immediately fail CI. Simultaneously, setting the automated gate threshold to $0.90$ rather than a brittle $1.0000$ ensures that future incorporation of noisier multi-session real-world data (`SES02+`) will not cause false-positive test breaks as long as models remain within safe operational parameters.
+##### Internal Engineering Regression Floor Policy & Critical Signs Disclosures
+In `tests/test_model_validation_and_diagnostics.py` and `scripts/verify_loso_report.py`, automated quality gates enforce the following acceptance thresholds for Model A LOSO cross-validation:
+- **Internal Engineering Regression Floor:** Mean accuracy $\ge 0.90$ and macro F1 $\ge 0.90$ across all 8 folds.
+- **Calibration Gates:** Mean calibrated Brier score $\le 0.15$ and mean calibrated ECE $\le 0.15$.
+- **Clinical Safety Disclaimer:** The 90% threshold is strictly an **internal engineering regression floor** to catch pipeline breaks and bugs during CI/CD. It does **not** constitute a clinically validated threshold or proof of life-critical dependability. A formal clinical safety threshold for BdSL recognition in life-critical settings remains **not yet established**.
+- **Critical Signs Dedicated Evaluation:**
+  - `I_NEED_HELP`: Evaluated across 120 total test samples (15 per fold $\times$ 8 signers). Achieved **100.00% precision, 100.00% recall, 1.0000 F1 score**, with 0 confusion matrix errors.
+  - `STOP`: Evaluated across 120 total test samples (15 per fold $\times$ 8 signers). Achieved **100.00% precision, 100.00% recall, 1.0000 F1 score**, with 0 confusion matrix errors.
+  - Operational status: High accuracy under controlled laboratory conditions (`SES01`), with clinical safety threshold explicitly marked as **NOT_YET_ESTABLISHED**.
 
 #### 2. Model B: Saved Production Checkpoint (Random Forest)
 - **Model Architecture:** `RandomForestClassifier(max_depth=16, n_estimators=150, n_jobs=-1, random_state=42)`
@@ -362,20 +370,23 @@ In assistive and life-safety communication software, sign language recognition m
 To institutionalize reproducible model evaluation without slowing down everyday feature commits, a dedicated GitHub Actions workflow was created at `.github/workflows/model-evaluation.yml`.
 
 #### 1. Workflow Architecture & Trigger Policies
-- **Manual Dispatch (`workflow_dispatch`):** Allows any team member or release auditor to trigger full 8-fold cross-validation on-demand with customized parameters.
+- **Manual Dispatch (`workflow_dispatch`):** Allows any team member or release auditor to trigger full 8-fold cross-validation on-demand with configurable parameters, specifically including an optional `seed` parameter (default `42`).
 - **Path-Filtered Automation:** Automatically triggers on pull requests and pushes affecting model training or evaluation assets:
   - `data/sign/**` (annotations, manifests, landmark arrays)
   - `models/sign/**` (model manifests, exported weights, evaluation reports)
   - `scripts/evaluate_bdsl_loso.py` (evaluation harness)
+  - `scripts/verify_loso_report.py` (contract and threshold verification script)
+  - `tests/test_model_validation_and_diagnostics.py` (model diagnostics and mathematical tests)
   - `src/models/**` (model architecture and adapter implementations)
   - `.github/workflows/model-evaluation.yml` (the evaluation workflow itself)
+  - `.github/workflows/ci.yml` (the main CI workflow)
 
 #### 2. Verification Gates & Execution Invariants
-1. **Manifest Integrity Gate:** Verifies the cryptographic SHA-256 of `data/sign/annotations/dataset_master_manifest.csv` (`6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f`) and validates that exactly 1,200 rows across 8 signers and 10 classes are present.
-2. **Pre-Evaluation Checkpoint Baseline:** Hashes production model checkpoints (`models/sign/bdsl_champion_model.pkl` and `scaler.pkl`) prior to running evaluation.
-3. **Isolated Evaluation Output:** Executes `scripts/evaluate_bdsl_loso.py --output_json artifacts/bdsl_loso_evaluation_report.json` with all terminal output logged to `artifacts/loso_evaluation.log`.
-4. **8-Fold Completion & Acceptance Gate:** Verifies that all 8 folds ran to completion via automated verification script `scripts/verify_loso_report.py` ($N_{\text{test}} = 150$, $N_{\text{train}} = 1,050$), and asserts that each fold meets the operational assistive viability threshold ($\ge 0.90$ accuracy).
-5. **Production Checkpoint Preservation Invariant:** Computes post-evaluation SHA-256 hashes of `models/sign/bdsl_champion_model.pkl` and `scaler.pkl` and runs `diff` against the pre-evaluation hashes. Guarantees that the evaluation harness never mutates or overwrites deployed production weights.
+1. **Tracked Manifest Integrity Gate:** Verifies the cryptographic SHA-256 of `data/sign/annotations/dataset_master_manifest.csv` against the tracked checksum file `data/sign/annotations/dataset_master_manifest.csv.sha256` via `sha256sum -c` (`6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f`) and validates that exactly 1,200 rows across 8 signers and 10 classes are present.
+2. **Pre-Evaluation Checkpoint Baseline:** Hashes all three production model checkpoints (`models/sign/bdsl_champion_model.pkl`, `models/sign/scaler.pkl`, and `models/sign/calibrated_classifier.pkl`) prior to running evaluation.
+3. **Isolated Evaluation Output:** Executes `scripts/evaluate_bdsl_loso.py --seed ${{ inputs.seed || '42' }} --output_json artifacts/bdsl_loso_evaluation_report.json` with all terminal output logged to `artifacts/loso_evaluation.log`.
+4. **8-Fold Completion & Verification Gate:** Verifies that all 8 folds ran to completion and conform to the Phase 16 contract via `scripts/verify_loso_report.py` ($N_{\text{test}} = 150$, $N_{\text{train}} = 1,050$), asserting 10 classes per fold, $10 \times 10$ confusion matrices, $\ge 0.90$ internal engineering regression floor, calibrated Brier/ECE $\le 0.15$, complete 45 pairwise counts (25,200 ordered, 12,600 unordered), and no non-finite metrics.
+5. **Production Checkpoint Preservation Invariant:** Computes post-evaluation SHA-256 hashes of `bdsl_champion_model.pkl`, `scaler.pkl`, and `calibrated_classifier.pkl`, and runs `diff` against the pre-evaluation hashes. Guarantees that the evaluation harness never mutates or overwrites deployed production weights.
 6. **Artifact Packaging & Archival:** Packages `bdsl_loso_evaluation_report.json`, `loso_evaluation.log`, `execution_metadata.json`, and `manifest_checksum.txt` into `transify-bdsl-loso-evaluation` with 30-day retention for auditing.
 
 ---
@@ -439,12 +450,12 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
 ## 8. Test Execution Metrics & Packaging Summary
 
 ### Test Summary
-- **Backend & Browser Pytest Suite:** **224 passed, 1 warning in 62.66s** (0 failed, 0 skipped).
+- **Backend & Browser Pytest Suite:** **227 passed, 1 warning in 70.68s** (0 failed, 0 skipped).
   - Includes 19 Playwright baseline responsive tests across 4 viewports.
   - Includes 5 Playwright production zero auto-audio browser tests.
-  - Includes 9 automated validation tests for BdSL LOSO methodology, data integrity, production checkpoint schema, kinematic similarity distributions and mathematical invariants, raw video provenance, HaGRID disclosures, and diagnostics instrumentation.
+  - Includes 12 automated validation tests for BdSL LOSO methodology, data integrity, production checkpoint schema, kinematic similarity distributions and all 45 class-pair mathematical invariants, deliberate verify_loso_report contract rejections, raw video provenance, HaGRID disclosures, and diagnostics instrumentation.
 - **Android JVM Unit Tests:** **40 passed, 0 failed, 0 skipped** across 7 test suites (74 actionable tasks executed in 22s).
-- **Total Executed Automated Tests:** **264 tests passed (100% pass rate)**.
+- **Total Executed Automated Tests:** **267 tests passed (100% pass rate)**.
 
 ### Build Artifact Inventory
 1. **Transify Android Debug APK:**
@@ -470,7 +481,7 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
 | :--- | :--- | :--- | :--- |
 | **Gate 1: Zero Auto-Audio Policy** | Zero audio on load, route navigation, or model detections without explicit button tap | 5 Playwright tests passed; 10 Android unit tests passed; media playback gestures enforced | **PASS** |
 | **Gate 2: Android JVM Unit Tests** | All native Kotlin unit tests pass | 40 passed, 0 failed, 0 skipped across 7 suites | **PASS** |
-| **Gate 3: Backend & Web Pytest** | Complete pytest regression suite passes | 224 passed, 1 warning, 0 failed, 0 skipped | **PASS** |
+| **Gate 3: Backend & Web Pytest** | Complete pytest regression suite passes | 227 passed, 1 warning, 0 failed, 0 skipped | **PASS** |
 | **Gate 4: Android Test Packaging** | Instrumentation APK compiles cleanly and is packaged in CI | `app-debug-androidTest.apk` assembled (619 KB); uploaded in `.github/workflows/ci.yml` | **PASS** |
 | **Gate 5: Debug APK Packaging** | Android application debug APK compiles cleanly | `app-debug.apk` assembled (6.18 MB) | **PASS** |
 | **Gate 6: API Contract Alignment** | Endpoints match `src/api/server.py` Pydantic schemas | Validated: JSON auth, multipart Braille, JSON TTS directive | **PASS** |
