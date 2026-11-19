@@ -226,15 +226,17 @@ def init_db():
             PRIMARY KEY (pref_key, user_id)
         );
         """)
+        k_col = "pref_key" if "pref_key" in pref_cols else "key"
+        v_col = "pref_value" if "pref_value" in pref_cols else "value"
         if "user_id" in pref_cols:
-            cursor.execute("""
+            cursor.execute(f"""
             INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
-            SELECT pref_key, COALESCE(user_id, 0), pref_value, updated_at FROM user_preferences;
+            SELECT {k_col}, COALESCE(user_id, 0), {v_col}, updated_at FROM user_preferences;
             """)
         else:
-            cursor.execute("""
+            cursor.execute(f"""
             INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
-            SELECT pref_key, 0, pref_value, updated_at FROM user_preferences;
+            SELECT {k_col}, 0, {v_col}, updated_at FROM user_preferences;
             """)
         cursor.execute("DROP TABLE user_preferences;")
         cursor.execute("ALTER TABLE user_preferences_migrated RENAME TO user_preferences;")
@@ -667,7 +669,7 @@ def verify_password(password: str, password_hash: str, salt: str) -> bool:
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
 
-def create_user(name: str, email: str, password: str, role: str = "user", consent_terms: bool = True) -> Dict[str, Any]:
+def create_user(name: str, email: str, password: str, role: str = "user", consent_terms: bool = False) -> Dict[str, Any]:
     """
     Validates and registers a new user in the SQLite database with securely hashed credentials.
     Enforces a minimum password length of 15 characters without arbitrary character-composition rules.

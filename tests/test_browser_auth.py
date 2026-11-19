@@ -14,75 +14,29 @@ from playwright.sync_api import sync_playwright
 from src.api.server import app
 from src.database.db import create_user
 
-def get_free_port():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('', 0))
-        return s.getsockname()[1]
-
-@pytest.fixture(scope="module")
-def live_server():
-    port = get_free_port()
-    config = uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning")
-    server = uvicorn.Server(config)
-    
-    thread = threading.Thread(target=server.run, daemon=True)
-    thread.start()
-    
-    # Wait for server ready
-    base_url = f"http://127.0.0.1:{port}"
-    max_wait = 10
-    start = time.time()
-    while time.time() - start < max_wait:
+def new_isolated_page(browser_instance, viewport={"width": 1280, "height": 800}):
+    """Creates a new isolated browser context and page, ensuring clean cookies and storage."""
+    context = browser_instance.new_context(viewport=viewport)
+    page = context.new_page()
+    original_close = page.close
+    def safe_close():
         try:
-            with socket.create_connection(("127.0.0.1", port), timeout=0.5):
-                break
-        except OSError:
-            time.sleep(0.1)
-            
-    yield base_url
-    server.should_exit = True
-    thread.join(timeout=2)
-
-@pytest.fixture(scope="module")
-def browser_instance():
-    with sync_playwright() as p:
-        launch_args = ["--no-sandbox", "--disable-dev-shm-usage"]
-        executable = None
-        for candidate in ["/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "/usr/bin/chromium-browser"]:
-            if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
-                executable = candidate
-                break
-        
-        try:
-            if executable:
-                browser = p.chromium.launch(
-                    executable_path=executable,
-                    headless=True,
-                    args=launch_args
-                )
-            else:
-                browser = p.chromium.launch(
-                    headless=True,
-                    args=launch_args
-                )
-        except Exception:
-            browser = p.chromium.launch(
-                headless=True,
-                args=launch_args
-            )
-        yield browser
-        browser.close()
+            original_close()
+        finally:
+            context.close()
+    page.close = safe_close
+    return page
 
 @pytest.fixture(scope="module")
 def browser_test_user():
     email = f"browser_e2e_{int(time.time()*1000)}@transify.test"
     pwd = "BrowserE2EPassword123!_2026"
-    create_user("Browser Tester", email, pwd)
+    create_user("Browser Tester", email, pwd, consent_terms=True)
     return {"email": email, "password": pwd}
 
 def test_welcome_screen_renders_without_errors(live_server, browser_instance):
     """Verifies welcome card and hotspots render cleanly on desktop."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     # Verify auth screen overlay exists
@@ -101,7 +55,7 @@ def test_welcome_screen_renders_without_errors(live_server, browser_instance):
 
 def test_artwork_failure_activates_styled_fallback(live_server, browser_instance):
     """Verifies that if artwork fails to load/decode, .auth-fallback-active renders visible buttons."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     # Block data URIs and images to simulate decode or load failure
     page.route("**/*.jpg", lambda route: route.abort())
     page.route("**/*.png", lambda route: route.abort())
@@ -131,7 +85,7 @@ def test_artwork_failure_activates_styled_fallback(live_server, browser_instance
 
 def test_early_interaction_before_app_js(live_server, browser_instance):
     """Verifies buttons work even if app.js is delayed or blocked."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     # Block app.js from loading
     page.route("**/static/app.js*", lambda route: route.abort())
     
@@ -153,7 +107,7 @@ def test_early_interaction_before_app_js(live_server, browser_instance):
 
 def test_real_login_flow(live_server, browser_instance, browser_test_user):
     """Verifies genuine login authenticates, sets session, and opens dashboard."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     # Open Login sheet
@@ -184,7 +138,7 @@ def test_real_login_flow(live_server, browser_instance, browser_test_user):
 
 def test_invalid_login_rejection(live_server, browser_instance):
     """Verifies entering incorrect password displays error message and does not log in."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     page.click("#btn-open-login")
@@ -205,10 +159,12 @@ def test_invalid_login_rejection(live_server, browser_instance):
 def test_user_registration_flow(live_server, browser_instance):
     """Verifies registering a new account requires terms consent, creates user in DB, and logs in."""
     import time
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     page.click("#btn-open-register")
+    page.wait_for_selector("#auth-sheet-container.active", timeout=5000)
+    page.wait_for_selector("#input-fullname:visible", timeout=5000)
     unique_email = f"playwright_{int(time.time()*1000)}@example.com"
     
     page.fill("#input-fullname", "Alice Browser")
@@ -216,9 +172,10 @@ def test_user_registration_flow(live_server, browser_instance):
     page.fill("#input-password", "SecurePassword1234567!") # 22 chars (>= 15)
     
     # 1. First attempt: Terms UNCHECKED -> must be blocked
+    page.uncheck("#input-terms")
     page.click("#auth-submit-btn")
     alert = page.locator("#auth-alert")
-    page.wait_for_selector("#auth-alert:visible", timeout=3000)
+    page.wait_for_selector("#auth-alert:visible", timeout=5000)
     assert "Terms of Service" in alert.inner_text()
     
     # 2. Check terms checkbox and re-submit -> must succeed
@@ -237,7 +194,7 @@ def test_user_registration_flow(live_server, browser_instance):
 
 def test_guest_mode_flow(live_server, browser_instance):
     """Verifies Continue as Demo Guest opens app with explicit guest flag and no fake JWT."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     # Click Guest Button
@@ -257,7 +214,7 @@ def test_guest_mode_flow(live_server, browser_instance):
 
 def test_session_persistence_on_reload(live_server, browser_instance, browser_test_user):
     """Verifies that an active session persists on reload without re-prompting login."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     # Login
@@ -278,7 +235,7 @@ def test_session_persistence_on_reload(live_server, browser_instance, browser_te
 
 def test_responsive_mobile_viewport(live_server, browser_instance):
     """Verifies auth screen and buttons render correctly on mobile (375x667)."""
-    page = browser_instance.new_page(viewport={"width": 375, "height": 667})
+    page = new_isolated_page(browser_instance,viewport={"width": 375, "height": 667})
     page.goto(live_server)
     
     card = page.locator("#auth-welcome-card")
@@ -292,7 +249,7 @@ def test_responsive_mobile_viewport(live_server, browser_instance):
 
 def test_login_html_standalone_page(live_server, browser_instance, browser_test_user):
     """Verifies standalone /login page operates with the same robust database authentication."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(f"{live_server}/login")
     
     card = page.locator("#auth-welcome-card")
@@ -316,7 +273,7 @@ def test_hotspot_alignment_multiple_viewports(live_server, browser_instance):
         {"width": 1024, "height": 500, "name": "short_desktop"}
     ]
     for vp in viewports:
-        page = browser_instance.new_page(viewport={"width": vp["width"], "height": vp["height"]})
+        page = new_isolated_page(browser_instance,viewport={"width": vp["width"], "height": vp["height"]})
         page.goto(live_server)
         
         reg_btn = page.locator("#btn-open-register")
@@ -344,7 +301,7 @@ def test_hotspot_alignment_multiple_viewports(live_server, browser_instance):
 
 def test_password_visibility_toggle(live_server, browser_instance):
     """Verifies that clicking the eye icon toggles password input visibility between password and text."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     page.click("#btn-open-login")
@@ -362,11 +319,11 @@ def test_password_visibility_toggle(live_server, browser_instance):
 def test_forgot_password_ui_workflow(live_server, browser_instance):
     """Verifies Forgot Password link transitions UI into recovery mode and reveals reset fields."""
     import time
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     unique_email = f"forgot_{int(time.time()*1000)}@transify.test"
-    create_user("Forgot Tester", unique_email, "InitialPassword123!_2026")
+    create_user("Forgot Tester", unique_email, "InitialPassword123!_2026", consent_terms=True)
     
     page.click("#btn-open-login")
     page.click("#forgot-password-link")
@@ -390,7 +347,7 @@ def test_forgot_password_ui_workflow(live_server, browser_instance):
 
 def test_communication_hub_ui_interaction(live_server, browser_instance):
     """Verifies Communication Hub opens, accepts typed messages, renders feed cards, and supports copying/export."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     # Enter as guest for fast UI access
@@ -420,7 +377,7 @@ def test_communication_hub_ui_interaction(live_server, browser_instance):
 
 def test_quick_phraseboard_ui_interaction(live_server, browser_instance):
     """Verifies Phraseboard displays default bilingual phrases, adds custom phrases, and clicking does not auto-play audio."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     page.click("#btn-demo-guest")
@@ -454,7 +411,7 @@ def test_quick_phraseboard_ui_interaction(live_server, browser_instance):
 
 def test_language_and_accessibility_ui_toggles(live_server, browser_instance):
     """Verifies language toggle switches UI strings and accessibility modal toggles body classes."""
-    page = browser_instance.new_page(viewport={"width": 1280, "height": 800})
+    page = new_isolated_page(browser_instance,viewport={"width": 1280, "height": 800})
     page.goto(live_server)
     
     page.click("#btn-demo-guest")

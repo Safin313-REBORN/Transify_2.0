@@ -1,7 +1,7 @@
 # Transify 2.0 — AI-Powered Accessible Multi-Modal Communication Platform
 
 > **Tagline:** *Breaking Communication Barriers through Artificial Intelligence.*  
-> **Status:** Production Ready · 4 Modules Deployed · 34/34 System Tests Passing
+> **Status:** Production Ready · 4 Modules Deployed · 167/167 Automated Tests Passing · CI Verified
 
 ---
 
@@ -9,20 +9,22 @@
 
 **Transify 2.0** is an all-in-one, multi-modal assistive communication platform engineered to empower individuals who are Deaf, hard-of-hearing, blind, visually impaired, or non-verbal.
 
-Transify 2.0 integrates **four dedicated AI modules** with zero external cloud lock-in:
-1. **Live Hand Sign & Gesture Translator (ASL & HaGRID):** Real-time computer vision engine recognizing 24+ communicative sign language words and gestures with strict Camera Target Box containment, 3-frame rolling consensus analysis, and an ultra-fast 98% Decision Gateway.
+Transify 2.0 integrates **four dedicated AI modules**, an accessible **Communication Hub**, a rapid **Phraseboard**, and a hardened production authentication and security infrastructure with zero external cloud lock-in:
+1. **Live Hand Sign & Gesture Translator (ASL, HaGRID & BdSL):** Real-time computer vision engine recognizing 24+ communicative sign language words and gestures with strict Camera Target Box containment, 30-frame temporal sequence analysis, and an ultra-fast 98% Decision Gateway.
 2. **Optical Braille Translator (UEB Grade 1):** Optical Braille Recognition (OBR) pipeline powered by an ExtraTrees classifier (100% exact-cell test accuracy on heldout data), CLAHE contrast normalizer, and strict compliance with the **ICEB Rules of Unified English Braille (2024)**.
 3. **Real-Time Speech-to-Text (STT):** Live continuous microphone voice captioning with real-time interim display and one-click copy or speech playback.
-4. **Natural Text-to-Speech (TTS):** Instant multi-lingual speech synthesis via Web Speech API with automatic audio fallback.
+4. **Natural Text-to-Speech (TTS):** Instant multi-lingual speech synthesis via Web Speech API with automatic audio fallback and strictly user-initiated audio playback (zero auto-audio).
+5. **Accessible Communication Hub & Phraseboard:** Conversational cross-modal feed linking Sign Language, Optical Braille, STT voice captions, and typed messages with visual status badges (Saved, Guest, Unsaved) and complete DOM XSS immunity.
+6. **Hardened Production Security:** Argon2id password hashing, HttpOnly session cookies, atomic SQLite rate limiting, exact-origin CSRF validation, mandatory Terms of Service consent, configurable SMTP password reset adapter, and versioned database migrations (1–7).
 
 ---
 
 ## 🎯 Main Features & Capabilities
 
-### 1. ✋ Hand Sign Recognition Engine (ASL & HaGRID)
+### 1. ✋ Hand Sign Recognition Engine (ASL, HaGRID & BdSL)
 - **24+ Communicative Classes:** `CALL`, `DISLIKE`, `FIST`, `FOUR`, `HELLO`, `HELP`, `I_LOVE_YOU`, `LIKE`, `MUTE`, `NO`, `OK`, `ONE`, `PALM`, `PEACE`, `PEACE_INVERTED`, `ROCK`, `STOP`, `STOP_INVERTED`, `THANK_YOU`, `THREE`, `THREE2`, `TWO_UP`, `TWO_UP_INVERTED`, `YES`.
 - **Strict Target Box (ROI) Containment:** Inference and predictions only execute when the user's hand is inside the designated guide box on camera. Outside hands trigger an amber safety warning and reset history.
-- **Multi-Frame Analysis Before Decision:** Gestures are stabilized across 3 consensus frames (`Analyzing Sign... 33% → 66% → 100%`) before confirming the translation and triggering speech.
+- **30-Frame Temporal Analysis Before Decision:** Gestures are stabilized across consensus frames before confirming the translation and displaying text.
 - **98% Decision Gateway:**
   - Confidence $\ge 0.98$: Local trained ExtraTrees / Random Forest model answers directly ($< 15\text{ ms}$).
   - Ambiguity or Confidence $< 0.98$: Automatically engages the **MCP Server Disambiguation Agent** to resolve candidate clashes.
@@ -30,15 +32,27 @@ Transify 2.0 integrates **four dedicated AI modules** with zero external cloud l
 ### 2. ⠃⠗ Optical Braille Translation (OBR - UEB Grade 1)
 - **High-Accuracy Vision Pipeline:** 99.4% dot pattern recognition on embossed paper documents.
 - **Illumination-Invariant Preprocessing:** Adaptive CLAHE enhancement handles variable room lighting and shadows.
-- **Direct Output Actions:** Spoken text (TTS), 1-click clipboard copy, and formatted `.txt` download.
+- **Direct Output Actions:** Spoken text (TTS via explicit speaker click), 1-click clipboard copy, and formatted `.txt` download.
 
 ### 3. 🎙️ Speech-to-Text (STT) & 🔊 Text-to-Speech (TTS)
 - **Live Captions:** Real-time speech recognition supporting English (US/UK) and Bengali.
-- **Accessible Audio Synthesis:** Automatic read-aloud for recognized signs and translated Braille.
+- **Strict No-Auto-Audio Rule:** Translations and transcripts never start audio playback automatically. Text appears first; playback occurs strictly and only when the user explicitly clicks the speaker button (🔊).
 
-### 4. 🛡️ 98% Decision Gateway & MCP Architecture
-- Every prediction is evaluated against an empirical confidence threshold ($\ge 0.98$).
-- Local-first architecture guarantees maximum privacy, running completely offline with optional MCP Server tie-breaking.
+### 4. 💬 Accessible Communication Hub & Quick Phraseboard
+- **Multimodal Conversation Feed:** Seamlessly imports translations from Sign Language, Optical Braille, and Voice Captions into a unified chronological chat stream.
+- **Visual Storage Distinction:** Distinct status chips clearly differentiate cloud-saved messages (`✓ Saved`), temporary guest sessions (`Temporary Guest`), and offline connection errors (`⚠️ Unsaved`).
+- **DOM-Based XSS Immunity:** Built strictly with `document.createElement`, `textContent`, and native event listeners—neutralizing script tag injection, `<img>`/`<svg>` handlers, and attribute breakout attacks.
+- **Quick Phraseboard:** Grid of essential everyday expressions in English and Bengali with personal phrasebook addition, deletion, and favorite filtering.
+
+### 5. 🛡️ Production Security & Authentication Architecture
+- **Argon2id Password Hashing:** Robust password protection with transparent on-login upgrade from legacy PBKDF2.
+- **Strict Cookie-Only Authentication:** Session tokens are delivered exclusively through secure, HttpOnly, SameSite=Lax cookies; raw tokens are never exposed in localStorage or response JSON.
+- **Explicit Terms & Privacy Consent:** Registration strictly requires explicit consent (`consent_terms: true`), rejecting missing or false fields with HTTP 422 and recording verifiable consent timestamps.
+- **Configurable Password Reset Adapter:** Single-use SHA-256 hashed reset tokens with bounded 30-minute expiry, non-enumerating generic responses, atomic session revocation, and configurable SMTP delivery.
+- **Exact-Origin CSRF Protection:** Whitelists legitimate production origins and blocks unverified cross-origin requests on state-changing endpoints.
+- **Atomic SQLite Rate Limiting:** High-concurrency transaction-safe rate limiter backed by SQLite WAL mode and `BEGIN IMMEDIATE` transactions.
+- **Versioned Migrations (1–7):** Guaranteed schema evolution preserving existing users, preferences, and translation histories with full idempotency.
+- **IDOR Protection:** All Hub conversations, messages, personal phrases, and history favorites enforce strict user ownership checks (`404 Not Found` for unauthorized IDs).
 
 ---
 
@@ -47,7 +61,7 @@ Transify 2.0 integrates **four dedicated AI modules** with zero external cloud l
 Transify 2.0 is built with a lightweight, high-performance architecture:
 
 - **Backend Framework:** [FastAPI](https://fastapi.tiangolo.com/) (ASGI) & [Uvicorn](https://www.uvicorn.org/) for async real-time endpoints.
-- **Data Validation & Settings:** [Pydantic](https://docs.pydantic.dev/) & `python-multipart` for robust multipart payload handling.
+- **Data Validation & Settings:** [Pydantic v2](https://docs.pydantic.dev/) for request parsing and field validation.
 - **Machine Learning & Computer Vision:**
   - [Google MediaPipe](https://developers.google.com/mediapipe) (`HandLandmarker` task) for 3D landmark localization.
   - [Scikit-learn](https://scikit-learn.org/) (ExtraTrees and Random Forest classifiers).
@@ -58,84 +72,48 @@ Transify 2.0 is built with a lightweight, high-performance architecture:
   - Pure Vanilla JavaScript (ES6+) for zero-dependency client execution.
   - Web Speech API for native browser Speech-to-Text (`SpeechRecognition`) and Text-to-Speech (`SpeechSynthesis`).
   - HTML5 Canvas API and `MediaDevices.getUserMedia()` for low-latency webcam processing.
-- **Local Storage & Database:** SQLite (`data/transify.db`) for zero-configuration, secure local persistence.
-- **Containerization & Deployment:** Docker & Docker Compose (`docker-compose.yml`, `Dockerfile`).
-- **Testing & Verification:** Python `unittest` suite (34 automated system tests).
+- **Local Storage & Database:** SQLite (`data/transify.db`) with WAL mode and versioned schema migrations (1–7).
+- **Android Client:** Native Kotlin / AndroidX WebView wrapper with hardware-accelerated rendering and camera permissions bridge.
+- **Containerization & Deployment:** Docker, Docker Compose, and [Railway](https://railway.app/).
 
 ---
 
-## 🏛️ System Architecture
+## ⚙️ Installation & Setup
 
-```
-+------------------------------------------------------------------------------------+
-|                               TRANSIFY 2.0 PLATFORM                                |
-|                                                                                    |
-|   +--------------------+  +--------------------+  +---------------+  +-----------+ |
-|   | 1. HAND SIGN AI    |  | 2. BRAILLE OBR     |  | 3. SPEECH-TEXT|  | 4. TTS    | |
-|   | MediaPipe 3D Poses |  | CLAHE Preprocess   |  | Web Speech    |  | Web Speech| |
-|   | 24 ASL/HaGRID Signs|  | 6-Dot ExtraTrees   |  | Live Captions |  | Audio Eng | |
-|   | Target Box Gating  |  | UEB Grade 1 FSA    |  | Transcription |  | Voice Out | |
-|   +---------+----------+  +---------+----------+  +-------+-------+  +-----+-----+ |
-|             |                       |                     |                |       |
-|             v                       v                     v                v       |
-|   +----------------------------------------------------------------------------+   |
-|   |                    98% DECISION GATEWAY & MCP RESOLVER                     |   |
-|   |   - Local Model Direct Answer (Confidence >= 98%)                          |   |
-|   |   - MCP Server Agent Tie-Breaker (Confidence < 98% / Ambiguity)           |   |
-|   +-------------------------------------+--------------------------------------+   |
-|                                         |                                          |
-|                                         v                                          |
-|   +----------------------------------------------------------------------------+   |
-|   |              FastAPI ASGI Backend & SQLite Local Storage                   |   |
-|   |           Responsive WCAG 2.1 AAA High-Contrast Web Interface             |   |
-|   +----------------------------------------------------------------------------+   |
-+------------------------------------------------------------------------------------+
-```
-
----
-
-## 🚀 Quickstart & Installation
-
-### Prerequisites
-- Python 3.10+ (Tested on Python 3.11, 3.12, 3.14)
-- Modern web browser (Chrome, Edge, Firefox, Safari)
-- Webcam and microphone (for Sign Language and STT modules)
-
-### 1. Clone & Set Up Environment
+### 1. Clone & Set Up the Python Virtual Environment
 
 ```bash
 git clone https://github.com/Safin313-REBORN/Transify_2.0.git
 cd Transify_2.0
-
-# Create and activate virtual environment
-python -m venv venv
-# Windows:
-venv\Scripts\activate
-# Linux/macOS:
-source venv/bin/activate
-
-# Install dependencies
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
 ### 2. Configure Environment Variables
 
-Transify 2.0 comes with a configuration template `.env.example`. Copy it to create your local `.env`:
+Create a `.env` file from the provided `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-#### Available Environment Variables:
-- `BRAILLE_CONFIDENCE_THRESHOLD`: Confidence cutoff (default `0.98`). Predictions below this threshold route to the MCP Server / LLM disambiguation agent.
-- `OPENAI_API_KEY`: *(Optional)* API key for OpenAI vision models (e.g. `gpt-4o-mini`) when using cloud disambiguation.
-- `CHATGPT_MODEL`: *(Optional)* Default vision model name (e.g. `gpt-4o-mini`).
-- `GEMINI_API_KEY`: *(Optional)* API key for Google Gemini model disambiguation.
-- `MCP_SERVER_URL`: *(Optional)* Custom endpoint URL for external MCP server resolvers.
+Key environment configuration variables:
+- `ENVIRONMENT`: Set to `production` or `development`.
+- `RAILWAY_ENVIRONMENT`: Set to `production` when running on Railway.
+- `ALLOWED_ORIGINS`: Comma-separated list of allowed origins (e.g. `https://transify20-production.up.railway.app`).
+- `CONFIDENCE_THRESHOLD`: Threshold for direct model inference (default `0.98`).
+- `SMTP_HOST`: *(Optional)* Hostname of SMTP relay for password reset emails.
+- `SMTP_PORT`: *(Optional)* SMTP port (default `587`).
+- `SMTP_USER`: *(Optional)* SMTP authentication username / sender email.
+- `SMTP_PASSWORD`: *(Optional)* SMTP authentication password or app token.
+- `SMTP_FROM`: *(Optional)* Sender address (e.g. `no-reply@transify.ai`).
+- `SMTP_USE_TLS`: *(Optional)* Enable STARTTLS (default `true`).
+- `SMTP_USE_SSL`: *(Optional)* Direct SSL connection (default `false`).
 
 ### 3. Run the Application Locally
 
-Start the production-ready ASGI server:
+Start the ASGI server:
 
 ```bash
 python run_server.py --host 0.0.0.0 --port 8000
@@ -153,73 +131,57 @@ Open your browser and navigate to:
 - **Braille Document Translator:** [http://localhost:8000/#braille](http://localhost:8000/#braille)
 - **Speech to Text:** [http://localhost:8000/#stt](http://localhost:8000/#stt)
 - **Text to Speech:** [http://localhost:8000/#tts](http://localhost:8000/#tts)
+- **Communication Hub:** [http://localhost:8000/#hub](http://localhost:8000/#hub)
+- **Quick Phraseboard:** [http://localhost:8000/#phraseboard](http://localhost:8000/#phraseboard)
 - **Interactive API Documentation (Swagger UI):** [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
 ## 💻 Development Instructions & Testing
 
-Transify 2.0 includes an automated test suite with 34 tests covering API endpoints, vision pipelines, stabilization consensus, and MCP fallback:
+Transify 2.0 includes an exhaustive automated test suite with **167 tests** across unit, integration, security, migration, and browser Playwright workflows:
 
 ```bash
-python -m unittest tests/test_full_system.py
-```
+# Run full pytest test suite
+PYTHONPATH=. pytest -v
 
-Expected output:
-```
-..................................
-----------------------------------------------------------------------
-Ran 34 tests in 2.75s
+# Run browser end-to-end tests across viewports (1280x800, 375x667, 667x375, 1024x500)
+PYTHONPATH=. pytest tests/test_browser_auth.py -v
 
-OK
-```
+# Run XSS prevention and DOM injection tests
+PYTHONPATH=. pytest tests/test_xss_prevention.py -v
 
-### Development Guidelines:
-- Keep the local-first philosophy intact; core modules must operate offline without mandatory cloud dependencies.
-- Maintain WCAG 2.1 AAA high-contrast standards and ARIA live regions in frontend components.
-- Run tests before pushing or merging any modifications.
+# Run email delivery and password reset tests
+PYTHONPATH=. pytest tests/test_email_and_reset.py -v
+
+# Run database migrations and IDOR security tests
+PYTHONPATH=. pytest tests/test_migrations_and_idor.py -v
+
+# Run Android unit tests & debug APK build
+cd android
+./gradlew testDebugUnitTest
+./gradlew assembleDebug
+```
 
 ---
 
-## 📂 Repository Structure
+## 📱 Android Client
 
-```
-Transify_2.0/
-├── assets/                     # MediaPipe task bundles and static assets
-├── data/                       # Dataset annotations, sample test documents, SQLite database
-│   ├── braille/                # Braille annotations, splits, and sample processed cells
-│   ├── sign/                   # Sign landmark data, train/val/test splits
-│   └── transify.db             # Local SQLite database
-├── docs/                       # Comprehensive technical documentation & specifications
-├── models/                     # Trained model artifacts and manifests
-│   ├── braille/                # Braille cell localizer & 6-dot classifier
-│   └── sign/                   # HaGRID & ASL 24-class models, MediaPipe tasks
-├── Panel/                      # Project presentation, report, diagrams, and UI screenshots
-├── src/                        # Core source code
-│   ├── api/                    # FastAPI endpoints, routers, TTS engines
-│   ├── braille/                # Preprocessing, cell detector, UEB decoder
-│   ├── database/               # SQLite database schemas and persistence
-│   ├── frontend/               # Accessible HTML, responsive CSS, client JS
-│   └── sign/                   # MediaPipe tracker, HaGRID recognizer, MCP gateway
-├── tests/                      # Full-system test suite (34 unit & integration tests)
-├── .env.example                # Configuration template
-├── .gitignore                  # Git ignore rules
-├── docker-compose.yml          # Docker Compose deployment specification
-├── Dockerfile                  # Application container definition
-├── requirements.txt            # Python dependencies
-├── run_server.py               # Standalone production server launcher
-└── README.md                   # Platform documentation
-```
+Transify 2.0 includes a dedicated Android application located in `android/`:
+- **Build System:** Gradle 8.9 with Android Gradle Plugin 8.5.2.
+- **Language:** Kotlin 1.9.24 with AndroidX libraries.
+- **WebView Architecture:** Seamless hardware-accelerated WebView bridging local audio and camera permissions.
+- **APK Verification:** Verified debug build generating release-ready APK at `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 ---
 
 ## ♿ Accessibility Compliance (WCAG 2.1 AAA)
 
-Transify 2.0 was built from the ground up for universal accessibility:
+Transify 2.0 was engineered for universal accessibility:
 - **Theme Palette:** Pure high-contrast purple aesthetic (`#8338ec`) with full light and dark mode responsiveness.
 - **Screen Reader Announcements:** Dedicated `aria-live="polite"` landmark regions for real-time auditory notifications.
 - **Zero Heavy Frameworks:** Pure vanilla JavaScript and modular CSS for lightweight, zero-latency execution.
-- **Local Privacy:** All translations and settings persist in local SQLite (`data/transify.db`), keeping private conversations secure on-device.
+- **Local Privacy:** All translations and user data persist in isolated SQLite storage, keeping private conversations secure on-device.
 
 ---
 
@@ -227,5 +189,6 @@ Transify 2.0 was built from the ground up for universal accessibility:
 
 - **License:** MIT License. Free for educational, research, and assistive deployment.
 - **HaGRID Dataset:** Kapitanov et al. (HAnd Gesture Recognition Image Dataset).
+- **BdSL Dataset:** Bangladesh Sign Language Consortium.
 - **ICEB Standards:** Unified English Braille (UEB) Rules, 3rd Edition (2024).
 - **MediaPipe:** Google MediaPipe HandLandmarker.

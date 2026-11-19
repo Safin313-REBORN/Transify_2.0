@@ -313,20 +313,7 @@
     },
 
     handleGoogleClick: function() {
-      if (this.googleOAuthConfig && this.googleOAuthConfig.available && this.googleOAuthConfig.client_id) {
-        this.showAlert('Redirecting to Google Sign-In...', true);
-        var redirectUri = window.location.origin + '/api/auth/oauth/google/callback';
-        var state = Math.random().toString(36).substring(2);
-        var googleUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' +
-          'client_id=' + encodeURIComponent(this.googleOAuthConfig.client_id) +
-          '&response_type=code' +
-          '&scope=openid%20email%20profile' +
-          '&redirect_uri=' + encodeURIComponent(redirectUri) +
-          '&state=' + encodeURIComponent(state);
-        window.location.href = googleUrl;
-      } else {
-        this.showAlert('Google Sign-In is not configured in this deployment. Please sign in with email and password.', false);
-      }
+      this.showAlert('Google Sign-In is currently disabled in this release. Please sign in with email and password or use Demo Guest.', false);
     },
 
     togglePasswordVisibility: function() {

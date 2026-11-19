@@ -7,6 +7,7 @@ login rate limiting, user data isolation, and CSRF origin protection.
 import hashlib
 import secrets
 import time
+from datetime import datetime, timezone
 import pytest
 from fastapi.testclient import TestClient
 from src.api.server import app
@@ -43,7 +44,7 @@ def test_user_login_cookie_only(client):
     """Verifies login sets HttpOnly session cookie and does NOT expose raw token in JSON body."""
     email = f"cookie_test_{int(time.time()*1000)}@test.com"
     pwd = "StrongPassword123!_2026"
-    create_user("Cookie Tester", email, pwd)
+    create_user("Cookie Tester", email, pwd, consent_terms=True)
 
     res = client.post("/api/auth/login", json={
         "email": email,
@@ -63,7 +64,7 @@ def test_login_invalid_password(client):
     """Verifies login rejects incorrect password with HTTP 401 Unauthorized."""
     email = f"invalid_pwd_{int(time.time()*1000)}@test.com"
     pwd = "CorrectPassword123!_2026"
-    create_user("Invalid Pwd Tester", email, pwd)
+    create_user("Invalid Pwd Tester", email, pwd, consent_terms=True)
 
     res = client.post("/api/auth/login", json={
         "email": email,
@@ -87,7 +88,8 @@ def test_user_registration_and_duplicate_handling(client):
     reg_payload = {
         "name": "Security Tester",
         "email": unique_email,
-        "password": "StrongPassword123!_2026"
+        "password": "StrongPassword123!_2026",
+        "consent_terms": True
     }
     
     # First registration (15+ chars)
@@ -111,7 +113,8 @@ def test_registration_password_length_enforcement(client):
     res_short = client.post("/api/auth/register", json={
         "name": "Short Pwd User",
         "email": f"short_{int(time.time()*1000)}@test.com",
-        "password": "Password123456" # 14 chars
+        "password": "Password123456", # 14 chars
+        "consent_terms": True
     })
     assert res_short.status_code in [400, 422]
 
@@ -119,7 +122,8 @@ def test_registration_password_length_enforcement(client):
     res_valid = client.post("/api/auth/register", json={
         "name": "Valid Pwd User",
         "email": f"valid_{int(time.time()*1000)}@test.com",
-        "password": "Password1234567" # 15 chars
+        "password": "Password1234567", # 15 chars
+        "consent_terms": True
     })
     assert res_valid.status_code == 200
     assert res_valid.json()["status"] == "success"
@@ -128,7 +132,7 @@ def test_database_stores_session_hash_not_raw_token(client):
     """Verifies SQLite user_sessions table stores SHA-256 hash, never the raw token."""
     email = f"hash_test_{int(time.time()*1000)}@test.com"
     pwd = "HashTestPassword123!_2026"
-    create_user("Hash Tester", email, pwd)
+    create_user("Hash Tester", email, pwd, consent_terms=True)
 
     login_res = client.post("/api/auth/login", json={
         "email": email,
@@ -208,7 +212,7 @@ def test_session_verification_and_logout(client):
     # 2. Login to obtain session cookie
     email = f"session_test_{int(time.time()*1000)}@test.com"
     pwd = "SessionTestPassword123!_2026"
-    create_user("Session Tester", email, pwd)
+    create_user("Session Tester", email, pwd, consent_terms=True)
 
     login_res = client.post("/api/auth/login", json={
         "email": email,
@@ -240,7 +244,7 @@ def test_user_data_isolation(client):
 
     # Register User A
     client.cookies.clear()
-    res_a = client.post("/api/auth/register", json={"name": "User A", "email": email_a, "password": pwd})
+    res_a = client.post("/api/auth/register", json={"name": "User A", "email": email_a, "password": pwd, "consent_terms": True})
     user_a_id = res_a.json()["user"]["id"]
 
     # Add history record for User A
@@ -254,7 +258,7 @@ def test_user_data_isolation(client):
 
     # Register and log in as User B
     client.cookies.clear()
-    client.post("/api/auth/register", json={"name": "User B", "email": email_b, "password": pwd})
+    client.post("/api/auth/register", json={"name": "User B", "email": email_b, "password": pwd, "consent_terms": True})
 
     # User B reads history: MUST NOT see User A's record
     res_hist_b = client.get("/api/history")
@@ -290,6 +294,11 @@ def test_login_rate_limiting(client):
     assert res_blocked.status_code == 429
     assert "Too many failed login attempts" in res_blocked.json()["detail"]
 
+    # Cleanup rate limit keys so other tests are not affected
+    clear_failed_logins(f"email:{abuse_email}")
+    clear_failed_logins("ip:testclient")
+    clear_failed_logins("ip:127.0.0.1")
+
 
 def test_remember_me_cookie_lifecycle(client):
     """
@@ -299,7 +308,7 @@ def test_remember_me_cookie_lifecycle(client):
     """
     email = f"remember_tester_{int(time.time()*1000)}@test.com"
     pwd = "RememberPassword123!_2026"
-    create_user("Remember Tester", email, pwd)
+    create_user("Remember Tester", email, pwd, consent_terms=True)
 
     # 1. Login with remember_me=True
     res_rem = client.post("/api/auth/login", json={
@@ -333,12 +342,13 @@ def test_registration_terms_consent_enforcement(client):
     """
     Verifies registration requires explicit consent to Terms & Privacy:
     1. consent_terms=False -> rejected with HTTP 422.
-    2. consent_terms=True -> successful registration with consent timestamp stored.
+    2. Missing consent_terms -> rejected with HTTP 422.
+    3. consent_terms=True -> successful registration with consent timestamp stored.
     """
     email = f"consent_tester_{int(time.time()*1000)}@test.com"
     pwd = "ConsentPassword123!_2026"
 
-    # Reject without consent
+    # Reject with explicit False
     res_no_consent = client.post("/api/auth/register", json={
         "name": "Consent Tester",
         "email": email,
@@ -346,7 +356,15 @@ def test_registration_terms_consent_enforcement(client):
         "consent_terms": False
     })
     assert res_no_consent.status_code == 422
-    assert "Consent to Terms" in res_no_consent.json()["detail"]
+    assert "Consent to Terms" in str(res_no_consent.json())
+
+    # Reject with missing consent
+    res_missing = client.post("/api/auth/register", json={
+        "name": "Consent Tester",
+        "email": email,
+        "password": pwd
+    })
+    assert res_missing.status_code == 422
 
     # Accept with consent
     res_consent = client.post("/api/auth/register", json={
@@ -362,6 +380,103 @@ def test_registration_terms_consent_enforcement(client):
     assert data["user"]["consented_at"] is not None
 
 
+def test_register_missing_consent_returns_422(client):
+    """Verifies that omitting consent_terms field from registration payload returns HTTP 422."""
+    email = f"missing_consent_{int(time.time()*1000)}@test.com"
+    res = client.post("/api/auth/register", json={
+        "name": "Missing Consent",
+        "email": email,
+        "password": "ValidPassword123!_2026"
+    })
+    assert res.status_code == 422
+
+
+def test_register_false_consent_returns_422(client):
+    """Verifies that explicitly providing consent_terms=False returns HTTP 422."""
+    email = f"false_consent_{int(time.time()*1000)}@test.com"
+    res = client.post("/api/auth/register", json={
+        "name": "False Consent",
+        "email": email,
+        "password": "ValidPassword123!_2026",
+        "consent_terms": False
+    })
+    assert res.status_code == 422
+    assert "Consent to Terms" in str(res.json())
+
+
+def test_register_no_user_created_on_failed_consent(client):
+    """Verifies that neither missing nor false consent creates any database user record."""
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    email_missing = f"no_user_m_{int(time.time()*1000)}@test.com"
+    email_false = f"no_user_f_{int(time.time()*1000)}@test.com"
+
+    client.post("/api/auth/register", json={
+        "name": "No User Missing",
+        "email": email_missing,
+        "password": "ValidPassword123!_2026"
+    })
+    client.post("/api/auth/register", json={
+        "name": "No User False",
+        "email": email_false,
+        "password": "ValidPassword123!_2026",
+        "consent_terms": False
+    })
+
+    cursor.execute("SELECT id FROM users WHERE email = ? COLLATE NOCASE;", (email_missing,))
+    assert cursor.fetchone() is None
+
+    cursor.execute("SELECT id FROM users WHERE email = ? COLLATE NOCASE;", (email_false,))
+    assert cursor.fetchone() is None
+    conn.close()
+
+
+def test_register_true_consent_stores_timestamp(client):
+    """Verifies that explicit consent_terms=True creates the account and saves the consent timestamp."""
+    email = f"true_consent_{int(time.time()*1000)}@test.com"
+    res = client.post("/api/auth/register", json={
+        "name": "True Consent User",
+        "email": email,
+        "password": "ValidPassword123!_2026",
+        "consent_terms": True
+    })
+    assert res.status_code == 200
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT consent_terms, consented_at FROM users WHERE email = ? COLLATE NOCASE;", (email,))
+    row = cursor.fetchone()
+    conn.close()
+
+    assert row is not None
+    assert row["consent_terms"] == 1
+    assert row["consented_at"] is not None
+    assert row["consented_at"] > 0
+
+
+def test_historical_users_consent_not_fabricated(client):
+    """Verifies that historical users without consent are preserved as unconsented (0 / NULL)."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    hist_email = f"historical_{int(time.time()*1000)}@test.com"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    cursor.execute("""
+    INSERT INTO users (name, email, password_hash, salt, role, consent_terms, consented_at, created_at, updated_at)
+    VALUES (?, ?, 'fake_hash', 'fake_salt', 'user', 0, NULL, ?, ?);
+    """, ("Historical User", hist_email, now_iso, now_iso))
+    conn.commit()
+
+    cursor.execute("SELECT consent_terms, consented_at FROM users WHERE email = ? COLLATE NOCASE;", (hist_email,))
+    row = cursor.fetchone()
+    conn.close()
+
+    assert row is not None
+    assert row["consent_terms"] == 0
+    assert row["consented_at"] is None
+
+
 def test_password_recovery_workflow(client):
     """
     Verifies end-to-end password recovery:
@@ -373,7 +488,7 @@ def test_password_recovery_workflow(client):
     email = f"reset_tester_{int(time.time()*1000)}@test.com"
     old_pwd = "OldPassword12345!_2026"
     new_pwd = "BrandNewPassword123!_2026"
-    create_user("Reset Tester", email, old_pwd)
+    create_user("Reset Tester", email, old_pwd, consent_terms=True)
 
     # Establish an initial session
     login_res = client.post("/api/auth/login", json={"email": email, "password": old_pwd})

@@ -62,7 +62,7 @@ def test_session_persistence_across_init_db():
     """
     email = f"session_persist_{int(time.time()*1000)}@test.com"
     pwd = "PersistPassword123!_2026"
-    user = create_user("Persist User", email, pwd)
+    user = create_user("Persist User", email, pwd, consent_terms=True)
     
     token = create_session(user["id"])
     assert token is not None
@@ -180,7 +180,7 @@ def test_strict_cookie_only_authentication_rejects_bearer(client):
     """
     email = f"bearer_test_{int(time.time()*1000)}@test.com"
     pwd = "BearerTestPassword123!_2026"
-    user = create_user("Bearer Tester", email, pwd)
+    user = create_user("Bearer Tester", email, pwd, consent_terms=True)
     valid_token = create_session(user["id"])
     
     # Attempt to authenticate using Authorization: Bearer <valid_token> without cookie
@@ -350,7 +350,7 @@ def test_successful_login_counter_isolation(client):
     email_key = f"email:{email.lower()}"
     pwd = "IsolationPassword123!_2026"
     
-    create_user("Isolation Tester", email, pwd)
+    create_user("Isolation Tester", email, pwd, consent_terms=True)
     
     # Seed 3 failed login attempts on the IP and 2 on the email
     clear_failed_logins(client_ip_key)
@@ -690,7 +690,7 @@ def test_legacy_session_migration_applied_once(tmp_path, monkeypatch):
     conn.close()
 
     # 2. Create user and valid hashed session
-    user = create_user("Test User", "test_mig@example.com", "SecurePassword123!_2026")
+    user = create_user("Test User", "test_mig@example.com", "SecurePassword123!_2026", consent_terms=True)
     new_token = create_session(user["id"])
     assert new_token is not None
 

@@ -2835,7 +2835,8 @@ window.CommunicationHub = {
         });
         if (res.ok) {
           const data = await res.json();
-          this.messages.push(data.message);
+          const savedMsg = Object.assign({}, data.message, { sync_status: 'saved' });
+          this.messages.push(savedMsg);
           this.renderFeed();
           TransifyApp.announce(`Message added from ${modality}: ${content}`);
           return;
@@ -2845,12 +2846,14 @@ window.CommunicationHub = {
       console.warn('Hub sendMessage server error, falling back to local:', e);
     }
 
+    const isGuest = (this.activeConversationId === 'local_session');
     const localMsg = {
       id: Date.now(),
       sender_name: 'You',
       content: content,
       modality: modality,
-      created_at: timeStr
+      created_at: timeStr,
+      sync_status: isGuest ? 'guest' : 'unsaved'
     };
     this.messages.push(localMsg);
     this.renderFeed();
@@ -2861,8 +2864,16 @@ window.CommunicationHub = {
     const container = document.getElementById('hub-feed-container');
     if (!container) return;
 
+    // Clear feed safely without innerHTML
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+
     if (!this.messages.length) {
-      container.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 24px 0;">No messages yet. Send a typed message or translate from any modality.</div>';
+      const emptyDiv = document.createElement('div');
+      emptyDiv.style.cssText = 'text-align: center; color: #94a3b8; font-size: 13px; padding: 24px 0;';
+      emptyDiv.textContent = 'No messages yet. Send a typed message or translate from any modality.';
+      container.appendChild(emptyDiv);
       return;
     }
 
@@ -2880,28 +2891,82 @@ window.CommunicationHub = {
       typed: '⌨️ Typed'
     };
 
-    container.innerHTML = this.messages.map((msg, idx) => {
+    this.messages.forEach((msg, idx) => {
       const mod = msg.modality || 'typed';
       const badgeCls = badgeClasses[mod] || 'hub-badge-typed';
       const badgeLbl = badgeLabels[mod] || mod;
-      const safeContent = (msg.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      const rawText = (msg.content || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-      const timeStr = typeof msg.created_at === 'number' ? new Date(msg.created_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (msg.created_at || '');
+      const timeStr = typeof msg.created_at === 'number'
+        ? new Date(msg.created_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : (msg.created_at || '');
 
-      return `
-        <div class="hub-message-card" data-msg-idx="${idx}">
-          <div class="hub-msg-header">
-            <span class="hub-modality-badge ${badgeCls}">${badgeLbl}</span>
-            <span class="hub-msg-time">${timeStr}</span>
-          </div>
-          <div class="hub-msg-body">${safeContent}</div>
-          <div class="hub-msg-actions">
-            <button type="button" class="hub-action-btn" onclick="CommunicationHub.copyText('${rawText}')" title="Copy text">📋 Copy</button>
-            <button type="button" class="hub-action-btn btn-speak-voice" onclick="CommunicationHub.speakText('${rawText}')" title="Speak message aloud">🔊 Speak</button>
-          </div>
-        </div>
-      `;
-    }).join('');
+      const card = document.createElement('div');
+      card.className = 'hub-message-card';
+      card.setAttribute('data-msg-idx', String(idx));
+
+      const header = document.createElement('div');
+      header.className = 'hub-msg-header';
+
+      const leftBadges = document.createElement('div');
+      leftBadges.style.cssText = 'display: flex; align-items: center; gap: 6px;';
+
+      const modBadge = document.createElement('span');
+      modBadge.className = `hub-modality-badge ${badgeCls}`;
+      modBadge.textContent = badgeLbl;
+      leftBadges.appendChild(modBadge);
+
+      const statusBadge = document.createElement('span');
+      const syncStatus = msg.sync_status || (this.activeConversationId === 'local_session' ? 'guest' : 'saved');
+      if (syncStatus === 'saved') {
+        statusBadge.className = 'hub-status-chip saved';
+        statusBadge.textContent = '✓ Saved';
+        statusBadge.title = 'Saved to cloud conversation';
+      } else if (syncStatus === 'guest') {
+        statusBadge.className = 'hub-status-chip guest';
+        statusBadge.textContent = 'Temporary Guest';
+        statusBadge.title = 'Guest session — not persisted';
+      } else {
+        statusBadge.className = 'hub-status-chip unsaved';
+        statusBadge.textContent = '⚠️ Unsaved';
+        statusBadge.title = 'Connection error — local copy only';
+      }
+      leftBadges.appendChild(statusBadge);
+      header.appendChild(leftBadges);
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'hub-msg-time';
+      timeSpan.textContent = timeStr;
+      header.appendChild(timeSpan);
+
+      const body = document.createElement('div');
+      body.className = 'hub-msg-body';
+      // STRICT textContent: Prevents all DOM-based XSS attacks
+      body.textContent = msg.content || '';
+
+      const actions = document.createElement('div');
+      actions.className = 'hub-msg-actions';
+
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'hub-action-btn';
+      copyBtn.title = 'Copy text';
+      copyBtn.textContent = '📋 Copy';
+      copyBtn.addEventListener('click', () => this.copyText(msg.content || ''));
+      actions.appendChild(copyBtn);
+
+      const speakBtn = document.createElement('button');
+      speakBtn.type = 'button';
+      speakBtn.className = 'hub-action-btn btn-speak-voice';
+      speakBtn.title = 'Speak message aloud (user clicked)';
+      speakBtn.textContent = '🔊 Speak';
+      speakBtn.addEventListener('click', () => this.speakText(msg.content || ''));
+      actions.appendChild(speakBtn);
+
+      card.appendChild(header);
+      card.appendChild(body);
+      card.appendChild(actions);
+
+      container.appendChild(card);
+    });
 
     container.scrollTop = container.scrollHeight;
   },
@@ -3060,31 +3125,88 @@ window.Phraseboard = {
       items = items.filter(p => Boolean(p.is_favorite));
     }
 
+    while (grid.firstChild) {
+      grid.removeChild(grid.firstChild);
+    }
+
     if (!items.length) {
-      grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; font-size: 13px; padding: 24px 0;">No phrases match your filter.</div>';
+      const emptyDiv = document.createElement('div');
+      emptyDiv.style.cssText = 'grid-column: 1 / -1; text-align: center; color: #94a3b8; font-size: 13px; padding: 24px 0;';
+      emptyDiv.textContent = 'No phrases match your filter.';
+      grid.appendChild(emptyDiv);
       return;
     }
 
-    grid.innerHTML = items.map(p => {
+    items.forEach(p => {
       const isFav = Boolean(p.is_favorite);
-      const en = (p.text_en || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-      const bn = (p.text_bn || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-      const isCustom = p.is_custom ? `<button type="button" class="phrase-icon-btn" onclick="event.stopPropagation(); Phraseboard.deleteCustomPhrase(${p.id})" title="Delete phrase">🗑️</button>` : '';
+      const card = document.createElement('div');
+      card.className = `phrase-card ${isFav ? 'favorite' : ''}`;
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', `${p.text_en || ''} - ${p.text_bn || ''}`);
+      card.addEventListener('click', () => this.onPhraseClick(p.text_en, p.text_bn));
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.onPhraseClick(p.text_en, p.text_bn);
+        }
+      });
 
-      return `
-        <div class="phrase-card ${isFav ? 'favorite' : ''}" onclick="Phraseboard.onPhraseClick('${en}', '${bn}')" role="button" tabindex="0" aria-label="${p.text_en} - ${p.text_bn}">
-          <div>
-            <div class="phrase-text-en">${p.text_en}</div>
-            <div class="phrase-text-bn">${p.text_bn || ''}</div>
-          </div>
-          <div class="phrase-controls" onclick="event.stopPropagation()">
-            <button type="button" class="phrase-icon-btn" onclick="Phraseboard.speakPhrase('${en}')" title="Speak aloud (user clicked)">🔊</button>
-            <button type="button" class="phrase-icon-btn" onclick="Phraseboard.toggleFavorite(${p.id})" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">${isFav ? '⭐' : '☆'}</button>
-            ${isCustom}
-          </div>
-        </div>
-      `;
-    }).join('');
+      const textWrapper = document.createElement('div');
+      const enDiv = document.createElement('div');
+      enDiv.className = 'phrase-text-en';
+      enDiv.textContent = p.text_en || ''; // STRICT textContent: Prevents XSS
+
+      const bnDiv = document.createElement('div');
+      bnDiv.className = 'phrase-text-bn';
+      bnDiv.textContent = p.text_bn || ''; // STRICT textContent: Prevents XSS
+
+      textWrapper.appendChild(enDiv);
+      textWrapper.appendChild(bnDiv);
+      card.appendChild(textWrapper);
+
+      const controls = document.createElement('div');
+      controls.className = 'phrase-controls';
+      controls.addEventListener('click', (e) => e.stopPropagation());
+
+      const speakBtn = document.createElement('button');
+      speakBtn.type = 'button';
+      speakBtn.className = 'phrase-icon-btn';
+      speakBtn.title = 'Speak aloud (user clicked)';
+      speakBtn.textContent = '🔊';
+      speakBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.speakPhrase(p.text_en);
+      });
+      controls.appendChild(speakBtn);
+
+      const favBtn = document.createElement('button');
+      favBtn.type = 'button';
+      favBtn.className = 'phrase-icon-btn';
+      favBtn.title = isFav ? 'Remove from favorites' : 'Add to favorites';
+      favBtn.textContent = isFav ? '⭐' : '☆';
+      favBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleFavorite(p.id);
+      });
+      controls.appendChild(favBtn);
+
+      if (p.is_custom) {
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'phrase-icon-btn';
+        delBtn.title = 'Delete phrase';
+        delBtn.textContent = '🗑️';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.deleteCustomPhrase(p.id);
+        });
+        controls.appendChild(delBtn);
+      }
+
+      card.appendChild(controls);
+      grid.appendChild(card);
+    });
   },
 
   /**

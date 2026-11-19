@@ -21,7 +21,12 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Respo
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
-from pydantic import BaseModel, Field
+try:
+    from pydantic import BaseModel, Field, field_validator
+    USE_FIELD_VALIDATOR = True
+except ImportError:
+    from pydantic import BaseModel, Field, validator
+    USE_FIELD_VALIDATOR = False
 import numpy as np
 import time
 import hmac
@@ -35,6 +40,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from src.api.sign_adapter import SignLanguageAdapter, BDSL_CLASSES
 from src.api.braille_adapter import BrailleRecognitionAdapter
 from src.api.tts_engine import tts_service
+from src.api.email_service import get_email_adapter, EmailDeliveryError
 from src.sign.fingerspelling import FingerspellingRecognizer, FingerspellingWordAssembler
 from src.sign.sentence_builder import SentenceBuilder
 from src.sign.vocabulary_registry import get_all_categories, EXPANDED_VOCABULARY
@@ -290,7 +296,21 @@ class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=100, description="User full name")
     email: str = Field(..., description="User email address")
     password: str = Field(..., min_length=15, max_length=128, description="User password (min 15 characters)")
-    consent_terms: bool = Field(True, description="Explicit consent to Terms of Service and Privacy Policy")
+    consent_terms: bool = Field(..., description="Explicit consent to Terms of Service and Privacy Policy")
+
+    if USE_FIELD_VALIDATOR:
+        @field_validator("consent_terms")
+        @classmethod
+        def validate_consent(cls, v):
+            if v is not True:
+                raise ValueError("Consent to Terms of Service and Privacy Policy is required to create an account.")
+            return v
+    else:
+        @validator("consent_terms")
+        def validate_consent(cls, v):
+            if v is not True:
+                raise ValueError("Consent to Terms of Service and Privacy Policy is required to create an account.")
+            return v
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -1290,7 +1310,8 @@ def forgot_password(req: ForgotPasswordRequest, request: Request):
     """
     Initiates a password reset workflow.
     Generates a cryptographically secure single-use token, stores only its SHA-256 hash,
-    and enforces rate limiting. Returns a generic response to prevent account enumeration.
+    and enforces rate limiting. Delivers instructions using configured email adapter.
+    Returns generic non-enumerating response or truthful service-unavailable status.
     """
     client_ip = request.client.host if request.client else "unknown"
     if is_login_rate_limited(f"reset_ip:{client_ip}", max_attempts=30) or (req.email and is_login_rate_limited(f"reset_email:{req.email.lower()}", max_attempts=5)):
@@ -1302,23 +1323,40 @@ def forgot_password(req: ForgotPasswordRequest, request: Request):
     record_failed_login(f"reset_ip:{client_ip}", window_seconds=300.0)
     record_failed_login(f"reset_email:{req.email.lower()}", window_seconds=300.0)
 
+    adapter = get_email_adapter()
+    if not adapter.is_configured():
+        logger.warning("Password reset requested but email delivery adapter is not configured.")
+        raise HTTPException(
+            status_code=503,
+            detail="Password reset email delivery is currently unavailable. Please contact support@transify.ai or try again later."
+        )
+
     user = get_user_by_email(req.email)
     raw_token = None
     if user and user.get("role") != "disabled":
         raw_token, token_hash = create_password_reset_token(user["id"], expires_in_seconds=1800.0)
-        if not is_production():
-            _LAST_RESET_EMAIL_FOR_TESTS[req.email.lower()] = raw_token
+        base_url = str(request.base_url).rstrip("/")
+        try:
+            adapter.send_password_reset_email(user["email"], raw_token, base_url=base_url)
+        except EmailDeliveryError as err:
+            logger.error(f"Email delivery adapter error: {err}")
+            raise HTTPException(
+                status_code=503,
+                detail="Password reset email delivery failed. Please contact support@transify.ai or try again later."
+            )
+        except Exception as ex:
+            logger.error(f"Unexpected email delivery exception: {ex}")
+            raise HTTPException(
+                status_code=503,
+                detail="Password reset email delivery failed. Please contact support@transify.ai or try again later."
+            )
 
-    smtp_configured = bool(os.getenv("SMTP_HOST") and os.getenv("SMTP_USER"))
     resp_body = {
         "status": "success",
         "message": "If an account with that email exists, password reset instructions have been processed."
     }
-    if not smtp_configured and not is_production() and raw_token:
+    if not is_production() and raw_token:
         resp_body["test_token"] = raw_token
-        resp_body["note"] = "SMTP not configured in local environment; test_token provided for verification."
-    elif not smtp_configured and is_production():
-        resp_body["delivery_notice"] = "Email delivery is not configured on this server. Please contact support@transify.ai."
 
     return resp_body
 
@@ -1344,14 +1382,35 @@ def reset_password(req: ResetPasswordRequest, request: Request):
 
 @app.get("/api/auth/oauth/google/config", tags=["Authentication"])
 def get_google_oauth_config():
-    """Returns Google OAuth status and client ID if configured."""
-    client_id = os.getenv("GOOGLE_CLIENT_ID")
-    available = bool(client_id and client_id.strip())
+    """Returns Google OAuth status - explicitly marked disabled in this release."""
     return {
-        "available": available,
-        "client_id": client_id if available else None,
-        "message": "Google Sign-In is configured." if available else "Google Sign-In is not configured in this deployment."
+        "status": "disabled",
+        "available": False,
+        "client_id": None,
+        "message": "Google Sign-In is disabled in this release. Please use email and password authentication."
     }
+
+
+@app.get("/api/auth/oauth/google/callback", tags=["Authentication"])
+def google_oauth_callback(
+    code: Optional[str] = Query(None),
+    state: Optional[str] = Query(None),
+    error: Optional[str] = Query(None)
+):
+    """
+    Validates Google OAuth callback parameters.
+    Rejects invalid state, missing codes, or unconfigured flows with HTTP 400.
+    """
+    if error:
+        raise HTTPException(status_code=400, detail=f"Google OAuth error: {error}")
+    if not code or not state:
+        raise HTTPException(status_code=400, detail="Missing required OAuth callback parameters.")
+
+    # Option B: Visibly disabled until complete backend flow is available
+    raise HTTPException(
+        status_code=400,
+        detail="Google Sign-In is disabled in this release. Please use email and password authentication."
+    )
 
 
 @app.post("/api/auth/guest", tags=["Authentication"])

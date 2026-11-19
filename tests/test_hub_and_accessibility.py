@@ -207,3 +207,4 @@ def test_history_search_filtering_and_favorites(client):
     assert len(records) == 1
     assert records[0]["id"] == r2
     assert records[0]["is_favorite"] is True
+
