@@ -1,7 +1,7 @@
 # Transify 2.0 — AI-Powered Accessible Multi-Modal Communication Platform
 
 > **Tagline:** *Breaking Communication Barriers through Artificial Intelligence.*  
-> **Status:** Production Ready · 4 Modules Deployed · 187/187 Automated Tests Passing · CI Verified
+> **Status:** Production Ready · 4 Modules Deployed · 210/210 Automated Tests Passing · CI Verified
 
 ---
 
@@ -139,10 +139,18 @@ Open your browser and navigate to:
 
 ## 💻 Development Instructions & Testing
 
-Transify 2.0 includes an exhaustive automated test suite with **180 tests** across unit, integration, security, migration, and browser Playwright workflows:
+Transify 2.0 includes an exhaustive automated test suite with **210 pytest test cases** (which includes 19 end-to-end Playwright browser tests across four configured viewports, plus unit, integration, security, timing anti-enumeration, and database migration tests):
+
+- **Pytest:** 210 passed, 1 warning (`StarletteDeprecationWarning`), 0 failed, 0 skipped.
+- **Playwright:** 19 browser tests passed across the four configured viewports (1280x800 desktop, 375x667 mobile portrait, 667x375 mobile landscape, 1024x500 tablet) — *included within the 210 pytest cases (do not add separately)*.
+- **Android Unit Tests:** 26 tasks executed successfully (`./gradlew testDebugUnitTest` — `BUILD SUCCESSFUL`).
+- **Android Debug APK:** 38 tasks, 18 executed and 20 up-to-date (`./gradlew assembleDebug` — `BUILD SUCCESSFUL`).
+- **Google OAuth Status:** Intentionally disabled (`/api/auth/oauth/google/config` reports disabled; Google login buttons disabled in UI).
+- **SMTP Real-Provider Delivery:** Remains unverified (tested via protocol-compliant isolated mock adapters; live mailbox delivery has not been executed).
+- **Password-Reset BackgroundTasks:** Remain in-process asynchronous tasks and are not a durable queue (in-flight tasks do not survive process terminations or container restarts).
 
 ```bash
-# Run full pytest test suite
+# Run full pytest test suite (210 tests including browser tests)
 PYTHONPATH=. pytest -v
 
 # Run browser end-to-end tests across viewports (1280x800, 375x667, 667x375, 1024x500)
