@@ -208,3 +208,22 @@ def test_history_search_filtering_and_favorites(client):
     assert records[0]["id"] == r2
     assert records[0]["is_favorite"] is True
 
+    # 5. Single record deletion with user ownership
+    del_res = client.delete(f"/api/history/{r1}")
+    assert del_res.status_code == 200
+    assert del_res.json()["success"] is True
+
+    # Confirm r1 is deleted
+    list_after_del = client.get("/api/history")
+    assert list_after_del.status_code == 200
+    assert not any(r["id"] == r1 for r in list_after_del.json()["records"])
+
+    # IDOR check: another user cannot delete r2
+    user_other_email = f"hist_other_{int(time.time()*1000)}@test.com"
+    client.cookies.clear()
+    client.post("/api/auth/register", json={"name": "Other User", "email": user_other_email, "password": pwd, "consent_terms": True})
+    
+    other_del = client.delete(f"/api/history/{r2}")
+    assert other_del.status_code == 404
+
+

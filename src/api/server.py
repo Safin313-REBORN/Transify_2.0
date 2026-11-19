@@ -55,6 +55,7 @@ from src.database.db import (
     log_translation,
     get_history,
     clear_history,
+    delete_history_record,
     toggle_history_favorite,
     record_feedback,
     get_preferences,
@@ -1239,6 +1240,21 @@ def delete_all_history(user: Dict[str, Any] = Depends(get_authenticated_user)):
     """
     deleted_count = clear_history(user_id=user["id"])
     return {"success": True, "deleted_count": deleted_count}
+
+
+@app.delete("/api/history/{record_id}", tags=["History"])
+def delete_single_history_record(
+    record_id: int,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """
+    Deletes a specific translation history record strictly owned by the requesting authenticated user.
+    Preserves user isolation and rejects deletion if the record is missing or belongs to another user.
+    """
+    deleted = delete_history_record(record_id, user_id=user["id"])
+    if not deleted:
+        raise HTTPException(status_code=404, detail="History record not found or not owned by user.")
+    return {"success": True, "deleted_id": record_id}
 
 
 @app.post("/api/history/{record_id}/feedback", tags=["History"])

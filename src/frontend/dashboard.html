@@ -69,6 +69,7 @@
           <a href="/sign" class="desktop-nav-link"><span>✋</span><span>Hand-Sign</span></a>
           <a href="/braille" class="desktop-nav-link"><span>⠃</span><span>Braille OCR</span></a>
           <a href="/?slide=stt" class="desktop-nav-link"><span>🎙️</span><span>Speech</span></a>
+          <a href="/?slide=phraseboard" class="desktop-nav-link"><span>💬</span><span>My Phrases</span></a>
           <a href="/dashboard" class="desktop-nav-link active"><span>📊</span><span>Dashboard</span></a>
         </nav>
       </div>
@@ -165,6 +166,70 @@
       </div>
     </section>
 
+    <!-- Compact Feature Readiness Panel -->
+    <section id="readiness-panel" class="readiness-panel card" style="margin-top: var(--space-8);" aria-labelledby="readiness-heading">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div>
+          <h2 id="readiness-heading" style="font-size: var(--text-lg); font-weight: 800; margin: 0; color: var(--text-primary);">
+            ⚡ Device &amp; AI Feature Readiness
+          </h2>
+          <span style="font-size: var(--text-xs); color: var(--text-secondary);">
+            Non-alarming passive checks • Zero permission prompts triggered
+          </span>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.TransifyApp.checkReadiness(true)" style="font-size: 11px; padding: 4px 10px;">
+          🔄 Recheck Device
+        </button>
+      </div>
+
+      <div class="readiness-grid">
+        <div class="readiness-item" id="ready-camera">
+          <div class="readiness-item-header">
+            <span style="font-size: 1.3rem;">📷</span>
+            <span class="readiness-status-badge badge badge-info" id="ready-camera-badge">Checking</span>
+          </div>
+          <div class="readiness-item-title">Live Camera &amp; Vision</div>
+          <div class="readiness-item-desc" id="ready-camera-desc">Detecting camera support...</div>
+        </div>
+
+        <div class="readiness-item" id="ready-mic">
+          <div class="readiness-item-header">
+            <span style="font-size: 1.3rem;">🎙️</span>
+            <span class="readiness-status-badge badge badge-info" id="ready-mic-badge">Checking</span>
+          </div>
+          <div class="readiness-item-title">Speech-to-Text (STT)</div>
+          <div class="readiness-item-desc" id="ready-mic-desc">Detecting audio recognizer...</div>
+        </div>
+
+        <div class="readiness-item" id="ready-tts">
+          <div class="readiness-item-header">
+            <span style="font-size: 1.3rem;">🔊</span>
+            <span class="readiness-status-badge badge badge-info" id="ready-tts-badge">Checking</span>
+          </div>
+          <div class="readiness-item-title">Speech Synthesis (TTS)</div>
+          <div class="readiness-item-desc" id="ready-tts-desc">Detecting speech synthesis...</div>
+        </div>
+
+        <div class="readiness-item" id="ready-storage">
+          <div class="readiness-item-header">
+            <span style="font-size: 1.3rem;">💾</span>
+            <span class="readiness-status-badge badge badge-info" id="ready-storage-badge">Checking</span>
+          </div>
+          <div class="readiness-item-title">Private Local Storage</div>
+          <div class="readiness-item-desc" id="ready-storage-desc">Detecting offline storage...</div>
+        </div>
+
+        <div class="readiness-item" id="ready-backend">
+          <div class="readiness-item-header">
+            <span style="font-size: 1.3rem;">⚡</span>
+            <span class="readiness-status-badge badge badge-info" id="ready-backend-badge">Checking</span>
+          </div>
+          <div class="readiness-item-title">AI Backend Subsystems</div>
+          <div class="readiness-item-desc" id="ready-backend-desc">Connecting to healthcheck...</div>
+        </div>
+      </div>
+    </section>
+
     <!-- Recent Activity & Translation History -->
     <section style="margin-top: var(--space-8);" aria-labelledby="history-heading">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
@@ -172,6 +237,38 @@
         <div style="display: flex; gap: var(--space-2);">
           <button id="refresh-history-btn" class="btn btn-secondary btn-sm" onclick="DashboardPage.loadHistory()">🔄 Refresh</button>
           <button id="clear-history-btn" class="btn btn-secondary btn-sm" style="color: var(--status-danger);">🗑️ Clear Log</button>
+        </div>
+      </div>
+
+      <!-- History Search and Filter Toolbar -->
+      <div class="history-filter-toolbar">
+        <div style="flex: 2; min-width: 200px;">
+          <input type="search" id="history-search-input" class="history-search-input" placeholder="🔍 Search recognized or translated text..." aria-label="Search translation history">
+        </div>
+        <div style="flex: 1; min-width: 140px;">
+          <select id="history-modality-select" class="history-filter-select" aria-label="Filter by modality">
+            <option value="all">All Modules</option>
+            <option value="sign">✋ Sign Language</option>
+            <option value="braille">⠃ Braille OCR</option>
+            <option value="stt">🎙️ Speech Captions</option>
+            <option value="tts">🔊 Text-to-Speech</option>
+          </select>
+        </div>
+        <div style="flex: 1; min-width: 120px;">
+          <select id="history-date-select" class="history-filter-select" aria-label="Filter by date range">
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="week">Past 7 Days</option>
+          </select>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--text-primary); cursor: pointer; white-space: nowrap;">
+            <input type="checkbox" id="history-fav-filter" style="width: 16px; height: 16px; accent-color: #f59e0b;">
+            <span>⭐ Favorites</span>
+          </label>
+          <button type="button" id="history-clear-filters-btn" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 6px 10px;">
+            Clear Filters
+          </button>
         </div>
       </div>
 
@@ -239,6 +336,10 @@
     <a href="/?slide=stt" class="bottom-nav-item" data-nav="speech">
       <span class="nav-icon">🎙️</span>
       <span class="nav-label">Speech</span>
+    </a>
+    <a href="/?slide=phraseboard" class="bottom-nav-item" data-nav="phrases">
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">Phrases</span>
     </a>
     <a href="/dashboard" class="bottom-nav-item active" data-nav="dashboard">
       <span class="nav-icon">📊</span>

@@ -1795,6 +1795,7 @@
           <a href="/sign" class="desktop-nav-link"><span>✋</span><span>Hand-Sign</span></a>
           <a href="/braille" class="desktop-nav-link"><span>⠃</span><span>Braille OCR</span></a>
           <button type="button" class="desktop-nav-link" onclick="openSlide('slide-stt')" style="background:none; border:none; cursor:pointer;"><span>🎙️</span><span>Speech &amp; Voice</span></button>
+          <button type="button" class="desktop-nav-link" onclick="openSlide('slide-phraseboard')" style="background:none; border:none; cursor:pointer;"><span>💬</span><span>My Phrases</span></button>
           <a href="/dashboard" class="desktop-nav-link"><span>📊</span><span>Dashboard</span></a>
         </nav>
       </div>
@@ -1816,6 +1817,10 @@
           <span class="lang-opt lang-en lang-active">EN</span>
           <span style="opacity: 0.5;">|</span>
           <span class="lang-opt lang-bn">বাং</span>
+        </button>
+
+        <button type="button" class="frame-icon-btn" id="tour-help-btn" aria-label="Welcome tour and help" title="Welcome Tour" onclick="window.TransifyApp.openOnboarding()" style="width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.85); border: 1.5px solid rgba(131,56,236,0.25); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;">
+          ❓
         </button>
 
         <button type="button" class="frame-icon-btn" id="btn-open-a11y" aria-label="Accessibility Settings" title="Accessibility Settings" style="width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.85); border: 1.5px solid rgba(131,56,236,0.25); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px;">
@@ -2082,9 +2087,9 @@
       <span class="nav-icon">⠃</span>
       <span class="nav-label">Braille</span>
     </a>
-    <button type="button" class="bottom-nav-item" data-nav="speech" onclick="openSlide('slide-stt')" aria-label="Speech Captions">
-      <span class="nav-icon">🎙️</span>
-      <span class="nav-label">Speech</span>
+    <button type="button" class="bottom-nav-item" data-nav="phrases" onclick="openSlide('slide-phraseboard')" aria-label="My Phrases">
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">Phrases</span>
     </button>
     <a href="/dashboard" class="bottom-nav-item" data-nav="dashboard">
       <span class="nav-icon">📊</span>
@@ -2695,27 +2700,66 @@
       </div>
 
       <div class="slide-body-padding">
-        <!-- Phraseboard Controls -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px;">
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #1e1b4b; cursor: pointer;">
-            <input type="checkbox" id="phrase-fav-filter" style="width: 16px; height: 16px; accent-color: #f59e0b;">
-            <span>⭐ Favorites Only</span>
-          </label>
-          <button type="button" id="btn-toggle-add-phrase" class="btn btn-primary btn-sm" style="font-size: 12px;">+ Add Phrase</button>
+        <!-- Medical Disclaimer Alert -->
+        <div class="phrase-disclaimer-alert">
+          <span style="font-size: 16px;">⚠️</span>
+          <span><strong>Notice:</strong> For everyday and assistive communication assistance only. Not for certified medical advice, clinical diagnostics, or emergency dispatch services.</span>
         </div>
 
-        <!-- Add Custom Phrase Form (Collapsible) -->
+        <!-- Privacy & Storage Badge -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div class="phrase-storage-badge" id="phrase-storage-indicator">
+            <span>🔒 Local-First Private Storage (On-Device)</span>
+          </div>
+          <button type="button" id="btn-reset-phrases" class="btn btn-secondary btn-sm" onclick="window.Phraseboard.resetToDefaults()" style="font-size: 11px; padding: 4px 8px;">
+            🔄 Reset Defaults
+          </button>
+        </div>
+
+        <!-- Category Filter Pills Bar -->
+        <div class="phrase-cat-bar" id="phrase-category-bar" role="tablist" aria-label="Phrase Categories">
+          <button type="button" class="phrase-cat-pill active" data-category="all" role="tab" aria-selected="true">🌟 All</button>
+          <button type="button" class="phrase-cat-pill" data-category="everyday" role="tab" aria-selected="false">💬 Everyday</button>
+          <button type="button" class="phrase-cat-pill" data-category="needs" role="tab" aria-selected="false">🚰 Needs</button>
+          <button type="button" class="phrase-cat-pill" data-category="health" role="tab" aria-selected="false">🩺 Health</button>
+          <button type="button" class="phrase-cat-pill" data-category="emergency" role="tab" aria-selected="false">🚨 Emergency</button>
+        </div>
+
+        <!-- Search & Quick Filter Controls -->
+        <div class="phrase-controls">
+          <div style="flex: 1; min-width: 180px;">
+            <input type="search" id="phrase-search-input" class="hub-input-field" placeholder="🔍 Search phrases (e.g. water, help, doctor)..." style="font-size: 13px; padding: 8px 12px; width: 100%; border-radius: 12px;" aria-label="Search phrases">
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #1e1b4b; cursor: pointer;">
+              <input type="checkbox" id="phrase-fav-filter" style="width: 16px; height: 16px; accent-color: #f59e0b;">
+              <span>⭐ Favorites</span>
+            </label>
+            <button type="button" id="btn-toggle-add-phrase" class="btn btn-primary btn-sm" style="font-size: 12px;">+ Add</button>
+          </div>
+        </div>
+
+        <!-- Add / Edit Custom Phrase Form (Collapsible) -->
         <div id="phrase-add-form-container" style="display: none; background: #ffffff; border: 1.5px solid rgba(131,56,236,0.2); border-radius: 16px; padding: 14px; margin-bottom: 14px;">
-          <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #1e1b4b;">Add Custom Phrase</h4>
+          <h4 id="phrase-form-title" style="margin: 0 0 10px 0; font-size: 14px; color: #1e1b4b;">Add Custom Phrase</h4>
           <div style="display: flex; flex-direction: column; gap: 8px;">
-            <input type="text" id="input-phrase-en" class="hub-input-field" placeholder="English text (e.g., Thank you)" style="font-size: 13px; padding: 8px 12px;">
-            <input type="text" id="input-phrase-bn" class="hub-input-field font-bn" placeholder="বাংলা অনুবাদ (যেমন: ধন্যবাদ)" style="font-size: 13px; padding: 8px 12px;">
+            <input type="text" id="input-phrase-en" class="hub-input-field" placeholder="English text (e.g., I need water)" style="font-size: 13px; padding: 8px 12px;">
+            <input type="text" id="input-phrase-bn" class="hub-input-field font-bn" placeholder="বাংলা অনুবাদ (যেমন: আমার পানি প্রয়োজন)" style="font-size: 13px; padding: 8px 12px;">
+            <select id="select-phrase-category" class="hub-input-field" style="font-size: 13px; padding: 8px 12px;">
+              <option value="everyday">Everyday</option>
+              <option value="needs">Needs</option>
+              <option value="health">Health</option>
+              <option value="emergency">Emergency</option>
+            </select>
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px;">
               <button type="button" id="btn-cancel-add-phrase" class="btn btn-secondary btn-sm">Cancel</button>
               <button type="button" id="btn-save-phrase" class="btn btn-primary btn-sm">Save Phrase</button>
             </div>
           </div>
         </div>
+
+        <!-- Active Phrase Card Showcase Container -->
+        <div id="phrase-active-showcase" class="active-phrase-card" style="display: none;"></div>
 
         <!-- Phrase Cards Grid -->
         <div id="phraseboard-grid" class="phraseboard-grid" role="region" aria-label="Phrase grid"></div>
@@ -3022,29 +3066,92 @@
 
   <!-- Accessibility Settings Modal -->
   <div id="a11y-modal-overlay" class="profile-modal-overlay" role="dialog" aria-modal="true" aria-label="Accessibility Settings" style="display: none;">
-    <div class="profile-modal-card" style="text-align: left;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="font-size: 18px; font-weight: 800; color: #1e1b4b; margin: 0;">♿ Accessibility</h3>
-        <button type="button" id="a11y-close-btn" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;">✕</button>
+    <div class="profile-modal-card" style="text-align: left; max-width: 460px; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 0;">♿ Accessibility &amp; Preferences</h3>
+        <button type="button" id="a11y-close-btn" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b;" aria-label="Close accessibility settings">✕</button>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px;">
+        <!-- Theme Preference -->
+        <div>
+          <label for="a11y-theme-select" style="font-weight: 700; color: var(--text-primary); font-size: 13.5px; display: block; margin-bottom: 4px;">
+            Visual Theme
+          </label>
+          <select id="a11y-theme-select" class="hub-input-field" style="width: 100%; font-size: 13px; padding: 8px 12px; border-radius: 10px;">
+            <option value="light">☀️ Light Theme (Standard)</option>
+            <option value="dark">🌙 Dark Theme (OLED / Low-Light)</option>
+            <option value="high-contrast">👁️ High Contrast (WCAG 2.1 AAA)</option>
+          </select>
+        </div>
+
+        <!-- Font Scaling -->
+        <div>
+          <label for="a11y-font-size-select" style="font-weight: 700; color: var(--text-primary); font-size: 13.5px; display: block; margin-bottom: 4px;">
+            Text Scaling
+          </label>
+          <select id="a11y-font-size-select" class="hub-input-field" style="width: 100%; font-size: 13px; padding: 8px 12px; border-radius: 10px;">
+            <option value="small">A- Normal (100%)</option>
+            <option value="medium">A Large (115%)</option>
+            <option value="large">A+ Extra Large (130%)</option>
+          </select>
+        </div>
+
+        <!-- Speech Language -->
+        <div>
+          <label for="a11y-voice-lang-select" style="font-weight: 700; color: var(--text-primary); font-size: 13.5px; display: block; margin-bottom: 4px;">
+            Speech Synthesizer Voice &amp; Language
+          </label>
+          <select id="a11y-voice-lang-select" class="hub-input-field" style="width: 100%; font-size: 13px; padding: 8px 12px; border-radius: 10px;">
+            <option value="en-US">English (United States) - en-US</option>
+            <option value="en-GB">English (United Kingdom) - en-GB</option>
+            <option value="bn-BD">বাংলা (Bangladesh) - bn-BD</option>
+            <option value="bn-IN">বাংলা (India) - bn-IN</option>
+            <option value="es-ES">Español (Spain) - es-ES</option>
+          </select>
+        </div>
+
+        <!-- Speech Rate -->
+        <div>
+          <label for="a11y-speech-rate-select" style="font-weight: 700; color: var(--text-primary); font-size: 13.5px; display: block; margin-bottom: 4px;">
+            Speech Playback Speed
+          </label>
+          <select id="a11y-speech-rate-select" class="hub-input-field" style="width: 100%; font-size: 13px; padding: 8px 12px; border-radius: 10px;">
+            <option value="0.8">0.8x (Slower / Clearer)</option>
+            <option value="1.0" selected>1.0x (Normal)</option>
+            <option value="1.2">1.2x (Fast)</option>
+            <option value="1.5">1.5x (Screen Reader Fast)</option>
+          </select>
+        </div>
+
+        <!-- Auto-Speak Toggle -->
+        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 10px; background: rgba(131,56,236,0.04); border-radius: 10px; border: 1px solid rgba(131,56,236,0.12);">
+          <div>
+            <div style="font-weight: 700; color: var(--text-primary); font-size: 13.5px;">Auto-Speak Detected Signs</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Default: OFF (Zero Auto-Audio standard). Enable only if automated vocalization is required.</div>
+          </div>
+          <input type="checkbox" id="a11y-toggle-auto-speak" style="width: 20px; height: 20px; accent-color: #8338ec;">
+        </label>
+
+        <!-- Reduced Motion Toggle -->
         <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
           <div>
-            <div style="font-weight: 700; color: #1e1b4b; font-size: 14px;">Reduced Motion</div>
-            <div style="font-size: 11px; color: #64748b;">Disables animations and transitions</div>
+            <div style="font-weight: 700; color: var(--text-primary); font-size: 13.5px;">Reduced Motion</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Disables animations and transitions</div>
           </div>
           <input type="checkbox" id="a11y-toggle-reduced-motion" style="width: 20px; height: 20px; accent-color: #8338ec;">
         </label>
 
+        <!-- Large Touch Targets Toggle -->
         <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
           <div>
-            <div style="font-weight: 700; color: #1e1b4b; font-size: 14px;">Large Touch Targets</div>
-            <div style="font-size: 11px; color: #64748b;">Increases button sizes (≥ 48px) for easier tapping</div>
+            <div style="font-weight: 700; color: var(--text-primary); font-size: 13.5px;">Large Touch Targets</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Increases button sizes (≥ 48px) for easier tapping</div>
           </div>
           <input type="checkbox" id="a11y-toggle-large-targets" style="width: 20px; height: 20px; accent-color: #8338ec;">
         </label>
 
+        <!-- Keyboard Shortcuts -->
         <div style="padding: 10px; background: rgba(131,56,236,0.06); border-radius: 10px; border: 1px solid rgba(131,56,236,0.15);">
           <div style="font-weight: 700; font-size: 12px; color: #8338ec; margin-bottom: 4px;">Keyboard Shortcuts</div>
           <div style="font-size: 11px; color: #475569; line-height: 1.5;">
