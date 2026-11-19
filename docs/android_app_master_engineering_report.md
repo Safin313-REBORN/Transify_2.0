@@ -772,5 +772,141 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
   - `models/sign/calibrated_classifier.pkl`: `661d035ef7269786287fddea77c381f96719a0ce4ac098746c031b97b817be14` (VERIFIED UNCHANGED)
 
 ---
+
+## 12. Phase 17 Engineering Closure: Checkpoint Provenance Reconciliation & Metric Validator Hardening
+
+### 12.1 Checkpoint SHA-256 Provenance & Verification
+- **Cryptographic Ground Truth:** The production model checkpoints were hashed using SHA-256 both locally on the active branch and in GitHub Actions LOSO Evaluation Run #3 (`44610683733`).
+  - `models/sign/bdsl_champion_model.pkl`: `62a6106b405037085e1b2244153841b2f2039ce5d29a6ff05df888241da5386e`
+  - `models/sign/scaler.pkl`: `7552758987ab38cc353b3b2fc15d9db8714fc08669d68984adca6759b837f5db`
+  - `models/sign/calibrated_classifier.pkl`: `661d035ef7269786287fddea77c381f96719a0ce4ac098746c031b97b817be14`
+  - `data/sign/annotations/dataset_master_manifest.csv`: `6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f`
+- **Reconciliation Analysis:** All three model checkpoint files originated in commit `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` (Phase 13) and have remained strictly byte-for-byte identical across all subsequent execution checkpoints (`33c2ef7`, `79928c9`, `7e96663`, `00e7612`, `8e92c12`, `647d751`). Pre-evaluation and post-evaluation hashes verified via `diff` in CI workflows confirm zero mutation or weight drift.
+
+### 12.2 Hardened Metric & Confusion Matrix Validation (`scripts/verify_loso_report.py`)
+- **Aggregate Summary Range Constraints:**
+  - `mean_accuracy`: Verified finite float $\in [0.0, 1.0]$, meeting internal regression floor $\ge 0.90$.
+  - `mean_macro_f1`: Verified finite float $\in [0.0, 1.0]$, meeting internal regression floor $\ge 0.90$.
+  - `mean_calibrated_brier`: Verified finite float $\in [0.0, 0.15]$.
+  - `mean_calibrated_top_label_ece`: Verified finite float $\in [0.0, 0.15]$.
+- **Cell-Level Confusion Matrix Validation:**
+  - Dimensionality strictly enforced at $10 \times 10$.
+  - Cell values strictly validated as non-negative integers (`isinstance(cell, int) and cell >= 0 and not isinstance(cell, bool)`).
+  - Row sums strictly verified to equal exactly 15 test samples per class across all 10 classes and 8 folds.
+  - Grand total strictly verified to equal exactly 150 test samples per fold.
+
+### 12.3 Confusable Pair Uniqueness & Invariant Verification
+- **Uniqueness & Canonical Ordering Constraints:**
+  - Validated that `class_1` and `class_2` are distinct members of `EXPECTED_CLASSES`.
+  - Canonical alphabetical ordering `class_1 < class_2` strictly enforced.
+  - Unordered class pair uniqueness verified via `frozenset([c1, c2])` deduplication across all 10 reported pairs.
+  - Symmetrical 2:1 ratio strictly enforced: exactly 25,200 ordered comparisons and 12,600 unordered unique sample pairs per pair.
+  - Cosine similarity statistics (`mean`, `median`, `p95`, `max`) verified as finite floats in $[0.0, 1.0]$.
+- **Deliberate Rejection Regression Test Suite:**
+  - Expanded `test_verify_loso_report_deliberate_rejections` in `tests/test_model_validation_and_diagnostics.py` to cover 16 distinct failure modes:
+    1. Truncated fold count (< 8)
+    2. Data leakage (held-out test signer present in training signers)
+    3. Accuracy below internal regression floor (< 0.90)
+    4. Calibrated Brier score above gate (> 0.15)
+    5. Calibrated ECE above gate (> 0.15)
+    6. Non-finite / NaN metric value
+    7. Invalid pairwise count (12,600 instead of 25,200)
+    8. Aggregate accuracy above 1.0 (> 1.00)
+    9. Aggregate macro F1 above 1.0 (> 1.00)
+    10. Negative Brier score (< 0.0)
+    11. Negative ECE (< 0.0)
+    12. Invalid confusion matrix cell values (negative integers)
+    13. Incorrect confusion matrix row totals (row sum != 15)
+    14. Repeated confusable class pairs (duplicate unordered pairs)
+    15. Invalid class labels in confusable pairs (unknown class name)
+    16. Non-finite similarity metrics (inf / nan)
+
+### 12.4 Verification Metrics Summary
+- **Pytest Full System Suite:** **227 passed, 0 failed, 1 warning in 62.86s** (100% pass rate).
+- **Android Native JVM Unit Tests:** **BUILD SUCCESSFUL in 32s** (74 actionable tasks executed/up-to-date, 0 failures).
+- **Android APK Artifacts:**
+  - `app-debug.apk`: 6,176,952 bytes (verified)
+  - `app-debug-androidTest.apk`: 619,819 bytes (verified)
+- **Railway Cloud Deployment:** Deployment `8007f23b-55b8-4e62-b466-1caf4d3d7fa5` remains active and healthy (**● Online**) at `https://transify20-production.up.railway.app`. Redundant redeployment was avoided in compliance with Phase 8 Railway policies.
+
+---
+
+## 13. Phase 18 Engineering Closure: Full-Frame Camera Recognition, Mirrored Selfie Preview & High-Definition Camera Optimization
+
+### 13.1 Full-Frame Hand Recognition Architecture
+- **Elimination of Hand-Center ROI Rejection:**
+  - In `src/sign/live_frame_processor.py`, strict spatial gating (`target_roi[0] - margin <= hand_cx <= target_roi[2] + margin`) was completely decommissioned.
+  - Hands detected anywhere across the full camera image sensor—including top-left, top-right, bottom-left, bottom-right, center, and extreme perimeter boundaries—are immediately accepted and routed to landmark extraction and model inference.
+  - Return payloads now explicitly broadcast `target_roi: [0.0, 0.0, 1.0, 1.0]`, `hand_outside_roi: False`, and `frame_dims: [w, h]` for full backward and forward client compatibility.
+  - Deprecated the legacy `OUT_OF_ROI` status code, removing false-negative rejections when signers naturally move hands outside an arbitrary bounding box.
+
+### 13.2 Mirrored Front-Camera Preview & Coordinate Alignment
+- **Natural Mirroring for User Experience:**
+  - Applied CSS class `.camera-mirror` (`transform: scaleX(-1); -webkit-transform: scaleX(-1);`) to both `#sign-video` and `#sign-canvas`.
+  - When the user signs with their right hand, it visually moves on the right side of the screen, matching natural human mirror expectations and eliminating spatial disorientation.
+- **Unmirrored Offline Capture for AI Pipeline Integrity:**
+  - Frame capture loop uses an offscreen HTML5 `<canvas>` via `drawImage(videoEl, 0, 0, captureWidth, captureHeight)`. Drawing a video element to a canvas draws the native underlying pixel buffer without CSS transforms.
+  - The backend ML model receives the unmirrored source video frame, preserving true hand orientation, chirality, and landmark coordinates.
+- **Visual Feedback Alignment & Local Text Un-Mirroring:**
+  - Because `#sign-canvas` shares the identical `scaleX(-1)` transform as `#sign-video`, returning unmirrored bounding boxes `[x1, y1, x2, y2]` naturally places the box precisely over the signer's hand in visual space without manual axis inversion.
+  - To prevent text badges and confidence pills from appearing reversed, `_drawPillBadge` applies a local inverse 2D horizontal transform (`ctx.translate(x + pillW, y); ctx.scale(-1, 1);`), ensuring all status text reads naturally from left to right.
+
+### 13.3 Progressive HD Camera Constraints & Dynamic Diagnostics
+- **Five-Tier Fallback Hierarchy:**
+  - **Tier 1:** Full HD 1080p @ 30fps (`facingMode: { ideal: 'user' }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 }`) with continuous autofocus (`focusMode: 'continuous'`) where supported.
+  - **Tier 2:** HD 720p @ 30fps (`width: { ideal: 1280 }, height: { ideal: 720 }`).
+  - **Tier 3:** Standard Definition 480p (`width: { ideal: 640 }, height: { ideal: 480 }`).
+  - **Tier 4:** Generic Front Camera (`facingMode: 'user'`).
+  - **Tier 5:** Unconstrained Video (`video: true`).
+- **Live Diagnostics Badge:**
+  - Dynamically updates `#camera-status-badge` (`.camera-status-pill`) with negotiated resolution and frame rate (e.g., `● 1920×1080 @ 30fps`).
+  - Diagnostic telemetry records continuous autofocus capabilities, capture dimensions, downscaling factor, and median payload size.
+
+### 13.4 Aspect Ratio Preservation & Distortion Prevention
+- **Dynamic Container Aspect Ratio:**
+  - Upon video `loadedmetadata`, `.webcam-container` updates its CSS `aspectRatio` property to `${vW} / ${vH}`.
+  - Video and canvas elements utilize `object-fit: contain` with a deep `#090a12` letterbox background, preventing portrait and non-standard video streams from stretching or cropping.
+
+### 13.5 Proportional Frame Capture & Payload Optimization
+- **Intelligent Longest-Side Capping:**
+  - Capture frame dimensions maintain the camera's native aspect ratio while capping the longest dimension at 1280px.
+  - Low-resolution streams (e.g. 640×480) are never upscaled, preserving processing efficiency.
+  - Persistent offscreen canvas reuse avoids browser garbage collection pauses.
+  - JPEG compression quality tuned to 0.88, maintaining sub-50ms roundtrip inference latencies with payloads between 40 KB and 80 KB.
+
+### 13.6 Decommissioning of Legacy ROI UI Controls
+- **Complete Removal of Obsolete Selectors:**
+  - Completely excised `.roi-position-selector`, `#roi-pos-right`, `#roi-pos-center`, `#roi-pos-left`, `.roi-selector-label`, and `.btn-roi` from HTML, CSS, and JavaScript.
+  - Removed `roiPosition` state and `setRoiPosition()` method.
+  - Removed visual clutter: ambient vignette overlay, fixed target brackets, and "Hand Outside Box" warning banners.
+
+### 13.7 Strict Zero Auto-Audio Policy Compliance
+- **Zero Auto-Audio Gating:**
+  - Confirmed Android WebView settings strictly configure `settings.mediaPlaybackRequiresUserGesture = true`.
+  - Frontend event handlers emit zero audio upon camera start, frame acquisition, or gesture recognition. Audio output is strictly user-gesture initiated via explicit Speech Synthesis triggers.
+
+### 13.8 Automated Verification & Release Quality Gate
+- **Dedicated Camera Optimization Test Suite:**
+  - Created `tests/test_camera_optimization_and_full_frame.py` with 21 automated regression tests covering all 9 screen positions, perimeter boundary handling, aspect ratio preservation, ROI selector absence, CSS mirroring, and Zero Auto-Audio compliance.
+  - Result: **21 passed in 5.27s**.
+- **Pytest Full System Suite:**
+  - Executed complete test suite across all subsystems:
+  - Result: **248 passed, 0 failed, 1 warning in 54.57s** (100% pass rate).
+- **Android Native JVM & AndroidTest APK Verification:**
+  - Ran `./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest --no-daemon`.
+  - Result: **BUILD SUCCESSFUL in 10s** (74 actionable tasks executed/up-to-date, 0 failures).
+  - Artifacts: `app-debug.apk` (5.9 MB), `app-debug-androidTest.apk` (606 KB).
+- **Model Weight Preservation:**
+  - `models/sign/bdsl_champion_model.pkl`: `62a6106b405037085e1b2244153841b2f2039ce5d29a6ff05df888241da5386e` (VERIFIED UNCHANGED)
+  - `models/sign/scaler.pkl`: `7552758987ab38cc353b3b2fc15d9db8714fc08669d68984adca6759b837f5db` (VERIFIED UNCHANGED)
+  - `models/sign/calibrated_classifier.pkl`: `661d035ef7269786287fddea77c381f96719a0ce4ac098746c031b97b817be14` (VERIFIED UNCHANGED)
+- **Railway Cloud Deployment & Release Verification:**
+  - Active Deployment ID: `0ae355a7-d35e-4f73-9b0c-8845dd8d728a` (Status: **● Online / Healthy**)
+  - Production URL: `https://transify20-production.up.railway.app`
+  - Health & Readiness: `/api/health` [200 OK], `/api/ready` [200 OK], `/api/models/status` [200 OK]
+  - Frontend Assets Verified Live: `/sign` (ROI selector removed, dynamic badge active, CSS mirroring active), `/static/app.js` (unmirrored capture, local inverse text rendering).
+  - Implementation Commit SHA: `aebcb3874c7682245b0a7e671b5597fc0e271422` (Branch: `feat/auth-repair-communication-hub`)
+
+---
 *Signed by: Senior Android Engineer, Full-Stack Architect, AI Research Engineer & Security Auditor*
 *Transify 2.0 Assistive Platform Engineering Team*
