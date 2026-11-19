@@ -1,7 +1,7 @@
 # Transify 2.0 — AI-Powered Accessible Multi-Modal Communication Platform
 
 > **Tagline:** *Breaking Communication Barriers through Artificial Intelligence.*  
-> **Status:** Production Ready · 4 Modules Deployed · 180/180 Automated Tests Passing · CI Verified
+> **Status:** Production Ready · 4 Modules Deployed · 187/187 Automated Tests Passing · CI Verified
 
 ---
 
@@ -162,6 +162,35 @@ cd android
 ./gradlew testDebugUnitTest
 ./gradlew assembleDebug
 ```
+
+---
+
+## 💾 Database Operations & Disaster Recovery
+
+Transify includes verified, non-blocking online backup and rollback utilities:
+
+```bash
+# Create an atomic, verified online SQLite snapshot
+python scripts/backup_db.py
+
+# Roll back / restore database from a snapshot
+python scripts/restore_db.py backups/transify_backup_<timestamp>.db
+```
+
+---
+
+## 📚 Architectural Blueprints & Documentation
+
+| Document | Description |
+| :--- | :--- |
+| **[Product Requirements Document (PRD)](docs/PRD.md)** | Core vision, personas, functional requirements, and success metrics. |
+| **[Design System & UI/UX (DESIGN.md)](docs/DESIGN.md)** | Kinetic glass design tokens, motion dials, WCAG AAA rules, and no-auto-audio policy. |
+| **[Software Architecture Blueprint](docs/SOFTWARE_ARCHITECTURE.md)** | End-to-end decoupled microservice architecture and data flow pipelines. |
+| **[Database Architecture Specification](docs/DATABASE_SPECIFICATION.md)** | SQLite WAL schema, tables, composite PKs, 11 indexes, and migrations 1–7. |
+| **[Unified API Specification](docs/API_SPECIFICATION.md)** | Exhaustive reference for all 49 endpoints across 11 functional domains. |
+| **[Agents & Model Context Protocol (MCP)](docs/AGENTS_AND_MCP_SPECIFICATION.md)** | 98% Decision Gateway, agentic disambiguation, and MCP tool schemas. |
+| **[Development Roadmap](docs/DEVELOPMENT_ROADMAP.md)** | Engineering phase history, release milestones, and roadmap. |
+| **[Android Build Guide](ANDROID_BUILD_GUIDE.md)** | Android Studio / Gradle configuration and hardware WebView setup. |
 
 ---
 

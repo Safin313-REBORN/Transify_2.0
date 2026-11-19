@@ -113,7 +113,7 @@ Transify is engineered as a modular, accessible, service-oriented communication 
 [Emit JSON Payload over WebSocket]
      |
      v
-[Frontend UI Update + Audio TTS Synthesis]
+[Frontend UI Update (Audio TTS Available on Explicit User Click — Strict No Auto-Audio)]
 ```
 
 ### 3.2 Braille Image Translation Data Flow
@@ -146,7 +146,7 @@ Transify is engineered as a modular, accessible, service-oriented communication 
 [Construct Structured JSON: Text, Confidence, Bounding Boxes]
         |
         v
-[Frontend Display: Editable Text Editor + BBox Overlay + TTS Readout]
+[Frontend Display: Editable Text Editor + BBox Overlay + On-Demand TTS Button]
 ```
 
 ---
@@ -156,4 +156,58 @@ Transify is engineered as a modular, accessible, service-oriented communication 
 Assistive tools must avoid presenting speculative guesses as verified translations:
 - **Tentative vs. Confirmed States:** Predictions between $60\%$ and $80\%$ confidence are rendered with a tentative visual indicator, requiring user confirmation or pause before audio readout.
 - **One-Touch Correction:** Sighted or blind users can tap/select any word in the UI editor to inspect confidence, edit text, or re-read via TTS.
+- **Strict No-Auto-Audio Rule:** Audio synthesis NEVER triggers automatically upon translation. Text is rendered first; audio playback requires an explicit user click on the speaker icon (`🔊`).
 - **Privacy-by-Design:** All video frames and document images are processed ephemerally in-memory. No biometric video feeds or personal documents are retained on server disks.
+
+---
+
+## 5. Accessible Communication Hub & Phraseboard
+
+```
+[Sign Frame / Braille / Voice / Typed Text]
+                  |
+                  v
+       [Communication Hub Engine]
+                  |
+        +---------+---------+
+        |                   |
+        v                   v
+[Safe DOM Builder]  [FastAPI Backend]
+(textContent/Node)  (Cookie Auth Check)
+        |                   |
+        v                   v
+[Visual Feed Card]  [SQLite Persistence]
+(Saved/Guest/Retry) (WAL / Immediate Tx)
+```
+
+- **Cross-Modal Synchronization:** Unifies Sign Language, Braille OCR, STT captions, and manual text into a single chronological stream.
+- **DOM-Based XSS Immunity:** Built exclusively with safe native DOM methods (`textContent`, `replaceChildren`), preventing script injection from malicious payloads.
+- **Storage Status Reflection:** Visual chips differentiate cloud-persisted messages (`✓ Saved`), ephemeral guest interactions (`Temporary Guest`), and network retry states (`⚠️ Unsaved`).
+
+---
+
+## 6. Hardened Security Architecture
+
+- **Password Cryptography:** Argon2id (`time_cost=2`, `memory_cost=65536`) with automatic transparent upgrade from PBKDF2 (600,000 iterations).
+- **Session Lifecycle:** Cryptographically random 32-byte tokens hashed with SHA-256 in SQLite; stored strictly in secure, HttpOnly, SameSite=Lax cookies.
+- **CSRF Exact-Origin Enforcement:** Validates normalized origin and referer headers against explicit production whitelists; blocks cross-origin state mutation.
+- **Persistent Rate Limiting:** High-concurrency atomic rate limiting on authentication and reset endpoints backed by SQLite WAL mode.
+- **Disaster Recovery:** Online non-blocking database backup (`scripts/backup_db.py`) and rollback (`scripts/restore_db.py`) utilities with automated integrity verification.
+
+---
+
+## 7. Android Client Architecture
+
+```
+[Android Native App (Kotlin 1.9.24 / AndroidX)]
+        |
+  [Hardware-Accelerated WebView Engine]
+        |
+  [WebChromeClient / WebViewClient Bridge]
+        | (Grants WebRTC camera & microphone permissions)
+        v
+  [Transify Responsive Web Application]
+```
+- Hardware-accelerated WebView rendering with zero iframe latency.
+- Seamless bridge granting camera (`CAMERA`) and microphone (`RECORD_AUDIO`) permissions natively without popup interruptions.
+- Verified debug APK build pipeline (`./gradlew assembleDebug`).
