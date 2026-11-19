@@ -4,9 +4,10 @@
 **Active Branch:** `feat/auth-repair-communication-hub`
 **Target Branch:** `main`
 **Latest Implementation Commit:** `74244a7f0c62bfb5e7be6afd37905ed3c9850cfc` (CI Run #28 — ID `44560681796`, Success)
-**Documentation & Release Checkpoint:** `1e15e7f1fbb7dfd46dc7f715aa31336a5fa38318` (CI Run #29 — ID `44564305881`, Success; CI Run #30 in progress)
+**Documentation & Release Checkpoint:** `738caa377484a0d9e26211153835f8ec3aa95b9a` (CI Run #31 — ID `44567535846`, Success)
 **Railway Production URL:** [https://transify20-production.up.railway.app](https://transify20-production.up.railway.app)
-**Active Railway Deployment ID:** `1610ff79-f2f4-4b56-a5e0-f2d73a569044` (Status: ● Online / Healthy)
+**Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1)
+**Active Railway Deployment ID:** `5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1` (Status: ● Online / Healthy)
 **Date:** November 19, 2026
 **Document Status:** Complete Physical Device Acceptance Audit, Model Metric Audit & Production Release Validation
 
@@ -26,7 +27,7 @@ Transify 2.0 bridges communication for non-verbal, deaf, and blind individuals t
    - HaGRID 24-class Gesture Classifier: 86.83% test accuracy on 2,400 stratified held-out 3D landmark feature vectors (12,000 total augmented samples).
    - BdSL 10-class Temporal Model: 100% test accuracy on a controlled 150-sample split (15/class, signer S001).
    - Unified English Braille (UEB) Grade 1 OCR: 100% exact cell accuracy (CER=0.0, WER=0.0) on usable held-out documents (DOC009, DOC010); 20% rejection rate on blurry/degraded inputs via Image Quality Assessment (IQA).
-5. **Production Cloud Health:** Live deployment `1610ff79-f2f4-4b56-a5e0-f2d73a569044` on Railway is healthy, with persistent volume mounted at `/app/data` (64 MB used) and all 6 core endpoints responding with HTTP 200 (latencies 343–591 ms).
+5. **Production Cloud Health:** Live deployment `5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1` on Railway is healthy, with persistent volume mounted at `/app/data` (64 MB used) and all 6 core endpoints responding with HTTP 200 (latencies 537–639 ms). Dashboard URL: `https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1`.
 
 ---
 
@@ -192,7 +193,9 @@ To prevent ambiguity, the following 9 engineering boundaries are explicitly affi
 - **Project Name:** `invigorating-reprieve` (`cf17911b-4222-431e-87cd-666aabf88422`)
 - **Service Name:** `Transify_2.0` (`8b4fd318-c669-49ca-bdc2-516cf229211d`)
 - **Environment:** `production` (`496ab9d9-b582-4d6b-82db-058b425eb4b8`)
-- **Active Deployment:** `1610ff79-f2f4-4b56-a5e0-f2d73a569044`
+- **Active Deployment ID:** `5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1`
+- **Deployment Dashboard Link:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1)
+- **Live Production URL:** [https://transify20-production.up.railway.app](https://transify20-production.up.railway.app)
 - **Region:** `sfo`
 - **Volume Mount:** `transify_2.0-volume` mounted at `/app/data` (64 MB used / 500 MB quota)
 - **Container Health:** ● **Online (Healthy)**
