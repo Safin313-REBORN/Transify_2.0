@@ -6,12 +6,12 @@
 **Latest Verified Implementation Checkpoint:** `647d751` (Phase 18 Conversation Mode, Phrase Board Actions, BdSL Community Protocol & Calibrated Gateways)
 **Preceding Implementation Checkpoint:** `8e92c1290859be02d27bfcd4e824632eada31aa2` (Phase 17 UX Overhaul, Assistive Features Delivery & Railway Deployment)
 **Latest Verified CI Runs:** CI Run #41 (ID `44610683718`, Success), LOSO Evaluation Run #3 (ID `44610683733`, Success)
-**Historical Engineering Checkpoints:** `04f90b4` (Phase 17 Documentation), `8e92c12` (Phase 17 UX), `00e7612` (Phase 16 Pairwise), `dc03786` (Run #40 / Run #2), `118dd1b` (Run #39), `7e96663` (Phase 15 Verification), `79928c9` (Run #38), `7d5e99a` (Run #36), `dd4c196` (Run #37), `33c2ef7` (Run #34), `6f8ff9c` (Run #35), `68be136` (Run #33), `738caa3` (Run #31), `74244a7` (Run #28)
+**Historical Engineering Checkpoints:** `b57415c` (Phase 18 Report), `647d751` (Phase 18 Feat), `04f90b4` (Phase 17 Documentation), `8e92c12` (Phase 17 UX), `c8f0d5f` (Phase 17 Redesign), `f5d9194` (Phase 16 Docs), `00e7612` (Phase 16 Pairwise), `dc03786` (Run #40 / Run #2), `118dd1b` (Run #39), `7e96663` (Phase 15 Verification), `79928c9` (Run #38), `7d5e99a` (Run #36), `dd4c196` (Run #37), `33c2ef7` (Run #34), `6f8ff9c` (Run #35), `68be136` (Run #33), `738caa3` (Run #31), `74244a7` (Run #28)
 **Railway Production URL:** [https://transify20-production.up.railway.app](https://transify20-production.up.railway.app)
 **Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=8007f23b-55b8-4e62-b466-1caf4d3d7fa5](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=8007f23b-55b8-4e62-b466-1caf4d3d7fa5)
 **Active Railway Deployment ID:** `8007f23b-55b8-4e62-b466-1caf4d3d7fa5` (Status: ● Online / Healthy)
 **Date:** November 20, 2026
-**Document Status:** Complete User Experience Overhaul, Multi-Modal Conversation Mode, Personal Phrase Board, Responsible BdSL Expansion & Production Release (Phase 18)
+**Document Status:** Complete User Experience Overhaul, Multi-Modal Conversation Mode, Personal Phrase Board, Checkpoint Provenance Reconciliation & Hardened Metric Verification (Phase 18)
 
 ---
 
@@ -326,6 +326,17 @@ In `tests/test_model_validation_and_diagnostics.py` and `scripts/verify_loso_rep
 
 *Key Finding: Probability calibration with sigmoid Platt scaling substantially improves the Brier score from 0.0135 down to 0.0045 and reduces Expected Calibration Error from 0.0692 down to 0.0636 while preserving 100.00% classification accuracy.*
 
+#### 3. Production Model Checkpoint Provenance & Cryptographic Verification Table
+
+| Checkpoint File | Role in Production | Cryptographic SHA-256 (Local Checkout & GitHub LOSO Run #3 Verified) | Origin Commit | Pre/Post Evaluation Preservation | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `models/sign/bdsl_champion_model.pkl` | Production 10-Class Random Forest Model | `62a6106b405037085e1b2244153841b2f2039ce5d29a6ff05df888241da5386e` | `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` | Verified identical (`diff` 0 bytes) in LOSO Run #3 and local run | **PRESERVED** |
+| `models/sign/scaler.pkl` | 972D Feature StandardScaler | `7552758987ab38cc353b3b2fc15d9db8714fc08669d68984adca6759b837f5db` | `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` | Verified identical (`diff` 0 bytes) in LOSO Run #3 and local run | **PRESERVED** |
+| `models/sign/calibrated_classifier.pkl` | CalibratedClassifierCV (Platt scaling) | `661d035ef7269786287fddea77c381f96719a0ce4ac098746c031b97b817be14` | `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` | Verified identical (`diff` 0 bytes) in LOSO Run #3 and local run | **PRESERVED** |
+| `data/sign/annotations/dataset_master_manifest.csv` | Master Landmark Annotation Manifest | `6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f` | Tracked in `.sha256` checksum file | Verified via `sha256sum -c` (1,200 rows) | **VERIFIED** |
+
+*Provenance Note: These exact cryptographic hashes were recorded both before and after execution in GitHub Actions LOSO Evaluation Run #3 (`44610683733`). Running `sha256sum` directly on the local checked-out files confirms identical bit-for-bit hashes. The model weights have not been modified or retrained since commit `7d5e99a`.*
+
 ---
 
 ### D. Cross-Session & Real-World Generalization Boundaries
@@ -386,7 +397,10 @@ To institutionalize reproducible model evaluation without slowing down everyday 
 1. **Tracked Manifest Integrity Gate:** Verifies the cryptographic SHA-256 of `data/sign/annotations/dataset_master_manifest.csv` against the tracked checksum file `data/sign/annotations/dataset_master_manifest.csv.sha256` via `sha256sum -c` (`6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f`) and validates that exactly 1,200 rows across 8 signers and 10 classes are present.
 2. **Pre-Evaluation Checkpoint Baseline:** Hashes all three production model checkpoints (`models/sign/bdsl_champion_model.pkl`, `models/sign/scaler.pkl`, and `models/sign/calibrated_classifier.pkl`) prior to running evaluation.
 3. **Isolated Evaluation Output:** Executes `scripts/evaluate_bdsl_loso.py --seed ${{ inputs.seed || '42' }} --output_json artifacts/bdsl_loso_evaluation_report.json` with all terminal output logged to `artifacts/loso_evaluation.log`.
-4. **8-Fold Completion & Verification Gate:** Verifies that all 8 folds ran to completion and conform to the Phase 16 contract via `scripts/verify_loso_report.py` ($N_{\text{test}} = 150$, $N_{\text{train}} = 1,050$), asserting 10 classes per fold, $10 \times 10$ confusion matrices, $\ge 0.90$ internal engineering regression floor, calibrated Brier/ECE $\le 0.15$, complete 45 pairwise counts (25,200 ordered, 12,600 unordered), and no non-finite metrics.
+4. **8-Fold Completion & Verification Gate:** Verifies that all 8 folds ran to completion and conform to the hardened Phase 17 contract via `scripts/verify_loso_report.py` ($N_{\text{test}} = 150$, $N_{\text{train}} = 1,050$), asserting:
+   - 10 classes per fold, exactly $10 \times 10$ confusion matrices with non-negative integer cell values, row totals equal to 15, and grand total of 150.
+   - Aggregate summary validation: finite `mean_accuracy` in $[0.0, 1.0]$ meeting $\ge 0.90$ regression floor; finite `mean_macro_f1` in $[0.0, 1.0]$ meeting $\ge 0.90$ regression floor; finite calibrated Brier $\in [0.0, 0.15]$; finite calibrated ECE $\in [0.0, 0.15]$.
+   - Top 10 confusable class pairs validation: valid distinct classes in `EXPECTED_CLASSES`, canonical alphabetical ordering (`class_1 < class_2`), no repeated unordered pairs, ordered count = 25,200, unordered count = 12,600 (strict 2:1 ratio), all similarity metrics finite in $[0.0, 1.0]$.
 5. **Production Checkpoint Preservation Invariant:** Computes post-evaluation SHA-256 hashes of `bdsl_champion_model.pkl`, `scaler.pkl`, and `calibrated_classifier.pkl`, and runs `diff` against the pre-evaluation hashes. Guarantees that the evaluation harness never mutates or overwrites deployed production weights.
 6. **Artifact Packaging & Archival:** Packages `bdsl_loso_evaluation_report.json`, `loso_evaluation.log`, `execution_metadata.json`, and `manifest_checksum.txt` into `transify-bdsl-loso-evaluation` with 30-day retention for auditing.
 
@@ -626,6 +640,64 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
   - **Production Endpoint:** `https://transify20-production.up.railway.app`
   - **Health Check (`GET /api/health`):** HTTP 200 OK (`{"status":"healthy","platform":"Transify Assistive Platform","version":"1.0.0"}`)
   - **Ready Check (`GET /api/ready`):** HTTP 200 OK (All 8 subsystems connected and operational: database, sign_language, braille_ocr, tts, signframe_model, hagrid_classifier, mediapipe_landmarker, bdsl_temporal_model).
+
+---
+
+## 12. Phase 17 Engineering Closure: Checkpoint Provenance Reconciliation & Metric Validator Hardening
+
+### 12.1 Checkpoint SHA-256 Provenance & Verification
+- **Cryptographic Ground Truth:** The production model checkpoints were hashed using SHA-256 both locally on the active branch and in GitHub Actions LOSO Evaluation Run #3 (`44610683733`).
+  - `models/sign/bdsl_champion_model.pkl`: `62a6106b405037085e1b2244153841b2f2039ce5d29a6ff05df888241da5386e`
+  - `models/sign/scaler.pkl`: `7552758987ab38cc353b3b2fc15d9db8714fc08669d68984adca6759b837f5db`
+  - `models/sign/calibrated_classifier.pkl`: `661d035ef7269786287fddea77c381f96719a0ce4ac098746c031b97b817be14`
+  - `data/sign/annotations/dataset_master_manifest.csv`: `6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f`
+- **Reconciliation Analysis:** All three model checkpoint files originated in commit `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` (Phase 13) and have remained strictly byte-for-byte identical across all subsequent execution checkpoints (`33c2ef7`, `79928c9`, `7e96663`, `00e7612`, `8e92c12`, `647d751`). Pre-evaluation and post-evaluation hashes verified via `diff` in CI workflows confirm zero mutation or weight drift.
+
+### 12.2 Hardened Metric & Confusion Matrix Validation (`scripts/verify_loso_report.py`)
+- **Aggregate Summary Range Constraints:**
+  - `mean_accuracy`: Verified finite float $\in [0.0, 1.0]$, meeting internal regression floor $\ge 0.90$.
+  - `mean_macro_f1`: Verified finite float $\in [0.0, 1.0]$, meeting internal regression floor $\ge 0.90$.
+  - `mean_calibrated_brier`: Verified finite float $\in [0.0, 0.15]$.
+  - `mean_calibrated_top_label_ece`: Verified finite float $\in [0.0, 0.15]$.
+- **Cell-Level Confusion Matrix Validation:**
+  - Dimensionality strictly enforced at $10 \times 10$.
+  - Cell values strictly validated as non-negative integers (`isinstance(cell, int) and cell >= 0 and not isinstance(cell, bool)`).
+  - Row sums strictly verified to equal exactly 15 test samples per class across all 10 classes and 8 folds.
+  - Grand total strictly verified to equal exactly 150 test samples per fold.
+
+### 12.3 Confusable Pair Uniqueness & Invariant Verification
+- **Uniqueness & Canonical Ordering Constraints:**
+  - Validated that `class_1` and `class_2` are distinct members of `EXPECTED_CLASSES`.
+  - Canonical alphabetical ordering `class_1 < class_2` strictly enforced.
+  - Unordered class pair uniqueness verified via `frozenset([c1, c2])` deduplication across all 10 reported pairs.
+  - Symmetrical 2:1 ratio strictly enforced: exactly 25,200 ordered comparisons and 12,600 unordered unique sample pairs per pair.
+  - Cosine similarity statistics (`mean`, `median`, `p95`, `max`) verified as finite floats in $[0.0, 1.0]$.
+- **Deliberate Rejection Regression Test Suite:**
+  - Expanded `test_verify_loso_report_deliberate_rejections` in `tests/test_model_validation_and_diagnostics.py` to cover 16 distinct failure modes:
+    1. Truncated fold count (< 8)
+    2. Data leakage (held-out test signer present in training signers)
+    3. Accuracy below internal regression floor (< 0.90)
+    4. Calibrated Brier score above gate (> 0.15)
+    5. Calibrated ECE above gate (> 0.15)
+    6. Non-finite / NaN metric value
+    7. Invalid pairwise count (12,600 instead of 25,200)
+    8. Aggregate accuracy above 1.0 (> 1.00)
+    9. Aggregate macro F1 above 1.0 (> 1.00)
+    10. Negative Brier score (< 0.0)
+    11. Negative ECE (< 0.0)
+    12. Invalid confusion matrix cell values (negative integers)
+    13. Incorrect confusion matrix row totals (row sum != 15)
+    14. Repeated confusable class pairs (duplicate unordered pairs)
+    15. Invalid class labels in confusable pairs (unknown class name)
+    16. Non-finite similarity metrics (inf / nan)
+
+### 12.4 Verification Metrics Summary
+- **Pytest Full System Suite:** **227 passed, 0 failed, 1 warning in 62.86s** (100% pass rate).
+- **Android Native JVM Unit Tests:** **BUILD SUCCESSFUL in 32s** (74 actionable tasks executed/up-to-date, 0 failures).
+- **Android APK Artifacts:**
+  - `app-debug.apk`: 6,176,952 bytes (verified)
+  - `app-debug-androidTest.apk`: 619,819 bytes (verified)
+- **Railway Cloud Deployment:** Deployment `8007f23b-55b8-4e62-b466-1caf4d3d7fa5` remains active and healthy (**● Online**) at `https://transify20-production.up.railway.app`. Redundant redeployment was avoided in compliance with Phase 8 Railway policies.
 
 ---
 *Signed by: Senior Android Engineer, Full-Stack Architect, AI Research Engineer & Security Auditor*

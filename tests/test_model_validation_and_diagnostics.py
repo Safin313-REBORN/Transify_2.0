@@ -473,7 +473,7 @@ def test_verify_loso_report_deliberate_rejections(tmp_path):
     p4 = str(tmp_path / "high_brier.json")
     with open(p4, "w") as f:
         json.dump(high_brier, f)
-    with pytest.raises((ValueError, AssertionError), match="mean_calibrated_brier.*exceeds internal gate"):
+    with pytest.raises((ValueError, AssertionError), match="mean_calibrated_brier must be in range"):
         verify_loso_report(p4)
 
     # 5. Calibrated ECE above gate
@@ -482,7 +482,7 @@ def test_verify_loso_report_deliberate_rejections(tmp_path):
     p5 = str(tmp_path / "high_ece.json")
     with open(p5, "w") as f:
         json.dump(high_ece, f)
-    with pytest.raises((ValueError, AssertionError), match="mean_calibrated_top_label_ece.*exceeds internal gate"):
+    with pytest.raises((ValueError, AssertionError), match="mean_calibrated_top_label_ece must be in range"):
         verify_loso_report(p5)
 
     # 6. NaN metric value
@@ -491,7 +491,7 @@ def test_verify_loso_report_deliberate_rejections(tmp_path):
     p6 = str(tmp_path / "nan.json")
     with open(p6, "w") as f:
         json.dump(nan_data, f)
-    with pytest.raises((ValueError, AssertionError), match="mean_macro_f1.*below internal regression floor"):
+    with pytest.raises((ValueError, AssertionError), match="Summary mean_macro_f1 must be in range"):
         verify_loso_report(p6)
 
     # 7. Invalid pairwise count
@@ -502,3 +502,86 @@ def test_verify_loso_report_deliberate_rejections(tmp_path):
         json.dump(bad_pair, f)
     with pytest.raises((ValueError, AssertionError), match="Ordered count must be exactly 25,200"):
         verify_loso_report(p7)
+
+    # 8. Aggregate accuracy above 1.0
+    acc_above_one = copy.deepcopy(valid_data)
+    acc_above_one["training_procedure_loso_summary"]["mean_accuracy"] = 1.05
+    p8 = str(tmp_path / "acc_above_one.json")
+    with open(p8, "w") as f:
+        json.dump(acc_above_one, f)
+    with pytest.raises(ValueError, match="Summary mean_accuracy must be in range \\[0.0, 1.0\\]"):
+        verify_loso_report(p8)
+
+    # 9. Aggregate macro F1 above 1.0
+    f1_above_one = copy.deepcopy(valid_data)
+    f1_above_one["training_procedure_loso_summary"]["mean_macro_f1"] = 1.15
+    p9 = str(tmp_path / "f1_above_one.json")
+    with open(p9, "w") as f:
+        json.dump(f1_above_one, f)
+    with pytest.raises(ValueError, match="Summary mean_macro_f1 must be in range \\[0.0, 1.0\\]"):
+        verify_loso_report(p9)
+
+    # 10. Negative Brier score
+    neg_brier = copy.deepcopy(valid_data)
+    neg_brier["training_procedure_loso_summary"]["mean_calibrated_brier"] = -0.05
+    p10 = str(tmp_path / "neg_brier.json")
+    with open(p10, "w") as f:
+        json.dump(neg_brier, f)
+    with pytest.raises(ValueError, match="Summary mean_calibrated_brier must be in range"):
+        verify_loso_report(p10)
+
+    # 11. Negative ECE
+    neg_ece = copy.deepcopy(valid_data)
+    neg_ece["training_procedure_loso_summary"]["mean_calibrated_top_label_ece"] = -0.01
+    p11 = str(tmp_path / "neg_ece.json")
+    with open(p11, "w") as f:
+        json.dump(neg_ece, f)
+    with pytest.raises(ValueError, match="Summary mean_calibrated_top_label_ece must be in range"):
+        verify_loso_report(p11)
+
+    # 12. Invalid confusion matrix cell values (negative integer)
+    neg_cell = copy.deepcopy(valid_data)
+    neg_cell["per_signer_loso_folds"][0]["confusion_matrix"][0][0] = -1
+    p12 = str(tmp_path / "neg_cell.json")
+    with open(p12, "w") as f:
+        json.dump(neg_cell, f)
+    with pytest.raises(ValueError, match="Confusion matrix cell.*must be a non-negative integer"):
+        verify_loso_report(p12)
+
+    # 13. Incorrect confusion matrix row totals
+    bad_row = copy.deepcopy(valid_data)
+    bad_row["per_signer_loso_folds"][0]["confusion_matrix"][0][0] = 14  # row 0 sum = 14 != 15
+    p13 = str(tmp_path / "bad_row.json")
+    with open(p13, "w") as f:
+        json.dump(bad_row, f)
+    with pytest.raises(ValueError, match="Confusion matrix row 0 sum is 14, expected 15"):
+        verify_loso_report(p13)
+
+    # 14. Repeated confusable class pairs
+    dup_pair = copy.deepcopy(valid_data)
+    dup_pair["kinematic_similarity_diagnostics"]["most_confusable_class_pairs"][1] = copy.deepcopy(
+        dup_pair["kinematic_similarity_diagnostics"]["most_confusable_class_pairs"][0]
+    )
+    p14 = str(tmp_path / "dup_pair.json")
+    with open(p14, "w") as f:
+        json.dump(dup_pair, f)
+    with pytest.raises(ValueError, match="Repeated confusable class pair"):
+        verify_loso_report(p14)
+
+    # 15. Invalid class labels in confusable pairs
+    bad_label = copy.deepcopy(valid_data)
+    bad_label["kinematic_similarity_diagnostics"]["most_confusable_class_pairs"][0]["class_1"] = "INVALID_SIGN_LABEL"
+    p15 = str(tmp_path / "bad_label.json")
+    with open(p15, "w") as f:
+        json.dump(bad_label, f)
+    with pytest.raises(ValueError, match="Invalid class_1 label 'INVALID_SIGN_LABEL'"):
+        verify_loso_report(p15)
+
+    # 16. Non-finite similarity metrics (inf / nan)
+    inf_sim = copy.deepcopy(valid_data)
+    inf_sim["kinematic_similarity_diagnostics"]["most_confusable_class_pairs"][0]["mean_cosine_similarity"] = float("inf")
+    p16 = str(tmp_path / "inf_sim.json")
+    with open(p16, "w") as f:
+        json.dump(inf_sim, f)
+    with pytest.raises(ValueError, match="must be finite float in \\[0.0, 1.0\\]"):
+        verify_loso_report(p16)
