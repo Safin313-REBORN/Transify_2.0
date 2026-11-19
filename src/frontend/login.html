@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>Transify — Sign In & Account Access</title>
   <meta name="description" content="Secure account login and registration for Transify Assistive AI Platform. Access custom phraseboards, personal preferences, and translation history.">
+  <link rel="canonical" href="https://transify.app/login">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
   
@@ -1153,6 +1154,21 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
             </button>
           </div>
         </div>
+
+        <!-- Accessible Breadcrumbs -->
+        <nav aria-label="Breadcrumb" class="transify-breadcrumbs" style="margin-bottom: 12px; font-size: 13px;">
+          <ol itemscope itemtype="https://schema.org/BreadcrumbList" style="display: flex; gap: 8px; list-style: none; padding: 0; margin: 0;">
+            <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+              <a itemprop="item" href="/" style="color: #7c3aed; text-decoration: none; font-weight: 600;"><span itemprop="name">Home</span></a>
+              <meta itemprop="position" content="1" />
+            </li>
+            <li aria-hidden="true" style="color: #94a3b8;">/</li>
+            <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page" style="color: #475569; font-weight: 700;">
+              <span itemprop="name">Account Access</span>
+              <meta itemprop="position" content="2" />
+            </li>
+          </ol>
+        </nav>
 
         <!-- Dynamic Header -->
         <header class="card-heading" style="margin-bottom: 16px;">

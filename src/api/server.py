@@ -1751,6 +1751,16 @@ def serve_robots_txt():
     return "User-agent: *\nAllow: /\nDisallow: /api/\n"
 
 
+@app.get("/llms.txt", response_class=PlainTextResponse, tags=["SEO"])
+def serve_llms_txt():
+    """Serves the machine-readable LLM and AI assistant platform documentation."""
+    llms_path = os.path.join(FRONTEND_DIR, "llms.txt")
+    if os.path.exists(llms_path):
+        with open(llms_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return "# Transify\nAssistive AI Platform for Sign Language and Braille\nhttps://transify.app\n"
+
+
 @app.get("/sitemap.xml", response_class=Response, tags=["SEO"])
 def serve_sitemap_xml():
     """Serves the XML sitemap for search engine indexing."""

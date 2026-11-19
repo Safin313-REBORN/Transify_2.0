@@ -5,8 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>Transify — Page Not Found (404)</title>
   <meta name="description" content="Page not found. Return to Transify assistive communication platform home, live sign translator, or optical Braille OCR.">
+  <link rel="canonical" href="https://transify.app/404">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
+  
+  <!-- Open Graph & Social Preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Transify — Page Not Found (404)">
+  <meta property="og:description" content="The assistive view or resource you are looking for does not exist or has been relocated.">
+  <meta property="og:image" content="https://transify.app/static/banner-braille.jpg">
+  <meta property="og:url" content="https://transify.app/404">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Transify — Page Not Found (404)">
+  <meta name="twitter:description" content="The assistive view or resource you are looking for does not exist or has been relocated.">
+  <meta name="twitter:image" content="https://transify.app/static/banner-braille.jpg">
   <link rel="stylesheet" href="/static/styles.css?v=20261118_authfix_v9">
   <style>
     body {
@@ -127,6 +139,22 @@
         <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 32px; width: auto; max-width: 100%;">
       </a>
     </div>
+
+    <!-- Accessible Breadcrumbs -->
+    <nav aria-label="Breadcrumb" class="transify-breadcrumbs" style="margin-bottom: 16px; font-size: 13px;">
+      <ol itemscope itemtype="https://schema.org/BreadcrumbList" style="display: flex; justify-content: center; gap: 8px; list-style: none; padding: 0; margin: 0;">
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a itemprop="item" href="/" style="color: #7c3aed; text-decoration: none; font-weight: 600;"><span itemprop="name">Home</span></a>
+          <meta itemprop="position" content="1" />
+        </li>
+        <li aria-hidden="true" style="color: #94a3b8;">/</li>
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page" style="color: #475569; font-weight: 700;">
+          <span itemprop="name">Page Not Found</span>
+          <meta itemprop="position" content="2" />
+        </li>
+      </ol>
+    </nav>
+
     <div class="error-code" aria-hidden="true">404</div>
     <h1 class="error-title" id="error-heading">Communication Channel Not Found</h1>
     <p class="error-desc">

@@ -3,5 +3,6 @@ Allow: /
 Disallow: /api/
 Disallow: /dashboard
 
+Sitemap: https://transify.app/sitemap.xml
 Sitemap: https://transify20-production.up.railway.app/sitemap.xml
 

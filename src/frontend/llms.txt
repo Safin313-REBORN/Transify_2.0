@@ -1,0 +1,68 @@
+# Transify — AI-Powered Assistive Communication Platform
+
+> Transify is an accessible, privacy-first web and mobile assistive technology platform designed to bridge communication barriers for deaf, non-verbal, blind, and low-vision individuals. It integrates continuous temporal Bengali Sign Language (BdSL) recognition, American Sign Language (ASL / HaGRID) gesture detection, Unified English Braille (UEB) Grade 1 Optical Braille Recognition (OBR), bidirectional Speech-to-Text (STT), natural voice Text-to-Speech (TTS), an accessible Communication Hub, and a customizable Quick Phraseboard.
+
+## Canonical URLs & Clean Slugs
+- Primary Website: https://transify.app/
+- Live Sign Language Translator: https://transify.app/sign
+- Optical Braille Recognition: https://transify.app/braille
+- User Dashboard & Telemetry: https://transify.app/dashboard
+- Account Access & Authentication: https://transify.app/login
+- Privacy Policy: https://transify.app/privacy
+- Terms of Service: https://transify.app/terms
+- Custom Error Page: https://transify.app/404
+- Machine Documentation: https://transify.app/llms.txt
+- XML Sitemap: https://transify.app/sitemap.xml
+- Robots Policy: https://transify.app/robots.txt
+
+## Core Assistive Capabilities & Models
+1. **Temporal Bengali Sign Language (BdSL)**:
+   - 10-Class continuous temporal gesture recognition trained on 162-dimensional MediaPipe landmark vectors (21 left hand, 21 right hand, 33 pose, 78 face).
+   - Strict sliding window buffer (30 FPS target, minimum 15 FPS, max 5.8s duration) with temporal LSTM / GRU inference.
+2. **Static Hand Sign Recognition (ASL & HaGRID)**:
+   - 18+ static sign and communicative gesture classes (e.g., hello, thank you, please, yes, no, help, emergency).
+3. **Optical Braille Recognition (OBR)**:
+   - Image analysis of embossed 6-dot Braille paper documents.
+   - Transcribes Unified English Braille (UEB) Grade 1 patterns into accessible English text and audio.
+4. **Accessible Speech Systems**:
+   - Real-time Speech-to-Text (STT) captions with visual high-contrast captions.
+   - Text-to-Speech (TTS) natural voice synthesis with user-adjustable playback rate and pitch.
+   - Strict **NO-AUTO-AUDIO** policy: Audio synthesizes or plays only upon explicit user click on the speaker icon.
+5. **Interactive Communication Hub & Phraseboard**:
+   - Real-time accessible chat with bi-directional English and Bengali communication.
+   - One-tap quick phraseboard with categorization (Emergency, Daily Needs, Medical, Greetings, Family).
+
+## Privacy & Security Architecture
+- **Ephemeral Camera Processing**: Video frames and images are processed in-memory. Zero camera frames or raw video feeds are stored or sent to third-party clouds.
+- **Strict Anti-Enumeration**: Authentication endpoints return timing-isolated, generic HTTP 200 responses for all password-recovery requests.
+- **Argon2id Password Hashing**: Passwords hashed using industry-standard Argon2id with strict length enforcement (min 15 characters).
+- **Session Security**: Session tokens are cryptographically hashed (SHA-256) before storage; transported exclusively via `HttpOnly`, `SameSite=Lax`, secure cookies.
+- **GDPR Compliance**: Direct account deletion endpoint (`DELETE /api/auth/me`) immediately purges all user data, sessions, and history.
+
+## API Endpoints Reference
+- `POST /api/sign/process_frame`: Submits base64 JPEG image frame or landmark vector for temporal BdSL or static ASL gesture classification.
+- `POST /api/braille/translate`: Uploads embossed Braille document image for optical dot detection and UEB Grade 1 transcription.
+- `POST /api/speech/stt`: Accepts audio recordings for speech transcription.
+- `POST /api/speech/tts`: Synthesizes speech audio from text input.
+- `GET /api/hub/conversations`: Lists authenticated user conversation threads.
+- `POST /api/hub/messages`: Posts message to communication hub.
+- `GET /api/phrases`: Retrieves custom user phrasebook.
+- `POST /api/phrases`: Saves custom phrases.
+- `DELETE /api/phrases/{id}`: Deletes custom phrase.
+- `POST /api/auth/register`: User registration with explicit Terms of Service consent.
+- `POST /api/auth/login`: User login returning HttpOnly session cookies.
+- `POST /api/auth/logout`: Revokes active session and clears cookies.
+- `POST /api/auth/forgot-password`: Generates secure password-reset link with URL fragment `#reset_token=...`.
+- `POST /api/auth/reset-password`: Consumes one-time password-reset token.
+- `DELETE /api/auth/me`: Permanently deletes user account and all personal records.
+- `POST /api/telemetry/error`: Captures client-side JavaScript error reports.
+
+## Developer & Contact Information
+- Organization: Transify Inc.
+- Helpline: +1 (800) 555-0199
+- Support Email: support@transify.app
+- Privacy Office: privacy@transify.app
+- Legal Inquiries: legal@transify.app
+- Open Source Repository: https://github.com/Safin313-REBORN/Transify_2.0
+- License: MIT License
+

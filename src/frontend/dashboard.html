@@ -2,13 +2,25 @@
 <html lang="en" data-theme="light" data-font-size="medium">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assistive Dashboard — Transify</title>
-  <meta name="description" content="Transify Assistive Dashboard - Monitor AI models, system status, translation history, and accessibility settings.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>Transify — Assistive Communication Dashboard</title>
+  <meta name="description" content="Transify Assistive Dashboard: Centralized portal to monitor AI model telemetry, translation history, saved phrases, and accessibility preferences.">
+  <link rel="canonical" href="https://transify.app/dashboard">
   <link rel="manifest" href="/static/manifest.json">
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
   <link rel="apple-touch-icon" href="/static/icon-192.png">
+
+  <!-- Open Graph & Social Preview Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Transify — Assistive Communication Dashboard">
+  <meta property="og:description" content="Transify Assistive Dashboard: Centralized portal to monitor AI model telemetry, translation history, saved phrases, and accessibility preferences.">
+  <meta property="og:image" content="https://transify.app/static/banner-braille.jpg">
+  <meta property="og:url" content="https://transify.app/dashboard">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Transify — Assistive Communication Dashboard">
+  <meta name="twitter:description" content="Transify Assistive Dashboard: Centralized portal to monitor AI model telemetry, translation history, saved phrases, and accessibility preferences.">
+  <meta name="twitter:image" content="https://transify.app/static/banner-braille.jpg">
   <link rel="stylesheet" href="/static/styles.css?v=20261116_fullbleed_v7">
 </head>
 <body>
@@ -47,6 +59,21 @@
   <!-- Main Content -->
   <main id="main-content" class="main-content" role="main">
     <div id="dashboard-container" style="display: contents;">
+
+    <!-- Accessible Breadcrumbs -->
+    <nav aria-label="Breadcrumb" class="transify-breadcrumbs">
+      <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a itemprop="item" href="/"><span itemprop="name">Home</span></a>
+          <meta itemprop="position" content="1" />
+        </li>
+        <li aria-hidden="true">/</li>
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
+          <span itemprop="name">Assistive Dashboard</span>
+          <meta itemprop="position" content="2" />
+        </li>
+      </ol>
+    </nav>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-4);">
       <div>

@@ -2,13 +2,25 @@
 <html lang="en" data-theme="light" data-font-size="medium">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Live Sign Language Translator — Transify</title>
-  <meta name="description" content="Live American Sign Language (ASL) recognition into spoken English text and speech.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>Transify — Live Sign Language Translator (BdSL & ASL)</title>
+  <meta name="description" content="Translate live Bengali Sign Language (BdSL 10-Class Temporal) and American Sign Language (ASL/HaGRID) gestures into accessible spoken text in real time.">
+  <link rel="canonical" href="https://transify.app/sign">
   <link rel="manifest" href="/static/manifest.json">
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
   <link rel="apple-touch-icon" href="/static/icon-192.png">
+
+  <!-- Open Graph & Twitter Social Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Transify — Live Sign Language Translator (BdSL & ASL)">
+  <meta property="og:description" content="Translate live Bengali Sign Language (BdSL 10-Class Temporal) and American Sign Language (ASL/HaGRID) gestures into accessible spoken text in real time.">
+  <meta property="og:image" content="https://transify.app/static/banner-braille.jpg">
+  <meta property="og:url" content="https://transify.app/sign">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Transify — Live Sign Language Translator (BdSL & ASL)">
+  <meta name="twitter:description" content="Translate live Bengali Sign Language (BdSL 10-Class Temporal) and American Sign Language (ASL/HaGRID) gestures into accessible spoken text in real time.">
+  <meta name="twitter:image" content="https://transify.app/static/banner-braille.jpg">
   <meta name="theme-color" content="#8338ec">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -59,6 +71,21 @@
 
   <!-- Main Content -->
   <main id="main-content" class="main-content" role="main">
+
+    <!-- Accessible Breadcrumbs -->
+    <nav aria-label="Breadcrumb" class="transify-breadcrumbs">
+      <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a itemprop="item" href="/"><span itemprop="name">Home</span></a>
+          <meta itemprop="position" content="1" />
+        </li>
+        <li aria-hidden="true">/</li>
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
+          <span itemprop="name">Live Sign Language Translator</span>
+          <meta itemprop="position" content="2" />
+        </li>
+      </ol>
+    </nav>
 
     <div style="margin-bottom: var(--space-4);">
       <a href="/" style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm); font-weight: 700; color: var(--text-secondary); text-decoration: none; padding: 6px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: var(--space-2);">

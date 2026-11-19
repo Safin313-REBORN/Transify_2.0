@@ -385,6 +385,114 @@ def test_mobile_menu_and_navigation_drawer():
     assert 'toggleMobileMenu' in js or 'initMobileMenu' in js
 
 
+def test_llms_txt_served_cleanly(client):
+    """Verifies that /llms.txt is served with proper content and markdown documentation."""
+    resp = client.get("/llms.txt")
+    assert resp.status_code == 200
+    assert "text/plain" in resp.headers.get("content-type", "")
+    assert "# Transify" in resp.text
+    assert "https://transify.app/" in resp.text
+    assert "Bengali Sign Language" in resp.text
+    assert "Optical Braille Recognition" in resp.text
+
+
+def test_canonical_tags_and_single_h1_rule():
+    """Verifies that all templates have unique canonical tags pointing to custom domain and exactly one H1."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    for tname in templates:
+        path = os.path.join(frontend_dir, tname)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # Check canonical tag
+        assert '<link rel="canonical" href="https://transify.app' in content, f"Missing or invalid canonical in {tname}"
+
+        # Check single H1 rule
+        h1_matches = re.findall(r'<h1[\s>]', content, re.IGNORECASE)
+        assert len(h1_matches) == 1, f"Expected exactly one <h1> in {tname}, found {len(h1_matches)}"
+
+
+def test_breadcrumbs_and_structured_data_schemas():
+    """Verifies breadcrumb navigation and Schema.org structured data markup."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+
+    # index.html structured data
+    index_path = os.path.join(frontend_dir, "index.html")
+    with open(index_path, "r", encoding="utf-8") as f:
+        html = f.read()
+    assert 'application/ld+json' in html
+    assert '"@type": "Organization"' in html
+    assert '"@type": "WebApplication"' in html
+    assert '"@type": "FAQPage"' in html
+
+    # Subpages breadcrumbs
+    subpages = ["login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    for sp in subpages:
+        path = os.path.join(frontend_dir, sp)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        assert 'aria-label="Breadcrumb"' in content, f"Missing breadcrumb nav in {sp}"
+        assert 'itemtype="https://schema.org/BreadcrumbList"' in content, f"Missing BreadcrumbList schema in {sp}"
+
+
+def test_clean_slugs_and_routes(client):
+    """Verifies that all clean URL slugs return valid HTML status."""
+    routes = ["/", "/sign", "/braille", "/login", "/privacy", "/terms", "/dashboard"]
+    for r in routes:
+        resp = client.get(r)
+        assert resp.status_code == 200, f"Route {r} returned {resp.status_code}"
+        assert "text/html" in resp.headers.get("content-type", "")
+
+    # Custom 404 route
+    resp_404 = client.get("/404")
+    assert resp_404.status_code == 404
+    assert "Communication Channel Not Found" in resp_404.text
+
+
+def test_social_share_images_and_all_images_have_alt():
+    """Verifies social sharing images and that 100% of images have non-empty alt text."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    for tname in templates:
+        path = os.path.join(frontend_dir, tname)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # Find all <img> tags (including multiline)
+        img_tags = re.findall(r'<img\b[^>]*>', content, re.IGNORECASE | re.DOTALL)
+        for img in img_tags:
+            alt_match = re.search(r'alt="([^"]*)"', img, re.IGNORECASE)
+            assert alt_match is not None, f"Image missing alt attribute in {tname}: {img}"
+            assert len(alt_match.group(1).strip()) > 0, f"Empty alt attribute in {tname}: {img}"
+
+
+def test_absence_of_vite_react_boilerplate_and_sourcemaps():
+    """Verifies tab titles do not mention Vite/React and no sourcemaps are exposed."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    for tname in templates:
+        path = os.path.join(frontend_dir, tname)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        title_match = re.search(r'<title>([^<]+)</title>', content, re.IGNORECASE)
+        assert title_match is not None, f"Missing title in {tname}"
+        title = title_match.group(1).lower()
+        assert "vite" not in title, f"Vite found in title of {tname}"
+        assert "react app" not in title, f"React found in title of {tname}"
+
+    # Verify no sourceMappingURL in static assets
+    static_dir = os.path.join(frontend_dir, "static")
+    for fname in os.listdir(static_dir):
+        if fname.endswith(".js") or fname.endswith(".css"):
+            fpath = os.path.join(static_dir, fname)
+            with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+                c = f.read()
+            assert "sourceMappingURL" not in c, f"sourceMappingURL found in {fname}"
+        assert not fname.endswith(".map"), f"Sourcemap file found: {fname}"
+
+
+
 
 
 def test_online_restore_and_rollback_functionality(tmp_path):
@@ -679,5 +787,113 @@ def test_mobile_menu_and_navigation_drawer():
     assert 'id="mobile-menu-toggle-btn"' in html
     assert 'id="mobile-nav-drawer"' in html
     assert 'toggleMobileMenu' in js or 'initMobileMenu' in js
+
+
+def test_llms_txt_served_cleanly(client):
+    """Verifies that /llms.txt is served with proper content and markdown documentation."""
+    resp = client.get("/llms.txt")
+    assert resp.status_code == 200
+    assert "text/plain" in resp.headers.get("content-type", "")
+    assert "# Transify" in resp.text
+    assert "https://transify.app/" in resp.text
+    assert "Bengali Sign Language" in resp.text
+    assert "Optical Braille Recognition" in resp.text
+
+
+def test_canonical_tags_and_single_h1_rule():
+    """Verifies that all templates have unique canonical tags pointing to custom domain and exactly one H1."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    for tname in templates:
+        path = os.path.join(frontend_dir, tname)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # Check canonical tag
+        assert '<link rel="canonical" href="https://transify.app' in content, f"Missing or invalid canonical in {tname}"
+
+        # Check single H1 rule
+        h1_matches = re.findall(r'<h1[\s>]', content, re.IGNORECASE)
+        assert len(h1_matches) == 1, f"Expected exactly one <h1> in {tname}, found {len(h1_matches)}"
+
+
+def test_breadcrumbs_and_structured_data_schemas():
+    """Verifies breadcrumb navigation and Schema.org structured data markup."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+
+    # index.html structured data
+    index_path = os.path.join(frontend_dir, "index.html")
+    with open(index_path, "r", encoding="utf-8") as f:
+        html = f.read()
+    assert 'application/ld+json' in html
+    assert '"@type": "Organization"' in html
+    assert '"@type": "WebApplication"' in html
+    assert '"@type": "FAQPage"' in html
+
+    # Subpages breadcrumbs
+    subpages = ["login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    for sp in subpages:
+        path = os.path.join(frontend_dir, sp)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        assert 'aria-label="Breadcrumb"' in content, f"Missing breadcrumb nav in {sp}"
+        assert 'itemtype="https://schema.org/BreadcrumbList"' in content, f"Missing BreadcrumbList schema in {sp}"
+
+
+def test_clean_slugs_and_routes(client):
+    """Verifies that all clean URL slugs return valid HTML status."""
+    routes = ["/", "/sign", "/braille", "/login", "/privacy", "/terms", "/dashboard"]
+    for r in routes:
+        resp = client.get(r)
+        assert resp.status_code == 200, f"Route {r} returned {resp.status_code}"
+        assert "text/html" in resp.headers.get("content-type", "")
+
+    # Custom 404 route
+    resp_404 = client.get("/404")
+    assert resp_404.status_code == 404
+    assert "Communication Channel Not Found" in resp_404.text
+
+
+def test_social_share_images_and_all_images_have_alt():
+    """Verifies social sharing images and that 100% of images have non-empty alt text."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    for tname in templates:
+        path = os.path.join(frontend_dir, tname)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # Find all <img> tags (including multiline)
+        img_tags = re.findall(r'<img\b[^>]*>', content, re.IGNORECASE | re.DOTALL)
+        for img in img_tags:
+            alt_match = re.search(r'alt="([^"]*)"', img, re.IGNORECASE)
+            assert alt_match is not None, f"Image missing alt attribute in {tname}: {img}"
+            assert len(alt_match.group(1).strip()) > 0, f"Empty alt attribute in {tname}: {img}"
+
+
+def test_absence_of_vite_react_boilerplate_and_sourcemaps():
+    """Verifies tab titles do not mention Vite/React and no sourcemaps are exposed."""
+    frontend_dir = os.path.join(os.path.dirname(__file__), "../src/frontend")
+    templates = ["index.html", "login.html", "privacy.html", "terms.html", "404.html", "sign.html", "braille.html", "dashboard.html"]
+    for tname in templates:
+        path = os.path.join(frontend_dir, tname)
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        title_match = re.search(r'<title>([^<]+)</title>', content, re.IGNORECASE)
+        assert title_match is not None, f"Missing title in {tname}"
+        title = title_match.group(1).lower()
+        assert "vite" not in title, f"Vite found in title of {tname}"
+        assert "react app" not in title, f"React found in title of {tname}"
+
+    # Verify no sourceMappingURL in static assets
+    static_dir = os.path.join(frontend_dir, "static")
+    for fname in os.listdir(static_dir):
+        if fname.endswith(".js") or fname.endswith(".css"):
+            fpath = os.path.join(static_dir, fname)
+            with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+                c = f.read()
+            assert "sourceMappingURL" not in c, f"sourceMappingURL found in {fname}"
+        assert not fname.endswith(".map"), f"Sourcemap file found: {fname}"
+
 
 

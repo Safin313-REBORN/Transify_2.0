@@ -5,8 +5,89 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>Transify — Assistive AI Platform for Sign Language & Braille</title>
   <meta name="description" content="AI-Powered Assistive Communication Platform for Hand Signal (BdSL & ASL) and Optical Braille Recognition, Live Speech Captions, and Natural Voice Synthesis.">
+  <link rel="canonical" href="https://transify.app/">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
+  
+  <!-- Structured Data: Organization, WebApplication, and FAQPage Schemas -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://transify.app/#organization",
+        "name": "Transify Inc.",
+        "url": "https://transify.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://transify.app/static/logo-horizontal-transparent.png",
+          "width": 512,
+          "height": 128
+        },
+        "description": "Provider of accessible AI communication tools for sign language and Braille.",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+1-800-555-0199",
+          "contactType": "customer support",
+          "email": "support@transify.app",
+          "availableLanguage": ["English", "Bengali"]
+        },
+        "sameAs": [
+          "https://github.com/Safin313-REBORN/Transify_2.0"
+        ]
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://transify.app/#webapp",
+        "name": "Transify Assistive AI Platform",
+        "url": "https://transify.app/",
+        "applicationCategory": "HealthApplication, AccessibilityApplication",
+        "operatingSystem": "All modern browsers, Android",
+        "browserRequirements": "Requires WebRTC and Camera access for live sign translation",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "AI-Powered Assistive Communication Platform for Hand Signal (BdSL & ASL) and Optical Braille Recognition, Live Speech Captions, and Natural Voice Synthesis.",
+        "publisher": {
+          "@id": "https://transify.app/#organization"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://transify.app/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Does Transify transmit or store my camera video in the cloud?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Video frames and camera feeds are processed strictly in ephemeral memory using local MediaPipe landmark feature extraction with zero persistent storage of camera feeds."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What sign languages and gesture systems are supported?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Transify supports continuous 10-class temporal Bengali Sign Language (BdSL) recognition and static American Sign Language (ASL / HaGRID) gesture classification."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What Braille standards are supported by the Optical Braille OCR?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Transify translates embossed English Braille according to the Unified English Braille (UEB) Grade 1 specification."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
   
   <!-- Open Graph & WhatsApp Link Preview Meta Tags -->
   <meta property="og:type" content="website">
@@ -2873,7 +2954,7 @@
         </div>
         <div style="margin-bottom: 12px;">
           <label for="contact-email" style="display: block; font-size: 12px; font-weight: 700; color: #1e1b4b; margin-bottom: 4px;">Email Address</label>
-          <input type="email" id="contact-email" class="dashboard-search-input" style="width: 100%; box-sizing: border-box;" required placeholder="you@example.com">
+          <input type="email" id="contact-email" class="dashboard-search-input" style="width: 100%; box-sizing: border-box;" required placeholder="alex@transify.app">
         </div>
         <div style="margin-bottom: 16px;">
           <label for="contact-message" style="display: block; font-size: 12px; font-weight: 700; color: #1e1b4b; margin-bottom: 4px;">Message</label>
