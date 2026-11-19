@@ -3,12 +3,13 @@
 **Repository:** `Safin313-REBORN/Transify_2.0`
 **Active Branch:** `feat/auth-repair-communication-hub`
 **Target Branch:** `main`
-**Latest Verified Implementation Checkpoint:** `33c2ef78f9249fc4a4dfdbbd24cb2c488b0f51f5` (CI Run #34 — ID `44581682901`, Success)
-**Latest Verified Documentation Checkpoint:** `6f8ff9c8e7d70680189ceb6d6619a095df4ee736` (CI Run #35 — ID `44582461020`, Success)
+**Latest Verified Implementation Checkpoint:** `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` (CI Run #36 — ID `44587234054`)
+**Previous Implementation Checkpoint:** `33c2ef78f9249fc4a4dfdbbd24cb2c488b0f51f5` (CI Run #34 — ID `44581682901`, Success)
+**Previous Documentation Checkpoint:** `6f8ff9c8e7d70680189ceb6d6619a095df4ee736` (CI Run #35 — ID `44582461020`, Success)
 **Historical Engineering Checkpoints:** `68be13661b20201a91a463c9693a64bd246d9e95` (Run #33), `738caa3e84e488a930f14b32fd784a4440934aad` (Run #31), `74244a7f0c62bfb5e7be6afd37905ed3c9850cfc` (Run #28)
 **Railway Production URL:** [https://transify20-production.up.railway.app](https://transify20-production.up.railway.app)
-**Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a523fffe-e054-4e1c-98c0-e53f28e8e82f](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a523fffe-e054-4e1c-98c0-e53f28e8e82f)
-**Active Railway Deployment ID:** `a523fffe-e054-4e1c-98c0-e53f28e8e82f` (Status: ● Online / Healthy)
+**Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149)
+**Active Railway Deployment ID:** `a988526c-9357-431d-9539-e2b423098149` (Status: ● Online / Healthy)
 **Date:** November 19, 2026
 **Document Status:** Complete Physical Device Acceptance Audit, Model Metric Audit, Evaluation Integrity & Production Release Validation (Phase 13)
 
@@ -28,7 +29,7 @@ Transify 2.0 bridges communication for non-verbal, deaf, and blind individuals t
    - **HaGRID 24-class Gesture Classifier:** 86.83% test accuracy on 2,400 stratified held-out 3D landmark feature vectors (12,000 total augmented samples). Audited discrepancy resolved: feature space is strictly 38-dimensional (the manifest description's "45D" text was a legacy design label). Data leakage disclosed: all samples were augmented from a single canonical pose per class; accuracy measures perturbation tolerance around synthetic templates rather than in-the-wild generalization.
    - **BdSL 10-class Temporal Model:** Evaluated across a comprehensive 8-fold Leave-One-Signer-Out (LOSO) cross-validation across all 8 signers (1,200 samples total, 150 samples per signer) using fold-local preprocessing pipelines (`Pipeline([StandardScaler, Champion MLP])`) and nested 3-fold cross-validation probability calibration (`CalibratedClassifierCV`). Achieves **100.00% ± 0.00% mean accuracy** and **1.0000 ± 0.0000 macro F1** across all 8 held-out folds, with mean calibrated Brier score of 0.0009 and ECE of 0.0285. Separately saved production checkpoint (`bdsl_champion_model.pkl`) independently evaluated on official held-out test split S001 (100.00% accuracy, 1.0000 macro F1, 0.0009 Brier, 0.0284 ECE). Generalization across the 8 dataset signers under SES01 laboratory conditions is empirically verified; multi-session and cross-environment collection (`SES02+`) is documented with a repeatable protocol.
    - **Unified English Braille (UEB) Grade 1 OCR:** Evaluated on Document-Independent Partitioning (DOC009, DOC010). Achieves 100% exact cell accuracy (CER=0.0, WER=0.0) on usable held-out documents; 20% rejection rate on blurry/degraded inputs via Image Quality Assessment (IQA); 80% document match rate across all 10 images including rejected inputs.
-5. **Production Cloud Health:** Live deployment `a523fffe-e054-4e1c-98c0-e53f28e8e82f` on Railway is healthy, with persistent volume mounted at `/app/data` (64 MB used) and all 6 core endpoints responding with HTTP 200 (latencies 537–654 ms).
+5. **Production Cloud Health:** Live deployment `a988526c-9357-431d-9539-e2b423098149` on Railway is healthy, with persistent volume mounted at `/app/data` (64 MB used) and all 6 core endpoints responding with HTTP 200 (latencies 356–501 ms).
 
 ---
 
@@ -270,8 +271,8 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
 - **Project Name:** `invigorating-reprieve` (`cf17911b-4222-431e-87cd-666aabf88422`)
 - **Service Name:** `Transify_2.0` (`8b4fd318-c669-49ca-bdc2-516cf229211d`)
 - **Environment:** `production` (`496ab9d9-b582-4d6b-82db-058b425eb4b8`)
-- **Active Deployment ID:** `a523fffe-e054-4e1c-98c0-e53f28e8e82f`
-- **Deployment Dashboard Link:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a523fffe-e054-4e1c-98c0-e53f28e8e82f](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a523fffe-e054-4e1c-98c0-e53f28e8e82f)
+- **Active Deployment ID:** `a988526c-9357-431d-9539-e2b423098149`
+- **Deployment Dashboard Link:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149)
 - **Live Production URL:** [https://transify20-production.up.railway.app](https://transify20-production.up.railway.app)
 - **Region:** `sfo`
 - **Volume Mount:** `transify_2.0-volume` mounted at `/app/data` (64 MB used / 500 MB quota)
@@ -281,12 +282,12 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
 
 | Live Endpoint | Method | Status | Latency | Content-Type | Subsystem Verification |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `/api/health` | `GET` | **200 OK** | 597 ms | `application/json` | Platform healthy, Python 3.11.18 runtime. |
-| `/api/ready` | `GET` | **200 OK** | 541 ms | `application/json` | Subsystems ready: database, sign_language, braille_ocr, tts, signframe_model, hagrid_classifier, mediapipe_landmarker, bdsl_temporal_model. |
-| `/api/models/status` | `GET` | **200 OK** | 537 ms | `application/json` | All 4 models LOADED (`signframe_asl`, `hagrid_gestures`, `module_02_braille`, `module_03_hagrid`), updated HaGRID manifest live. |
-| `/login` | `GET` | **200 OK** | 639 ms | `text/html; charset=utf-8` | HTML auth form, CSRF token cookie initialized. |
-| `/sign` | `GET` | **200 OK** | 543 ms | `text/html; charset=utf-8` | Live sign camera UI, canvas guides, zero auto-audio speaker controls, diagnostics instrumentation active. |
-| `/braille` | `GET` | **200 OK** | 654 ms | `text/html; charset=utf-8` | Document OCR viewport, dual camera/gallery chooser, Grade 1 reader. |
+| `/api/health` | `GET` | **200 OK** | 475 ms | `application/json` | Platform healthy, Python 3.11.18 runtime. |
+| `/api/ready` | `GET` | **200 OK** | 402 ms | `application/json` | Subsystems ready: database, sign_language, braille_ocr, tts, signframe_model, hagrid_classifier, mediapipe_landmarker, bdsl_temporal_model. |
+| `/api/models/status` | `GET` | **200 OK** | 356 ms | `application/json` | All 4 models LOADED (`signframe_asl`, `hagrid_gestures`, `module_02_braille`, `module_03_hagrid`), updated HaGRID manifest live. |
+| `/login` | `GET` | **200 OK** | 501 ms | `text/html; charset=utf-8` | HTML auth form, CSRF token cookie initialized. |
+| `/sign` | `GET` | **200 OK** | 446 ms | `text/html; charset=utf-8` | Live sign camera UI, canvas guides, zero auto-audio speaker controls, diagnostics instrumentation active. |
+| `/braille` | `GET` | **200 OK** | 443 ms | `text/html; charset=utf-8` | Document OCR viewport, dual camera/gallery chooser, Grade 1 reader. |
 
 ---
 
