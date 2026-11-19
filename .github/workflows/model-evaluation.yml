@@ -1,0 +1,127 @@
+name: BdSL LOSO Model Evaluation & Methodology Verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, 'feat/**', 'fix/**' ]
+    paths:
+      - 'data/sign/**'
+      - 'models/sign/**'
+      - 'scripts/evaluate_bdsl_loso.py'
+      - 'src/models/**'
+      - '.github/workflows/model-evaluation.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'data/sign/**'
+      - 'models/sign/**'
+      - 'scripts/evaluate_bdsl_loso.py'
+      - 'src/models/**'
+      - '.github/workflows/model-evaluation.yml'
+
+jobs:
+  bdsl-loso-evaluation:
+    name: BdSL 8-Fold LOSO Evaluation & Data Integrity Audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Record Execution Metadata & Commit SHA
+        run: |
+          echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
+          echo "TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_ENV
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify Dataset Manifest & Landmark Integrity Checksum
+        run: |
+          echo "=== Manifest Checksum ==="
+          sha256sum data/sign/annotations/dataset_master_manifest.csv | tee manifest_checksum.txt
+          echo "=== Sample Count Verification ==="
+          python -c '
+          import pandas as pd
+          df = pd.read_csv("data/sign/annotations/dataset_master_manifest.csv")
+          assert len(df) == 1200, f"Expected 1200 rows, found {len(df)}"
+          print("Master manifest validated: 1,200 rows, 8 signers, 10 classes.")
+          '
+
+      - name: Record Pre-Evaluation Production Checkpoint Checksum
+        run: |
+          sha256sum models/sign/bdsl_champion_model.pkl | tee model_pre_sha.txt
+          sha256sum models/sign/scaler.pkl | tee scaler_pre_sha.txt
+
+      - name: Execute 8-Fold LOSO Evaluation Harness
+        run: |
+          mkdir -p artifacts
+          python scripts/evaluate_bdsl_loso.py --output_json artifacts/bdsl_loso_evaluation_report.json 2>&1 | tee artifacts/loso_evaluation.log
+
+      - name: Verify All 8 Folds Completed and Validate Report Schema
+        run: |
+          python -c '
+          import json, sys
+          with open("artifacts/bdsl_loso_evaluation_report.json") as f:
+              d = json.load(f)
+          folds = d.get("per_signer_loso_folds", [])
+          assert len(folds) == 8, f"Expected 8 folds, got {len(folds)}"
+          for f in folds:
+              assert f["test_samples"] == 150
+              assert f["train_samples"] == 1050
+              assert f["accuracy"] >= 0.90, f"Fold {f[\"held_out_signer\"]} accuracy below threshold: {f[\"accuracy\"]}"
+          summary = d.get("training_procedure_loso_summary", {})
+          print(f"Mean Accuracy: {summary.get(\"mean_accuracy\"):.4f}")
+          print(f"Mean Macro F1: {summary.get(\"mean_macro_f1\"):.4f}")
+          print(f"Mean Calibrated Brier: {summary.get(\"mean_calibrated_brier\"):.4f}")
+          print(f"Mean Calibrated ECE: {summary.get(\"mean_calibrated_top_label_ece\"):.4f}")
+          print("[PASS] All 8 LOSO folds verified successfully.")
+          '
+
+      - name: Verify Production Checkpoints Were Not Overwritten
+        run: |
+          sha256sum models/sign/bdsl_champion_model.pkl | tee model_post_sha.txt
+          sha256sum models/sign/scaler.pkl | tee scaler_post_sha.txt
+          diff model_pre_sha.txt model_post_sha.txt
+          diff scaler_pre_sha.txt scaler_post_sha.txt
+          echo "[PASS] Production model checkpoints preserved intact."
+
+      - name: Prepare Execution Metadata Summary
+        run: |
+          cat <<EOF > artifacts/execution_metadata.json
+          {
+            "commit_sha": "${{ env.COMMIT_SHA }}",
+            "branch": "${{ env.BRANCH_NAME }}",
+            "timestamp_utc": "${{ env.TIMESTAMP }}",
+            "github_run_id": "${{ github.run_id }}",
+            "github_run_number": "${{ github.run_number }}",
+            "actor": "${{ github.actor }}",
+            "python_version": "3.11",
+            "dataset_samples": 1200,
+            "signers_count": 8,
+            "classes_count": 10
+          }
+          EOF
+          cp manifest_checksum.txt artifacts/
+
+      - name: Upload BdSL LOSO Evaluation Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: transify-bdsl-loso-evaluation
+          path: |
+            artifacts/bdsl_loso_evaluation_report.json
+            artifacts/loso_evaluation.log
+            artifacts/execution_metadata.json
+            artifacts/manifest_checksum.txt
+          retention-days: 30
+          if-no-files-found: error

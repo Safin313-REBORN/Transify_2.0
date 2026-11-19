@@ -1,6 +1,6 @@
 {
   "evaluation_name": "BdSL Multi-Signer Leave-One-Signer-Out (LOSO) Cross-Validation & Production Verification",
-  "timestamp": "2026-11-19 18:55:53 UTC",
+  "timestamp": "2026-11-19 19:48:18 UTC",
   "manifest_path": "data/sign/annotations/dataset_master_manifest.csv",
   "manifest_sha256": "6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f",
   "random_seed": 42,
@@ -67,6 +67,29 @@
     }
   },
   "kinematic_similarity_diagnostics": {
+    "comparison_count_audit": {
+      "dataset_dimensions": {
+        "total_samples": 1200,
+        "total_signers": 8,
+        "samples_per_signer": 150,
+        "total_classes": 10,
+        "samples_per_signer_class": 15
+      },
+      "ordered_comparisons": {
+        "derivation": "8 signers * 7 other signers * 150 * 150 = 1,260,000 total; 10 classes * 8 * 7 * 15 * 15 = 126,000 same-class; 1,260,000 - 126,000 = 1,134,000 diff-class",
+        "total_cross_signer_comparisons": 1260000,
+        "same_class_cross_signer_comparisons": 126000,
+        "diff_class_cross_signer_comparisons": 1134000,
+        "partition_invariant_satisfied": true
+      },
+      "unordered_unique_pairs": {
+        "derivation": "Unordered pairs {i, j} with i < j; exactly half of ordered comparisons: 1,260,000 / 2 = 630,000 total; 126,000 / 2 = 63,000 same-class; 1,134,000 / 2 = 567,000 diff-class",
+        "total_cross_signer_pairs": 630000,
+        "same_class_cross_signer_pairs": 63000,
+        "diff_class_cross_signer_pairs": 567000,
+        "partition_invariant_satisfied": true
+      }
+    },
     "within_class_cross_signer_similarity": {
       "min": 0.901,
       "p05": 0.9367,
@@ -89,24 +112,69 @@
       "p95": 0.9317,
       "max": 0.9785,
       "std": 0.1291,
-      "interpretation": "Lower central tendency (mean 0.7655, median 0.7891) confirms distinct kinematic profiles, but upper tail overlaps within-class minimum."
+      "interpretation": "Lower central tendency (median 0.7891, mean 0.7655) confirms distinct kinematic profiles, but upper tail overlaps within-class range."
     },
-    "distribution_overlap_analysis": {
+    "threshold_overlap_analysis": {
       "overlap_interval_min_to_max": [
         0.901,
         0.9785
       ],
-      "between_class_pairs_ge_within_class_min_count": 145104,
-      "total_between_class_pairs": 1134000,
-      "between_class_pairs_ge_within_class_min_pct": 12.8,
-      "between_class_pairs_ge_within_class_p05_pct": 4.25,
-      "within_class_pairs_le_between_class_max_pct": 36.85,
-      "scientific_interpretation": "Although the mean between-class similarity (0.7655) is substantially lower than within-class similarity (0.9762), 12.80% of between-class pairs overlap the within-class range [0.9010, 0.9785]. Therefore, linear separability cannot be assumed from mean separation alone; non-linear MLP decision boundaries and temporal sequence features are required to disambiguate geometrically proximate gesture pairs."
+      "ordered_comparisons": {
+        "between_class_ge_within_class_min": {
+          "numerator": 145104,
+          "denominator": 1134000,
+          "percentage": 12.8,
+          "definition": "Ordered directed comparisons (i, j) where class(i) != class(j) and cos_sim(i, j) >= min(within_class_sim)"
+        },
+        "between_class_ge_within_class_p05": {
+          "numerator": 48172,
+          "denominator": 1134000,
+          "percentage": 4.25,
+          "definition": "Ordered directed comparisons (i, j) where class(i) != class(j) and cos_sim(i, j) >= 5th percentile of within_class_sim"
+        },
+        "within_class_le_between_class_max": {
+          "numerator": 46426,
+          "denominator": 126000,
+          "percentage": 36.85,
+          "definition": "Ordered directed comparisons (i, j) where class(i) == class(j) and cos_sim(i, j) <= max(between_class_sim)"
+        }
+      },
+      "unordered_unique_pairs": {
+        "between_class_ge_within_class_min": {
+          "numerator": 72552,
+          "denominator": 567000,
+          "percentage": 12.8,
+          "definition": "Unique unordered pairs {i, j} with i < j where class(i) != class(j) and cos_sim(i, j) >= min(within_class_sim)"
+        },
+        "between_class_ge_within_class_p05": {
+          "numerator": 24086,
+          "denominator": 567000,
+          "percentage": 4.25,
+          "definition": "Unique unordered pairs {i, j} with i < j where class(i) != class(j) and cos_sim(i, j) >= 5th percentile of within_class_sim"
+        },
+        "within_class_le_between_class_max": {
+          "numerator": 23213,
+          "denominator": 63000,
+          "percentage": 36.85,
+          "definition": "Unique unordered pairs {i, j} with i < j where class(i) == class(j) and cos_sim(i, j) <= max(between_class_sim)"
+        }
+      }
+    },
+    "statistical_distribution_overlap": {
+      "metric_name": "Weitzman Overlapping Coefficient (OVL)",
+      "formula": "OVL = integral min(f_within(x), f_between(x)) dx",
+      "estimator": "Non-parametric discrete histogram estimator over support [0.0, 1.0] using 200 equal-width bins (width=0.005)",
+      "ovl_value": 0.0829,
+      "ovl_percentage": 8.29,
+      "assumptions": "Non-parametric empirical density estimation; does not assume normality; bounded support [0, 1]",
+      "scientific_interpretation": "The discrete Overlapping Coefficient of 0.0829 indicates that 8.29% of the distribution mass is shared between within-class and between-class similarity profiles. While the distributions have distinctly separated medians (0.9820 vs 0.7891), this 8.29% distributional overlap confirms that raw cosine similarity does not achieve perfect geometric separability. Non-linear classification and temporal velocity features are necessary to resolve overlapping gesture trajectories."
     },
     "most_confusable_class_pairs": [
       {
         "class_1": "HELLO",
         "class_2": "I_DONT_UNDERSTAND",
+        "ordered_comparisons_count": 12600,
+        "unordered_pairs_count": 6300,
         "mean_cosine_similarity": 0.9556,
         "median_cosine_similarity": 0.9615,
         "p95_cosine_similarity": 0.9737,
@@ -115,6 +183,8 @@
       {
         "class_1": "OKAY",
         "class_2": "STOP",
+        "ordered_comparisons_count": 12600,
+        "unordered_pairs_count": 6300,
         "mean_cosine_similarity": 0.9296,
         "median_cosine_similarity": 0.9381,
         "p95_cosine_similarity": 0.9521,
@@ -123,6 +193,8 @@
       {
         "class_1": "OKAY",
         "class_2": "YES",
+        "ordered_comparisons_count": 12600,
+        "unordered_pairs_count": 6300,
         "mean_cosine_similarity": 0.9294,
         "median_cosine_similarity": 0.9357,
         "p95_cosine_similarity": 0.9628,
@@ -131,6 +203,8 @@
       {
         "class_1": "I_DONT_UNDERSTAND",
         "class_2": "THANK_YOU",
+        "ordered_comparisons_count": 12600,
+        "unordered_pairs_count": 6300,
         "mean_cosine_similarity": 0.9107,
         "median_cosine_similarity": 0.9184,
         "p95_cosine_similarity": 0.9311,
@@ -139,6 +213,8 @@
       {
         "class_1": "NO",
         "class_2": "PLEASE",
+        "ordered_comparisons_count": 12600,
+        "unordered_pairs_count": 6300,
         "mean_cosine_similarity": 0.8994,
         "median_cosine_similarity": 0.9075,
         "p95_cosine_similarity": 0.932,
@@ -147,6 +223,8 @@
       {
         "class_1": "I_NEED_HELP",
         "class_2": "YOURE_WELCOME",
+        "ordered_comparisons_count": 12600,
+        "unordered_pairs_count": 6300,
         "mean_cosine_similarity": 0.8928,
         "median_cosine_similarity": 0.8982,
         "p95_cosine_similarity": 0.9196,
@@ -155,6 +233,8 @@
       {
         "class_1": "PLEASE",
         "class_2": "YES",
+        "ordered_comparisons_count": 12600,
+        "unordered_pairs_count": 6300,
         "mean_cosine_similarity": 0.8914,
         "median_cosine_similarity": 0.8979,
         "p95_cosine_similarity": 0.9221,
@@ -163,6 +243,8 @@
       {
         "class_1": "STOP",
         "class_2": "YES",
+        "ordered_comparisons_count": 12600,
+        "unordered_pairs_count": 6300,
         "mean_cosine_similarity": 0.8895,
         "median_cosine_similarity": 0.8961,
         "p95_cosine_similarity": 0.9288,
@@ -171,6 +253,8 @@
       {
         "class_1": "HELLO",
         "class_2": "THANK_YOU",
+        "ordered_comparisons_count": 12600,
+        "unordered_pairs_count": 6300,
         "mean_cosine_similarity": 0.877,
         "median_cosine_similarity": 0.885,
         "p95_cosine_similarity": 0.9048,
@@ -179,6 +263,8 @@
       {
         "class_1": "NO",
         "class_2": "OKAY",
+        "ordered_comparisons_count": 12600,
+        "unordered_pairs_count": 6300,
         "mean_cosine_similarity": 0.8752,
         "median_cosine_similarity": 0.8819,
         "p95_cosine_similarity": 0.9188,
@@ -345,7 +431,7 @@
     "std_calibrated_top_label_ece": 0.0003,
     "min_accuracy": 1.0,
     "max_accuracy": 1.0,
-    "total_runtime_sec": 262.84
+    "total_runtime_sec": 280.57
   },
   "per_signer_loso_folds": [
     {
@@ -370,8 +456,8 @@
       "top_label_ece_raw": 0.0044,
       "brier_score_calibrated": 0.001,
       "top_label_ece_calibrated": 0.0293,
-      "training_time_sec": 18.68,
-      "calibration_time_sec": 31.12,
+      "training_time_sec": 2.39,
+      "calibration_time_sec": 16.37,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -589,8 +675,8 @@
       "top_label_ece_raw": 0.0006,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 13.38,
-      "calibration_time_sec": 13.89,
+      "training_time_sec": 12.0,
+      "calibration_time_sec": 21.65,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -808,8 +894,8 @@
       "top_label_ece_raw": 0.0005,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0284,
-      "training_time_sec": 6.03,
-      "calibration_time_sec": 15.06,
+      "training_time_sec": 13.8,
+      "calibration_time_sec": 23.34,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1027,8 +1113,8 @@
       "top_label_ece_raw": 0.0003,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 9.98,
-      "calibration_time_sec": 26.47,
+      "training_time_sec": 11.13,
+      "calibration_time_sec": 33.15,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1246,8 +1332,8 @@
       "top_label_ece_raw": 0.0003,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 12.74,
-      "calibration_time_sec": 20.46,
+      "training_time_sec": 19.46,
+      "calibration_time_sec": 22.9,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1465,8 +1551,8 @@
       "top_label_ece_raw": 0.0011,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0284,
-      "training_time_sec": 7.68,
-      "calibration_time_sec": 23.38,
+      "training_time_sec": 10.0,
+      "calibration_time_sec": 18.34,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1684,8 +1770,8 @@
       "top_label_ece_raw": 0.0002,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0286,
-      "training_time_sec": 8.61,
-      "calibration_time_sec": 19.82,
+      "training_time_sec": 13.75,
+      "calibration_time_sec": 28.07,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
@@ -1903,8 +1989,8 @@
       "top_label_ece_raw": 0.0002,
       "brier_score_calibrated": 0.0009,
       "top_label_ece_calibrated": 0.0283,
-      "training_time_sec": 9.5,
-      "calibration_time_sec": 24.39,
+      "training_time_sec": 10.4,
+      "calibration_time_sec": 22.17,
       "per_class_metrics": {
         "HELLO": {
           "class_id": 0,
