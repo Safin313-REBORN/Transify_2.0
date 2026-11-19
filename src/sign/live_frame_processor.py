@@ -786,7 +786,9 @@ class LiveSignFrameProcessor:
         hand_bbox = None
         hand_outside_roi = False
         frame_162 = None
-        target_roi = [float(r) for r in roi] if (roi and len(roi) == 4) else [0.15, 0.08, 0.85, 0.92]
+        # Phase 18: Full-frame camera recognition. Full frame [0.0, 0.0, 1.0, 1.0] semantics
+        # ensure no narrow ROI restricts hand detection across the camera view.
+        target_roi = [0.0, 0.0, 1.0, 1.0]
         is_synthetic_test = False
         extraction_source = "mediapipe_image"
 
@@ -821,28 +823,16 @@ class LiveSignFrameProcessor:
             h, w, _ = frame.shape
             is_synthetic_test = float(frame.mean()) < 16.0
 
-            # 2. MediaPipe HandLandmarker Detection (Primary and Most Accurate)
+            # 2. MediaPipe HandLandmarker Detection (Full-Frame Search: Accepts Hand Anywhere)
             if self.hand_tracker.landmarker is not None:
                 try:
                     detected_hand, detected_162 = self.hand_tracker.detect_holistic_landmarks(frame)
                     if detected_hand:
-                        hand_cx = float(np.mean([p.x for p in detected_hand]))
-                        hand_cy = float(np.mean([p.y for p in detected_hand]))
-                        # Strict ROI checking: Hand center must strictly reside within target_roi
-                        margin = 0.04
-                        in_roi = is_synthetic_test or (
-                            (target_roi[0] - margin <= hand_cx <= target_roi[2] + margin) and
-                            (target_roi[1] - margin <= hand_cy <= target_roi[3] + margin)
-                        )
-                        if in_roi:
-                            hand_landmarks = detected_hand
-                            hand_bbox = get_hand_bbox(hand_landmarks, frame.shape, padding=0.25)
-                            frame_162 = detected_162
-                        else:
-                            hand_outside_roi = True
-                            hand_landmarks = None
-                            hand_bbox = None
-                            frame_162 = None
+                        # Full-frame recognition: Accept valid detected hands regardless of position.
+                        # No narrow ROI boundary clipping or hand-center position rejection.
+                        hand_landmarks = detected_hand
+                        hand_bbox = get_hand_bbox(hand_landmarks, frame.shape, padding=0.25)
+                        frame_162 = detected_162
                 except Exception:
                     hand_landmarks = None
                     hand_bbox = None
@@ -885,7 +875,7 @@ class LiveSignFrameProcessor:
                 hand_bbox = (x1, y1, x2, y2)
                 extraction_source = "contour_fallback"
 
-        # Strict Target Box & Face Rejection: When hand is not inside box, return IDLE / OUT_OF_ROI
+        # No Usable Hand Detected: Return IDLE State
         if hand_bbox is None:
             with session.lock:
                 session.stabilizer.reset()
@@ -894,12 +884,12 @@ class LiveSignFrameProcessor:
                 session.timestamps.clear()
                 session.ambiguity_counter = 0
                 session.ambiguity_start_time = 0.0
-            display_msg = "Hand detected outside box! Move hand inside the target box ✋" if hand_outside_roi else "Bring hand inside the fixed guide box ✋"
-            gloss_msg = "Move hand inside the highlighted box on camera" if hand_outside_roi else "Position your hand inside the highlighted box on camera"
+            display_msg = "Show hand gesture to begin recognition ✋"
+            gloss_msg = "Position your hand in front of the camera"
             return {
                 "success": True,
                 "hand_detected": False,
-                "hand_outside_roi": hand_outside_roi,
+                "hand_outside_roi": False,
                 "in_roi": False,
                 "target_roi": target_roi,
                 "language_mode": active_lang,
@@ -914,7 +904,8 @@ class LiveSignFrameProcessor:
                 "progress": "0/30",
                 "progress_pct": 0,
                 "hand_bbox": None,
-                "status": "OUT_OF_ROI" if hand_outside_roi else "IDLE",
+                "frame_dims": [w, h],
+                "status": "IDLE",
                 "extraction_source": extraction_source,
                 "is_committed": False,
                 "is_confirmed": False,
@@ -964,6 +955,7 @@ class LiveSignFrameProcessor:
                     "progress": "30/30",
                     "progress_pct": 100,
                     "hand_bbox": [int(v) for v in hand_bbox],
+                    "frame_dims": [w, h],
                     "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
 
@@ -1058,6 +1050,7 @@ class LiveSignFrameProcessor:
                     "progress_pct": 100,
                     "extraction_source": extraction_source,
                     "hand_bbox": [int(v) for v in hand_bbox],
+                    "frame_dims": [w, h],
                     "engine_info": engine_info,
                     "latency_ms": round((time.time() - t0) * 1000, 2)
                 }
@@ -1087,6 +1080,7 @@ class LiveSignFrameProcessor:
                     "progress_pct": int((min(30, len(session.observations)) / 30.0) * 100),
                     "extraction_source": extraction_source,
                     "hand_bbox": None,
+                    "frame_dims": [w, h],
                     "engine_info": {
                         "engine": "IDLE",
                         "source": "BdSL Hand Detector",
@@ -1135,6 +1129,7 @@ class LiveSignFrameProcessor:
                         "hand_detected": True,
                         "in_roi": True,
                         "target_roi": target_roi,
+                        "hand_outside_roi": False,
                         "language_mode": "bdsl",
                         "model_name": model_display_name,
                         "status": "BUFFERING",
@@ -1153,6 +1148,7 @@ class LiveSignFrameProcessor:
                         "progress_pct": pct,
                         "extraction_source": extraction_source,
                         "hand_bbox": [int(v) for v in hand_bbox] if hand_bbox else None,
+                        "frame_dims": [w, h],
                         "engine_info": {
                             "engine": "BUFFERING",
                             "source": "BdSL Temporal Frame Buffer",
@@ -1232,6 +1228,7 @@ class LiveSignFrameProcessor:
                     "progress_pct": 100,
                     "extraction_source": extraction_source,
                     "hand_bbox": [int(v) for v in hand_bbox] if hand_bbox else None,
+                    "frame_dims": [w, h],
                     "engine_info": pred.get("engine_info"),
                     "probabilities": pred.get("probabilities"),
                     "latency_ms": round((time.time() - t0) * 1000, 2)
@@ -1300,6 +1297,7 @@ class LiveSignFrameProcessor:
                     "consensus_progress": f"{votes}/{req_votes}",
                     "extraction_source": extraction_source,
                     "hand_bbox": [int(v) for v in hand_bbox],
+                    "frame_dims": [w, h],
                     "engine_info": engine_info,
                     "probabilities": probs,
                     "latency_ms": round((time.time() - t0) * 1000, 2)
@@ -1407,6 +1405,7 @@ class LiveSignFrameProcessor:
                     "consensus_progress": f"{votes}/{req_votes}",
                     "extraction_source": extraction_source,
                     "hand_bbox": [int(v) for v in hand_bbox],
+                    "frame_dims": [w, h],
                     "engine_info": engine_info,
                     "probabilities": None,
                     "latency_ms": round((time.time() - t0) * 1000, 2)
@@ -1452,6 +1451,7 @@ class LiveSignFrameProcessor:
                 "consensus_progress": f"{votes}/{req_votes}",
                 "extraction_source": extraction_source,
                 "hand_bbox": [int(v) for v in hand_bbox],
+                "frame_dims": [w, h],
                 "engine_info": engine_info,
                 "probabilities": None,
                 "latency_ms": round((time.time() - t0) * 1000, 2)
@@ -1476,6 +1476,7 @@ class LiveSignFrameProcessor:
                 "english_text": "",
                 "confidence": 0.0,
                 "hand_bbox": [int(v) for v in hand_bbox],
+                "frame_dims": [w, h],
                 "status": "READY",
                 "extraction_source": extraction_source,
                 "is_committed": False,
@@ -1499,6 +1500,7 @@ class LiveSignFrameProcessor:
                 "english_text": "",
                 "confidence": 0.0,
                 "hand_bbox": list(hand_bbox),
+                "frame_dims": [w, h],
                 "status": "IDLE",
                 "extraction_source": extraction_source,
                 "is_committed": False,
@@ -1532,6 +1534,7 @@ class LiveSignFrameProcessor:
                 "consensus_progress": "0/12",
                 "extraction_source": extraction_source,
                 "hand_bbox": [int(v) for v in hand_bbox],
+                "frame_dims": [w, h],
                 "engine_info": {"engine": "SignFrame AI CNN", "notes": "Hand shape transitioning."},
                 "probabilities": probs,
                 "latency_ms": round((time.time() - t0) * 1000, 2)
@@ -1582,6 +1585,7 @@ class LiveSignFrameProcessor:
                 "consensus_progress": f"{votes}/{req_votes}",
                 "extraction_source": extraction_source,
                 "hand_bbox": [int(v) for v in hand_bbox],
+                "frame_dims": [w, h],
                 "engine_info": engine_info,
                 "probabilities": probs,
                 "latency_ms": round((time.time() - t0) * 1000, 2)
@@ -1628,6 +1632,7 @@ class LiveSignFrameProcessor:
             "consensus_progress": f"{votes}/{req_votes}",
             "extraction_source": extraction_source,
             "hand_bbox": [int(v) for v in hand_bbox],
+            "frame_dims": [w, h],
             "engine_info": engine_info,
             "probabilities": probs,
             "latency_ms": round((time.time() - t0) * 1000, 2)

@@ -1556,6 +1556,36 @@ var TransifySignDiagnostics = window.TransifySignDiagnostics = {
   videoFrameDeltas: [],
   rvfcHandle: null,
   activeVideoEl: null,
+  trackInfo: {
+    requested_constraints: '1920x1080 (ideal), facingMode: user',
+    actual_track_resolution: null,
+    actual_frame_rate: null,
+    facing_mode: null,
+    autofocus_supported: false
+  },
+  captureInfo: {
+    capture_width: null,
+    capture_height: null,
+    max_dimension: 1280,
+    jpeg_quality: 0.88
+  },
+
+  recordCameraTrack(settings, capabilities) {
+    if (!settings) return;
+    this.trackInfo.actual_track_resolution = (settings.width && settings.height) ? `${settings.width}x${settings.height}` : null;
+    this.trackInfo.actual_frame_rate = settings.frameRate || null;
+    this.trackInfo.facing_mode = settings.facingMode || null;
+    if (capabilities && capabilities.focusMode) {
+      this.trackInfo.autofocus_supported = Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous');
+    }
+  },
+
+  recordCaptureConfig(w, h, maxDim, quality) {
+    this.captureInfo.capture_width = w;
+    this.captureInfo.capture_height = h;
+    this.captureInfo.max_dimension = maxDim || 1280;
+    this.captureInfo.jpeg_quality = quality || 0.88;
+  },
 
   init() {
     try {
@@ -1646,10 +1676,26 @@ var TransifySignDiagnostics = window.TransifySignDiagnostics = {
     var dispatchCadenceMs = mean(totalRoundtripTimes);
     var dispatchFps = dispatchCadenceMs > 0 ? Math.round((1000 / dispatchCadenceMs) * 10) / 10 : null;
 
+    var payloadKbSamples = this.metrics.map(function(m) { return m.payloadBytes ? Math.round(m.payloadBytes / 102.4) / 10 : 0; }).filter(function(v) { return v > 0; });
+
     return {
       enabled: this.enabled,
       samples_recorded: this.metrics.length,
       video_frame_callback_supported: (typeof HTMLVideoElement !== 'undefined' && typeof HTMLVideoElement.prototype.requestVideoFrameCallback === 'function'),
+      camera_track: {
+        metric_nature: "Actual MediaStreamTrack settings reported by browser WebRTC API",
+        requested: this.trackInfo.requested_constraints,
+        actual_resolution: this.trackInfo.actual_track_resolution,
+        actual_fps: this.trackInfo.actual_frame_rate,
+        facing_mode: this.trackInfo.facing_mode,
+        continuous_autofocus_supported: this.trackInfo.autofocus_supported
+      },
+      frame_capture: {
+        capture_dimensions: (this.captureInfo.capture_width && this.captureInfo.capture_height) ? `${this.captureInfo.capture_width}x${this.captureInfo.capture_height}` : null,
+        max_dimension_cap: this.captureInfo.max_dimension,
+        jpeg_quality: this.captureInfo.jpeg_quality,
+        median_payload_kb: percentile(payloadKbSamples, 50)
+      },
       video_delivery: {
         metric_nature: "Estimated browser video-frame callback delivery cadence (requestVideoFrameCallback), NOT direct Camera2 hardware sensor FPS",
         samples: this.videoFrameDeltas.length,
@@ -1703,7 +1749,10 @@ var SignPage = window.SignPage = window.TransifySign = {
   lastConfirmedSign: '',
   lastConfirmedSpeechTime: 0,
   lastFingersCount: 0,
-  roiPosition: 'right',
+  isMirrored: true,
+  actualResolution: null,
+  requestedResolution: '1920x1080 (ideal)',
+  actualFps: null,
   lastFrameData: null,
   detectionState: {
     isDetected: false,
@@ -1712,30 +1761,9 @@ var SignPage = window.SignPage = window.TransifySign = {
     timestamp: 0
   },
 
-  setRoiPosition(pos) {
-    if (['right', 'center', 'left'].includes(pos)) {
-      this.roiPosition = pos;
-      ['right', 'center', 'left'].forEach(p => {
-        const btn = document.getElementById(`roi-pos-${p}`);
-        if (btn) {
-          if (p === pos) btn.classList.add('active');
-          else btn.classList.remove('active');
-        }
-      });
-      if (this.isStreaming) {
-        this.drawCanvasFeedback();
-      }
-    }
-  },
-
   getTargetRoi() {
-    if (this.roiPosition === 'left') {
-      return [0.06, 0.08, 0.58, 0.92];
-    } else if (this.roiPosition === 'right') {
-      return [0.42, 0.08, 0.94, 0.92];
-    }
-    // Default broad centered zone: natural hand placement in front of camera
-    return [0.15, 0.08, 0.85, 0.92];
+    // Phase 18: Full-frame camera recognition. Hand gestures are detected across the entire camera view.
+    return [0.0, 0.0, 1.0, 1.0];
   },
 
   setLanguageMode(mode) {
@@ -2454,50 +2482,183 @@ var SignPage = window.SignPage = window.TransifySign = {
   },
 
   async startCamera() {
-    try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
-      });
-      if (this.videoEl) {
-        this.videoEl.srcObject = this.stream;
-        await this.videoEl.play();
-        if (window.TransifySignDiagnostics) {
-          window.TransifySignDiagnostics.attachVideo(this.videoEl);
+    if (this.isStreaming) return;
+
+    // Preferred camera constraints with progressive fallback (Phase 18)
+    const constraintTiers = [
+      // Tier 1: 1080p Front Camera @ 30fps ideal
+      { video: { facingMode: { ideal: 'user' }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30, max: 30 } } },
+      // Tier 2: 720p HD Front Camera @ 30fps ideal
+      { video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30, max: 30 } } },
+      // Tier 3: 480p Standard Front Camera
+      { video: { facingMode: { ideal: 'user' }, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30, max: 30 } } },
+      // Tier 4: Generic front-facing camera
+      { video: { facingMode: 'user' } },
+      // Tier 5: Fallback to any supported video source
+      { video: true }
+    ];
+
+    let acquiredStream = null;
+    let lastError = null;
+
+    for (let i = 0; i < constraintTiers.length; i++) {
+      try {
+        acquiredStream = await navigator.mediaDevices.getUserMedia(constraintTiers[i]);
+        if (acquiredStream) break;
+      } catch (tierErr) {
+        lastError = tierErr;
+        // If permission was denied, do not continue trying lower tiers
+        if (tierErr.name === 'NotAllowedError' || tierErr.name === 'PermissionDeniedError') {
+          break;
         }
       }
-      this.isStreaming = true;
-      const toggleBtn = document.getElementById('toggle-camera-btn');
-      if (toggleBtn) {
-        toggleBtn.innerHTML = '🛑 Stop Camera';
-        toggleBtn.classList.replace('btn-primary', 'btn-secondary');
-      }
-      const placeholder = document.getElementById('camera-placeholder');
-      if (placeholder) placeholder.style.display = 'none';
-
-      TransifyApp.showToast('Camera started. Tracking ASL signs.', 'success');
-      TransifyApp.announce('Camera active. Ready for sign language input.');
-
-      // Start continuous landmark ingestion loop
-      this.startInferenceLoop();
-    } catch (err) {
-      console.error('Camera access error:', err);
-      TransifyApp.showToast('Camera access denied or unavailable. Use the 10 Sample Sign buttons below to test!', 'warning');
-      TransifyApp.announce('Camera access failed. Sample buttons available.');
     }
+
+    if (!acquiredStream) {
+      console.error('Camera initialization failure:', lastError);
+      let errMsg = 'Camera access denied or unavailable. Use the sample demo buttons below to test!';
+      if (lastError && (lastError.name === 'NotAllowedError' || lastError.name === 'PermissionDeniedError')) {
+        errMsg = 'Camera permission was denied. Please allow camera access in browser settings.';
+      } else if (lastError && (lastError.name === 'NotFoundError' || lastError.name === 'DevicesNotFoundError')) {
+        errMsg = 'No supported camera found on this device.';
+      } else if (lastError && (lastError.name === 'NotReadableError' || lastError.name === 'TrackStartError')) {
+        errMsg = 'Camera is in use by another application or hardware is locked.';
+      }
+      TransifyApp.showToast(errMsg, 'warning');
+      TransifyApp.announce('Camera access failed.');
+      return;
+    }
+
+    this.stream = acquiredStream;
+    const videoTrack = this.stream.getVideoTracks()[0];
+
+    // Listen for unexpected track interruption / disconnection
+    if (videoTrack) {
+      videoTrack.onended = () => {
+        console.warn('Camera video track ended unexpectedly.');
+        if (this.isStreaming) {
+          this.stopCamera();
+          TransifyApp.showToast('Camera stream ended.', 'info');
+        }
+      };
+
+      // Query real track settings & capabilities
+      const settings = typeof videoTrack.getSettings === 'function' ? videoTrack.getSettings() : {};
+      let caps = null;
+
+      // Attempt optional continuous autofocus if supported without failing
+      if (typeof videoTrack.getCapabilities === 'function' && typeof videoTrack.applyConstraints === 'function') {
+        try {
+          caps = videoTrack.getCapabilities();
+          const advanced = [];
+          if (caps.focusMode && Array.isArray(caps.focusMode) && caps.focusMode.includes('continuous')) {
+            advanced.push({ focusMode: 'continuous' });
+          }
+          if (caps.exposureMode && Array.isArray(caps.exposureMode) && caps.exposureMode.includes('continuous')) {
+            advanced.push({ exposureMode: 'continuous' });
+          }
+          if (caps.whiteBalanceMode && Array.isArray(caps.whiteBalanceMode) && caps.whiteBalanceMode.includes('continuous')) {
+            advanced.push({ whiteBalanceMode: 'continuous' });
+          }
+          if (advanced.length > 0) {
+            videoTrack.applyConstraints({ advanced }).catch(() => {});
+          }
+        } catch (_) {}
+      }
+
+      if (window.TransifySignDiagnostics) {
+        window.TransifySignDiagnostics.recordCameraTrack(settings, caps);
+      }
+    }
+
+    if (this.videoEl) {
+      this.videoEl.srcObject = this.stream;
+      this.videoEl.classList.add('camera-mirror');
+      if (this.canvasEl) this.canvasEl.classList.add('camera-mirror');
+
+      // Update resolution badge once video metadata arrives
+      const updateResolutionBadge = () => {
+        const vW = this.videoEl.videoWidth || (videoTrack && videoTrack.getSettings ? videoTrack.getSettings().width : 0) || 640;
+        const vH = this.videoEl.videoHeight || (videoTrack && videoTrack.getSettings ? videoTrack.getSettings().height : 0) || 480;
+        this.actualResolution = `${vW} × ${vH}`;
+
+        // Dynamically adjust container aspect ratio to match source stream precisely
+        const container = this.videoEl.closest('.webcam-container');
+        if (container && vW && vH) {
+          container.style.aspectRatio = `${vW} / ${vH}`;
+        }
+        if (this.canvasEl && vW && vH) {
+          this.canvasEl.width = vW;
+          this.canvasEl.height = vH;
+        }
+
+        // Show camera resolution badge
+        const badge = document.getElementById('camera-status-badge');
+        const badgeText = document.getElementById('camera-resolution-text');
+        if (badge && badgeText) {
+          let label = 'Camera';
+          if (Math.min(vW, vH) >= 1080 || Math.max(vW, vH) >= 1920) label = 'Full HD';
+          else if (Math.min(vW, vH) >= 720 || Math.max(vW, vH) >= 1280) label = 'HD Camera';
+          badgeText.textContent = `${label} · ${vW} × ${vH}`;
+          badge.style.display = 'inline-flex';
+        }
+      };
+
+      this.videoEl.onloadedmetadata = updateResolutionBadge;
+      await this.videoEl.play().catch(e => console.warn('Video play warning:', e));
+      updateResolutionBadge();
+
+      if (window.TransifySignDiagnostics) {
+        window.TransifySignDiagnostics.attachVideo(this.videoEl);
+      }
+    }
+
+    this.isStreaming = true;
+    const toggleBtn = document.getElementById('toggle-camera-btn');
+    if (toggleBtn) {
+      toggleBtn.innerHTML = '🛑 Stop Camera';
+      toggleBtn.classList.replace('btn-primary', 'btn-secondary');
+    }
+    const placeholder = document.getElementById('camera-placeholder');
+    if (placeholder) placeholder.style.display = 'none';
+
+    TransifyApp.showToast('Camera active. Mirrored selfie preview ready.', 'success');
+    TransifyApp.announce('Camera active. Ready for sign language input.');
+
+    // Start continuous landmark ingestion loop
+    this.startInferenceLoop();
   },
 
   stopCamera() {
     if (this.stream) {
-      this.stream.getTracks().forEach(track => track.stop());
+      this.stream.getTracks().forEach(track => {
+        track.onended = null;
+        track.stop();
+      });
       this.stream = null;
     }
-    if (this.videoEl) this.videoEl.srcObject = null;
+    if (this.videoEl) {
+      this.videoEl.srcObject = null;
+      this.videoEl.onloadedmetadata = null;
+      const container = this.videoEl.closest('.webcam-container');
+      if (container) container.style.aspectRatio = '';
+    }
+    if (this.canvasEl) {
+      const ctx = this.canvasEl.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height);
+    }
+    const badge = document.getElementById('camera-status-badge');
+    if (badge) badge.style.display = 'none';
+
     if (window.TransifySignDiagnostics) {
       window.TransifySignDiagnostics.detachVideo();
     }
     this.isStreaming = false;
     this.isProcessingFrame = false;
     this.lastHandBBox = null;
+    this.lastFrameDims = null;
+    this.actualResolution = null;
+
     if (this.predictTimer) clearInterval(this.predictTimer);
     if (this.frameCaptureTimer) clearInterval(this.frameCaptureTimer);
     this.predictTimer = null;
@@ -2540,21 +2701,51 @@ var SignPage = window.SignPage = window.TransifySign = {
       try {
         this.isProcessingFrame = true;
 
-        if (!this.offscreenCanvas) {
-          this.offscreenCanvas = document.createElement('canvas');
-          this.offscreenCanvas.width = 640;
-          this.offscreenCanvas.height = 480;
-          this.offscreenCtx = this.offscreenCanvas.getContext('2d');
+        const vW = this.videoEl.videoWidth;
+        const vH = this.videoEl.videoHeight;
+        const maxDim = 1280;
+        let captureW = vW;
+        let captureH = vH;
+
+        // Proportional aspect-ratio preserving dimensions capped at maxDim without upscaling
+        if (Math.max(vW, vH) > maxDim) {
+          const scale = maxDim / Math.max(vW, vH);
+          captureW = Math.round(vW * scale);
+          captureH = Math.round(vH * scale);
         }
 
-        // Draw crisp 640x480 frame for robust MediaPipe hand landmark tracking
+        // Reuse persistent offscreen canvas
+        if (!this.offscreenCanvas) {
+          this.offscreenCanvas = document.createElement('canvas');
+          this.offscreenCtx = this.offscreenCanvas.getContext('2d');
+        }
+        if (this.offscreenCanvas.width !== captureW || this.offscreenCanvas.height !== captureH) {
+          this.offscreenCanvas.width = captureW;
+          this.offscreenCanvas.height = captureH;
+        }
+
+        if (window.TransifySignDiagnostics) {
+          window.TransifySignDiagnostics.recordCaptureConfig(captureW, captureH, maxDim, 0.88);
+        }
+
+        // Unmirrored draw: captures raw original source orientation for AI inference
         const t0_diag = (window.performance && performance.now) ? performance.now() : Date.now();
-        this.offscreenCtx.drawImage(this.videoEl, 0, 0, 640, 480);
+        this.offscreenCtx.drawImage(this.videoEl, 0, 0, captureW, captureH);
         const t1_diag = (window.performance && performance.now) ? performance.now() : Date.now();
-        const b64 = this.offscreenCanvas.toDataURL('image/jpeg', 0.82);
+
+        // Encode JPEG at 0.88 quality
+        let b64 = null;
+        try {
+          b64 = this.offscreenCanvas.toDataURL('image/jpeg', 0.88);
+        } catch (encodeErr) {
+          console.debug('Frame encoding notice:', encodeErr);
+          return;
+        }
+        if (!b64 || !b64.startsWith('data:image/jpeg;base64,')) {
+          return;
+        }
         const t2_diag = (window.performance && performance.now) ? performance.now() : Date.now();
 
-        const currentRoi = this.getTargetRoi();
         const clientTimestamp = (performance && performance.now) ? (performance.now() / 1000.0) : (Date.now() / 1000.0);
         const res = await fetch('/api/sign/process_frame', {
           method: 'POST',
@@ -2564,7 +2755,7 @@ var SignPage = window.SignPage = window.TransifySign = {
             image_b64: b64,
             mode: this.currentMode,
             language_mode: this.currentLanguageMode || 'bdsl',
-            roi: currentRoi,
+            roi: [0.0, 0.0, 1.0, 1.0], // Full frame recognition
             session_id: this.sessionId,
             timestamp: clientTimestamp
           })
@@ -2581,7 +2772,10 @@ var SignPage = window.SignPage = window.TransifySign = {
             jpegEncodeMs: Math.round((t2_diag - t1_diag) * 10) / 10,
             networkPostMs: Math.round((t3_diag - t2_diag) * 10) / 10,
             serverInferenceMs: (data && typeof data.latency_ms === 'number') ? data.latency_ms : null,
-            totalRoundtripMs: Math.round((t4_diag - t0_diag) * 10) / 10
+            totalRoundtripMs: Math.round((t4_diag - t0_diag) * 10) / 10,
+            payloadBytes: b64.length,
+            captureW: captureW,
+            captureH: captureH
           });
         }
         this.lastFrameData = data;
@@ -2589,7 +2783,7 @@ var SignPage = window.SignPage = window.TransifySign = {
         if (data && data.success) {
           if (data.hand_detected && data.hand_bbox) {
             this.lastHandBBox = data.hand_bbox;
-            this.lastFrameDims = data.frame_dims || [640, 480];
+            this.lastFrameDims = data.frame_dims || [captureW, captureH];
             this.lastFingersCount = data.fingers_count || 0;
           } else {
             this.lastHandBBox = null;
@@ -2697,224 +2891,82 @@ var SignPage = window.SignPage = window.TransifySign = {
 
   drawCanvasFeedback() {
     if (!this.ctx || !this.videoEl || !this.isStreaming) return;
-    this.canvasEl.width = this.videoEl.videoWidth || 640;
-    this.canvasEl.height = this.videoEl.videoHeight || 480;
+    const vW = this.videoEl.videoWidth || 640;
+    const vH = this.videoEl.videoHeight || 480;
+    if (this.canvasEl.width !== vW || this.canvasEl.height !== vH) {
+      this.canvasEl.width = vW;
+      this.canvasEl.height = vH;
+    }
     const w = this.canvasEl.width;
     const h = this.canvasEl.height;
     this.ctx.clearRect(0, 0, w, h);
 
-    const roi = this.getTargetRoi();
-    const boxX = roi[0] * w;
-    const boxY = roi[1] * h;
-    const boxW = (roi[2] - roi[0]) * w;
-    const boxH = (roi[3] - roi[1]) * h;
-
-    // 1. Ambient Vignette / Semi-transparent focus mask outside the Target Box
-    this.ctx.save();
-    this.ctx.fillStyle = 'rgba(10, 12, 24, 0.38)';
-    // Top band
-    this.ctx.fillRect(0, 0, w, boxY);
-    // Bottom band
-    this.ctx.fillRect(0, boxY + boxH, w, h - (boxY + boxH));
-    // Left band
-    this.ctx.fillRect(0, boxY, boxX, boxH);
-    // Right band
-    this.ctx.fillRect(boxX + boxW, boxY, w - (boxX + boxW), boxH);
-    this.ctx.restore();
-
-    // Check live state
     const data = this.lastFrameData;
     const isRecentlyDetected = this.detectionState.isDetected && (Date.now() - this.detectionState.timestamp < 2500);
     const isAnalyzing = (data && data.hand_detected && data.status === 'ANALYZING');
-    const isHandInRoi = (data && data.hand_detected && data.in_roi !== false);
-    const isHandOutsideRoi = (data && !data.hand_detected && data.hand_outside_roi === true);
+    const isBuffering = (data && data.hand_detected && data.status === 'BUFFERING');
+    const isHandDetected = (data && data.hand_detected && this.lastHandBBox);
 
-    if (isRecentlyDetected) {
-      // -------------------------------------------------------------
-      // STATE 1: GESTURE / WORD RECOGNIZED & CONFIRMED! (VIBRANT EMERALD GREEN)
-      // -------------------------------------------------------------
-      const greenColor = '#22c55e';
-      this.ctx.save();
-      this.ctx.strokeStyle = greenColor;
-      this.ctx.lineWidth = 4;
-      this.ctx.shadowColor = greenColor;
-      this.ctx.shadowBlur = 14;
+    // Full-frame recognition: when a hand is detected anywhere in the camera view
+    if (isHandDetected) {
+      const sX = w / (this.lastFrameDims ? this.lastFrameDims[0] : w);
+      const sY = h / (this.lastFrameDims ? this.lastFrameDims[1] : h);
+      const hX = this.lastHandBBox[0] * sX;
+      const hY = this.lastHandBBox[1] * sY;
+      const hW = (this.lastHandBBox[2] - this.lastHandBBox[0]) * sX;
+      const hH = (this.lastHandBBox[3] - this.lastHandBBox[1]) * sY;
 
-      // Soft emerald wash inside target box
-      this.ctx.fillStyle = 'rgba(34, 197, 94, 0.12)';
-      this.ctx.fillRect(boxX, boxY, boxW, boxH);
-      this.ctx.strokeRect(boxX, boxY, boxW, boxH);
+      // Color coding based on live recognition state
+      let boxColor = '#10b981'; // ready/detected emerald
+      let bracketColor = '#34d399';
+      let washColor = 'rgba(16, 185, 129, 0.08)';
 
-      // Corner target brackets
-      this._drawTargetBrackets(boxX, boxY, boxW, boxH, '#4ade80', 32, 6);
-
-      // Top Detected Header Badge
-      const modelTag = (this.detectionState && this.detectionState.model_name && this.detectionState.model_name.includes('HaGRID')) ? 'HaGRID' : 'ASL';
-      const confDisplay = (typeof this.detectionState.confidence === 'number' && !isNaN(this.detectionState.confidence)) ? ` (${Math.round(this.detectionState.confidence * 100)}%)` : '';
-      const badgeText = `✓ [${modelTag}] DETECTED: ${this.detectionState.label}${confDisplay}`;
-      this._drawPillBadge(boxX + 12, boxY + 12, badgeText, '#22c55e', '#ffffff');
-
-      // Bottom confirmation ribbon inside target box
-      const bottomText = `🎯 Hand Sign Confirmed: "${this.detectionState.label}"`;
-      this._drawPillBadge(boxX + 12, boxY + boxH - 38, bottomText, 'rgba(15, 23, 42, 0.85)', '#4ade80');
-      this.ctx.restore();
-
-    } else if (isAnalyzing) {
-      // -------------------------------------------------------------
-      // STATE 2: ANALYZING HAND SIGN (PULSING ELECTRIC CYAN)
-      // -------------------------------------------------------------
-      const cyanColor = '#06b6d4';
-      this.ctx.save();
-      this.ctx.strokeStyle = cyanColor;
-      this.ctx.lineWidth = 3.5;
-      this.ctx.shadowColor = cyanColor;
-      this.ctx.shadowBlur = 12;
-
-      // Soft cyan wash
-      this.ctx.fillStyle = 'rgba(6, 182, 212, 0.09)';
-      this.ctx.fillRect(boxX, boxY, boxW, boxH);
-      this.ctx.strokeRect(boxX, boxY, boxW, boxH);
-
-      // Corner brackets
-      this._drawTargetBrackets(boxX, boxY, boxW, boxH, '#22d3ee', 28, 5);
-
-      // Top Status Pill
-      const pct = data.analysis_pct || 40;
-      const statusText = `🔍 Analyzing Sign (${pct}%)... Hold Steady ✋`;
-      this._drawPillBadge(boxX + 12, boxY + 12, statusText, '#0891b2', '#ffffff');
-
-      // Center guide message
-      this.ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = '#a5f3fc';
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText(`⏳ Evaluating Signal Stability (${data.consensus_progress || ''})`, boxX + boxW / 2, boxY + boxH / 2);
-
-      // Bottom candidate preview
-      if (data.candidate_label) {
-        const candidateText = `Candidate: [${data.candidate_label}]`;
-        this._drawPillBadge(boxX + 12, boxY + boxH - 38, candidateText, 'rgba(15, 23, 42, 0.80)', '#67e8f9');
+      if (isRecentlyDetected) {
+        boxColor = '#22c55e';
+        bracketColor = '#4ade80';
+        washColor = 'rgba(34, 197, 94, 0.16)';
+      } else if (isAnalyzing || isBuffering) {
+        boxColor = '#06b6d4';
+        bracketColor = '#22d3ee';
+        washColor = 'rgba(6, 182, 212, 0.10)';
       }
 
-      // Hand Bounding Box Tracking if present
-      if (this.lastHandBBox) {
-        const sX = w / (this.lastFrameDims ? this.lastFrameDims[0] : 640);
-        const sY = h / (this.lastFrameDims ? this.lastFrameDims[1] : 480);
-        const hX = this.lastHandBBox[0] * sX;
-        const hY = this.lastHandBBox[1] * sY;
-        const hW = this.lastHandBBox[2] * sX;
-        const hH = this.lastHandBBox[3] * sY;
+      this.ctx.save();
+      this.ctx.strokeStyle = boxColor;
+      this.ctx.lineWidth = isRecentlyDetected ? 3.5 : 2.5;
+      this.ctx.fillStyle = washColor;
+      this.ctx.shadowColor = boxColor;
+      this.ctx.shadowBlur = isRecentlyDetected ? 12 : 8;
 
-        this.ctx.strokeStyle = '#67e8f9';
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(hX, hY, hW, hH);
+      // Draw subtle hand highlight and boundary
+      this.ctx.fillRect(hX, hY, hW, hH);
+      this.ctx.strokeRect(hX, hY, hW, hH);
+
+      // Corner target brackets on hand
+      const cornerLen = Math.min(24, Math.max(12, Math.min(hW, hH) * 0.22));
+      this._drawTargetBrackets(hX, hY, hW, hH, bracketColor, cornerLen, 3.5);
+
+      // Draw hand status pill badge directly above the hand bounding box
+      let badgeText = '';
+      let badgeBg = boxColor;
+      if (isRecentlyDetected) {
+        const confDisplay = (typeof this.detectionState.confidence === 'number' && !isNaN(this.detectionState.confidence)) ? ` (${Math.round(this.detectionState.confidence * 100)}%)` : '';
+        badgeText = `✓ DETECTED: ${this.detectionState.label}${confDisplay}`;
+        badgeBg = '#22c55e';
+      } else if (isBuffering) {
+        badgeText = `⏳ Buffering (${data.progress || '0/30'})`;
+        badgeBg = '#8b5cf6';
+      } else if (isAnalyzing) {
+        const pct = data.analysis_pct || 40;
+        badgeText = `🔍 Analyzing (${pct}%)... Hold Steady`;
+        badgeBg = '#0891b2';
+      } else {
+        badgeText = `✋ Hand Detected`;
+        badgeBg = '#10b981';
       }
-      this.ctx.restore();
 
-    } else if (isHandInRoi) {
-      // -------------------------------------------------------------
-      // STATE 3: HAND IN POSITION INSIDE TARGET BOX (EMERALD / READY)
-      // -------------------------------------------------------------
-      const activeColor = '#10b981';
-      this.ctx.save();
-      this.ctx.strokeStyle = activeColor;
-      this.ctx.lineWidth = 2.5;
-      this.ctx.shadowColor = activeColor;
-      this.ctx.shadowBlur = 8;
-
-      // Soft active wash
-      this.ctx.fillStyle = 'rgba(16, 185, 129, 0.06)';
-      this.ctx.fillRect(boxX, boxY, boxW, boxH);
-      this.ctx.strokeRect(boxX, boxY, boxW, boxH);
-
-      // Corner brackets
-      this._drawTargetBrackets(boxX, boxY, boxW, boxH, '#34d399', 28, 4);
-
-      // Top Status Pill
-      const statusText = `✋ Hand In Position — Ready To Sign`;
-      this._drawPillBadge(boxX + 12, boxY + 12, statusText, '#10b981', '#ffffff');
-
-      // Center guide message
-      this.ctx.font = '600 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText(`Show a hand sign (e.g. Thumbs Up, Peace, OK, Fist, Hello)`, boxX + boxW / 2, boxY + boxH / 2);
-
-      // Hand Bounding Box Tracking if present
-      if (this.lastHandBBox) {
-        const sX = w / (this.lastFrameDims ? this.lastFrameDims[0] : 640);
-        const sY = h / (this.lastFrameDims ? this.lastFrameDims[1] : 480);
-        const hX = this.lastHandBBox[0] * sX;
-        const hY = this.lastHandBBox[1] * sY;
-        const hW = this.lastHandBBox[2] * sX;
-        const hH = this.lastHandBBox[3] * sY;
-
-        this.ctx.strokeStyle = '#6ee7b7';
-        this.ctx.lineWidth = 2;
-        this.ctx.shadowBlur = 4;
-        this.ctx.strokeRect(hX, hY, hW, hH);
-      }
-      this.ctx.restore();
-
-    } else if (isHandOutsideRoi) {
-      // -------------------------------------------------------------
-      // STATE 4: HAND DETECTED OUTSIDE TARGET BOX (AMBER WARNING)
-      // -------------------------------------------------------------
-      const amberColor = '#f59e0b';
-      this.ctx.save();
-      this.ctx.strokeStyle = amberColor;
-      this.ctx.lineWidth = 3;
-      this.ctx.setLineDash([8, 6]);
-      this.ctx.shadowColor = amberColor;
-      this.ctx.shadowBlur = 8;
-      this.ctx.strokeRect(boxX, boxY, boxW, boxH);
-      this.ctx.setLineDash([]);
-
-      this._drawTargetBrackets(boxX, boxY, boxW, boxH, '#fbbf24', 26, 5);
-
-      const warnText = `⚠️ Hand Outside Box — Place Hand Inside ✋`;
-      this._drawPillBadge(boxX + 12, boxY + 12, warnText, '#f59e0b', '#ffffff');
-
-      // Center guide message
-      this.ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = '#fef08a';
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText(`👉 Move Hand Inside This Target Box`, boxX + boxW / 2, boxY + boxH / 2);
-      this.ctx.restore();
-
-    } else {
-      // -------------------------------------------------------------
-      // STATE 5: WAITING / IDLE TARGET BOX (PURPLE HUD)
-      // -------------------------------------------------------------
-      const purpleColor = '#8338ec';
-      this.ctx.save();
-      this.ctx.strokeStyle = purpleColor;
-      this.ctx.lineWidth = 2.5;
-      this.ctx.setLineDash([8, 6]);
-      this.ctx.shadowColor = purpleColor;
-      this.ctx.shadowBlur = 8;
-      this.ctx.strokeRect(boxX, boxY, boxW, boxH);
-      this.ctx.setLineDash([]);
-
-      this._drawTargetBrackets(boxX, boxY, boxW, boxH, '#a855f7', 28, 5);
-
-      // Top Title Pill
-      const guideText = `🎯 Fixed Hand Sign Zone — Place Hand Here`;
-      this._drawPillBadge(boxX + 12, boxY + 12, guideText, '#8338ec', '#ffffff');
-
-      // Center Holographic Hand Icon & Subtext
-      this.ctx.textAlign = 'center';
-      this.ctx.font = '38px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-      this.ctx.fillText(`✋`, boxX + boxW / 2, boxY + boxH / 2 - 8);
-
-      this.ctx.font = '600 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      this.ctx.fillText(`Hold hand here for ASL & HaGRID recognition`, boxX + boxW / 2, boxY + boxH / 2 + 22);
-
-      // Sub-note explaining face is ignored
-      this.ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = 'rgba(216, 180, 254, 0.75)';
-      this.ctx.fillText(`(Face & background outside box are ignored)`, boxX + boxW / 2, boxY + boxH / 2 + 42);
+      const badgeY = (hY - 32 > 8) ? (hY - 32) : (hY + 8);
+      this._drawPillBadge(hX, badgeY, badgeText, badgeBg, '#ffffff');
       this.ctx.restore();
     }
   },
@@ -2953,25 +3005,32 @@ var SignPage = window.SignPage = window.TransifySign = {
 
   _drawPillBadge(x, y, text, bgColor, textColor) {
     this.ctx.save();
-    this.ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    this.ctx.textAlign = 'left';
+    this.ctx.font = 'bold 12.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     this.ctx.textBaseline = 'middle';
     const textMetrics = this.ctx.measureText(text);
-    const pillW = textMetrics.width + 24;
-    const pillH = 28;
+    const pillW = textMetrics.width + 22;
+    const pillH = 26;
+
+    // The canvas is mirrored via CSS scaleX(-1) to match the selfie camera.
+    // Un-mirror locally around the pill so text renders left-to-right legibly.
+    this.ctx.save();
+    this.ctx.translate(x + pillW, y);
+    this.ctx.scale(-1, 1);
 
     this.ctx.shadowBlur = 0;
     this.ctx.fillStyle = bgColor;
     this.ctx.beginPath();
     if (this.ctx.roundRect) {
-      this.ctx.roundRect(x, y, pillW, pillH, 6);
+      this.ctx.roundRect(0, 0, pillW, pillH, 6);
     } else {
-      this.ctx.rect(x, y, pillW, pillH);
+      this.ctx.rect(0, 0, pillW, pillH);
     }
     this.ctx.fill();
 
     this.ctx.fillStyle = textColor;
-    this.ctx.fillText(text, x + 12, y + pillH / 2);
+    this.ctx.textAlign = 'left';
+    this.ctx.fillText(text, 11, pillH / 2);
+    this.ctx.restore();
     this.ctx.restore();
   },
 

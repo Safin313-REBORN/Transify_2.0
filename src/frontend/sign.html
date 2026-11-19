@@ -156,8 +156,8 @@
         </div>
 
         <div class="webcam-container" aria-label="Webcam feed and landmark tracking area">
-          <video id="sign-video" class="webcam-video" autoplay playsinline muted></video>
-          <canvas id="sign-canvas" class="webcam-canvas"></canvas>
+          <video id="sign-video" class="webcam-video camera-mirror" autoplay playsinline muted></video>
+          <canvas id="sign-canvas" class="webcam-canvas camera-mirror"></canvas>
 
           <div id="camera-placeholder" class="camera-placeholder">
             <span style="font-size: 3rem;">📹</span>
@@ -175,11 +175,9 @@
             <button id="try-sign-sample-btn" type="button" class="btn btn-secondary" onclick="window.SignPage.simulatePrediction('thank_you')">🎬 Try Sample Demo</button>
             <button id="reset-sign-btn" class="btn btn-secondary">🔄 Reset Tracker</button>
             <button id="speak-pred-btn" class="btn btn-secondary">🔊 Speak Sign</button>
-            <div class="roi-position-selector" title="Choose Target Guide Box Position">
-              <span class="roi-selector-label">🎯 Box:</span>
-              <button id="roi-pos-right" type="button" class="btn-roi active" onclick="SignPage.setRoiPosition('right')">👉 Right</button>
-              <button id="roi-pos-center" type="button" class="btn-roi" onclick="SignPage.setRoiPosition('center')">🎯 Center</button>
-              <button id="roi-pos-left" type="button" class="btn-roi" onclick="SignPage.setRoiPosition('left')">👈 Left</button>
+            <div id="camera-status-badge" class="camera-status-pill" style="display: none;" title="Active Camera Resolution & Stream Status">
+              <span class="camera-status-dot"></span>
+              <span id="camera-resolution-text">HD Camera · 1280 × 720</span>
             </div>
           </div>
         </div>

@@ -2127,8 +2127,8 @@
         
         <!-- Live Webcam Viewport -->
         <div class="webcam-container" aria-label="Webcam feed and landmark tracking area">
-          <video id="sign-video" class="webcam-video" autoplay playsinline muted></video>
-          <canvas id="sign-canvas" class="webcam-canvas"></canvas>
+          <video id="sign-video" class="webcam-video camera-mirror" autoplay playsinline muted></video>
+          <canvas id="sign-canvas" class="webcam-canvas camera-mirror"></canvas>
 
           <div id="camera-placeholder" class="camera-placeholder">
             <span style="font-size: 3rem;">📹</span>
@@ -2145,11 +2145,9 @@
             <button id="toggle-camera-btn" class="btn btn-primary"><span style="font-size: 15px;">📹</span> Start Camera</button>
             <button id="reset-sign-btn" class="btn btn-secondary"><span style="color: #8338ec; font-size: 16px; font-weight: 800; line-height: 1;">↻</span> Reset</button>
             <button id="speak-pred-btn" class="btn btn-secondary"><span style="color: #8338ec; font-size: 15px;">🔊</span> Speak</button>
-            <div class="roi-position-selector" title="Choose Target Guide Box Position">
-              <span class="roi-selector-label">🎯 Box:</span>
-              <button id="roi-pos-right" type="button" class="btn-roi active" onclick="TransifySign.setRoiPosition('right')">👉 Right</button>
-              <button id="roi-pos-center" type="button" class="btn-roi" onclick="TransifySign.setRoiPosition('center')">🎯 Center</button>
-              <button id="roi-pos-left" type="button" class="btn-roi" onclick="TransifySign.setRoiPosition('left')">👈 Left</button>
+            <div id="camera-status-badge" class="camera-status-pill" style="display: none;" title="Active Camera Resolution & Stream Status">
+              <span class="camera-status-dot"></span>
+              <span id="camera-resolution-text">HD Camera · 1280 × 720</span>
             </div>
           </div>
         </div>
