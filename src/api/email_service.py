@@ -206,3 +206,4 @@ def reset_email_adapter() -> None:
     """Resets the email adapter back to default SMTPEmailAdapter."""
     global _GLOBAL_EMAIL_ADAPTER
     _GLOBAL_EMAIL_ADAPTER = None
+

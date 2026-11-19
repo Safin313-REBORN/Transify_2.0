@@ -63,6 +63,6 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew testDebugUnitTest
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" testDebugUnitTest
+          ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" assembleDebug --stacktrace
 

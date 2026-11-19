@@ -106,3 +106,4 @@ class GoogleOAuthValidator:
             "name": claims.get("name", "").strip(),
             "sub": claims.get("sub", "")
         }
+

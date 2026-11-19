@@ -162,3 +162,4 @@ def test_oauth_validator_valid_claims_success(validator):
     assert user_info["email"] == "valid.user@gmail.com"
     assert user_info["name"] == "Valid User"
     assert user_info["sub"] == "google-sub-id-12345"
+
