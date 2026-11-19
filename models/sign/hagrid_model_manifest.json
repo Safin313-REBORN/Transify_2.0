@@ -30,7 +30,10 @@
   "class_count": 24,
   "test_accuracy": 0.8683,
   "feature_dimension": 38,
-  "architecture": "Random Forest (100 estimators, 45D geometric features)",
+  "model_type": "Synthetic-Template Prototype (38D Geometric Random Forest)",
+  "architecture": "Random Forest (100 estimators, 38D scale/translation-invariant geometric features)",
+  "data_origin_disclosure": "Trained and evaluated on synthetically perturbed landmark templates (12,000 samples across 24 classes, 500 samples/class derived from 1 canonical pose per class). Manifest test accuracy (86.83%) reflects synthetic perturbation testing with template leakage across train/test splits. Authentic in-the-wild video/image capture and empirical cross-signer validation remain outstanding.",
+  "confidence_threshold": 0.65,
   "classes_metadata": {
     "CALL": {
       "label": "CALL",

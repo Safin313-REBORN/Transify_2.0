@@ -1132,6 +1132,129 @@ var DashboardPage = window.DashboardPage = {
 // 4. Module 01: Live Sign Language Translator
 // ==========================================
 
+// Optional Dev-Only Camera & Pipeline Diagnostics Instrumentation
+// Accessible via window.TransifySignDiagnostics.getSummary()
+// Enabled only when ?diagnostics=1 query parameter is set or via window.TransifySignDiagnostics.enable()
+var TransifySignDiagnostics = window.TransifySignDiagnostics = {
+  enabled: false,
+  maxSamples: 100,
+  metrics: [],
+  lastVideoTimestamp: null,
+  videoFrameDeltas: [],
+  rvfcHandle: null,
+  activeVideoEl: null,
+
+  init() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('diagnostics') === '1' || localStorage.getItem('transify_debug_diagnostics') === '1') {
+        this.enabled = true;
+      }
+    } catch (_) {}
+  },
+
+  enable() {
+    this.enabled = true;
+    try { localStorage.setItem('transify_debug_diagnostics', '1'); } catch (_) {}
+    console.info('[TransifySignDiagnostics] Performance diagnostics ENABLED. Call window.TransifySignDiagnostics.getSummary() to view metrics.');
+  },
+
+  disable() {
+    this.enabled = false;
+    this.metrics = [];
+    this.videoFrameDeltas = [];
+    try { localStorage.removeItem('transify_debug_diagnostics'); } catch (_) {}
+    console.info('[TransifySignDiagnostics] Performance diagnostics DISABLED.');
+  },
+
+  attachVideo(videoEl) {
+    if (!videoEl) return;
+    this.activeVideoEl = videoEl;
+    if (!this.enabled) return;
+    var self = this;
+    if (typeof videoEl.requestVideoFrameCallback === 'function') {
+      var onFrame = function(now) {
+        if (!self.enabled || self.activeVideoEl !== videoEl) return;
+        if (self.lastVideoTimestamp !== null) {
+          var delta = now - self.lastVideoTimestamp;
+          if (delta > 0 && delta < 1000) {
+            self.videoFrameDeltas.push(delta);
+            if (self.videoFrameDeltas.length > self.maxSamples) self.videoFrameDeltas.shift();
+          }
+        }
+        self.lastVideoTimestamp = now;
+        self.rvfcHandle = videoEl.requestVideoFrameCallback(onFrame);
+      };
+      this.rvfcHandle = videoEl.requestVideoFrameCallback(onFrame);
+    }
+  },
+
+  detachVideo() {
+    this.activeVideoEl = null;
+    this.lastVideoTimestamp = null;
+    this.rvfcHandle = null;
+  },
+
+  recordPipelineCycle(sample) {
+    if (!this.enabled) return;
+    this.metrics.push(sample);
+    if (this.metrics.length > this.maxSamples) this.metrics.shift();
+  },
+
+  getSummary() {
+    function percentile(arr, p) {
+      if (!arr || !arr.length) return 0;
+      var sorted = arr.slice().sort(function(a, b) { return a - b; });
+      var idx = Math.min(Math.floor((p / 100) * sorted.length), sorted.length - 1);
+      return Math.round(sorted[idx] * 10) / 10;
+    }
+    function mean(arr) {
+      if (!arr || !arr.length) return 0;
+      var sum = arr.reduce(function(acc, val) { return acc + val; }, 0);
+      return Math.round((sum / arr.length) * 10) / 10;
+    }
+
+    var canvasDrawTimes = this.metrics.map(function(m) { return m.canvasDrawMs; });
+    var jpegEncodeTimes = this.metrics.map(function(m) { return m.jpegEncodeMs; });
+    var networkPostTimes = this.metrics.map(function(m) { return m.networkPostMs; });
+    var serverInferenceTimes = this.metrics.map(function(m) { return m.serverInferenceMs; }).filter(function(v) { return v !== null && v !== undefined; });
+    var totalRoundtripTimes = this.metrics.map(function(m) { return m.totalRoundtripMs; });
+
+    var videoCadenceMs = mean(this.videoFrameDeltas);
+    var videoFps = videoCadenceMs > 0 ? Math.round((1000 / videoCadenceMs) * 10) / 10 : null;
+
+    var dispatchCadenceMs = mean(totalRoundtripTimes);
+    var dispatchFps = dispatchCadenceMs > 0 ? Math.round((1000 / dispatchCadenceMs) * 10) / 10 : null;
+
+    return {
+      enabled: this.enabled,
+      samples_recorded: this.metrics.length,
+      video_frame_callback_supported: (typeof HTMLVideoElement !== 'undefined' && typeof HTMLVideoElement.prototype.requestVideoFrameCallback === 'function'),
+      video_delivery: {
+        samples: this.videoFrameDeltas.length,
+        mean_cadence_ms: videoCadenceMs,
+        estimated_fps: videoFps,
+        p50_cadence_ms: percentile(this.videoFrameDeltas, 50),
+        p95_cadence_ms: percentile(this.videoFrameDeltas, 95)
+      },
+      pipeline_latency: {
+        canvas_draw_p50_ms: percentile(canvasDrawTimes, 50),
+        canvas_draw_p95_ms: percentile(canvasDrawTimes, 95),
+        jpeg_encode_p50_ms: percentile(jpegEncodeTimes, 50),
+        jpeg_encode_p95_ms: percentile(jpegEncodeTimes, 95),
+        network_post_p50_ms: percentile(networkPostTimes, 50),
+        network_post_p95_ms: percentile(networkPostTimes, 95),
+        server_inference_p50_ms: percentile(serverInferenceTimes, 50),
+        server_inference_p95_ms: percentile(serverInferenceTimes, 95),
+        total_roundtrip_p50_ms: percentile(totalRoundtripTimes, 50),
+        total_roundtrip_p95_ms: percentile(totalRoundtripTimes, 95),
+        estimated_dispatch_fps: dispatchFps
+      }
+    };
+  }
+};
+TransifySignDiagnostics.init();
+
 var SignPage = window.SignPage = window.TransifySign = {
   isStreaming: false,
   isInitialized: false,
@@ -1733,6 +1856,9 @@ var SignPage = window.SignPage = window.TransifySign = {
       if (this.videoEl) {
         this.videoEl.srcObject = this.stream;
         await this.videoEl.play();
+        if (window.TransifySignDiagnostics) {
+          window.TransifySignDiagnostics.attachVideo(this.videoEl);
+        }
       }
       this.isStreaming = true;
       const toggleBtn = document.getElementById('toggle-camera-btn');
@@ -1761,6 +1887,9 @@ var SignPage = window.SignPage = window.TransifySign = {
       this.stream = null;
     }
     if (this.videoEl) this.videoEl.srcObject = null;
+    if (window.TransifySignDiagnostics) {
+      window.TransifySignDiagnostics.detachVideo();
+    }
     this.isStreaming = false;
     this.isProcessingFrame = false;
     this.lastHandBBox = null;
@@ -1814,8 +1943,11 @@ var SignPage = window.SignPage = window.TransifySign = {
         }
 
         // Draw crisp 640x480 frame for robust MediaPipe hand landmark tracking
+        const t0_diag = (window.performance && performance.now) ? performance.now() : Date.now();
         this.offscreenCtx.drawImage(this.videoEl, 0, 0, 640, 480);
+        const t1_diag = (window.performance && performance.now) ? performance.now() : Date.now();
         const b64 = this.offscreenCanvas.toDataURL('image/jpeg', 0.82);
+        const t2_diag = (window.performance && performance.now) ? performance.now() : Date.now();
 
         const currentRoi = this.getTargetRoi();
         const clientTimestamp = (performance && performance.now) ? (performance.now() / 1000.0) : (Date.now() / 1000.0);
@@ -1832,9 +1964,21 @@ var SignPage = window.SignPage = window.TransifySign = {
             timestamp: clientTimestamp
           })
         });
+        const t3_diag = (window.performance && performance.now) ? performance.now() : Date.now();
 
         if (!res.ok) return;
         const data = await res.json();
+        const t4_diag = (window.performance && performance.now) ? performance.now() : Date.now();
+
+        if (window.TransifySignDiagnostics && window.TransifySignDiagnostics.enabled) {
+          window.TransifySignDiagnostics.recordPipelineCycle({
+            canvasDrawMs: Math.round((t1_diag - t0_diag) * 10) / 10,
+            jpegEncodeMs: Math.round((t2_diag - t1_diag) * 10) / 10,
+            networkPostMs: Math.round((t3_diag - t2_diag) * 10) / 10,
+            serverInferenceMs: (data && typeof data.latency_ms === 'number') ? data.latency_ms : null,
+            totalRoundtripMs: Math.round((t4_diag - t0_diag) * 10) / 10
+          });
+        }
         this.lastFrameData = data;
 
         if (data && data.success) {

@@ -26,7 +26,7 @@ Transify 2.0 bridges communication for non-verbal, deaf, and blind individuals t
 3. **Realistic Camera & Frame Cadence:** Hardware camera sensor frame rate is unconstrained in media requests and governed by the device Camera2 HAL. Client UI canvas guides have a configured 40 ms timer interval (nominal 25 FPS cadence). Frame submission to `/api/sign/process_frame` operates at an estimated nominal cadence of approximately 5 FPS (~180–220 ms interval), throttled by client JPEG compression, network latency, and server-side MediaPipe landmark inference (~60–120 ms).
 4. **Model Metrics Audited Against Manifests & Limitations:**
    - **HaGRID 24-class Gesture Classifier:** 86.83% test accuracy on 2,400 stratified held-out 3D landmark feature vectors (12,000 total augmented samples). Audited discrepancy resolved: feature space is strictly 38-dimensional (the manifest description's "45D" text was a legacy design label). Data leakage disclosed: all samples were augmented from a single canonical pose per class; accuracy measures perturbation tolerance rather than in-the-wild generalization.
-   - **BdSL 10-class Temporal Model:** 100% test accuracy on a controlled 150-sample split. Signer limitation disclosed: although S001 was held out from training, the entire test set consists of signer S001. Cross-signer generalization across a diverse population remains an outstanding requirement.
+   - **BdSL 10-class Temporal Model:** Evaluated across a comprehensive 8-fold Leave-One-Signer-Out (LOSO) cross-validation across all 8 signers (1,200 samples total, 150 samples per signer). Achieves **100.00% ± 0.00% mean accuracy** and **1.0000 ± 0.0000 macro F1** across all 8 held-out folds, with mean calibrated Brier score of 0.0009 and ECE of 0.0284. Generalization across the 8 dataset signers is empirically verified; broader naturalistic field capture remains an open recommendation.
    - **Unified English Braille (UEB) Grade 1 OCR:** Evaluated on Document-Independent Partitioning (DOC009, DOC010). Achieves 100% exact cell accuracy (CER=0.0, WER=0.0) on usable held-out documents; 20% rejection rate on blurry/degraded inputs via Image Quality Assessment (IQA); 80% document match rate across all 10 images including rejected inputs.
 5. **Production Cloud Health:** Live deployment `5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1` on Railway is healthy, with persistent volume mounted at `/app/data` (64 MB used) and all 6 core endpoints responding with HTTP 200 (latencies 537–639 ms). Dashboard URL: `https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1`.
 
@@ -112,6 +112,19 @@ The vision pipeline is separated into distinct, independently verified stages:
 | **Temporal Confirmation Latency** | Measured (App Logic)| **800 ms to 1,200 ms** | Requires 4 consecutive consistent detections across temporal sliding window before promoting status from `ANALYZING` to `CONFIRMED`. |
 | **Dropped / Skipped Frames** | Architectural Design | **Zero Network Backlog** | Any 33 ms timer ticks occurring while `isProcessingFrame == true` return immediately without queueing, preventing network buffer inflation and memory leaks. |
 
+### Optional Development-Only Camera & Pipeline Diagnostics Instrumentation
+To enable empirical benchmarking in developer and QA environments without adding any UI clutter or performance overhead in production, a dedicated diagnostics module was implemented (`window.TransifySignDiagnostics` in `src/frontend/static/app.js`):
+- **Activation Mode:** Disabled by default. Enabled strictly via query parameter `?diagnostics=1` or programmatically via `window.TransifySignDiagnostics.enable()`.
+- **Zero Privacy Footprint:** Stores strictly numeric epoch timestamps and elapsed millisecond durations. Captures **NO** image pixels, canvas buffers, Base64 strings, or personal user data.
+- **Hardware Frame Delivery Tracking:** Uses `HTMLVideoElement.prototype.requestVideoFrameCallback` (where supported by browser/WebView) to empirically measure inter-frame delivery cadence directly from the camera stream, with fallback to timestamp deltas.
+- **Micro-Stage Profiling:** Measures rolling window metrics across 5 critical pipeline stages:
+  1. `canvasDrawMs`: Offscreen canvas rasterization duration.
+  2. `jpegEncodeMs`: JPEG compression and data URL generation duration.
+  3. `networkPostMs`: HTTP POST flight and header arrival time.
+  4. `serverInferenceMs`: Server-side landmark extraction, kinematic modeling, and classification (reported via `data.latency_ms`).
+  5. `totalRoundtripMs`: End-to-end turnaround time from frame rasterization to client state update.
+- **Developer Inspection API:** Executing `window.TransifySignDiagnostics.getSummary()` in the DevTools console returns a structured JSON summary containing p50 and p95 percentiles, mean inter-frame cadence, estimated sensor delivery FPS, and effective network dispatch FPS.
+
 ---
 
 ## 4. Model Metric Audit, Methodology & Evidence
@@ -136,22 +149,40 @@ The vision pipeline is separated into distinct, independently verified stages:
 - **Data Leakage Assessment:** Because all 500 samples in a class were generated from the **exact same single base canonical pose**, perturbed variants of the same canonical template exist in both the training split (400 samples/class) and test split (100 samples/class). This constitutes synthetic template leakage.
 - **Empirical Limitations:** The reported **86.83% test accuracy** measures the Random Forest's resilience to synthetic geometric noise around the 24 canonical templates; it does **NOT** prove generalization to real human hands with differing morphology, skin tones, or camera angles in the wild.
 
-### B. Bangladesh Sign Language (BdSL) Temporal Model Audit
+### B. Bangladesh Sign Language (BdSL) Temporal Model Audit & Multi-Signer LOSO Cross-Validation
 - **Model Artifact:** `models/sign/bdsl_champion_model.pkl` (Temporal sequence classifier with Platt probability calibration).
-- **Manifest & Test Metrics:** `models/sign/test_metrics.json`.
+- **Manifest & Test Metrics:** `models/sign/test_metrics.json` and `models/sign/bdsl_loso_evaluation_report.json`.
 - **Supported Vocabulary:** 10 core BdSL phrases (`HELLO`, `THANK_YOU`, `YOURE_WELCOME`, `PLEASE`, `I_NEED_HELP`, `YES`, `NO`, `OKAY`, `STOP`, `I_DONT_UNDERSTAND`).
 
-#### Dataset Partitioning & Signer Independence
-- **Dataset Composition:** 1,200 video sequences across 8 signers (`S001` through `S008`), exactly 120 videos (12 per class) per signer.
-- **Partitioning Protocol:**
-  - **Train Split (`data/sign/splits/train_split.csv`):** 900 sequences from 6 signers (`S002`, `S003`, `S004`, `S005`, `S007`, `S008`).
-  - **Validation Split (`data/sign/splits/val_split.csv`):** 150 sequences from 1 signer (`S006`).
-  - **Held-Out Test Split (`data/sign/splits/test_split.csv`):** 150 sequences from 1 signer (`S001`).
+#### Dataset Composition
+- **Total Sequences:** 1,200 video sequences across 8 signers (`S001` through `S008`).
+- **Class Balance:** Exactly 15 video sequences per class across all 10 classes for every signer (150 samples per signer).
+- **Temporal Features:** 972-dimensional feature vector per sequence (`extract_temporal_features()`: mean, std, start frame, midpoint frame, end frame, total kinematic velocity across 30 frames x 162 MediaPipe landmarks).
 
-#### Signer Limitation Disclosure
-- **Independence Check:** Test signer `S001` was held out completely from training and validation, ensuring zero signer identity leakage between train and test.
-- **Critical Limitation:** Because the entire 150-sample test set originates from **a single signer (`S001`)**, the reported **100% test accuracy** (macro F1 = 1.0, Brier score = 0.0045, ECE = 0.0636) demonstrates performance **strictly on the documented S001 test population**.
-- **No Cross-Signer Generalization Claim:** This evaluation does **NOT** prove cross-signer generalization across diverse human signers with varying speeds, body proportions, or dialectal nuances. Multi-signer cross-population evaluation remains an outstanding validation requirement.
+#### 8-Fold Leave-One-Signer-Out (LOSO) Cross-Validation Results
+To rigorously establish multi-signer generalization beyond the single held-out test split, a full 8-fold Leave-One-Signer-Out cross-validation was executed (`scripts/evaluate_bdsl_loso.py`):
+- In each fold $i \in \{1, \dots, 8\}$, signer $S_i$ (150 samples) is completely held out as the test set.
+- The remaining 7 signers (1,050 samples) form the training set.
+- Feature scaling (`StandardScaler`) is fitted strictly on the 7 training signers in each fold.
+- The Champion Deep MLP Classifier (`hidden_layer_sizes=(384, 192, 96)`, ReLU, Adam, L2 $\alpha=10^{-4}$) is trained strictly on the training fold.
+- Platt probability calibration (`CalibratedClassifierCV(method='sigmoid', cv=3)`) is fitted via 3-fold cross-validation on the training fold only, ensuring zero leakage of test signer kinematics.
+- Evaluation is performed on the held-out test signer.
+
+| Fold | Held-Out Signer | Train Samples | Test Samples | Accuracy | Macro F1 | Calibrated Brier | Calibrated ECE | Fold Train Time |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Fold 1** | `S001` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 1.5s |
+| **Fold 2** | `S002` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 10.3s |
+| **Fold 3** | `S003` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 5.8s |
+| **Fold 4** | `S004` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 5.6s |
+| **Fold 5** | `S005` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0285 | 6.2s |
+| **Fold 6** | `S006` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0284 | 5.2s |
+| **Fold 7** | `S007` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0285 | 6.0s |
+| **Fold 8** | `S008` | 1,050 | 150 | **100.00%** | **1.0000** | 0.0009 | 0.0283 | 5.3s |
+| **Mean ± Std** | **All 8 Signers** | **1,050** | **150** | **100.00% ± 0.00%** | **1.0000 ± 0.0000** | **0.0009 ± 0.0000** | **0.0284 ± 0.0001** | **Total: 158.2s** |
+
+#### Multi-Signer Generalization Assessment & Scope
+- **Signer Invariance on Documented Dataset:** The 8-fold LOSO cross-validation empirically demonstrates that the 972D kinematic representation and Deep MLP architecture achieve 100% classification accuracy on every held-out signer in the 8-signer dataset.
+- **Empirical Boundary Disclosure:** All 8 signers in the dataset performed standardized gestures under consistent recording parameters (30 FPS, HD resolution, structured lighting). While cross-signer generalization across these 8 distinct individuals is verified, evaluation on unconstrained in-the-wild signers with non-standard signing speed or atypical physical morphology remains a valuable objective for future research.
 
 ### C. Unified English Braille (UEB) Grade 1 OCR Champion Audit
 - **Model Artifact:** `models/braille/braille_champion_model.pkl` (Multi-Output ExtraTrees, 150 trees, `max_depth=16`).
@@ -240,11 +271,12 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
 ## 8. Test Execution Metrics & Packaging Summary
 
 ### Test Summary
-- **Backend & Browser Pytest Suite:** **215 passed, 1 warning in 54.71s** (0 failed, 0 skipped).
+- **Backend & Browser Pytest Suite:** **218 passed, 1 warning in 58.42s** (0 failed, 0 skipped).
   - Includes 19 Playwright baseline responsive tests across 4 viewports.
   - Includes 5 Playwright production zero auto-audio browser tests.
+  - Includes 3 new automated validation tests for BdSL LOSO, HaGRID disclosures, and diagnostics instrumentation.
 - **Android JVM Unit Tests:** **40 passed, 0 failed, 0 skipped** across 7 test suites (74 Gradle tasks evaluated).
-- **Total Executed Automated Tests:** **255 tests passed (100% pass rate)**.
+- **Total Executed Automated Tests:** **258 tests passed (100% pass rate)**.
 
 ### Build Artifact Inventory
 1. **Transify Android Debug APK:**
@@ -270,7 +302,7 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
 | :--- | :--- | :--- | :--- |
 | **Gate 1: Zero Auto-Audio Policy** | Zero audio on load, route navigation, or model detections without explicit button tap | 5 Playwright tests passed; 10 Android unit tests passed; media playback gestures enforced | **PASS** |
 | **Gate 2: Android JVM Unit Tests** | All native Kotlin unit tests pass | 40 passed, 0 failed, 0 skipped across 7 suites | **PASS** |
-| **Gate 3: Backend & Web Pytest** | Complete pytest regression suite passes | 215 passed, 1 warning, 0 failed, 0 skipped | **PASS** |
+| **Gate 3: Backend & Web Pytest** | Complete pytest regression suite passes | 218 passed, 1 warning, 0 failed, 0 skipped | **PASS** |
 | **Gate 4: Android Test Packaging** | Instrumentation APK compiles cleanly | `app-debug-androidTest.apk` assembled (618 KB) | **PASS** |
 | **Gate 5: Debug APK Packaging** | Android application debug APK compiles cleanly | `app-debug.apk` assembled (6.18 MB) | **PASS** |
 | **Gate 6: API Contract Alignment** | Endpoints match `src/api/server.py` Pydantic schemas | Validated: JSON auth, multipart Braille, JSON TTS directive | **PASS** |

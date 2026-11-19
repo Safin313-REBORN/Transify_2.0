@@ -1,0 +1,1790 @@
+{
+  "evaluation_name": "BdSL Multi-Signer Leave-One-Signer-Out (LOSO) Cross-Validation",
+  "timestamp": "2026-11-19 17:43:29 UTC",
+  "manifest_path": "data/sign/annotations/dataset_master_manifest.csv",
+  "manifest_sha256": "6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f",
+  "total_signers": 8,
+  "signers": [
+    "S001",
+    "S002",
+    "S003",
+    "S004",
+    "S005",
+    "S006",
+    "S007",
+    "S008"
+  ],
+  "total_samples": 1200,
+  "samples_per_signer": 150,
+  "classes_evaluated": 10,
+  "feature_dimension": 972,
+  "champion_architecture": "Deep MLP (384-192-96, ReLU, Adam, Early Stopping, L2 Alpha=1e-4)",
+  "calibration_method": "Platt Sigmoid Scaling (3-fold CV on training fold)",
+  "summary_metrics": {
+    "mean_accuracy": 1.0,
+    "std_accuracy": 0.0,
+    "mean_macro_f1": 1.0,
+    "std_macro_f1": 0.0,
+    "mean_calibrated_brier": 0.0009,
+    "std_calibrated_brier": 0.0,
+    "mean_calibrated_ece": 0.0284,
+    "std_calibrated_ece": 0.0001,
+    "min_accuracy": 1.0,
+    "max_accuracy": 1.0,
+    "total_runtime_sec": 158.18
+  },
+  "per_signer_folds": [
+    {
+      "fold": 1,
+      "held_out_signer": "S001",
+      "train_signers": [
+        "S002",
+        "S003",
+        "S004",
+        "S005",
+        "S006",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0003,
+      "ece_raw": 0.0044,
+      "brier_score_calibrated": 0.0009,
+      "ece_calibrated": 0.0284,
+      "training_time_sec": 1.52,
+      "calibration_time_sec": 9.96,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 2,
+      "held_out_signer": "S002",
+      "train_signers": [
+        "S001",
+        "S003",
+        "S004",
+        "S005",
+        "S006",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "ece_raw": 0.0006,
+      "brier_score_calibrated": 0.0009,
+      "ece_calibrated": 0.0284,
+      "training_time_sec": 10.33,
+      "calibration_time_sec": 16.65,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 3,
+      "held_out_signer": "S003",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S004",
+        "S005",
+        "S006",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "ece_raw": 0.0005,
+      "brier_score_calibrated": 0.0009,
+      "ece_calibrated": 0.0284,
+      "training_time_sec": 5.78,
+      "calibration_time_sec": 12.44,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 4,
+      "held_out_signer": "S004",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S003",
+        "S005",
+        "S006",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "ece_raw": 0.0003,
+      "brier_score_calibrated": 0.0009,
+      "ece_calibrated": 0.0283,
+      "training_time_sec": 5.55,
+      "calibration_time_sec": 13.07,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 5,
+      "held_out_signer": "S005",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S003",
+        "S004",
+        "S006",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "ece_raw": 0.0003,
+      "brier_score_calibrated": 0.0009,
+      "ece_calibrated": 0.0285,
+      "training_time_sec": 6.2,
+      "calibration_time_sec": 15.14,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 6,
+      "held_out_signer": "S006",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S003",
+        "S004",
+        "S005",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "ece_raw": 0.0011,
+      "brier_score_calibrated": 0.0009,
+      "ece_calibrated": 0.0284,
+      "training_time_sec": 5.23,
+      "calibration_time_sec": 13.95,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 7,
+      "held_out_signer": "S007",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S003",
+        "S004",
+        "S005",
+        "S006",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "ece_raw": 0.0002,
+      "brier_score_calibrated": 0.0009,
+      "ece_calibrated": 0.0285,
+      "training_time_sec": 6.04,
+      "calibration_time_sec": 14.33,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 8,
+      "held_out_signer": "S008",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S003",
+        "S004",
+        "S005",
+        "S006",
+        "S007"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "ece_raw": 0.0002,
+      "brier_score_calibrated": 0.0009,
+      "ece_calibrated": 0.0283,
+      "training_time_sec": 5.33,
+      "calibration_time_sec": 15.12,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    }
+  ]
+}
