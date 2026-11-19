@@ -22,6 +22,7 @@
       this.bindDOMEvents();
       this.checkGoogleConfig();
       this.bindArtworkErrorHandling();
+      this.checkUrlResetToken();
     },
 
     /**
@@ -546,21 +547,86 @@
       }
     },
 
+    checkUrlResetToken: function() {
+      var token = null;
+      var hash = window.location.hash || '';
+      if (hash) {
+        var match = hash.match(/reset_token=([A-Za-z0-9_-]+)/);
+        if (match && match[1]) {
+          token = match[1];
+        }
+      }
+      if (!token && window.location.search) {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var qToken = params.get('reset_token');
+          if (qToken && /^[A-Za-z0-9_-]+$/.test(qToken)) {
+            token = qToken;
+          }
+        } catch (e) {}
+      }
+
+      if (token) {
+        // Strip the token from visible browser URL without reloading page or logging token
+        if (window.history && window.history.replaceState) {
+          var cleanPath = window.location.pathname;
+          if (window.location.search) {
+            try {
+              var sp = new URLSearchParams(window.location.search);
+              sp.delete('reset_token');
+              var rem = sp.toString();
+              if (rem) cleanPath += '?' + rem;
+            } catch (e) {}
+          }
+          window.history.replaceState(null, document.title, cleanPath);
+        }
+
+        // Open sheet if on landing page
+        var sheet = document.getElementById('auth-sheet-container');
+        if (sheet) {
+          sheet.classList.add('active');
+          sheet.setAttribute('aria-hidden', 'false');
+        }
+
+        this.revealResetForm(null, token);
+      }
+    },
+
     revealResetForm: function(email, testToken) {
       this.activeMode = 'reset';
       var title = document.getElementById('auth-heading-title');
       var subtitle = document.getElementById('auth-heading-subtitle');
+      var groupFullname = document.getElementById('group-fullname');
+      var inputFullname = document.getElementById('input-fullname');
       var groupEmail = document.getElementById('group-email') || (document.getElementById('input-email') ? (document.getElementById('input-email').closest('.input-group') || document.getElementById('input-email').closest('.auth-input-row')) : null);
       var inputEmail = document.getElementById('input-email');
+      var groupPassword = document.getElementById('group-password') || (document.getElementById('input-password') ? (document.getElementById('input-password').closest('.input-group') || document.getElementById('input-password').closest('.auth-input-row')) : null);
+      var inputPassword = document.getElementById('input-password');
+      var groupTerms = document.getElementById('group-terms');
+      var groupRemember = document.getElementById('auth-options-row');
+      var divider = document.querySelector('.auth-divider') || document.querySelector('.auth-split-line');
+      var googleBtn = document.getElementById('google-login-btn');
       var forgotFields = document.getElementById('auth-forgot-fields');
       var btnText = document.getElementById('btn-text');
+      var switchPromptText = document.getElementById('switch-prompt-text');
+      var switchPromptLink = document.getElementById('switch-prompt-link');
 
       if (title) title.textContent = 'Set New Password';
       if (subtitle) subtitle.textContent = 'Enter the reset code and choose a secure password (15+ chars)';
+      if (groupFullname) groupFullname.style.display = 'none';
+      if (inputFullname) inputFullname.removeAttribute('required');
       if (groupEmail) groupEmail.style.display = 'none';
       if (inputEmail) inputEmail.removeAttribute('required');
+      if (groupPassword) groupPassword.style.display = 'none';
+      if (inputPassword) inputPassword.removeAttribute('required');
+      if (groupTerms) groupTerms.style.display = 'none';
+      if (groupRemember) groupRemember.style.display = 'none';
+      if (divider) divider.style.display = 'none';
+      if (googleBtn) googleBtn.style.display = 'none';
       if (forgotFields) forgotFields.style.display = 'block';
       if (btnText) btnText.textContent = 'Set New Password';
+      if (switchPromptText) switchPromptText.textContent = 'Remembered your password?';
+      if (switchPromptLink) switchPromptLink.textContent = 'Back to Login';
 
       var tokenInput = document.getElementById('input-reset-token');
       if (tokenInput && testToken) {

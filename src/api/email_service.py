@@ -15,6 +15,30 @@ from typing import Optional, List, Dict, Any
 logger = logging.getLogger("transify.email")
 
 
+def get_canonical_app_url() -> str:
+    """
+    Returns the configured canonical application URL.
+    Validates that production environments strictly require HTTPS.
+    Never trusts incoming request Host headers.
+    """
+    try:
+        from src.database.db import is_production
+        prod = is_production()
+    except Exception:
+        prod = os.getenv("TRANSIFY_ENV", "").lower() == "production"
+
+    raw_url = os.getenv("APP_URL", "").strip()
+    if prod:
+        if not raw_url:
+            raw_url = "https://transify20-production.up.railway.app"
+        if not raw_url.startswith("https://"):
+            raise ValueError(f"APP_URL in production must use HTTPS: '{raw_url}'")
+    else:
+        if not raw_url:
+            raw_url = "http://localhost:8000"
+    return raw_url.rstrip("/")
+
+
 class EmailDeliveryError(Exception):
     """Raised when an email cannot be sent due to connection failure or SMTP rejection."""
     pass
@@ -92,8 +116,8 @@ class SMTPEmailAdapter(EmailAdapter):
         if not clean_to:
             raise EmailDeliveryError("Recipient email address is required.")
 
-        app_url = (base_url or os.getenv("APP_URL", "https://transify20-production.up.railway.app")).rstrip("/")
-        reset_url = f"{app_url}/login?reset_token={reset_token}"
+        app_url = (base_url or get_canonical_app_url()).rstrip("/")
+        reset_url = f"{app_url}/login#reset_token={reset_token}"
 
         msg = MIMEMultipart("alternative")
         msg["Subject"] = "Transify — Password Reset Request"
@@ -124,12 +148,12 @@ Breaking Communication Barriers
             else:
                 server = smtplib.SMTP(self.host, self.port, timeout=10.0)
 
-            with server:
+            with server as s:
                 if self.use_tls and not self.use_ssl:
-                    server.starttls()
+                    s.starttls()
                 if self.user and self.password:
-                    server.login(self.user, self.password)
-                server.send_message(msg)
+                    s.login(self.user, self.password)
+                s.send_message(msg)
 
             logger.info(f"Successfully delivered password reset email to recipient [{recipient_hash}].")
             return True
@@ -171,8 +195,8 @@ class MockMailAdapter(EmailAdapter):
             raise EmailDeliveryError(f"Simulated SMTP error: {self.simulated_error}")
 
         clean_to = (to_email or "").strip().lower()
-        app_url = (base_url or "https://transify20-production.up.railway.app").rstrip("/")
-        reset_url = f"{app_url}/login?reset_token={reset_token}"
+        app_url = (base_url or get_canonical_app_url()).rstrip("/")
+        reset_url = f"{app_url}/login#reset_token={reset_token}"
 
         record = {
             "to": clean_to,

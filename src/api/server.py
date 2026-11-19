@@ -71,6 +71,7 @@ from src.database.db import (
     count_legacy_history,
     create_password_reset_token,
     verify_and_consume_reset_token,
+    invalidate_password_reset_token,
     create_hub_conversation,
     get_hub_conversations,
     get_hub_messages,
@@ -1311,51 +1312,57 @@ def forgot_password(req: ForgotPasswordRequest, request: Request):
     Initiates a password reset workflow.
     Generates a cryptographically secure single-use token, stores only its SHA-256 hash,
     and enforces rate limiting. Delivers instructions using configured email adapter.
-    Returns generic non-enumerating response or truthful service-unavailable status.
+    Always returns an identical generic response (HTTP 200) to prevent account enumeration,
+    regardless of whether the account exists, is disabled, or whether SMTP delivery fails.
     """
     client_ip = request.client.host if request.client else "unknown"
-    if is_login_rate_limited(f"reset_ip:{client_ip}", max_attempts=30) or (req.email and is_login_rate_limited(f"reset_email:{req.email.lower()}", max_attempts=5)):
+    clean_email = (req.email or "").strip().lower()
+    if is_login_rate_limited(f"reset_ip:{client_ip}", max_attempts=30) or (clean_email and is_login_rate_limited(f"reset_email:{clean_email}", max_attempts=5)):
         raise HTTPException(
             status_code=429,
             detail="Too many password reset requests. Please wait 5 minutes before trying again."
         )
 
     record_failed_login(f"reset_ip:{client_ip}", window_seconds=300.0)
-    record_failed_login(f"reset_email:{req.email.lower()}", window_seconds=300.0)
+    if clean_email:
+        record_failed_login(f"reset_email:{clean_email}", window_seconds=300.0)
 
     adapter = get_email_adapter()
-    if not adapter.is_configured():
+    adapter_configured = adapter.is_configured()
+    if not adapter_configured:
         logger.warning("Password reset requested but email delivery adapter is not configured.")
-        raise HTTPException(
-            status_code=503,
-            detail="Password reset email delivery is currently unavailable. Please contact support@transify.ai or try again later."
-        )
 
-    user = get_user_by_email(req.email)
+    user = get_user_by_email(clean_email) if clean_email else None
     raw_token = None
+    token_hash = None
+
     if user and user.get("role") != "disabled":
         raw_token, token_hash = create_password_reset_token(user["id"], expires_in_seconds=1800.0)
-        base_url = str(request.base_url).rstrip("/")
-        try:
-            adapter.send_password_reset_email(user["email"], raw_token, base_url=base_url)
-        except EmailDeliveryError as err:
-            logger.error(f"Email delivery adapter error: {err}")
-            raise HTTPException(
-                status_code=503,
-                detail="Password reset email delivery failed. Please contact support@transify.ai or try again later."
-            )
-        except Exception as ex:
-            logger.error(f"Unexpected email delivery exception: {ex}")
-            raise HTTPException(
-                status_code=503,
-                detail="Password reset email delivery failed. Please contact support@transify.ai or try again later."
-            )
+        if adapter_configured:
+            try:
+                adapter.send_password_reset_email(user["email"], raw_token)
+            except Exception as ex:
+                logger.error(f"Password reset delivery failure: {type(ex).__name__}")
+                # Invalidate the token so it cannot remain usable unnecessarily
+                invalidate_password_reset_token(token_hash)
+                raw_token = None
+        else:
+            # Email delivery adapter not configured: invalidate token immediately
+            invalidate_password_reset_token(token_hash)
+            raw_token = None
 
     resp_body = {
         "status": "success",
         "message": "If an account with that email exists, password reset instructions have been processed."
     }
-    if not is_production() and raw_token:
+
+    # Test-only reset token exposure exclusively in an explicitly configured test environment
+    is_test_env = (
+        not is_production()
+        and os.getenv("TRANSIFY_ENV") == "testing"
+        and os.getenv("TRANSIFY_EXPOSE_TEST_TOKENS") == "1"
+    )
+    if is_test_env and raw_token:
         resp_body["test_token"] = raw_token
 
     return resp_body

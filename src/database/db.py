@@ -925,6 +925,28 @@ def create_password_reset_token(user_id: int, expires_in_seconds: float = 1800.0
     return raw_token, token_hash
 
 
+def invalidate_password_reset_token(token_hash_or_raw: str) -> bool:
+    """
+    Invalidates a password reset token so it cannot be used.
+    Called when email delivery fails or email service is unconfigured.
+    Accepts either raw token or token_hash.
+    """
+    if not token_hash_or_raw:
+        return False
+    token_hash = (
+        token_hash_or_raw
+        if len(token_hash_or_raw) == 64
+        else hashlib.sha256(token_hash_or_raw.encode("utf-8")).hexdigest()
+    )
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM password_reset_tokens WHERE token_hash = ?;", (token_hash,))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted
+
+
 def verify_and_consume_reset_token(raw_token: str, new_password: str) -> bool:
     """
     Validates token, updates user's password with Argon2id, revokes all active sessions for that user,

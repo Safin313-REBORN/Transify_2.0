@@ -1,7 +1,7 @@
 # Transify 2.0 — AI-Powered Accessible Multi-Modal Communication Platform
 
 > **Tagline:** *Breaking Communication Barriers through Artificial Intelligence.*  
-> **Status:** Production Ready · 4 Modules Deployed · 167/167 Automated Tests Passing · CI Verified
+> **Status:** Production Ready · 4 Modules Deployed · 176/176 Automated Tests Passing · CI Verified
 
 ---
 
@@ -48,7 +48,7 @@ Transify 2.0 integrates **four dedicated AI modules**, an accessible **Communica
 - **Argon2id Password Hashing:** Robust password protection with transparent on-login upgrade from legacy PBKDF2.
 - **Strict Cookie-Only Authentication:** Session tokens are delivered exclusively through secure, HttpOnly, SameSite=Lax cookies; raw tokens are never exposed in localStorage or response JSON.
 - **Explicit Terms & Privacy Consent:** Registration strictly requires explicit consent (`consent_terms: true`), rejecting missing or false fields with HTTP 422 and recording verifiable consent timestamps.
-- **Configurable Password Reset Adapter:** Single-use SHA-256 hashed reset tokens with bounded 30-minute expiry, non-enumerating generic responses, atomic session revocation, and configurable SMTP delivery.
+- **Password Reset Anti-Enumeration & Deep-Links:** Single-use SHA-256 hashed reset tokens with bounded 30-minute expiry, identical non-enumerating generic responses across all scenarios, automatic token invalidation on dispatch failures, canonical HTTPS URL fragment deep-linking (`#reset_token=`), and configurable SMTP delivery with isolated transport testing.
 - **Exact-Origin CSRF Protection:** Whitelists legitimate production origins and blocks unverified cross-origin requests on state-changing endpoints.
 - **Atomic SQLite Rate Limiting:** High-concurrency transaction-safe rate limiter backed by SQLite WAL mode and `BEGIN IMMEDIATE` transactions.
 - **Versioned Migrations (1–7):** Guaranteed schema evolution preserving existing users, preferences, and translation histories with full idempotency.
@@ -139,7 +139,7 @@ Open your browser and navigate to:
 
 ## 💻 Development Instructions & Testing
 
-Transify 2.0 includes an exhaustive automated test suite with **167 tests** across unit, integration, security, migration, and browser Playwright workflows:
+Transify 2.0 includes an exhaustive automated test suite with **176 tests** across unit, integration, security, migration, and browser Playwright workflows:
 
 ```bash
 # Run full pytest test suite

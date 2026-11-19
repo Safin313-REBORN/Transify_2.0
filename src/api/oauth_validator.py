@@ -1,7 +1,11 @@
 """
-Google OpenID Connect / OAuth Security Validation Module.
-Enforces cryptographically sound validation of OAuth state, nonces,
-issuers, audience, token expiration, and replay prevention.
+Google OpenID Connect / OAuth Security Validation Helper (Reference / Inactive).
+
+IMPORTANT NOTICE:
+Google OAuth is explicitly DISABLED across Transify 2.0.
+This module provides claim-level verification and security checks for future reference,
+but is NOT an active OIDC authentication provider or login flow in this release.
+The API callback endpoint (/api/auth/oauth/google/callback) unconditionally rejects requests.
 """
 
 import time

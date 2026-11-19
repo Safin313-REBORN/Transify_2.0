@@ -21,6 +21,7 @@ _TEST_DB_PATH = os.path.join(_TEST_TEMP_DIR, "test_transify.db")
 os.environ["TRANSIFY_DATA_DIR"] = _TEST_TEMP_DIR
 os.environ["TRANSIFY_DB_PATH"] = _TEST_DB_PATH
 os.environ["TRANSIFY_ENV"] = "testing"
+os.environ["TRANSIFY_EXPOSE_TEST_TOKENS"] = "1"
 
 from src.database.db import init_db
 from src.api.email_service import set_email_adapter, MockMailAdapter

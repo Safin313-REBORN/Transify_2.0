@@ -12,7 +12,7 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 from src.api.server import app
-from src.database.db import create_user
+from src.database.db import create_user, create_password_reset_token
 
 def new_isolated_page(browser_instance, viewport={"width": 1280, "height": 800}):
     """Creates a new isolated browser context and page, ensuring clean cookies and storage."""
@@ -456,5 +456,110 @@ def test_language_and_accessibility_ui_toggles(live_server, browser_instance):
     page.click("#a11y-close-btn")
     assert not modal.is_visible()
     
+    page.close()
+
+
+def test_browser_password_reset_deep_link_desktop(live_server, browser_instance):
+    """
+    PHASE 2 E2E TEST (Desktop):
+    1. Obtains a cryptographically secure reset token.
+    2. Navigates to /login#reset_token=... in Chromium.
+    3. Verifies reset form opens automatically and token input is pre-filled.
+    4. Verifies history.replaceState strips token from browser address bar.
+    5. Submits valid new password (15+ chars).
+    6. Confirms old password is rejected and new password successfully authenticates.
+    """
+    email = f"deep_link_desktop_{int(time.time()*1000)}@transify.test"
+    old_pwd = "OldDesktopPassword123!_2026"
+    new_pwd = "NewDesktopPassword123!_2026"
+    user = create_user("Deep Link Desktop", email, old_pwd, consent_terms=True)
+    raw_token, _ = create_password_reset_token(user["id"], expires_in_seconds=1800.0)
+
+    page = new_isolated_page(browser_instance, viewport={"width": 1280, "height": 800})
+    reset_url = f"{live_server}/login#reset_token={raw_token}"
+    page.goto(reset_url)
+
+    # 1. Reset form must open automatically
+    page.wait_for_selector("#auth-forgot-fields:visible", timeout=5000)
+    title = page.locator("#auth-heading-title")
+    assert "Set New Password" in title.inner_text()
+
+    # 2. Token input must be prefilled
+    token_input = page.locator("#input-reset-token")
+    assert token_input.is_visible()
+    assert token_input.input_value() == raw_token
+
+    # 3. URL in browser address bar must NO LONGER display the raw token (fragment stripped)
+    assert raw_token not in page.url
+    assert "#reset_token=" not in page.url
+
+    # 4. Fill in new password and submit explicitly
+    new_pwd_input = page.locator("#input-new-password")
+    assert new_pwd_input.is_visible()
+    new_pwd_input.fill(new_pwd)
+    page.click("#auth-submit-btn")
+
+    # 5. Success alert displayed
+    page.wait_for_selector("#auth-alert:visible", timeout=5000)
+    alert_text = page.locator("#auth-alert").inner_text()
+    assert "successful" in alert_text.lower()
+
+    # 6. Verify old password no longer works
+    login_old = page.request.post(f"{live_server}/api/auth/login", data={"email": email, "password": old_pwd})
+    assert login_old.status == 401
+
+    # 7. Verify new password successfully logs in
+    login_new = page.request.post(f"{live_server}/api/auth/login", data={"email": email, "password": new_pwd})
+    assert login_new.status == 200
+
+    page.close()
+
+
+def test_browser_password_reset_deep_link_mobile(live_server, browser_instance):
+    """
+    PHASE 2 E2E TEST (Mobile Viewport):
+    1. Obtains a cryptographically secure reset token.
+    2. Navigates to /#reset_token=... on mobile (375x667).
+    3. Verifies auth slide-up sheet opens automatically with active state.
+    4. Verifies token is pre-filled and stripped from visible browser URL.
+    5. Submits new password and verifies password transition.
+    """
+    email = f"deep_link_mobile_{int(time.time()*1000)}@transify.test"
+    old_pwd = "OldMobilePassword123!_2026"
+    new_pwd = "NewMobilePassword123!_2026"
+    user = create_user("Deep Link Mobile", email, old_pwd, consent_terms=True)
+    raw_token, _ = create_password_reset_token(user["id"], expires_in_seconds=1800.0)
+
+    page = new_isolated_page(browser_instance, viewport={"width": 375, "height": 667})
+    reset_url = f"{live_server}/#reset_token={raw_token}"
+    page.goto(reset_url)
+
+    # 1. Slide-up sheet opens automatically on landing page
+    page.wait_for_selector("#auth-sheet-container.active", timeout=5000)
+    page.wait_for_selector("#auth-forgot-fields:visible", timeout=5000)
+
+    # 2. Token pre-filled and stripped from address bar
+    token_input = page.locator("#input-reset-token")
+    assert token_input.is_visible()
+    assert token_input.input_value() == raw_token
+    assert raw_token not in page.url
+    assert "#reset_token=" not in page.url
+
+    # 3. Enter new password and submit
+    page.fill("#input-new-password", new_pwd)
+    page.click("#auth-submit-btn")
+
+    # 4. Success alert displayed
+    page.wait_for_selector("#auth-alert:visible", timeout=5000)
+    alert_text = page.locator("#auth-alert").inner_text()
+    assert "successful" in alert_text.lower()
+
+    # 5. Old password rejected, new password accepted
+    login_old = page.request.post(f"{live_server}/api/auth/login", data={"email": email, "password": old_pwd})
+    assert login_old.status == 401
+
+    login_new = page.request.post(f"{live_server}/api/auth/login", data={"email": email, "password": new_pwd})
+    assert login_new.status == 200
+
     page.close()
 
