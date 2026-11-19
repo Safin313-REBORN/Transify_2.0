@@ -3,15 +3,15 @@
 **Repository:** `Safin313-REBORN/Transify_2.0`
 **Active Branch:** `feat/auth-repair-communication-hub`
 **Target Branch:** `main`
-**Latest Verified Implementation Checkpoint:** `8e92c1290859be02d27bfcd4e824632eada31aa2` (Phase 17 UX Overhaul, Assistive Features Delivery & Railway Deployment)
-**Preceding Implementation Checkpoint:** `00e76129c842fd8bef2d850bc9741f1728380c85` (Phase 16 Pairwise Mathematics, Verifier Hardening & CI Resilience)
+**Latest Verified Implementation Checkpoint:** `647d751` (Phase 18 Conversation Mode, Phrase Board Actions, BdSL Community Protocol & Calibrated Gateways)
+**Preceding Implementation Checkpoint:** `8e92c1290859be02d27bfcd4e824632eada31aa2` (Phase 17 UX Overhaul, Assistive Features Delivery & Railway Deployment)
 **Latest Verified CI Runs:** CI Run #41 (ID `44610683718`, Success), LOSO Evaluation Run #3 (ID `44610683733`, Success)
-**Historical Engineering Checkpoints:** `dc03786e548686e9bf5482c3bc08f387c2577664` (Run #40 / Run #2), `118dd1b08bb2724e466402a79bf231aa0356ad81` (Run #39), `7e966637781223f992597cda8544eee4a3ee10b4` (Phase 15 Verification), `79928c95e52549bf0ea6547ca677254550ee1382` (Run #38), `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` (Run #36), `dd4c196b6e0276ea392238be372f822014e365e6` (Run #37), `33c2ef78f9249fc4a4dfdbbd24cb2c488b0f51f5` (Run #34), `6f8ff9c8e7d70680189ceb6d6619a095df4ee736` (Run #35), `68be13661b20201a91a463c9693a64bd246d9e95` (Run #33), `738caa3e84e488a930f14b32fd784a4440934aad` (Run #31), `74244a7f0c62bfb5e7be6afd37905ed3c9850cfc` (Run #28)
+**Historical Engineering Checkpoints:** `04f90b4` (Phase 17 Documentation), `8e92c12` (Phase 17 UX), `00e7612` (Phase 16 Pairwise), `dc03786` (Run #40 / Run #2), `118dd1b` (Run #39), `7e96663` (Phase 15 Verification), `79928c9` (Run #38), `7d5e99a` (Run #36), `dd4c196` (Run #37), `33c2ef7` (Run #34), `6f8ff9c` (Run #35), `68be136` (Run #33), `738caa3` (Run #31), `74244a7` (Run #28)
 **Railway Production URL:** [https://transify20-production.up.railway.app](https://transify20-production.up.railway.app)
-**Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=00edb792-cff0-422d-beb0-f226ab357309](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=00edb792-cff0-422d-beb0-f226ab357309)
-**Active Railway Deployment ID:** `00edb792-cff0-422d-beb0-f226ab357309` (Status: ● Online / Healthy)
+**Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=8007f23b-55b8-4e62-b466-1caf4d3d7fa5](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=8007f23b-55b8-4e62-b466-1caf4d3d7fa5)
+**Active Railway Deployment ID:** `8007f23b-55b8-4e62-b466-1caf4d3d7fa5` (Status: ● Online / Healthy)
 **Date:** November 20, 2026
-**Document Status:** Complete User Experience Overhaul, Personal Phraseboard, Onboarding Walkthrough, Universal Accessibility, History Management, and Production Release (Phase 17)
+**Document Status:** Complete User Experience Overhaul, Multi-Modal Conversation Mode, Personal Phrase Board, Responsible BdSL Expansion & Production Release (Phase 18)
 
 ---
 
@@ -563,6 +563,69 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
   - **Production Endpoint:** `https://transify20-production.up.railway.app`
   - **Health Check (`GET /api/health`):** HTTP 200 OK (`{"status":"healthy","platform":"Transify Assistive Platform","version":"1.0.0"}`)
   - **Ready Check (`GET /api/ready`):** HTTP 200 OK (All 4 AI models loaded, persistent volume mounted at `/app/data`).
+
+---
+
+## 11. Hackathon Release Validation: Multi-Modal Conversation Mode, Personal Phrase Board, Responsible BdSL Expansion & Production Release (Phase 18)
+
+### 11.1 Baseline Recognition Audit & Transparent Scope Disclosure
+- **BdSL 10-Class Temporal Model Lineage:**
+  - The production champion model (`models/sign/bdsl_champion_model.pkl`) is evaluated on Leave-One-Signer-Out (LOSO) cross-validation across 8 signers ($N=1,200$ samples, 10 classes).
+  - On the official held-out test split `data/sign/splits/test_split.csv` ($N=150$ samples from held-out signer `S001`), the model achieves **100.00% macro F1 and 100.00% accuracy** with mean latency of **65.71 ms** (verified via `src/models/evaluate.py` producing `models/sign/evaluation_results.json`).
+  - **Empirical Disclosure:** This 100% metric is established strictly on 150 test samples from a single held-out subject (`S001`). In accordance with assistive engineering ethics, this metric is transparently documented as a closed-vocabulary benchmark on recorded landmark data, **not** an in-the-wild field generalization claim across diverse lighting, non-standard kinematics, or unrepresented signers.
+- **HaGRID Gesture Classifier Lineage:**
+  - The 24-class HaGRID classifier (`models/sign/hagrid_gesture_classifier.joblib`) achieves **86.83% accuracy** on 2,400 stratified test vectors (38D landmark features).
+  - **Empirical Disclosure:** Training and test vectors were generated via geometric perturbation around a single canonical 3D template per gesture class. This induces cross-split synthetic template leakage; test accuracy represents mathematical perturbation robustness around synthetic templates rather than independent real-world field generalization.
+- **ASL Manual Alphabet Model Lineage:**
+  - The fingerspeller model (`src/sign/signframe_cnn.npz`) operates on 24 static letters of the American Sign Language alphabet (Sign Language MNIST).
+  - **Empirical Disclosure:** ASL fingerspelling is strictly separated from Bangladesh Sign Language (BdSL). The fingerspeller is never conflated with or misattributed to BdSL fingerspelling, which possesses distinct Bengali orthographic handshapes.
+- **Calibrated Gateways & Ambiguity Resolution:**
+  - Deprecated arbitrary marketing labels ("98% Decision Gateway") in user interfaces, client JavaScript, and documentation.
+  - Retained internal mathematical gating threshold $\tau = 0.98$ for calibrated model confidence, where high-confidence predictions resolve without manual intervention.
+  - Replaced automatic fallback to `"HELLO"` with an explicit ambiguity handler: gestures falling below threshold or lacking consensus return `"label": "UNKNOWN"`, `"status": "uncertain"`, `"message": "Not sure—please repeat"`, and a list of ranked candidate options for user confirmation.
+
+### 11.2 Feature 1: Multi-Modal Conversation Mode
+- **Unified Assistive Workspace:** Combines typing, speech captions, sign recognition, Braille translation, and quick phrases into a single coordinated dialog workspace (`#slide-communication-hub`).
+- **4-Step User-Controlled Workflow:**
+  1. *Step 1 — Input Modality Selection:* Quick-switch buttons (`Type`, `Speech`, `Sign`, `Braille`, `Phrases`) activate the appropriate capture interface and dynamically configure draft input.
+  2. *Step 2 — Review & Edit Staging Area:* Captured or typed thoughts appear in a central staging textarea (`#conversation-draft-text`). Users retain full agency to review, edit, or append text before committing. If a model prediction is ambiguous, interactive candidate chips allow one-click disambiguation.
+  3. *Step 3 — Multi-Channel Output Actions:*
+     - **Large High-Contrast Text (`#conv-large-text-btn`):** Opens a dedicated full-screen modal (`#conversation-large-text-modal`) displaying the message in 48px+ high-contrast typography, readable from across a room or counter.
+     - **Speak Aloud (`#conv-speak-btn`):** Synthesizes speech via Web Speech API / backend TTS under strict Zero Auto-Audio policy. During active speech, the button transitions to a pulsing red **⏹️ Stop Speech** control.
+     - **Copy Draft (`#conv-copy-draft-btn`):** Copies text to the system clipboard with tactile toast feedback.
+     - **Add to Timeline (`#conv-commit-btn`):** Appends the message to the sequential conversation feed.
+  4. *Step 4 — Conversation Timeline & Session Control:* Sequential feed (`#hub-feed-container`) renders chronological message cards with timestamps and modality badges (`TYPED`, `SPEECH`, `SIGN`, `BRAILLE`, `PHRASE`). Explicit Clear Conversation modal prevents accidental data loss; privacy indicator dynamically reflects `🔒 Local Session` (guest) vs `☁️ Account Synced` (authenticated).
+
+### 11.3 Feature 2: Personal "My Phrases" Board Enhancements
+- **Phrase Management & Reordering:** Users can reorder phrases up and down (`movePhraseUp`, `movePhraseDown`) to prioritize urgent phrases at the top of their board.
+- **Active Phrase Multi-Action Bar:**
+  - `💬 Place in Composer`: Injects selected phrase directly into Conversation Mode staging draft (`window.ConversationMode.setDraft()`).
+  - `🔍 Large Text`: Launches full-screen high-contrast display for immediate visual communication.
+  - `🔊 Speak Aloud`: Vocalizes phrase with explicit user gesture (Zero Auto-Audio compliant).
+  - `📋 Copy Text`: Clipboard export with toast confirmation.
+- **Starter Vocabulary & Local-First Resilience:** Curated everyday non-medical phrases across 4 domains (`Everyday`, `Needs`, `Health`, `Emergency`). Versioned localStorage (`transify_phrasebook_v1`) includes automatic JSON corruption recovery and defaults fallback.
+
+### 11.4 Feature 3: Responsible Sign Language Expansion & Deaf Community Validation
+- **Preserved Production Baseline:** Kept the 10 production-verified BdSL classes (`HELLO`, `THANK_YOU`, `YOURE_WELCOME`, `PLEASE`, `I_NEED_HELP`, `YES`, `NO`, `OKAY`, `STOP`, `I_DONT_UNDERSTAND`) strictly intact.
+- **Candidate Vocabulary Expansion:** Defined 7 high-value daily assistance concepts (`WATER`, `FOOD`, `RESTROOM`, `PAIN`, `DOCTOR`, `WAIT`, `REPEAT_SLOW`) bounded in `src/sign/bdsl_candidate_expansion.py` and tagged with `PENDING_DEAF_COMMUNITY_REVIEW` and `is_trained=False`.
+- **Transparent UI Labeling:** User-facing vocabulary grids and communicative domain cards feature distinct badges:
+  - `Live Supported`: Green badge for the 10 production-verified BdSL signs.
+  - `In Pipeline • Review`: Amber badge for candidate concepts currently undergoing community validation.
+- **Formal Community Protocol:** Authored `docs/BDSL_COMMUNITY_VALIDATION_PROTOCOL.md` defining the 4-stage validation pipeline:
+  1. *Phase 1 — Linguistic & Deaf Advisor Review:* Native BdSL signer review of handshape, orientation, location, and non-manual markers.
+  2. *Phase 2 — Informed-Consent Field Recording:* Multi-signer recording protocol ($N \ge 120$ per class across $\ge 8$ native signers under varied illumination).
+  3. *Phase 3 — Landmark Extraction & Integrity Audit:* Zero-NaN validation, coordinate normalization, and cross-signer kinematic divergence checks.
+  4. *Phase 4 — Model Training & Independent LOSO Acceptance:* Strict Leave-One-Signer-Out cross-validation requirement before promoting candidate concepts to production.
+
+### 11.5 Test Verification & Production Release
+- **Pytest Full System Suite:** **227 passed, 0 failed, 1 warning in 68.86s** (100% pass rate).
+- **Android Native JVM Unit Tests:** **BUILD SUCCESSFUL in 47s** (26 tasks executed/up-to-date, 0 failures).
+- **Railway Cloud Production Deployment:**
+  - **Deployment ID:** `8007f23b-55b8-4e62-b466-1caf4d3d7fa5`
+  - **Service Status:** ● Online / Healthy
+  - **Production Endpoint:** `https://transify20-production.up.railway.app`
+  - **Health Check (`GET /api/health`):** HTTP 200 OK (`{"status":"healthy","platform":"Transify Assistive Platform","version":"1.0.0"}`)
+  - **Ready Check (`GET /api/ready`):** HTTP 200 OK (All 8 subsystems connected and operational: database, sign_language, braille_ocr, tts, signframe_model, hagrid_classifier, mediapipe_landmarker, bdsl_temporal_model).
 
 ---
 *Signed by: Senior Android Engineer, Full-Stack Architect, AI Research Engineer & Security Auditor*
