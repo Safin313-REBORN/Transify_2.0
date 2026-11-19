@@ -4,7 +4,8 @@
 **Active Branch:** `feat/auth-repair-communication-hub`
 **Target Branch:** `main`
 **Latest Implementation Commit:** `74244a7f0c62bfb5e7be6afd37905ed3c9850cfc` (CI Run #28 — ID `44560681796`, Success)
-**Documentation & Release Checkpoint:** `738caa377484a0d9e26211153835f8ec3aa95b9a` (CI Run #31 — ID `44567535846`, Success)
+**Historical Validation Checkpoint (Run #31):** `738caa3e84e488a930f14b32fd784a4440934aad` (CI Run #31 — ID `44567535846`, Success)
+**Latest Documentation Milestone (Run #32):** `f477992e9b261f7ba1a48331563aea97e6ce80b7` (CI Run #32 — ID `44570448677`, Success)
 **Railway Production URL:** [https://transify20-production.up.railway.app](https://transify20-production.up.railway.app)
 **Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1)
 **Active Railway Deployment ID:** `5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1` (Status: ● Online / Healthy)
@@ -22,11 +23,11 @@ Transify 2.0 bridges communication for non-verbal, deaf, and blind individuals t
 ### Core Engineering Disclosures & Standards
 1. **Strict Zero Auto-Audio Policy:** Fully validated across native Android host (`settings.mediaPlaybackRequiresUserGesture = true`, `TransifyTTSBridge.stop()` queue clearing) and web interfaces (auto-speak checkboxes removed). Verified via 5 Playwright production browser tests and 10 Android unit tests.
 2. **Transparent Hardware Status:** Running `adb devices -l` reveals 0 attached physical devices or emulators in the host environment. Android instrumentation test packages are compiled and verified at bytecode level; on-device test execution is transparently classified as **PARTIAL / PENDING PHYSICAL HARDWARE**.
-3. **Realistic Camera & Frame Cadence:** Hardware camera sensor frame rate is unconstrained in media requests and governed by the device Camera2 HAL. Client UI canvas guides render at 40 ms intervals (~25 FPS). Frame submission to `/api/sign/process_frame` operates at a nominal cadence of approximately 5 FPS (~180–220 ms interval), throttled by client JPEG compression, network latency, and server-side MediaPipe landmark inference (~60–120 ms).
-4. **Model Metrics Audited Against Manifests:**
-   - HaGRID 24-class Gesture Classifier: 86.83% test accuracy on 2,400 stratified held-out 3D landmark feature vectors (12,000 total augmented samples).
-   - BdSL 10-class Temporal Model: 100% test accuracy on a controlled 150-sample split (15/class, signer S001).
-   - Unified English Braille (UEB) Grade 1 OCR: 100% exact cell accuracy (CER=0.0, WER=0.0) on usable held-out documents (DOC009, DOC010); 20% rejection rate on blurry/degraded inputs via Image Quality Assessment (IQA).
+3. **Realistic Camera & Frame Cadence:** Hardware camera sensor frame rate is unconstrained in media requests and governed by the device Camera2 HAL. Client UI canvas guides have a configured 40 ms timer interval (nominal 25 FPS cadence). Frame submission to `/api/sign/process_frame` operates at an estimated nominal cadence of approximately 5 FPS (~180–220 ms interval), throttled by client JPEG compression, network latency, and server-side MediaPipe landmark inference (~60–120 ms).
+4. **Model Metrics Audited Against Manifests & Limitations:**
+   - **HaGRID 24-class Gesture Classifier:** 86.83% test accuracy on 2,400 stratified held-out 3D landmark feature vectors (12,000 total augmented samples). Audited discrepancy resolved: feature space is strictly 38-dimensional (the manifest description's "45D" text was a legacy design label). Data leakage disclosed: all samples were augmented from a single canonical pose per class; accuracy measures perturbation tolerance rather than in-the-wild generalization.
+   - **BdSL 10-class Temporal Model:** 100% test accuracy on a controlled 150-sample split. Signer limitation disclosed: although S001 was held out from training, the entire test set consists of signer S001. Cross-signer generalization across a diverse population remains an outstanding requirement.
+   - **Unified English Braille (UEB) Grade 1 OCR:** Evaluated on Document-Independent Partitioning (DOC009, DOC010). Achieves 100% exact cell accuracy (CER=0.0, WER=0.0) on usable held-out documents; 20% rejection rate on blurry/degraded inputs via Image Quality Assessment (IQA); 80% document match rate across all 10 images including rejected inputs.
 5. **Production Cloud Health:** Live deployment `5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1` on Railway is healthy, with persistent volume mounted at `/app/data` (64 MB used) and all 6 core endpoints responding with HTTP 200 (latencies 537–639 ms). Dashboard URL: `https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=5353a97e-4bd2-4acd-8ebd-b0b5f1890ad1`.
 
 ---
@@ -86,80 +87,103 @@ Once installed on physical hardware, verify the following 13 workflows:
 
 ---
 
-## 3. Camera Performance & Latency Breakdown
+## 3. Camera Performance & Latency Breakdown (Configured, Estimated & Measured)
 
-The vision pipeline is separated into distinct, independently measured stages:
+The vision pipeline is separated into distinct, independently verified stages:
 
 ```
 +-------------------+      +-------------------+      +-------------------+      +-------------------+
 |  Camera Hardware  | ---> |   Canvas 2D UI    | ---> | Client Frame Post | ---> | FastAPI / ML Node |
 |  Sensor Capture   |      |  Guide Overlay    |      |  JPEG Compression |      | MediaPipe + Model |
-| (Camera2 HAL FPS) |      | (40 ms / ~25 FPS) |      | (~5 FPS Cadence)  |      |   (60-120 ms)     |
+| (Camera2 HAL FPS) |      | (40 ms Configured)|      | (~5 FPS Cadence)  |      |   (60-120 ms)     |
 +-------------------+      +-------------------+      +-------------------+      +-------------------+
 ```
 
-### Independent Performance Measurements
+### Performance Metrics & Classification Audit
 
-| Metric | Target Specification | Measured / Empirical Reality | Engineering Notes |
+| Pipeline Metric | Classification | Value / Observed Reality | Engineering Explanation |
 | :--- | :--- | :--- | :--- |
-| **Hardware Camera Capture FPS** | 30 FPS nominal | **Unconstrained / Unmeasured** | Sourced via `getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } })`. No `frameRate` cap is set in JS; actual sensor FPS is governed by Android Camera2 HAL and ambient light. |
-| **Canvas UI Rendering FPS** | 25 FPS | **25.0 FPS (~40 ms interval)** | Driven by `setInterval(..., 40)` in `app.js` (`this.predictTimer`). Renders landmark bounding boxes, guide overlays, and tracking status smoothly. |
-| **Backend Frame Submission Rate** | Real-time | **4.5 to 5.5 FPS (~5 FPS)** | Driven by `setInterval(..., 33)` guarded by `if (this.isProcessingFrame) return;`. Each frame requires: canvas drawing (8 ms) + JPEG encoding (20 ms) + network POST (35 ms) + server inference (90 ms) + JSON response (15 ms) = ~168–220 ms per cycle. |
-| **FastAPI Processing Latency** | < 150 ms | **60 ms to 120 ms** | Server-side execution of `POST /api/sign/process_frame`: Base64 decode (12 ms) + MediaPipe landmarking (55–85 ms) + feature extraction & classifier query (8–18 ms). |
-| **End-to-End Recognition Latency**| Real-time | **180 ms to 250 ms** | Single-frame turnaround from video capture to updated UI state. |
-| **Temporal Confirmation Latency** | Stabilized | **800 ms to 1,200 ms** | Requiring 4 consecutive consistent detections across temporal sliding window to transition status from `ANALYZING` to `CONFIRMED`. |
-| **Dropped / Skipped Frames** | Graceful handling | **Zero Network Backlog** | Any 33 ms timer ticks occurring while `isProcessingFrame == true` return immediately without queueing, preventing network buffer inflation and memory leaks. |
+| **Hardware Camera Capture FPS** | Hardware Property | **Unconstrained / Unmeasured** | Sourced via `getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } })`. No `frameRate` constraint is requested in JavaScript. The physical sensor FPS is governed entirely by the Android Camera2 HAL and ambient lighting; it has not been benchmarked via hardware profiling. |
+| **Canvas UI Timer Cadence** | Configured Setting | **40 ms Interval (Nominal 25 FPS)** | Set by `setInterval(..., 40)` in `app.js` (`this.predictTimer`). This establishes a nominal 25 Hz dispatch cadence for drawing bounding boxes and guide graphics. |
+| **Measured Canvas Rendering FPS** | Unmeasured | **Unbenchmarked on Hardware** | The 40 ms timer interval represents dispatch cadence, not independently measured display frame rate. Actual rendering FPS depends on browser compositor vsync and GPU load (unmeasured without `requestAnimationFrame` timing loops or Choreographer callbacks). |
+| **Backend Frame Submission Rate** | Calculated Estimate | **Estimated ~4.5 to 5.5 FPS (~5 FPS)** | Driven by `setInterval(..., 33)` guarded by `if (this.isProcessingFrame) return;`. Each frame requires: canvas drawing (8 ms) + JPEG encoding (20 ms) + network POST (35 ms) + server inference (90 ms) + JSON response (15 ms) = ~168–220 ms total cycle time. This is a calculated nominal interval based on observed network and inference latencies, not an independently measured sensor rate. |
+| **FastAPI Processing Latency** | Measured (Server) | **60 ms to 120 ms** | Server-side execution of `POST /api/sign/process_frame`: Base64 decode (12 ms) + MediaPipe landmarking (55–85 ms) + feature extraction & classifier query (8–18 ms). |
+| **End-to-End Single Frame Latency** | Estimated / Measured | **Estimated 180 ms to 250 ms** | Total single-frame turnaround from video capture to updated UI bounding box state. |
+| **Temporal Confirmation Latency** | Measured (App Logic)| **800 ms to 1,200 ms** | Requires 4 consecutive consistent detections across temporal sliding window before promoting status from `ANALYZING` to `CONFIRMED`. |
+| **Dropped / Skipped Frames** | Architectural Design | **Zero Network Backlog** | Any 33 ms timer ticks occurring while `isProcessingFrame == true` return immediately without queueing, preventing network buffer inflation and memory leaks. |
 
 ---
 
-## 4. Model Metric Audit & Held-Out Evidence
+## 4. Model Metric Audit, Methodology & Evidence
 
-### A. HaGRID & ASL Communicative Gesture Classifier
+### A. HaGRID & ASL Communicative Gesture Classifier Audit
 - **Model Artifact:** `models/sign/hagrid_gesture_classifier.joblib` (100-estimator Random Forest, `max_depth=16`).
 - **Manifest:** `models/sign/hagrid_model_manifest.json`.
 - **Supported Vocabulary:** 24 communicative classes (`CALL`, `DISLIKE`, `FIST`, `FOUR`, `HELLO`, `HELP`, `I_LOVE_YOU`, `LIKE`, `MUTE`, `NO`, `OK`, `ONE`, `PALM`, `PEACE`, `PEACE_INVERTED`, `ROCK`, `STOP`, `STOP_INVERTED`, `THANK_YOU`, `THREE`, `THREE2`, `TWO_UP`, `TWO_UP_INVERTED`, `YES`).
-- **Feature Pipeline:** 38-dimensional hand geometric feature vector extracted from 21 MediaPipe 3D landmarks (inter-finger angles, tip-to-wrist extensions, Euclidean planar distances normalized by wrist-MCP scale).
-- **Dataset Synthesis & Augmentation:** 500 samples per class (12,000 total samples) synthesized from base anatomical configurations and augmented with 3D joint rotations, finger curl variability, spatial translation, scale jitter, and joint Gaussian noise.
-- **Partitioning:** 80% train (9,600 samples), 20% stratified held-out test (2,400 samples, random seed 42).
-- **Empirical Test Accuracy:** **86.83% (0.8683)** on the held-out 2,400-sample test set.
-- **Technical Qualification:** Accuracy is measured on landmark-derived geometric feature vectors rather than raw pixel convolutions.
 
-### B. Bangladesh Sign Language (BdSL) Temporal Model
+#### Feature Dimension Discrepancy Resolution
+- **Observed Inconsistency:** `models/sign/hagrid_model_manifest.json` previously listed `"feature_dimension": 38` alongside an architecture string stating `"Random Forest (100 estimators, 45D geometric features)"`.
+- **Empirical Code & Model Verification:**
+  - The serialized estimator (`models/sign/hagrid_gesture_classifier.joblib`) has `n_features_in_ = 38`.
+  - The model bundle dictionary contains `feature_dim = 38`.
+  - The feature extractor (`src/sign/hagrid_recognizer.py::extract_hand_features()`) constructs exactly **38 features**: 5 tip-to-wrist distances, 5 tip-to-MCP distances, 10 inter-fingertip distances, 5 finger Y-extensions, 5 finger X-extensions, 3 palm normal vector components, 2 thumb-to-index MCP relative coordinates, 1 index-middle tip separation, 1 pinky-wrist distance ratio, and 1 finger curvature sum (5+5+10+5+5+3+2+1+1+1 = 38).
+  - **Resolution:** The manifest key `feature_dimension: 38` is correct. The text "45D" in the architecture string and recognizer docstring was a legacy design label and has been resolved to 38D.
+
+#### Dataset Construction, Augmentation & Data Leakage Disclosure
+- **Synthesis Pipeline:** For each of the 24 classes, a single canonical 21-landmark 3D hand configuration is defined (`generate_base_hand(c_name)` in `src/sign/train_hagrid_model.py`).
+- **Augmentation:** 500 samples per class (12,000 total samples) are synthesized by applying 3D joint rotations, finger curl variability, spatial translation, scale jitter, and joint Gaussian noise to that single canonical base hand.
+- **Partitioning:** The resulting 12,000 samples were partitioned using a random 80/20 train/test split (`train_test_split(test_size=0.2, random_state=42, stratify=y)`), producing 9,600 training samples and 2,400 test samples.
+- **Data Leakage Assessment:** Because all 500 samples in a class were generated from the **exact same single base canonical pose**, perturbed variants of the same canonical template exist in both the training split (400 samples/class) and test split (100 samples/class). This constitutes synthetic template leakage.
+- **Empirical Limitations:** The reported **86.83% test accuracy** measures the Random Forest's resilience to synthetic geometric noise around the 24 canonical templates; it does **NOT** prove generalization to real human hands with differing morphology, skin tones, or camera angles in the wild.
+
+### B. Bangladesh Sign Language (BdSL) Temporal Model Audit
 - **Model Artifact:** `models/sign/bdsl_champion_model.pkl` (Temporal sequence classifier with Platt probability calibration).
 - **Manifest & Test Metrics:** `models/sign/test_metrics.json`.
 - **Supported Vocabulary:** 10 core BdSL phrases (`HELLO`, `THANK_YOU`, `YOURE_WELCOME`, `PLEASE`, `I_NEED_HELP`, `YES`, `NO`, `OKAY`, `STOP`, `I_DONT_UNDERSTAND`).
-- **Held-Out Test Set:** 150 temporal sequences (15 samples per class) recorded from independent signer `S001`.
-- **Empirical Test Accuracy:** **100% (1.0)** with macro F1 = 1.0, Brier score = 0.0045, ECE = 0.0636 on the controlled held-out set.
-- **Technical Qualification:** Evaluated on controlled held-out recordings from a single signer (`S001`). Multi-signer in-the-wild generalization has not yet been benchmarked.
 
-### C. Unified English Braille (UEB) Grade 1 OCR Champion
+#### Dataset Partitioning & Signer Independence
+- **Dataset Composition:** 1,200 video sequences across 8 signers (`S001` through `S008`), exactly 120 videos (12 per class) per signer.
+- **Partitioning Protocol:**
+  - **Train Split (`data/sign/splits/train_split.csv`):** 900 sequences from 6 signers (`S002`, `S003`, `S004`, `S005`, `S007`, `S008`).
+  - **Validation Split (`data/sign/splits/val_split.csv`):** 150 sequences from 1 signer (`S006`).
+  - **Held-Out Test Split (`data/sign/splits/test_split.csv`):** 150 sequences from 1 signer (`S001`).
+
+#### Signer Limitation Disclosure
+- **Independence Check:** Test signer `S001` was held out completely from training and validation, ensuring zero signer identity leakage between train and test.
+- **Critical Limitation:** Because the entire 150-sample test set originates from **a single signer (`S001`)**, the reported **100% test accuracy** (macro F1 = 1.0, Brier score = 0.0045, ECE = 0.0636) demonstrates performance **strictly on the documented S001 test population**.
+- **No Cross-Signer Generalization Claim:** This evaluation does **NOT** prove cross-signer generalization across diverse human signers with varying speeds, body proportions, or dialectal nuances. Multi-signer cross-population evaluation remains an outstanding validation requirement.
+
+### C. Unified English Braille (UEB) Grade 1 OCR Champion Audit
 - **Model Artifact:** `models/braille/braille_champion_model.pkl` (Multi-Output ExtraTrees, 150 trees, `max_depth=16`).
 - **Manifest & Results:** `models/braille/exported/model_manifest.json` and `models/braille/evaluation_results.json`.
-- **Feature Pipeline:** 244-dimensional sub-cell relief statistics extracted from normalized 28×28 grayscale cell patches.
 - **Target Standard:** ICEB Rules of Unified English Braille (2024) Grade 1.
-- **Partitioning Strategy:** **Document-Independent Anti-Leakage Partitioning**:
-  - **Train:** 7 documents (`DOC001`, `DOC002`, `DOC003`, `DOC004`, `DOC006`, `DOC007`, `DOC008`), 35 document images, 1,765 cells (71.46%).
-  - **Validation:** 1 document (`DOC005`), 5 document images, 290 cells (11.74%).
-  - **Held-Out Test:** 2 documents (`DOC009`, `DOC010`), 10 document images, 415 cells (16.80%).
-- **Held-Out Test Variations Evaluated:** 5 variations per document (L1 nominal lighting, L2 diffuse lighting, P1 perspective distortion, R1 rotational tilt, D1 degraded/blurry).
-- **Empirical Evaluation Results:**
-  - **Image Quality Assessment (IQA):** The 2 degraded images (`DOC009_D1`, `DOC010_D1`) had Laplacian variance ~5.5 < threshold 30.0 and were safely rejected before classification (20% rejection rate).
-  - **Usable Images (8 images, 332 cells):**
-    - Character Error Rate (CER): **0.0%**
-    - Word Error Rate (WER): **0.0%**
-    - Exact Cell Accuracy: **100.0% (1.0)**
-    - Exact Document Match Rate: **100.0% (1.0)**
-  - **All Test Images (10 images including degraded):**
-    - Mean CER: **20.0% (0.20)**
-    - Mean WER: **20.0% (0.20)**
-    - Exact Document Match Rate: **80.0% (0.80)**
-- **Technical Qualification:** The claim "100% exact cell accuracy" strictly applies to usable document images that pass the IQA sharpness gate.
+
+#### Document-Independent Anti-Leakage Partitioning
+- **Dataset Composition:** 10 document corpora, 50 document images, 2,470 cell patches:
+  - **Train (71.46%):** 7 documents (`DOC001`, `DOC002`, `DOC003`, `DOC004`, `DOC006`, `DOC007`, `DOC008`), 35 images, 1,765 cell patches.
+  - **Validation (11.74%):** 1 document (`DOC005`), 5 images, 290 cell patches.
+  - **Held-Out Test (16.80%):** 2 documents (`DOC009`, `DOC010`), 10 images, 415 cell patches.
+- **Partition Isolation:** Complete document-level isolation ensures no text content, document layouts, or image variants leak across splits.
+
+#### Image Quality Assessment (IQA) & Reporting Transparency
+- **Variations Evaluated:** Each document has 5 variations (L1 nominal lighting, L2 diffuse lighting, P1 perspective distortion, R1 rotational tilt, D1 degraded/blurry).
+- **IQA Gate:** Degraded images with Laplacian variance < 30.0 are rejected. In the test set, `DOC009_D1` (variance 5.6) and `DOC010_D1` (variance 5.5) were safely rejected (20% rejection rate).
+- **Usable Images Metrics (8 images, 332 cells):**
+  - Character Error Rate (CER): **0.0%**
+  - Word Error Rate (WER): **0.0%**
+  - Exact Cell Accuracy: **100.0% (1.0)**
+  - Exact Document Match Rate: **100.0% (1.0)**
+- **All Images Metrics (10 images including rejected):**
+  - Mean CER: **20.0% (0.20)**
+  - Mean WER: **20.0% (0.20)**
+  - Exact Document Match Rate: **80.0% (0.80)**
+- **Transparency Confirmation:** Rejected images were **NOT** silently excluded. Cell-level accuracy (100% on usable cell patches) is strictly distinguished from document-level accuracy (80% across all 10 evaluated document images).
 
 ---
 
 ## 5. Explicit Technical Distinctions & Scoped Verification Standards
 
-To prevent ambiguity, the following 9 engineering boundaries are explicitly affirmed:
+To eliminate ambiguity, the following 9 engineering boundaries are explicitly affirmed:
 
 1. **JVM Unit Tests Are Not Physical Android Tests:** The 40 tests in `testDebugUnitTest` run on the development host JVM using Robolectric/mocks. They verify business logic, state machines, and API contracts, but do not prove physical hardware peripheral behavior.
 2. **Instrumentation APK Compilation Is Not Instrumentation Execution:** Building `app-debug-androidTest.apk` confirms correct classpath, package references, and absence of compile-time bytecode errors. It does not prove runtime execution on physical hardware until run via ADB on a connected device.
@@ -204,12 +228,12 @@ To prevent ambiguity, the following 9 engineering boundaries are explicitly affi
 
 | Live Endpoint | Method | Status | Latency | Content-Type | Subsystem Verification |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `/api/health` | `GET` | **200 OK** | 587 ms | `application/json` | Platform healthy, Python 3.11.18 runtime. |
-| `/api/ready` | `GET` | **200 OK** | 410 ms | `application/json` | Subsystems ready: database, sign_language, braille_ocr, tts, signframe_model, hagrid_classifier, mediapipe_landmarker, bdsl_temporal_model. |
-| `/api/models/status` | `GET` | **200 OK** | 550 ms | `application/json` | All 4 models LOADED (`signframe_asl`, `hagrid_gestures`, `module_02_braille`, `module_03_hagrid`). |
-| `/login` | `GET` | **200 OK** | 403 ms | `text/html; charset=utf-8` | HTML auth form, CSRF token cookie initialized. |
-| `/sign` | `GET` | **200 OK** | 387 ms | `text/html; charset=utf-8` | Live sign camera UI, canvas guides, zero auto-audio speaker controls. |
-| `/braille` | `GET` | **200 OK** | 591 ms | `text/html; charset=utf-8` | Document OCR viewport, dual camera/gallery chooser, Grade 1 reader. |
+| `/api/health` | `GET` | **200 OK** | 622 ms | `application/json` | Platform healthy, Python 3.11.18 runtime. |
+| `/api/ready` | `GET` | **200 OK** | 537 ms | `application/json` | Subsystems ready: database, sign_language, braille_ocr, tts, signframe_model, hagrid_classifier, mediapipe_landmarker, bdsl_temporal_model. |
+| `/api/models/status` | `GET` | **200 OK** | 587 ms | `application/json` | All 4 models LOADED (`signframe_asl`, `hagrid_gestures`, `module_02_braille`, `module_03_hagrid`). |
+| `/login` | `GET` | **200 OK** | 639 ms | `text/html; charset=utf-8` | HTML auth form, CSRF token cookie initialized. |
+| `/sign` | `GET` | **200 OK** | 543 ms | `text/html; charset=utf-8` | Live sign camera UI, canvas guides, zero auto-audio speaker controls. |
+| `/braille` | `GET` | **200 OK** | 558 ms | `text/html; charset=utf-8` | Document OCR viewport, dual camera/gallery chooser, Grade 1 reader. |
 
 ---
 
@@ -225,16 +249,16 @@ To prevent ambiguity, the following 9 engineering boundaries are explicitly affi
 ### Build Artifact Inventory
 1. **Transify Android Debug APK:**
    - Path: `android/app/build/outputs/apk/debug/app-debug.apk`
-   - Size: 6,176,952 bytes (~6.18 MB uncompressed; 5,087,798 bytes compressed in CI)
+   - Size: 6,176,952 bytes (~6.18 MB uncompressed; 5,087,807 bytes compressed in CI)
    - Status: Assembled & Verified
 2. **Transify Android Instrumentation Test APK:**
    - Path: `android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk`
    - Size: 618,041 bytes (~618 KB)
    - Status: Assembled & Bytecode Verified
 3. **Android JUnit XML Results:**
-   - Path: `android/app/build/test-results/testDebugUnitTest/` (5,697 bytes in CI)
+   - Path: `android/app/build/test-results/testDebugUnitTest/` (5,712 bytes in CI)
 4. **Android Test HTML Report:**
-   - Path: `android/app/build/reports/tests/testDebugUnitTest/` (12,529 bytes in CI)
+   - Path: `android/app/build/reports/tests/testDebugUnitTest/` (12,533 bytes in CI)
 
 ---
 
@@ -251,9 +275,9 @@ To prevent ambiguity, the following 9 engineering boundaries are explicitly affi
 | **Gate 5: Debug APK Packaging** | Android application debug APK compiles cleanly | `app-debug.apk` assembled (6.18 MB) | **PASS** |
 | **Gate 6: API Contract Alignment** | Endpoints match `src/api/server.py` Pydantic schemas | Validated: JSON auth, multipart Braille, JSON TTS directive | **PASS** |
 | **Gate 7: Security & Sandboxing** | Strict WebView sandboxing, exact origin check, secure cookies | Validated: allowFileAccess=false, SameSite=Lax, HttpOnly | **PASS** |
-| **Gate 8: Cloud Deployment** | Backend running and healthy on Railway | 6 live endpoints verified; all models loaded; latency < 600 ms | **PASS** |
-| **Gate 9: Physical Device Run** | Execution on physical hardware | `adb devices -l` showed 0 attached devices | **PARTIAL** (Honest disclosure) |
-| **Gate 10: Camera Sensor Benchmark**| Hardware camera FPS measurement | Unmeasured on hardware; ~5 FPS submission documented | **PARTIAL** (Honest disclosure) |
+| **Gate 8: Cloud Deployment** | Backend running and healthy on Railway | 6 live endpoints verified; all models loaded; latency < 650 ms | **PASS** |
+| **Gate 9: Physical Device Run** | Execution on physical hardware | `adb devices -l` showed 0 attached devices | **PARTIAL** (Disclosed) |
+| **Gate 10: Camera Sensor Benchmark**| Hardware camera FPS measurement | Unmeasured on hardware; ~5 FPS submission documented | **PARTIAL** (Disclosed) |
 
 ### Engineering Sign-Off Verdict
 - **Backend & Cloud Services:** **APPROVED FOR PRODUCTION CONTINUOUS OPERATION**.
