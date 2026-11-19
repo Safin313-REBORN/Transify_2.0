@@ -114,7 +114,17 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="/static/styles.css?v=20261118_authfix_v9">
-    <script src="/static/auth-controller.js?v=20261118_authfix_v11"></script>
+  <script>
+    (function() {
+      try {
+        var t = localStorage.getItem('transify_theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', t);
+        var f = localStorage.getItem('transify_font_size') || 'medium';
+        document.documentElement.setAttribute('data-font-size', f);
+      } catch(e) {}
+    })();
+  </script>
+  <script src="/static/auth-controller.js?v=20261118_authfix_v11"></script>
   <script>
     window.openAuthSheet = function(mode) { if (window.AuthController) window.AuthController.openSheet(mode); };
     window.closeAuthSheet = function() { if (window.AuthController) window.AuthController.closeSheet(); };
@@ -157,59 +167,56 @@
     }
 
     body.planner-canvas {
-      background-color: #ede9fe;
-      background-image: radial-gradient(circle at 15% 25%, #f5f3ff 0%, #ede9fe 60%, #f3e8ff 100%);
+      background-color: var(--bg-primary, #f8f6fc);
+      background-image: 
+        radial-gradient(circle at 10% 12%, rgba(124, 58, 237, 0.08) 0%, transparent 42%),
+        radial-gradient(circle at 90% 85%, rgba(244, 63, 94, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, var(--bg-primary, #f8f6fc) 0%, var(--bg-surface-elevated, #faf7fd) 100%);
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 14px 10px;
+      justify-content: flex-start;
+      padding: 0;
       box-sizing: border-box;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       position: relative;
       overflow-x: hidden;
       min-height: 100vh;
+      width: 100%;
     }
 
-    /* Outer Device Container (Home Frame) */
+    /* Responsive Workspace Frame (Spacious on Desktop, Focused & Edge-to-Edge on Mobile) */
     .planner-card-frame {
       width: 100%;
-      max-width: 460px;
-      min-height: min(860px, 92vh);
-      max-height: min(94vh, 920px);
-      background: #f7f4fc;
-      background-image: radial-gradient(circle at 50% 0%, #fdfbff 0%, #f7f4fc 65%, #f2ecf9 100%);
-      border-radius: 36px;
-      box-shadow: 0 16px 48px rgba(131, 56, 236, 0.12), 0 4px 16px rgba(131, 56, 236, 0.04);
-      border: 1px solid rgba(131, 56, 236, 0.10);
-      padding: 24px 20px 28px 20px;
+      max-width: 1280px;
+      min-height: 100vh;
+      background: transparent;
+      padding: 0 24px 60px 24px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       position: relative;
       isolation: isolate;
-      overflow-y: auto;
+      overflow-y: visible;
       overflow-x: hidden;
-      transform-origin: center top;
-      transition: background-color 0.25s ease, transform 0.46s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.38s ease, filter 0.38s ease;
-      will-change: transform, opacity, filter;
+      margin: 0 auto;
       z-index: 10;
     }
+    @media (max-width: 768px) {
+      .planner-card-frame {
+        max-width: 100%;
+        padding: 10px 14px 84px 14px;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+      }
+    }
     .planner-card-frame::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: url('/static/slide-bg-waves-blurred.jpg');
-      background-size: cover;
-      background-position: center top;
-      opacity: 0.16;
-      filter: blur(3px);
-      transform: scale(1.04);
-      pointer-events: none;
-      z-index: -1;
-      border-radius: 36px;
+      display: none;
     }
     .planner-card-frame.sheet-scaled {
-      transform: scale(0.938) translateY(12px);
+      transform: scale(0.96) translateY(12px);
       opacity: 0.82;
       filter: blur(1.5px);
       pointer-events: none;
@@ -1775,11 +1782,22 @@
        ============================================================= -->
   <main id="main-content" class="planner-card-frame" role="main" aria-label="Transify Assistive Services Planner">
 
-    <!-- Top Navigation Bar (Official Transify Logo & Profile Avatar, Sticky Header) -->
+    <!-- Top Navigation Bar (Official Transify Logo, Desktop Menu, Accessibility Controls & Avatar) -->
     <header class="frame-top-row sticky-header" id="frame-top-header">
-      <a href="/" class="frame-logo-wrap" aria-label="Transify Home" style="display: flex; align-items: center; justify-content: flex-start; text-decoration: none;">
-        <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 38px; width: auto; object-fit: contain;">
-      </a>
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <a href="/" class="frame-logo-wrap" aria-label="Transify Home" style="display: flex; align-items: center; justify-content: flex-start; text-decoration: none;">
+          <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 38px; width: auto; object-fit: contain;">
+        </a>
+
+        <!-- Desktop Primary Navigation Bar -->
+        <nav class="desktop-nav-menu" aria-label="Primary Navigation">
+          <a href="/" class="desktop-nav-link active"><span>🏠</span><span>Home</span></a>
+          <a href="/sign" class="desktop-nav-link"><span>✋</span><span>Hand-Sign</span></a>
+          <a href="/braille" class="desktop-nav-link"><span>⠃</span><span>Braille OCR</span></a>
+          <button type="button" class="desktop-nav-link" onclick="openSlide('slide-stt')" style="background:none; border:none; cursor:pointer;"><span>🎙️</span><span>Speech &amp; Voice</span></button>
+          <a href="/dashboard" class="desktop-nav-link"><span>📊</span><span>Dashboard</span></a>
+        </nav>
+      </div>
 
       <div style="display: flex; align-items: center; gap: 6px;">
         <button type="button" class="frame-icon-btn" id="site-search-btn" aria-label="Search site (Ctrl+K)" title="Search (Ctrl+K)" onclick="window.TransifyApp.openSiteSearch()" style="width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.85); border: 1.5px solid rgba(131,56,236,0.25); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;">
@@ -1788,6 +1806,10 @@
 
         <button type="button" class="frame-icon-btn" id="dark-mode-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode" onclick="window.TransifyApp.toggleDarkMode()" style="width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.85); border: 1.5px solid rgba(131,56,236,0.25); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;">
           🌙
+        </button>
+
+        <button type="button" class="frame-icon-btn" id="font-size-toggle-btn" aria-label="Adjust font size" title="Adjust text size" onclick="window.TransifyApp.cycleFontSize()" style="width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.85); border: 1.5px solid rgba(131,56,236,0.25); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: 800;">
+          A
         </button>
 
         <button type="button" class="lang-toggle-btn" id="lang-toggle-btn" aria-label="Toggle language between English and Bengali" title="Switch Language">
@@ -1810,89 +1832,169 @@
       </div>
     </header>
 
-    <!-- Greeting Headline -->
-    <div>
-      <h1 class="frame-greeting-title" style="margin-bottom: 6px;">Hello, Mates!</h1>
-      <p style="font-size: 11px; color: #8e8e9e; margin: 0 0 20px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Breaking Communication Barriers</p>
+    <!-- Workspace Hero Banner (Spacious, Welcoming, Accessible) -->
+    <section class="workspace-hero" aria-labelledby="workspace-main-heading">
+      <div class="workspace-hero-content">
+        <div class="workspace-hero-badge">
+          <span>✨</span>
+          <span>Assistive AI Communication Platform</span>
+        </div>
+        <h1 class="workspace-hero-title" id="workspace-main-heading">Choose a Communication Tool</h1>
+        <p class="workspace-hero-desc">
+          High-performance accessible tools for live sign language recognition, optical Braille translation, real-time speech captions, and voice synthesis.
+        </p>
+      </div>
+    </section>
+
+    <!-- 4 Core Experience Launch Cards Grid (Responsive 2x2 or 4-col) -->
+    <section class="core-tools-grid" aria-label="Primary Communication Tools">
+
+      <!-- Card 1: Hand Signal Translator -->
+      <div class="core-tool-card card-sign" id="card-sign-module">
+        <div>
+          <div class="core-tool-header">
+            <div class="core-tool-icon-badge badge-sign-icon">✋</div>
+            <span class="badge badge-info">Module 01</span>
+          </div>
+          <h2 class="core-tool-title">Hand-Sign Recognition</h2>
+          <p class="core-tool-desc">
+            Translate continuous Bengali Sign Language (BdSL 10-Class) and American Sign Language (ASL Fingerspelling &amp; HaGRID) into text and voice via live camera.
+          </p>
+          <div class="core-tool-meta-tags">
+            <span class="core-tool-tag">Dual AI Models</span>
+            <span class="core-tool-tag">Zero Video Retention</span>
+            <span class="core-tool-tag">MediaPipe Tracking</span>
+          </div>
+        </div>
+        <button type="button" class="core-tool-cta cta-sign" id="btn-open-hand-signal" onclick="openSlide('slide-hand-signal')" aria-label="Open Hand Signal Translator">
+          <span>Launch Sign Workspace</span>
+          <span>→</span>
+        </button>
+      </div>
+
+      <!-- Card 2: Braille Language Translator -->
+      <div class="core-tool-card card-braille" id="card-braille-module">
+        <div>
+          <div class="core-tool-header">
+            <div class="core-tool-icon-badge badge-braille-icon">⠃</div>
+            <span class="badge badge-info" style="color: #f43f5e; border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.1);">Module 02</span>
+          </div>
+          <h2 class="core-tool-title">Optical Braille (OBR)</h2>
+          <p class="core-tool-desc">
+            Scan or upload photos of embossed Braille pages to translate Unified English Braille (UEB Grade 1) with instant Image Quality Assessment (IQA).
+          </p>
+          <div class="core-tool-meta-tags">
+            <span class="core-tool-tag">ICEB 2024 Standards</span>
+            <span class="core-tool-tag">Quality Pre-Check</span>
+            <span class="core-tool-tag">Audio &amp; Text Export</span>
+          </div>
+        </div>
+        <button type="button" class="core-tool-cta cta-braille" id="btn-open-braille" onclick="openSlide('slide-braille')" aria-label="Open Braille Language Translator">
+          <span>Launch Braille Translator</span>
+          <span>→</span>
+        </button>
+      </div>
+
+      <!-- Card 3: Speech to Text (Live Captions) -->
+      <div class="core-tool-card card-stt" id="card-stt-module">
+        <div>
+          <div class="core-tool-header">
+            <div class="core-tool-icon-badge badge-stt-icon">🎙️</div>
+            <span class="badge badge-info" style="color: #0d9488; border-color: rgba(13,148,136,0.3); background: rgba(13,148,136,0.1);">Module 03</span>
+          </div>
+          <h2 class="core-tool-title">Speech to Text (STT)</h2>
+          <p class="core-tool-desc">
+            Live speech transcription in English and Bengali. Real-time captions with adjustable font sizes, active microphone indicator, and quick transfer to TTS.
+          </p>
+          <div class="core-tool-meta-tags">
+            <span class="core-tool-tag">English &amp; Bengali</span>
+            <span class="core-tool-tag">Live Font Scaling</span>
+            <span class="core-tool-tag">Instant Copy</span>
+          </div>
+        </div>
+        <button type="button" class="core-tool-cta cta-stt" id="btn-open-stt" onclick="openSlide('slide-stt')" aria-label="Open Speech to Text">
+          <span>Start Live Captions</span>
+          <span>→</span>
+        </button>
+      </div>
+
+      <!-- Card 4: Text to Speech (Voice Output) -->
+      <div class="core-tool-card card-tts" id="card-tts-module">
+        <div>
+          <div class="core-tool-header">
+            <div class="core-tool-icon-badge badge-tts-icon">🔊</div>
+            <span class="badge badge-info" style="color: #8b5cf6; border-color: rgba(139,92,246,0.3); background: rgba(139,92,246,0.1);">Module 04</span>
+          </div>
+          <h2 class="core-tool-title">Text to Speech (TTS)</h2>
+          <p class="core-tool-desc">
+            Natural spoken voice synthesis with customizable speech speed and pitch, quick emergency phrases, and strictly enforced Zero Auto-Audio standard.
+          </p>
+          <div class="core-tool-meta-tags">
+            <span class="core-tool-tag">Zero Auto-Audio</span>
+            <span class="core-tool-tag">Natural Voices</span>
+            <span class="core-tool-tag">Speed &amp; Pitch Controls</span>
+          </div>
+        </div>
+        <button type="button" class="core-tool-cta cta-tts" id="btn-open-tts" onclick="openSlide('slide-tts')" aria-label="Open Text to Speech">
+          <span>Open Voice Synthesizer</span>
+          <span>→</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Quick Communication Phrases Bar -->
+    <div class="quick-phrases-bar" aria-label="Quick Communication Phrases">
+      <div class="quick-phrases-header">
+        <div class="quick-phrases-title">
+          <span>⚡</span>
+          <span>One-Tap Quick Phrases (Click to Listen)</span>
+        </div>
+        <span style="font-size: 11px; color: var(--text-muted);">Zero Auto-Audio: Plays on user tap</span>
+      </div>
+      <div class="quick-phrases-chips">
+        <button type="button" class="quick-phrase-chip" onclick="if(window.TransifyTTS) window.TransifyTTS.speak('Hello! How are you?');">👋 Hello!</button>
+        <button type="button" class="quick-phrase-chip" onclick="if(window.TransifyTTS) window.TransifyTTS.speak('Thank you very much.');">🙏 Thank you</button>
+        <button type="button" class="quick-phrase-chip" onclick="if(window.TransifyTTS) window.TransifyTTS.speak('I need assistance, please.');">🆘 Need assistance</button>
+        <button type="button" class="quick-phrase-chip" onclick="if(window.TransifyTTS) window.TransifyTTS.speak('Yes, that is correct.');">✅ Yes</button>
+        <button type="button" class="quick-phrase-chip" onclick="if(window.TransifyTTS) window.TransifyTTS.speak('No, thank you.');">❌ No</button>
+        <button type="button" class="quick-phrase-chip" onclick="if(window.TransifyTTS) window.TransifyTTS.speak('Where is the restroom?');">🚻 Where is the restroom?</button>
+        <button type="button" class="quick-phrase-chip" onclick="if(window.TransifyTTS) window.TransifyTTS.speak('Please wait a moment.');">⏳ Please wait</button>
+      </div>
     </div>
 
-    <!-- Segment 1: Hand Signal Card (Clicking slides in from LEFT) -->
-    <button type="button" class="main-segment-card segment-card-image-wrap segment-hand-signal" id="btn-open-hand-signal" onclick="openSlide('slide-hand-signal')" aria-label="Open Hand Signal Translator">
-      <img src="/static/card-handsign.png?v=20261116_noschedule_v12" alt="Hand Signal Translator" class="segment-card-cover-img">
-    </button>
-
-    <!-- Segment 2: Braille Language Card (Clicking slides in from RIGHT) -->
-    <button type="button" class="main-segment-card segment-card-image-wrap segment-braille" id="btn-open-braille" onclick="openSlide('slide-braille')" aria-label="Open Braille Language Translator">
-      <img src="/static/card-braille.png?v=20261116_noschedule_v12" alt="Braille Language Translator" class="segment-card-cover-img">
-    </button>
-
-    <!-- Bottom Row (Speech to Text & Text to Speech Segments) -->
-    <div class="bottom-segments-row">
-      <button type="button" class="mini-sub-card mini-peach" id="btn-open-stt" onclick="openSlide('slide-stt')" aria-label="Open Speech to Text">
-        <div>
-          <h4 class="mini-title">Speech to Text</h4>
-          <p class="mini-subtitle">Voice to Text • STT</p>
-        </div>
-        <div class="mini-art-icon">
-          <!-- Voice to Text Icon (Pic 2: Mic -> Text Document) -->
-          <svg width="72" height="38" viewBox="0 0 72 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="2" y="5" width="26" height="28" rx="8" fill="#F97316" fill-opacity="0.18"/>
-            <rect x="11" y="9" width="8" height="12" rx="4" fill="#C2410C"/>
-            <path d="M7 15C7 20 10.5 22 15 22C19.5 22 23 20 23 15" stroke="#C2410C" stroke-width="2" stroke-linecap="round"/>
-            <line x1="15" y1="22" x2="15" y2="27" stroke="#C2410C" stroke-width="2" stroke-linecap="round"/>
-            <path d="M31 19H38M38 19L35 16M38 19L35 22" stroke="#EA580C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <rect x="43" y="6" width="26" height="26" rx="6" fill="#F97316"/>
-            <line x1="48" y1="12" x2="63" y2="12" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-            <line x1="48" y1="18" x2="63" y2="18" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-            <line x1="48" y1="24" x2="57" y2="24" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-      </button>
-
-      <button type="button" class="mini-sub-card mini-purple" id="btn-open-tts" onclick="openSlide('slide-tts')" aria-label="Open Text to Speech">
-        <div>
-          <h4 class="mini-title">Text to Speech</h4>
-          <p class="mini-subtitle">Text to Voice • TTS</p>
-        </div>
-        <div class="mini-art-icon">
-          <!-- Text to Voice Icon (Pic 1: Text Document -> Speaker) -->
-          <svg width="72" height="38" viewBox="0 0 72 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <rect x="3" y="7" width="24" height="24" rx="6" fill="#FFFFFF" fill-opacity="0.95"/>
-            <line x1="8" y1="13" x2="21" y2="13" stroke="#8338EC" stroke-width="2" stroke-linecap="round"/>
-            <line x1="8" y1="19" x2="21" y2="19" stroke="#8338EC" stroke-width="2" stroke-linecap="round"/>
-            <line x1="8" y1="25" x2="17" y2="25" stroke="#8338EC" stroke-width="2" stroke-linecap="round"/>
-            <path d="M30 19H37M37 19L34 16M37 19L34 22" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M42 14H47L54 9V29L47 24H42V14Z" fill="#FDE047"/>
-            <path d="M58 14C61 16.5 61 21.5 58 24" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-            <path d="M63 11C68 14.5 68 23.5 63 27" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-      </button>
+    <!-- Privacy & Ephemeral Data Protection Reassurance Banner -->
+    <div class="privacy-reassurance-card" role="note" aria-label="Privacy Reassurance">
+      <div class="privacy-reassurance-icon">🔒</div>
+      <div class="privacy-reassurance-text">
+        <strong>Local Ephemeral Processing &amp; Zero Persistent Tracking:</strong>
+        All camera video frames and microphone audio streams are processed in temporary device memory using local MediaPipe landmark feature extraction and in-memory neural inference. Video and voice data are never recorded, saved on disk, or transmitted to external cloud servers.
+      </div>
     </div>
 
     <!-- Unified Hub, Phraseboard & Dashboard Navigation Row -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px;">
-      <button type="button" class="mini-sub-card" id="btn-open-hub" onclick="openSlide('slide-communication-hub')" aria-label="Open Communication Hub" style="padding: 10px; background: #ffffff; border: 1.5px solid rgba(131,56,236,0.18); border-radius: 16px; cursor: pointer; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 72px;">
-        <div style="font-size: 20px;">💬</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px;">
+      <button type="button" class="mini-sub-card" id="btn-open-hub" onclick="openSlide('slide-communication-hub')" aria-label="Open Communication Hub" style="padding: 14px; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 18px; cursor: pointer; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 84px;">
+        <div style="font-size: 24px;">💬</div>
         <div>
-          <div style="font-size: 12px; font-weight: 800; color: #1e1b4b;" data-i18n="hub_title">Comm Hub</div>
-          <div style="font-size: 10px; color: #64748b; font-weight: 600;" data-i18n="hub_sub">Unified Chat</div>
+          <div style="font-size: 13px; font-weight: 800; color: var(--text-primary);" data-i18n="hub_title">Comm Hub</div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;" data-i18n="hub_sub">Unified Multimodal Chat</div>
         </div>
       </button>
 
-      <button type="button" class="mini-sub-card" id="btn-open-phraseboard" onclick="openSlide('slide-phraseboard')" aria-label="Open Phraseboard" style="padding: 10px; background: #ffffff; border: 1.5px solid rgba(131,56,236,0.18); border-radius: 16px; cursor: pointer; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 72px;">
-        <div style="font-size: 20px;">⚡</div>
+      <button type="button" class="mini-sub-card" id="btn-open-phraseboard" onclick="openSlide('slide-phraseboard')" aria-label="Open Phraseboard" style="padding: 14px; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 18px; cursor: pointer; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 84px;">
+        <div style="font-size: 24px;">⚡</div>
         <div>
-          <div style="font-size: 12px; font-weight: 800; color: #1e1b4b;" data-i18n="phrases_title">Phraseboard</div>
-          <div style="font-size: 10px; color: #64748b; font-weight: 600;" data-i18n="phrases_sub">Quick Phrases</div>
+          <div style="font-size: 13px; font-weight: 800; color: var(--text-primary);" data-i18n="phrases_title">Phraseboard</div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;" data-i18n="phrases_sub">Custom Saved Phrases</div>
         </div>
       </button>
 
-      <button type="button" class="mini-sub-card" id="btn-open-dashboard" onclick="openSlide('slide-dashboard')" aria-label="Open History and Diagnostics Dashboard" style="padding: 10px; background: #ffffff; border: 1.5px solid rgba(131,56,236,0.18); border-radius: 16px; cursor: pointer; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 72px;">
-        <div style="font-size: 20px;">📊</div>
+      <button type="button" class="mini-sub-card" id="btn-open-dashboard" onclick="openSlide('slide-dashboard')" aria-label="Open History and Diagnostics Dashboard" style="padding: 14px; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 18px; cursor: pointer; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 84px;">
+        <div style="font-size: 24px;">📊</div>
         <div>
-          <div style="font-size: 12px; font-weight: 800; color: #1e1b4b;" data-i18n="dash_title">Dashboard</div>
-          <div style="font-size: 10px; color: #64748b; font-weight: 600;" data-i18n="dash_sub">History & Health</div>
+          <div style="font-size: 13px; font-weight: 800; color: var(--text-primary);" data-i18n="dash_title">Dashboard</div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;" data-i18n="dash_sub">Telemetry &amp; History</div>
         </div>
       </button>
     </div>
@@ -1965,6 +2067,30 @@
     </footer>
 
   </main>
+
+  <!-- Fixed Mobile Bottom Navigation Bar (< 768px viewports) -->
+  <nav class="transify-bottom-nav" aria-label="Mobile Navigation">
+    <a href="/" class="bottom-nav-item active" data-nav="home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </a>
+    <a href="/sign" class="bottom-nav-item" data-nav="sign">
+      <span class="nav-icon">✋</span>
+      <span class="nav-label">Sign</span>
+    </a>
+    <a href="/braille" class="bottom-nav-item" data-nav="braille">
+      <span class="nav-icon">⠃</span>
+      <span class="nav-label">Braille</span>
+    </a>
+    <button type="button" class="bottom-nav-item" data-nav="speech" onclick="openSlide('slide-stt')" aria-label="Speech Captions">
+      <span class="nav-icon">🎙️</span>
+      <span class="nav-label">Speech</span>
+    </button>
+    <a href="/dashboard" class="bottom-nav-item" data-nav="dashboard">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Status</span>
+    </a>
+  </nav>
 
 
   <!-- =============================================================

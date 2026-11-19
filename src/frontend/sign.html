@@ -25,6 +25,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="/static/styles.css?v=20261116_allfix_v5">
+  <script>
+    (function() {
+      try {
+        var t = localStorage.getItem('transify_theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', t);
+        var f = localStorage.getItem('transify_font_size') || 'medium';
+        document.documentElement.setAttribute('data-font-size', f);
+      } catch(e) {}
+    })();
+  </script>
   <style>
     body {
       animation: slideInFromLeft 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -62,10 +72,30 @@
   <!-- Header -->
   <header class="site-header" role="banner">
     <div class="nav-container">
-      <a href="/" class="brand-link" aria-label="Transify Home">
-        <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 34px; width: auto; object-fit: contain;">
-        <span class="brand-badge">Sign AI</span>
-      </a>
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <a href="/" class="brand-link" aria-label="Transify Home">
+          <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 34px; width: auto; object-fit: contain;">
+          <span class="brand-badge">Sign AI</span>
+        </a>
+        <nav class="desktop-nav-menu" aria-label="Primary Navigation">
+          <a href="/" class="desktop-nav-link"><span>🏠</span><span>Home</span></a>
+          <a href="/sign" class="desktop-nav-link active"><span>✋</span><span>Hand-Sign</span></a>
+          <a href="/braille" class="desktop-nav-link"><span>⠃</span><span>Braille OCR</span></a>
+          <a href="/?slide=stt" class="desktop-nav-link"><span>🎙️</span><span>Speech</span></a>
+          <a href="/dashboard" class="desktop-nav-link"><span>📊</span><span>Dashboard</span></a>
+        </nav>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" class="frame-icon-btn" id="dark-mode-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode" onclick="window.TransifyApp.toggleDarkMode()" style="width: 34px; height: 34px; border-radius: 50%; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;">
+          🌙
+        </button>
+        <button type="button" class="frame-icon-btn" id="font-size-toggle-btn" aria-label="Adjust font size" title="Adjust text size" onclick="window.TransifyApp.cycleFontSize()" style="width: 34px; height: 34px; border-radius: 50%; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: 800;">
+          A
+        </button>
+        <a href="/login" class="frame-avatar-btn" role="img" aria-label="User Profile" title="User Profile">
+          <span role="img" aria-label="User Avatar">👩‍🦰</span>
+        </a>
+      </div>
     </div>
   </header>
 
@@ -103,139 +133,145 @@
       </p>
     </div>
 
-    <!-- Live Webcam Viewport -->
-    <div class="webcam-container" aria-label="Webcam feed and landmark tracking area">
-      <video id="sign-video" class="webcam-video" autoplay playsinline muted></video>
-      <canvas id="sign-canvas" class="webcam-canvas"></canvas>
-
-      <div id="camera-placeholder" class="camera-placeholder">
-        <span style="font-size: 3rem;">📹</span>
-        <p style="font-size: var(--text-lg); font-weight: 600;">Camera is currently inactive</p>
-        <p style="max-width: 460px; font-size: var(--text-sm);">
-          Click <strong>Start Camera</strong> below to enable live video gesture recognition for ASL and HaGRID gestures.
-        </p>
-      </div>
-    </div>
-
-    <!-- Controls Bar -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-4); flex-wrap: wrap; gap: var(--space-3);">
-      <div style="display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap;">
-        <button id="toggle-camera-btn" class="btn btn-primary">📹 Start Camera</button>
-        <button id="reset-sign-btn" class="btn btn-secondary">🔄 Reset Tracker</button>
-        <button id="speak-pred-btn" class="btn btn-secondary">🔊 Speak Sign</button>
-        <div class="roi-position-selector" title="Choose Target Guide Box Position">
-          <span class="roi-selector-label">🎯 Box:</span>
-          <button id="roi-pos-right" type="button" class="btn-roi active" onclick="SignPage.setRoiPosition('right')">👉 Right</button>
-          <button id="roi-pos-center" type="button" class="btn-roi" onclick="SignPage.setRoiPosition('center')">🎯 Center</button>
-          <button id="roi-pos-left" type="button" class="btn-roi" onclick="SignPage.setRoiPosition('left')">👈 Left</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Mode Switcher Tabs for Hand Signal Panel -->
-    <div style="display: flex; gap: 8px; margin-top: var(--space-4); margin-bottom: var(--space-2); flex-wrap: wrap; align-items: center;">
-      <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Mode:</span>
-      <button id="mode-expressions-btn" type="button" class="btn btn-primary btn-sm">🖐️ Live Expressions</button>
-      <button id="mode-fingerspell-btn" type="button" class="btn btn-secondary btn-sm">✋ A–Z Alphabet Speller</button>
-      <button id="mode-sentence-btn" type="button" class="btn btn-secondary btn-sm">📚 Continuous Sentence</button>
-    </div>
-
-
-
-    <!-- Real-Time Prediction Banner (Mode 1) -->
-    <section id="sign-prediction-banner" class="prediction-banner" aria-live="assertive" aria-atomic="true">
+    <!-- 2-Column Responsive Workspace (Camera on left, Live Predictions on right) -->
+    <div class="workspace-2col">
+      <!-- Left Column: Camera Stage & Controls -->
       <div>
-        <div style="font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">
-          Detected Expression
-        </div>
-        <div id="pred-label-text" class="pred-primary">Waiting for gesture...</div>
-        <div id="pred-gloss-text" class="pred-gloss">Position your hands in camera view or click a sample below</div>
-        <div id="pred-status-note" class="pred-desc">Debounce consensus ready (3-frame verification)</div>
-        <div id="sign-engine-note" style="display: none; font-size: 11px; margin-top: 4px; padding: 2px 6px; border-radius: 4px; width: fit-content;"></div>
-      </div>
+        <div class="webcam-container" aria-label="Webcam feed and landmark tracking area">
+          <video id="sign-video" class="webcam-video" autoplay playsinline muted></video>
+          <canvas id="sign-canvas" class="webcam-canvas"></canvas>
 
-      <div style="text-align: right;">
-        <span id="pred-confidence-badge" class="badge badge-info" style="font-size: var(--text-sm);">Ready</span>
-        <div style="margin-top: var(--space-2); width: 140px;">
-          <div style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 2px;">Debounce Buffer</div>
-          <div class="progress-container">
-            <div id="debounce-progress-fill" class="progress-fill" style="width: 0%;"></div>
+          <div id="camera-placeholder" class="camera-placeholder">
+            <span style="font-size: 3rem;">📹</span>
+            <p style="font-size: var(--text-lg); font-weight: 600;">Camera is currently inactive</p>
+            <p style="max-width: 460px; font-size: var(--text-sm);">
+              Click <strong>Start Camera</strong> below to enable live video gesture recognition for ASL and HaGRID gestures.
+            </p>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- Fingerspelling Panel (Mode 2) -->
-    <section id="fingerspelling-panel" class="card" style="display: none; margin-top: var(--space-4);" aria-labelledby="speller-heading">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: var(--space-2);">
-        <div>
-          <h2 id="speller-heading" class="card-title" style="margin-bottom: 2px;">✋ A–Z Manual Alphabet Word Speller</h2>
-          <span style="font-size: var(--text-xs); color: var(--text-secondary);">Spell individual names, medicine brands, or custom words letter-by-letter.</span>
+        <!-- Controls Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-4); flex-wrap: wrap; gap: var(--space-3);">
+          <div style="display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap;">
+            <button id="toggle-camera-btn" class="btn btn-primary">📹 Start Camera</button>
+            <button id="reset-sign-btn" class="btn btn-secondary">🔄 Reset Tracker</button>
+            <button id="speak-pred-btn" class="btn btn-secondary">🔊 Speak Sign</button>
+            <div class="roi-position-selector" title="Choose Target Guide Box Position">
+              <span class="roi-selector-label">🎯 Box:</span>
+              <button id="roi-pos-right" type="button" class="btn-roi active" onclick="SignPage.setRoiPosition('right')">👉 Right</button>
+              <button id="roi-pos-center" type="button" class="btn-roi" onclick="SignPage.setRoiPosition('center')">🎯 Center</button>
+              <button id="roi-pos-left" type="button" class="btn-roi" onclick="SignPage.setRoiPosition('left')">👈 Left</button>
+            </div>
+          </div>
         </div>
-        <div id="fingerspell-live-badge">
-          <span class="badge badge-info">Active Letter: <strong id="current-live-letter">—</strong></span>
-        </div>
-      </div>
 
-      <!-- Spelled Word Bar -->
-      <div style="background: rgba(255,255,255,0.03); border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4); min-height: 80px; display: flex; flex-direction: column; justify-content: center;">
-        <div style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 4px;">Spelled Word in Progress:</div>
-        <div id="spelled-word-display" style="font-size: var(--text-3xl); font-weight: 800; font-family: var(--font-mono); color: var(--brand-primary); letter-spacing: 2px;">(Waiting for letters...)</div>
-        <div id="spelled-sentence-display" style="font-size: var(--text-sm); color: var(--text-secondary); margin-top: 4px;">Committed words: <span id="committed-words-text">none</span></div>
-      </div>
-
-      <!-- Speller Controls -->
-      <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
-        <button id="spell-space-btn" class="btn btn-secondary btn-sm">␣ Space (New Word)</button>
-        <button id="spell-backspace-btn" class="btn btn-secondary btn-sm">⌫ Backspace</button>
-        <button id="spell-speak-btn" class="btn btn-primary btn-sm">🔊 Speak Word</button>
-        <button id="spell-send-to-sentence-btn" class="btn btn-info btn-sm">➕ Add to Sentence Builder</button>
-        <button id="spell-clear-btn" class="btn btn-danger btn-sm">🗑️ Clear Speller</button>
-      </div>
-
-      <!-- 26-Letter Virtual Alphabet Grid -->
-      <div style="margin-top: var(--space-3);">
-        <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: var(--space-2);">
-          Quick Virtual Manual Alphabet (Click to spell):
-        </div>
-        <div id="alphabet-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 6px;"></div>
-      </div>
-    </section>
-
-    <!-- AI Sentence Builder Panel (Mode 3) -->
-    <section id="sentence-builder-panel" class="card" style="display: none; margin-top: var(--space-4);" aria-labelledby="builder-heading">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: var(--space-2);">
-        <div>
-          <h2 id="builder-heading" class="card-title" style="margin-bottom: 2px;">💬 Continuous AI Sentence Builder</h2>
-          <span style="font-size: var(--text-xs); color: var(--text-secondary);">Transforms multiple sign gestures into fluent, natural spoken sentences.</span>
-        </div>
-        <div id="sentence-engine-badge">
-          <span class="badge badge-info">AI Smoother Ready</span>
+        <!-- Mode Switcher Tabs for Hand Signal Panel -->
+        <div style="display: flex; gap: 8px; margin-top: var(--space-4); margin-bottom: var(--space-2); flex-wrap: wrap; align-items: center;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Mode:</span>
+          <button id="mode-expressions-btn" type="button" class="btn btn-primary btn-sm">🖐️ Live Expressions</button>
+          <button id="mode-fingerspell-btn" type="button" class="btn btn-secondary btn-sm">✋ A–Z Alphabet Speller</button>
+          <button id="mode-sentence-btn" type="button" class="btn btn-secondary btn-sm">📚 Continuous Sentence</button>
         </div>
       </div>
 
-      <!-- Token Accumulator Chips -->
-      <div style="margin-bottom: var(--space-3);">
-        <div style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 6px;">Accumulated Sign Tokens:</div>
-        <div id="sentence-token-chips" style="min-height: 48px; padding: var(--space-2); background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-          <span style="color: var(--text-muted); font-size: var(--text-xs);">Perform gestures or click words below to build your thought...</span>
-        </div>
-      </div>
+      <!-- Right Column: Live Prediction Banner, Speller & Sentence Builder -->
+      <div>
+        <!-- Real-Time Prediction Banner (Mode 1) -->
+        <section id="sign-prediction-banner" class="prediction-banner" aria-live="assertive" aria-atomic="true" style="margin-top: 0;">
+          <div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">
+              Detected Expression
+            </div>
+            <div id="pred-label-text" class="pred-primary">Waiting for gesture...</div>
+            <div id="pred-gloss-text" class="pred-gloss">Position your hands in camera view or click a sample below</div>
+            <div id="pred-status-note" class="pred-desc">Debounce consensus ready (3-frame verification)</div>
+            <div id="sign-engine-note" style="display: none; font-size: 11px; margin-top: 4px; padding: 2px 6px; border-radius: 4px; width: fit-content;"></div>
+          </div>
 
-      <!-- Action Buttons -->
-      <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
-        <button id="smooth-sentence-btn" class="btn btn-primary btn-sm">✨ Synthesize Natural Sentence</button>
-        <button id="speak-sentence-btn" class="btn btn-secondary btn-sm">🔊 Speak Full Sentence</button>
-        <button id="copy-sentence-btn" class="btn btn-secondary btn-sm">📋 Copy Text</button>
-        <button id="clear-sentence-btn" class="btn btn-danger btn-sm">🗑️ Clear Tokens</button>
-      </div>
+          <div style="text-align: right;">
+            <span id="pred-confidence-badge" class="badge badge-info" style="font-size: var(--text-sm);">Ready</span>
+            <div style="margin-top: var(--space-2); width: 140px;">
+              <div style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 2px;">Debounce Buffer</div>
+              <div class="progress-container">
+                <div id="debounce-progress-fill" class="progress-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <!-- Smoothed Sentence Output -->
-      <div style="padding: var(--space-3); background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: var(--radius-md);">
-        <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-success); margin-bottom: 4px;">Spoken English Output:</div>
-        <div id="smooth-sentence-text" style="font-size: var(--text-lg); font-weight: 700; color: var(--text-primary);">(Waiting to synthesize sentence...)</div>
+        <!-- Fingerspelling Panel (Mode 2) -->
+        <section id="fingerspelling-panel" class="card" style="display: none; margin-top: var(--space-4);" aria-labelledby="speller-heading">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: var(--space-2);">
+            <div>
+              <h2 id="speller-heading" class="card-title" style="margin-bottom: 2px;">✋ A–Z Manual Alphabet Word Speller</h2>
+              <span style="font-size: var(--text-xs); color: var(--text-secondary);">Spell individual names, medicine brands, or custom words letter-by-letter.</span>
+            </div>
+            <div id="fingerspell-live-badge">
+              <span class="badge badge-info">Active Letter: <strong id="current-live-letter">—</strong></span>
+            </div>
+          </div>
+
+          <!-- Spelled Word Bar -->
+          <div style="background: rgba(255,255,255,0.03); border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4); min-height: 80px; display: flex; flex-direction: column; justify-content: center;">
+            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 4px;">Spelled Word in Progress:</div>
+            <div id="spelled-word-display" style="font-size: var(--text-3xl); font-weight: 800; font-family: var(--font-mono); color: var(--brand-primary); letter-spacing: 2px;">(Waiting for letters...)</div>
+            <div id="spelled-sentence-display" style="font-size: var(--text-sm); color: var(--text-secondary); margin-top: 4px;">Committed words: <span id="committed-words-text">none</span></div>
+          </div>
+
+          <!-- Speller Controls -->
+          <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
+            <button id="spell-space-btn" class="btn btn-secondary btn-sm">␣ Space (New Word)</button>
+            <button id="spell-backspace-btn" class="btn btn-secondary btn-sm">⌫ Backspace</button>
+            <button id="spell-speak-btn" class="btn btn-primary btn-sm">🔊 Speak Word</button>
+            <button id="spell-send-to-sentence-btn" class="btn btn-info btn-sm">➕ Add to Sentence Builder</button>
+            <button id="spell-clear-btn" class="btn btn-danger btn-sm">🗑️ Clear Speller</button>
+          </div>
+
+          <!-- 26-Letter Virtual Alphabet Grid -->
+          <div style="margin-top: var(--space-3);">
+            <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: var(--space-2);">
+              Quick Virtual Manual Alphabet (Click to spell):
+            </div>
+            <div id="alphabet-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 6px;"></div>
+          </div>
+        </section>
+
+        <!-- AI Sentence Builder Panel (Mode 3) -->
+        <section id="sentence-builder-panel" class="card" style="display: none; margin-top: var(--space-4);" aria-labelledby="builder-heading">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: var(--space-2);">
+            <div>
+              <h2 id="builder-heading" class="card-title" style="margin-bottom: 2px;">💬 Continuous AI Sentence Builder</h2>
+              <span style="font-size: var(--text-xs); color: var(--text-secondary);">Transforms multiple sign gestures into fluent, natural spoken sentences.</span>
+            </div>
+            <div id="sentence-engine-badge">
+              <span class="badge badge-info">AI Smoother Ready</span>
+            </div>
+          </div>
+
+          <!-- Token Accumulator Chips -->
+          <div style="margin-bottom: var(--space-3);">
+            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 6px;">Accumulated Sign Tokens:</div>
+            <div id="sentence-token-chips" style="min-height: 48px; padding: var(--space-2); background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+              <span style="color: var(--text-muted); font-size: var(--text-xs);">Perform gestures or click words below to build your thought...</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
+            <button id="smooth-sentence-btn" class="btn btn-primary btn-sm">✨ Synthesize Natural Sentence</button>
+            <button id="speak-sentence-btn" class="btn btn-secondary btn-sm">🔊 Speak Full Sentence</button>
+            <button id="copy-sentence-btn" class="btn btn-secondary btn-sm">📋 Copy Text</button>
+            <button id="clear-sentence-btn" class="btn btn-danger btn-sm">🗑️ Clear Tokens</button>
+          </div>
+
+          <!-- Smoothed Sentence Output -->
+          <div style="padding: var(--space-3); background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: var(--radius-md);">
+            <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-success); margin-bottom: 4px;">Spoken English Output:</div>
+            <div id="smooth-sentence-text" style="font-size: var(--text-lg); font-weight: 700; color: var(--text-primary);">(Waiting to synthesize sentence...)</div>
+          </div>
+        </section>
       </div>
-    </section>
+    </div>
 
     <!-- ASL & HaGRID Gesture Sample Buttons -->
     <section style="margin-top: var(--space-8);" aria-labelledby="vocab-heading">
@@ -334,6 +370,30 @@
     </ul>
     <p>Transify Assistive Platform — Live ASL & HaGRID Gesture Recognition Subsystem.</p>
   </footer>
+
+  <!-- Fixed Mobile Bottom Navigation Bar (< 768px viewports) -->
+  <nav class="transify-bottom-nav" aria-label="Mobile Navigation">
+    <a href="/" class="bottom-nav-item" data-nav="home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </a>
+    <a href="/sign" class="bottom-nav-item active" data-nav="sign">
+      <span class="nav-icon">✋</span>
+      <span class="nav-label">Sign</span>
+    </a>
+    <a href="/braille" class="bottom-nav-item" data-nav="braille">
+      <span class="nav-icon">⠃</span>
+      <span class="nav-label">Braille</span>
+    </a>
+    <a href="/?slide=stt" class="bottom-nav-item" data-nav="speech">
+      <span class="nav-icon">🎙️</span>
+      <span class="nav-label">Speech</span>
+    </a>
+    <a href="/dashboard" class="bottom-nav-item" data-nav="dashboard">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Status</span>
+    </a>
+  </nav>
 
   <script src="/static/app.js?v=20261116_allfix_v6"></script>
 </body>

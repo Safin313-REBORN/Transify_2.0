@@ -22,6 +22,16 @@
   <meta name="twitter:description" content="Transify Assistive Dashboard: Centralized portal to monitor AI model telemetry, translation history, saved phrases, and accessibility preferences.">
   <meta name="twitter:image" content="https://transify.app/static/banner-braille.jpg">
   <link rel="stylesheet" href="/static/styles.css?v=20261116_fullbleed_v7">
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('transify_theme');
+        if (theme) document.documentElement.setAttribute('data-theme', theme);
+        var fontSize = localStorage.getItem('transify_font_size');
+        if (fontSize) document.documentElement.setAttribute('data-font-size', fontSize);
+      } catch(e) {}
+    })();
+  </script>
 </head>
 <body>
 
@@ -49,10 +59,30 @@
   <!-- Header -->
   <header class="site-header" role="banner">
     <div class="nav-container">
-      <a href="/" class="brand-link" aria-label="Transify Home">
-        <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 34px; width: auto; object-fit: contain;">
-        <span class="brand-badge">Dashboard</span>
-      </a>
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <a href="/" class="brand-link" aria-label="Transify Home">
+          <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 34px; width: auto; object-fit: contain;">
+          <span class="brand-badge">Dashboard</span>
+        </a>
+        <nav class="desktop-nav-menu" aria-label="Primary Navigation">
+          <a href="/" class="desktop-nav-link"><span>🏠</span><span>Home</span></a>
+          <a href="/sign" class="desktop-nav-link"><span>✋</span><span>Hand-Sign</span></a>
+          <a href="/braille" class="desktop-nav-link"><span>⠃</span><span>Braille OCR</span></a>
+          <a href="/?slide=stt" class="desktop-nav-link"><span>🎙️</span><span>Speech</span></a>
+          <a href="/dashboard" class="desktop-nav-link active"><span>📊</span><span>Dashboard</span></a>
+        </nav>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" class="frame-icon-btn" id="dark-mode-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode" onclick="window.TransifyApp.toggleDarkMode()" style="width: 34px; height: 34px; border-radius: 50%; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;">
+          🌙
+        </button>
+        <button type="button" class="frame-icon-btn" id="font-size-toggle-btn" aria-label="Adjust font size" title="Adjust text size" onclick="window.TransifyApp.cycleFontSize()" style="width: 34px; height: 34px; border-radius: 50%; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: 800;">
+          A
+        </button>
+        <a href="/login" class="frame-avatar-btn" role="img" aria-label="User Profile" title="User Profile">
+          <span role="img" aria-label="User Avatar">👩‍🦰</span>
+        </a>
+      </div>
     </div>
   </header>
 
@@ -191,6 +221,30 @@
     </ul>
     <p>Transify Assistive Platform — Breaking Communication Barriers.</p>
   </footer>
+
+  <!-- Fixed Mobile Bottom Navigation Bar -->
+  <nav class="transify-bottom-nav" aria-label="Mobile Navigation">
+    <a href="/" class="bottom-nav-item" data-nav="home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </a>
+    <a href="/sign" class="bottom-nav-item" data-nav="sign">
+      <span class="nav-icon">✋</span>
+      <span class="nav-label">Sign</span>
+    </a>
+    <a href="/braille" class="bottom-nav-item" data-nav="braille">
+      <span class="nav-icon">⠃</span>
+      <span class="nav-label">Braille</span>
+    </a>
+    <a href="/?slide=stt" class="bottom-nav-item" data-nav="speech">
+      <span class="nav-icon">🎙️</span>
+      <span class="nav-label">Speech</span>
+    </a>
+    <a href="/dashboard" class="bottom-nav-item active" data-nav="dashboard">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Status</span>
+    </a>
+  </nav>
 
   <script src="/static/app.js"></script>
 </body>

@@ -19,7 +19,9 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     this._isInitialized = true;
     const savedTheme = localStorage.getItem('transify_theme') || 'light';
     this.applyTheme(savedTheme, false);
-    this.applyFontSize('medium', false);
+    const savedFontSize = localStorage.getItem('transify_font_size') || 'medium';
+    this.applyFontSize(savedFontSize, false);
+    this.setupAccessibilityListeners();
     this.initAuthGateway();
     this.initScrollProgressBar();
     this.initCookieBanner();
@@ -773,12 +775,36 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   },
 
   applyFontSize(size, save = false) {
-    this.fontSize = 'medium';
-    document.documentElement.setAttribute('data-font-size', 'medium');
+    const validSizes = ['small', 'medium', 'large', 'xlarge'];
+    const validSize = validSizes.includes(size) ? size : 'medium';
+    this.fontSize = validSize;
+    document.documentElement.setAttribute('data-font-size', validSize);
+    const fontSelector = document.getElementById('font-size-select');
+    if (fontSelector) {
+      fontSelector.value = validSize;
+    }
+    const fontToggleBtn = document.getElementById('font-size-toggle-btn');
+    if (fontToggleBtn) {
+      const labels = { small: 'A-', medium: 'A', large: 'A+', xlarge: 'A++' };
+      fontToggleBtn.textContent = labels[validSize] || 'A';
+      fontToggleBtn.setAttribute('title', `Text Size: ${validSize}`);
+      fontToggleBtn.setAttribute('aria-label', `Text Size: ${validSize}`);
+    }
+    if (save) {
+      try {
+        localStorage.setItem('transify_font_size', validSize);
+        this.saveServerPreference('font_size', validSize);
+      } catch (_) {}
+    }
   },
 
   cycleFontSize() {
-    // Font sizing cycling disabled per user request
+    const order = ['medium', 'large', 'xlarge'];
+    const current = document.documentElement.getAttribute('data-font-size') || this.fontSize || 'medium';
+    const idx = order.indexOf(current);
+    const next = order[(idx + 1) % order.length];
+    this.applyFontSize(next, true);
+    this.announce(`Text size set to ${next}`);
   },
 
   announce(text) {
@@ -827,6 +853,9 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
         if (data.theme && !localStorage.getItem('transify_theme')) {
           this.applyTheme(data.theme, false);
         }
+        if (data.font_size && !localStorage.getItem('transify_font_size')) {
+          this.applyFontSize(data.font_size, false);
+        }
       }
     } catch (e) {
       // Offline or network error - gracefully ignore
@@ -847,7 +876,55 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   },
 
   setupAccessibilityListeners() {
-    // Theme and font size togglers disabled per user request
+    const themeToggle = document.getElementById('dark-mode-toggle-btn');
+    if (themeToggle && !themeToggle._bound) {
+      themeToggle._bound = true;
+      if (!themeToggle.getAttribute('onclick')) {
+        themeToggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.toggleDarkMode();
+        });
+      }
+    }
+    const fontToggle = document.getElementById('font-size-toggle-btn');
+    if (fontToggle && !fontToggle._bound) {
+      fontToggle._bound = true;
+      if (!fontToggle.getAttribute('onclick')) {
+        fontToggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.cycleFontSize();
+        });
+      }
+    }
+    const a11yBtn = document.getElementById('btn-open-a11y');
+    if (a11yBtn && !a11yBtn._bound) {
+      a11yBtn._bound = true;
+      a11yBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof this.openA11yModal === 'function') {
+          this.openA11yModal();
+        }
+      });
+    }
+
+    // Close any active slide or modal on Escape key
+    if (!window._escListenerAttached) {
+      window._escListenerAttached = true;
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' || e.keyCode === 27) {
+          const activeSlide = document.querySelector('.slide-screen.active');
+          if (activeSlide && typeof window.closeSlide === 'function') {
+            window.closeSlide(activeSlide.id);
+          }
+          if (typeof window.closeAuthSheet === 'function') {
+            window.closeAuthSheet();
+          }
+          if (typeof TransifyApp.closeA11yModal === 'function') {
+            TransifyApp.closeA11yModal();
+          }
+        }
+      });
+    }
   }
 });
 
