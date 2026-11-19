@@ -563,3 +563,45 @@ def test_browser_password_reset_deep_link_mobile(live_server, browser_instance):
 
     page.close()
 
+
+def test_browser_legacy_query_string_token_rejected_does_not_activate_reset(live_server, browser_instance):
+    """
+    PHASE 2 BROWSER REGRESSION TEST:
+    Verifies that legacy query-string tokens (?reset_token=...) are NOT accepted:
+    1. Navigating to /login?reset_token=unsupported_legacy_token_123 does NOT reveal the reset form.
+    2. #input-reset-token remains empty.
+    3. The title does NOT say 'Set New Password'.
+    4. Navigating to /?reset_token=... does NOT activate the auth sheet container.
+    5. Confirms fragment reset links remain strictly required for deep-linking.
+    """
+    page = new_isolated_page(browser_instance, viewport={"width": 1280, "height": 800})
+    query_token = "unsupported_legacy_token_123"
+
+    # Test 1: Standalone login page with query string token
+    page.goto(f"{live_server}/login?reset_token={query_token}")
+    page.wait_for_selector("#auth-submit-btn", timeout=5000)
+
+    # Reset form must NOT be revealed
+    forgot_fields = page.locator("#auth-forgot-fields")
+    assert not forgot_fields.is_visible()
+
+    # Reset token input must remain empty
+    token_input = page.locator("#input-reset-token")
+    assert token_input.input_value() == ""
+
+    # Title must remain default login title
+    title = page.locator("#auth-heading-title")
+    assert "Set New Password" not in title.inner_text()
+
+    # Address bar must have query token stripped for shoulder-surfing protection
+    assert query_token not in page.url
+
+    # Test 2: Landing page with query string token
+    page.goto(f"{live_server}/?reset_token={query_token}")
+    page.wait_for_load_state("domcontentloaded")
+    sheet = page.locator("#auth-sheet-container")
+    sheet_class = sheet.get_attribute("class") or ""
+    assert "active" not in sheet_class.split()
+
+    page.close()
+

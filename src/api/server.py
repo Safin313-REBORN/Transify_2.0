@@ -17,7 +17,7 @@ load_dotenv()
 
 logger = logging.getLogger("transify.server")
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, status, Request, Depends
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, status, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
@@ -1306,14 +1306,49 @@ def login_user(req: LoginRequest, response: Response, request: Request):
     }
 
 
-@app.post("/api/auth/forgot-password", tags=["Authentication"])
-def forgot_password(req: ForgotPasswordRequest, request: Request):
+def process_password_reset_background(clean_email: str) -> None:
     """
-    Initiates a password reset workflow.
-    Generates a cryptographically secure single-use token, stores only its SHA-256 hash,
-    and enforces rate limiting. Delivers instructions using configured email adapter.
-    Always returns an identical generic response (HTTP 200) to prevent account enumeration,
-    regardless of whether the account exists, is disabled, or whether SMTP delivery fails.
+    Background worker for password reset requests.
+    Decouples account lookup, token creation, and SMTP dispatch from the synchronous HTTP path,
+    eliminating timing side-channels and preventing account enumeration.
+
+    Reliability note:
+    Executes in-process within the ASGI server worker via FastAPI BackgroundTasks.
+    If the worker terminates abruptly immediately after response emission, pending in-flight tasks
+    may be interrupted. In high-availability enterprise environments, an external durable message
+    queue (e.g., Celery, Redis, or Cloud Tasks) should be utilized.
+    """
+    if not clean_email:
+        return
+
+    adapter = get_email_adapter()
+    adapter_configured = adapter.is_configured()
+    if not adapter_configured:
+        logger.warning("Password reset requested but email delivery adapter is not configured.")
+
+    user = get_user_by_email(clean_email)
+    raw_token = None
+    token_hash = None
+
+    if user and user.get("role") != "disabled":
+        raw_token, token_hash = create_password_reset_token(user["id"], expires_in_seconds=1800.0)
+        if adapter_configured:
+            try:
+                adapter.send_password_reset_email(user["email"], raw_token)
+            except Exception as ex:
+                logger.error(f"Password reset delivery failure: {type(ex).__name__}")
+                invalidate_password_reset_token(token_hash)
+        else:
+            invalidate_password_reset_token(token_hash)
+
+
+@app.post("/api/auth/forgot-password", tags=["Authentication"])
+def forgot_password(req: ForgotPasswordRequest, request: Request, background_tasks: BackgroundTasks):
+    """
+    Initiates a password reset workflow asynchronously.
+    Enforces rate limiting synchronously, then delegates account lookup, token generation,
+    and email dispatch to a background task so that HTTP response time cannot leak account existence.
+    Always returns an identical generic response (HTTP 200) without branching on account existence.
     """
     client_ip = request.client.host if request.client else "unknown"
     clean_email = (req.email or "").strip().lower()
@@ -1327,45 +1362,13 @@ def forgot_password(req: ForgotPasswordRequest, request: Request):
     if clean_email:
         record_failed_login(f"reset_email:{clean_email}", window_seconds=300.0)
 
-    adapter = get_email_adapter()
-    adapter_configured = adapter.is_configured()
-    if not adapter_configured:
-        logger.warning("Password reset requested but email delivery adapter is not configured.")
+    # Queue background task for every request without branching on account existence
+    background_tasks.add_task(process_password_reset_background, clean_email)
 
-    user = get_user_by_email(clean_email) if clean_email else None
-    raw_token = None
-    token_hash = None
-
-    if user and user.get("role") != "disabled":
-        raw_token, token_hash = create_password_reset_token(user["id"], expires_in_seconds=1800.0)
-        if adapter_configured:
-            try:
-                adapter.send_password_reset_email(user["email"], raw_token)
-            except Exception as ex:
-                logger.error(f"Password reset delivery failure: {type(ex).__name__}")
-                # Invalidate the token so it cannot remain usable unnecessarily
-                invalidate_password_reset_token(token_hash)
-                raw_token = None
-        else:
-            # Email delivery adapter not configured: invalidate token immediately
-            invalidate_password_reset_token(token_hash)
-            raw_token = None
-
-    resp_body = {
+    return {
         "status": "success",
         "message": "If an account with that email exists, password reset instructions have been processed."
     }
-
-    # Test-only reset token exposure exclusively in an explicitly configured test environment
-    is_test_env = (
-        not is_production()
-        and os.getenv("TRANSIFY_ENV") == "testing"
-        and os.getenv("TRANSIFY_EXPOSE_TEST_TOKENS") == "1"
-    )
-    if is_test_env and raw_token:
-        resp_body["test_token"] = raw_token
-
-    return resp_body
 
 
 @app.post("/api/auth/reset-password", tags=["Authentication"])

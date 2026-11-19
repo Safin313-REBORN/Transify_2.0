@@ -548,6 +548,9 @@
     },
 
     checkUrlResetToken: function() {
+      // 1. Fragment-based reset token flow (#reset_token=...)
+      // Tokens are strictly accepted via URL fragment to prevent inclusion in HTTP requests,
+      // browser referer headers, access logs, or proxy caches.
       var token = null;
       var hash = window.location.hash || '';
       if (hash) {
@@ -556,12 +559,17 @@
           token = match[1];
         }
       }
-      if (!token && window.location.search) {
+
+      // Legacy query-string tokens (?reset_token=...) are explicitly REJECTED
+      // to eliminate query-string credential leakage. If present in query, sanitize the address bar.
+      if (window.location.search && window.history && window.history.replaceState) {
         try {
-          var params = new URLSearchParams(window.location.search);
-          var qToken = params.get('reset_token');
-          if (qToken && /^[A-Za-z0-9_-]+$/.test(qToken)) {
-            token = qToken;
+          var sp = new URLSearchParams(window.location.search);
+          if (sp.has('reset_token')) {
+            sp.delete('reset_token');
+            var rem = sp.toString();
+            var sanitizedUrl = window.location.pathname + (rem ? '?' + rem : '') + (window.location.hash || '');
+            window.history.replaceState(null, document.title, sanitizedUrl);
           }
         } catch (e) {}
       }
@@ -569,15 +577,7 @@
       if (token) {
         // Strip the token from visible browser URL without reloading page or logging token
         if (window.history && window.history.replaceState) {
-          var cleanPath = window.location.pathname;
-          if (window.location.search) {
-            try {
-              var sp = new URLSearchParams(window.location.search);
-              sp.delete('reset_token');
-              var rem = sp.toString();
-              if (rem) cleanPath += '?' + rem;
-            } catch (e) {}
-          }
+          var cleanPath = window.location.pathname + (window.location.search || '');
           window.history.replaceState(null, document.title, cleanPath);
         }
 

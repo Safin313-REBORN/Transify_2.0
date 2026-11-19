@@ -8,6 +8,10 @@ import time
 import os
 import hashlib
 import logging
+import threading
+import json
+import urllib.request
+from typing import Optional, List, Dict, Any
 from unittest.mock import MagicMock, patch
 import smtplib
 import pytest
@@ -366,10 +370,21 @@ def test_smtp_adapter_starttls_flow(mock_smtp_cls):
     assert msg["From"] == "noreply@transify.ai"
     assert msg["To"] == "user@example.com"
 
-    # Inspect body content
-    payload = msg.get_payload()[0].get_payload(decode=True).decode("utf-8")
-    assert token in payload
-    assert f"https://transify.ai/login#reset_token={token}" in payload
+    # Inspect body content: verify both text/plain and text/html MIME alternatives
+    parts = msg.get_payload()
+    assert len(parts) == 2
+    assert parts[0].get_content_type() == "text/plain"
+    assert parts[1].get_content_type() == "text/html"
+
+    plain_payload = parts[0].get_payload(decode=True).decode("utf-8")
+    assert token in plain_payload
+    assert f"https://transify.ai/login#reset_token={token}" in plain_payload
+
+    html_payload = parts[1].get_payload(decode=True).decode("utf-8")
+    assert token in html_payload
+    assert f"https://transify.ai/login#reset_token={token}" in html_payload
+    assert "<!DOCTYPE html>" in html_payload
+    assert "class=\"code-box\"" in html_payload
 
 
 @patch("smtplib.SMTP_SSL")
@@ -395,6 +410,14 @@ def test_smtp_adapter_ssl_flow(mock_ssl_cls):
     mock_ssl_cls.assert_called_once_with("smtp.ssl.test", 465, timeout=10.0)
     mock_instance.login.assert_called_once_with("ssl_user@transify.ai", "SSLSecretPassword_2026")
     mock_instance.send_message.assert_called_once()
+
+    msg = mock_instance.send_message.call_args[0][0]
+    parts = msg.get_payload()
+    assert len(parts) == 2
+    assert parts[0].get_content_type() == "text/plain"
+    assert parts[1].get_content_type() == "text/html"
+    assert token in parts[0].get_payload(decode=True).decode("utf-8")
+    assert token in parts[1].get_payload(decode=True).decode("utf-8")
 
 
 def test_smtp_adapter_connection_and_auth_failures():
@@ -468,3 +491,155 @@ def test_canonical_app_url_https_validation(monkeypatch):
     # Default production fallback
     monkeypatch.delenv("APP_URL", raising=False)
     assert get_canonical_app_url().startswith("https://")
+
+
+@patch("smtplib.SMTP")
+def test_smtp_adapter_multipart_html_content_and_escaping(mock_smtp_cls):
+    """
+    Verifies that SMTPEmailAdapter constructs a true multipart/alternative MIME message
+    containing both text/plain and text/html parts, and that dynamic parameters (token, URL)
+    are strictly HTML-escaped.
+    """
+    mock_instance = MagicMock()
+    mock_smtp_cls.return_value.__enter__.return_value = mock_instance
+
+    adapter = SMTPEmailAdapter(
+        host="smtp.html.test",
+        port=587,
+        user="test_mailer@transify.ai",
+        password="TopSecretPassword123",
+        from_email="noreply@transify.ai"
+    )
+
+    special_token = "token_with_special_<chars>&\"quotes\""
+    adapter.send_password_reset_email("user@example.com", special_token, base_url="https://transify.ai?param=1&foo=2")
+
+    msg = mock_instance.send_message.call_args[0][0]
+    assert msg.is_multipart() is True
+    parts = msg.get_payload()
+    assert len(parts) == 2
+
+    # Plain text alternative
+    assert parts[0].get_content_type() == "text/plain"
+    plain_content = parts[0].get_payload(decode=True).decode("utf-8")
+    assert special_token in plain_content
+
+    # HTML alternative
+    assert parts[1].get_content_type() == "text/html"
+    html_content = parts[1].get_payload(decode=True).decode("utf-8")
+    assert "<!DOCTYPE html>" in html_content
+    # Strict HTML escaping checks
+    assert "<chars>" not in html_content
+    assert "&lt;chars&gt;" in html_content
+    assert "&amp;" in html_content
+
+
+def test_password_reset_response_emitted_before_delayed_smtp_deterministic(live_server):
+    """
+    PHASE 1 DETERMINISTIC TIMING-ORACLE PROOF (TCP Socket / Live Server):
+    Proves that the HTTP response is emitted over the wire before a deliberately delayed
+    SMTP operation completes.
+    Uses synchronization primitives (threading.Event):
+    1. The mock SMTP delivery hook blocks and waits for `response_received_by_client`.
+    2. If the endpoint were synchronous, the client thread would be blocked waiting for the server,
+       the client would never receive the response, `response_received_by_client` would never be set,
+       and the mock SMTP operation would time out/fail.
+    3. Because execution is asynchronous via BackgroundTasks, Uvicorn sends the HTTP 200 response to
+       the client immediately.
+    4. The client receives the HTTP 200, asserts its validity, and sets `response_received_by_client`.
+    5. The mock SMTP hook receives the signal and completes successfully.
+    """
+    email = f"async_timing_{int(time.time()*1000)}@transify.test"
+    create_user("Async Timing User", email, "SecurePassword123!_2026", consent_terms=True)
+
+    response_received_by_client = threading.Event()
+    smtp_started = threading.Event()
+    smtp_finished = threading.Event()
+
+    original_adapter = get_email_adapter()
+
+    class DelayedMockAdapter(MockMailAdapter):
+        def send_password_reset_email(self, to: str, reset_token: str, base_url: Optional[str] = None) -> bool:
+            smtp_started.set()
+            # Wait for client to receive the HTTP response.
+            # If the server were synchronous, this would deadlock/time out because the client
+            # cannot receive the response until this method returns.
+            client_got_response = response_received_by_client.wait(timeout=4.0)
+            if not client_got_response:
+                raise RuntimeError("Deadlock detected: SMTP executed synchronously before client received response!")
+            smtp_finished.set()
+            return super().send_password_reset_email(to, reset_token, base_url=base_url)
+
+    delayed_adapter = DelayedMockAdapter(configured=True)
+    set_email_adapter(delayed_adapter)
+
+    try:
+        # Client makes request to the live server
+        req = urllib.request.Request(
+            f"{live_server}/api/auth/forgot-password",
+            data=json.dumps({"email": email}).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=5.0) as resp:
+            status_code = resp.getcode()
+            body = json.loads(resp.read().decode("utf-8"))
+
+        assert status_code == 200
+        assert body["status"] == "success"
+        assert "instructions have been processed" in body["message"]
+
+        # Signal that the client has received the response!
+        response_received_by_client.set()
+
+        # Verify that SMTP completes now that the client has confirmed receipt of response
+        assert smtp_finished.wait(timeout=5.0) is True
+        assert len(delayed_adapter.sent_emails) == 1
+    finally:
+        set_email_adapter(original_adapter)
+
+
+def test_password_reset_asgi_send_emitted_before_background_task_deterministic(reset_mock_mail):
+    """
+    PHASE 1 DETERMINISTIC TIMING-ORACLE PROOF (ASGI Layer):
+    Verifies at the ASGI protocol layer that 'http.response.body' is emitted to `send`
+    before the background task begins executing.
+    """
+    email = f"asgi_timing_{int(time.time()*1000)}@transify.test"
+    create_user("ASGI Timing User", email, "SecurePassword123!_2026", consent_terms=True)
+
+    body_emitted_event = threading.Event()
+    smtp_verified_event = threading.Event()
+    original_adapter = get_email_adapter()
+
+    class ASGIVerifyingAdapter(MockMailAdapter):
+        def send_password_reset_email(self, to: str, reset_token: str, base_url: Optional[str] = None) -> bool:
+            # Deterministic check: http.response.body must ALREADY be emitted
+            if not body_emitted_event.is_set():
+                raise AssertionError("MOCK SMTP called before ASGI http.response.body was emitted!")
+            smtp_verified_event.set()
+            return super().send_password_reset_email(to, reset_token, base_url=base_url)
+
+    adapter = ASGIVerifyingAdapter(configured=True)
+    set_email_adapter(adapter)
+
+    class ASGIInterceptor:
+        def __init__(self, app_to_wrap):
+            self.app_to_wrap = app_to_wrap
+        async def __call__(self, scope, receive, send):
+            async def wrapped_send(message):
+                if message.get("type") == "http.response.body":
+                    body_emitted_event.set()
+                await send(message)
+            await self.app_to_wrap(scope, receive, wrapped_send)
+
+    try:
+        intercepted_app = ASGIInterceptor(app)
+        with TestClient(intercepted_app) as tc:
+            res = tc.post("/api/auth/forgot-password", json={"email": email})
+            assert res.status_code == 200
+
+        assert body_emitted_event.is_set() is True
+        assert smtp_verified_event.is_set() is True
+        assert len(adapter.sent_emails) == 1
+    finally:
+        set_email_adapter(original_adapter)

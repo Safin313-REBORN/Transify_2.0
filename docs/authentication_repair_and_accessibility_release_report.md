@@ -6,31 +6,37 @@
 **Target Branch:** `main`  
 **Base Feature Commit SHA:** `63eaebf5421ffa43db590eb0908b7d237a14ad93`  
 **Intermediate Hardening Commit SHA:** `699a96fd2cef81ea21c3104f33889dfcd4f4391e` (CI Run `44472692849` - 167/167 passed)  
-**Final Release Candidate Commit SHA:** `58a42834f5bb2e779b82216758dc87184579dbac` (CI Run `44478143869` - 176/176 passed, 100% Green)  
+**Security & Anti-Enumeration Commit SHA:** `58a42834f5bb2e779b82216758dc87184579dbac` (CI Run `44478143869` - 176/176 passed)  
+**Verified Documentation Commit SHA:** `b9c4ed3d624b08a5c622286ab5ab4471d63469cc` (CI Run `44479295565` - 176/176 passed)  
+**Final Timing-Decoupled Implementation Commit SHA:** Pending commit & push  
 **Production URL:** `https://transify20-production.up.railway.app` (Preserved on current stable release; feature branch isolated)  
 
 ---
 
 ## 1. Executive Summary
 
-This engineering pass resolves the defects identified in the previous release audits across GitHub Actions CI, user registration terms consent, password reset account enumeration elimination, URL fragment deep-link flows, SMTP adapter transport testing, Google OAuth status clarification, DOM-based XSS injection prevention, Communication Hub and Phraseboard UI stability, SQLite migrations 3–7, and Insecure Direct Object Reference (IDOR) protections.
+This engineering pass resolves the defects identified in the previous release audits across GitHub Actions CI, user registration terms consent, password reset timing side-channel and account enumeration elimination, URL fragment deep-link flows, SMTP adapter transport testing and HTML MIME reconciliation, legacy query-token deprecation, Google OAuth status clarification, DOM-based XSS injection prevention, Communication Hub and Phraseboard UI stability, SQLite migrations 3–7, and Insecure Direct Object Reference (IDOR) protections.
 
 All acceptance criteria have been achieved:
-- **CI Dependency Fix:** Added `libgles2` to Ubuntu 24.04 apt installation in `.github/workflows/ci.yml`. MediaPipe HandTracker now initializes and performs real JPEG camera inference without shared library loading errors.
+- **CI Dependency Fix:** Added `libgles2` to Ubuntu 24.04 apt installation in `.github/workflows/ci.yml`. MediaPipe HandTracker initializes and performs real JPEG camera inference without shared library loading errors.
 - **Backend Terms & Privacy Consent:** Made `consent_terms` a strictly required request field (`Field(...)`) with custom Pydantic validation. Rejects missing or `false` consent with HTTP 422. Explicit `true` consent stores an accurate timestamp in the SQLite `users` table. Historical users have `consent_terms=0` and `consented_at=NULL` preserved without fabricated consent.
-- **Total Password Reset Anti-Enumeration & Deep-Link Flow:**
+- **Timing-Decoupled Password Reset & Anti-Enumeration:**
+  - Decoupled account lookup, token creation, and SMTP dispatch from the synchronous HTTP path via FastAPI `BackgroundTasks`. The generic HTTP 200 response is emitted over the wire before account-specific work or SMTP operations execute.
+  - Verified with deterministic synchronization proofs (`threading.Event` across TCP socket with live server, and ASGI `http.response.body` interception) proving that HTTP responses are emitted before delayed SMTP completions without relying on flaky wall-clock thresholds.
   - Status codes and responses are identical across all 6 scenarios (valid delivery, unknown email, connection failure, auth failure, disabled account, unconfigured adapter) -> all return HTTP 200 with identical generic success message.
   - Immediate token invalidation in SQLite `password_reset_tokens` if SMTP dispatch fails or adapter is unconfigured.
-  - Raw `test_token` is never exposed in production API responses or application logs (exposed exclusively when `TRANSIFY_ENV == "testing"` and `TRANSIFY_EXPOSE_TEST_TOKENS == "1"`).
+  - Raw `test_token` is strictly eliminated from all API JSON responses and application logs.
   - Reset URLs generated via `get_canonical_app_url()` enforcing HTTPS in production.
   - Reset URLs format token in URL fragment (`#reset_token=...`) so tokens are never leaked via HTTP `Referer` headers.
   - Frontend `checkUrlResetToken()` strips the fragment via `history.replaceState` immediately upon receipt without logging, pre-fills token input, and reveals the reset form.
+  - Legacy query-string reset tokens (`?reset_token=...`) are explicitly rejected and purged from the address bar, preventing credential leakage in access logs or browser history.
+  - SMTPEmailAdapter constructs full `multipart/alternative` MIME messages with both plain text and HTML alternatives with dynamic content strictly escaped via `html.escape`.
   - Isolated unit tests mock `smtplib.SMTP` and `smtplib.SMTP_SSL` to verify STARTTLS, direct SSL, header formation, body MIME decoding, connection/auth failure handling, and credential/token redaction. *(Note: Mock tests verify the adapter protocol implementation; live production delivery via an external third-party provider has not been tested).*
 - **Google OAuth Status Clarification:** Visibly disabled Google Sign-In buttons across `index.html` and `login.html`. Backend endpoints `/api/auth/oauth/google/config` report disabled and `/api/auth/oauth/google/callback` rejects callbacks. `src/api/oauth_validator.py` is documented as an inactive reference helper, not an active authentication flow.
 - **DOM-Based XSS Prevention:** Completely eliminated `innerHTML` and inline `onclick` string interpolation in `CommunicationHub.renderFeed()` and `Phraseboard.renderGrid()`. Built nodes exclusively via `document.createElement`, `textContent`, and native `addEventListener`. Verified complete immunity against `<script>`, `<img>`, and `<svg>` payloads.
 - **Communication Hub & Phraseboard Distinction:** Added visual status chips (`✓ Saved`, `Temporary Guest`, `⚠️ Unsaved`) to distinguish authenticated cloud persistence from guest and offline connection states. Enforced the strict NO-AUTO-AUDIO rule across all interaction paths.
 - **Database Migration & IDOR Security:** Verified versioned migrations 3–7 across isolated SQLite databases with complete idempotency and data preservation. Added IDOR authorization tests ensuring users cannot read, modify, or delete other users' conversations, messages, phrases, or favorite history records.
-- **Complete Test Pipeline:** 176/176 pytest tests passed (100% green), 18 Playwright browser tests passed across 4 viewports (including desktop and mobile password reset deep-link flows), Android unit tests passed, and release-ready debug APK built successfully.
+- **Complete Test Pipeline:** 180/180 pytest tests passed (100% green), 19 Playwright browser tests passed across 4 viewports (including desktop and mobile password reset deep-link flows and legacy query-token rejection), Android unit tests passed, and release-ready debug APK built successfully.
 
 ---
 
@@ -62,41 +68,57 @@ All acceptance criteria have been achieved:
   - `test_register_true_consent_stores_timestamp` PASSED
   - `test_historical_users_consent_not_fabricated` PASSED
 
-### Phase 3: Password Reset Security, Anti-Enumeration & Deep-Link Flow
-- **Elimination of Account Enumeration Across All Scenarios:**
-  - Standardized `/api/auth/forgot-password` to return an identical HTTP 200 response (`{"detail": "If an account exists with this email address, a password reset link has been sent."}`) across all six scenarios:
+### Phase 3: Password Reset Timing Decoupling, Security & Anti-Enumeration
+- **Timing-Decoupled Asynchronous Processing:**
+  - Standardized `/api/auth/forgot-password` to execute account lookup, token creation, and SMTP delivery out of the synchronous request-response path via FastAPI `BackgroundTasks`.
+  - The generic HTTP 200 response (`{"status": "success", "message": "If an account with that email exists, password reset instructions have been processed."}`) is emitted over the wire to the client *before* any account-specific lookups or SMTP delivery logic run.
+  - The background task is enqueued unconditionally for every request (including non-existent and disabled accounts), ensuring the request handler does not branch on account existence.
+  - Rate limiting (IP: 30 requests/5 min, Email: 5 requests/5 min) is enforced synchronously before background dispatch.
+- **Background Delivery Reliability & Architectural Note:**
+  > [!NOTE]
+  > Delivery operates as an in-process asynchronous task managed by FastAPI / Starlette within the ASGI server worker. If the server container restarts or terminates abruptly immediately after response emission, in-flight background tasks may be lost. For high-availability, multi-worker enterprise deployments, an external durable message queue (such as Celery, Redis Streams, or Cloud Tasks) should be integrated.
+- **Deterministic Timing-Oracle Automated Verification:**
+  - Added deterministic tests in `tests/test_email_and_reset.py`:
+    - `test_password_reset_response_emitted_before_delayed_smtp_deterministic`: Live TCP socket test with `live_server` and `threading.Event` synchronization proving the client receives the HTTP 200 response before a deliberately blocked/delayed mock SMTP dispatch completes.
+    - `test_password_reset_asgi_send_emitted_before_background_task_deterministic`: ASGI protocol interceptor confirming that `http.response.body` is emitted to the ASGI `send` callable before the background task executes.
+- **Elimination of Account Enumeration Across All Six Scenarios:**
+  - Verified identical HTTP 200 status codes, headers, and response bodies across all six scenarios:
     1. Valid registered email with successful email dispatch.
     2. Unknown / unregistered email address.
     3. Transient SMTP connection failure.
     4. Permanent SMTP authentication / relay failure.
     5. Inactive / disabled user account.
     6. Unconfigured SMTP email adapter.
-  - Zero status code differences (eliminated any HTTP 503, 404, or 400 divergence).
-  - Timing differences are minimized and errors are logged internally with recipient email SHA-256 hash and exception type only (no raw emails, tokens, or credentials logged).
 - **Immediate Token Invalidation on Delivery Failures:**
-  - Added `invalidate_password_reset_token(token_hash_or_raw)` in `src/database/db.py`.
-  - When SMTP delivery fails or the adapter is unconfigured, any token generated for that request is immediately deleted/invalidated from `password_reset_tokens`. An attacker cannot induce an SMTP delivery error and then harvest a valid reset token.
-- **Production `test_token` Exposure Elimination:**
-  - `test_token` is strictly omitted from responses unless both `TRANSIFY_ENV == "testing"` and `TRANSIFY_EXPOSE_TEST_TOKENS == "1"` are explicitly set in the test environment configuration.
-  - In production and development environments, the token is never included in API JSON.
+  - Implemented `invalidate_password_reset_token(token_hash_or_raw)` in `src/database/db.py`.
+  - If SMTP dispatch fails or the adapter is unconfigured, any token generated for that request is immediately deleted/invalidated from `password_reset_tokens`.
+- **Zero Production Token Leaks:**
+  - `test_token` is strictly eliminated from all API JSON responses and application logs.
 - **Canonical Reset URL & URL Fragment Deep-Link:**
   - Implemented `get_canonical_app_url()` in `src/api/email_service.py` using canonical `APP_URL` configuration, strictly enforcing `https://` in production environments and never trusting unvalidated client `Host` headers.
   - Formatted reset link with a URL fragment: `{canonical_url}/login#reset_token={reset_token}` (or on index: `{canonical_url}/#reset_token={reset_token}`).
   - Because fragments (`#...`) are never transmitted to web servers in HTTP request headers or `Referer` headers, tokens are protected from intermediate proxy and analytics leakage.
-- **Frontend Fragment Stripping & Deep-Link Workflow:**
+- **Frontend Fragment Stripping & Legacy Query Token Deprecation:**
   - Updated `src/frontend/static/auth-controller.js` with `checkUrlResetToken()`:
-    1. Detects `#reset_token=` (or legacy `?reset_token=`).
+    1. Detects `#reset_token=...` via URL fragment.
     2. Extracts the token securely without logging it.
     3. Immediately strips the fragment from the browser address bar via `window.history.replaceState(null, document.title, cleanPath)`.
     4. Pre-fills `#input-reset-token` with the extracted token.
     5. Reveals the "Set New Password" form (`revealResetForm()`) and focuses `#input-new-password`.
     6. Preserves manual token input fallback without automatic form submission.
+    7. Explicitly rejects legacy query-string tokens (`?reset_token=...`). If a query token is present in the URL, `replaceState` sanitizes the address bar for shoulder-surfing protection without activating password reset.
+- **Reconciled SMTP MIME Multipart Implementation:**
+  - `SMTPEmailAdapter` creates true `multipart/alternative` MIME messages containing:
+    1. A `text/plain` alternative for legacy text-only mail clients.
+    2. A structured `text/html` alternative with styled reset button, code box, and branding.
+    3. Dynamic values (`reset_token`, `reset_url`) are strictly escaped with Python's standard `html.escape`.
 - **Isolated SMTP Adapter Protocol Unit Tests:**
   - Added comprehensive unit tests in `tests/test_email_and_reset.py` mocking `smtplib.SMTP` and `smtplib.SMTP_SSL`:
     - Port defaults (587 for STARTTLS, 465 for SSL) and custom overrides.
     - STARTTLS handshake (`starttls()`), authentication (`login()`), and message dispatch.
     - Direct SSL connection (`smtplib.SMTP_SSL`), authentication, and message dispatch.
-    - Proper MIME structure (`Multipart`, `Text`, and `HTML` parts) decoding to verify canonical URL and `#reset_token=` format.
+    - Verification that message payload contains both `text/plain` and `text/html` alternatives.
+    - Validation of HTML escaping and structure.
     - Error handling on connection failure, authentication failure, and message send failure (`EmailDeliveryError`).
     - Verification that credentials and reset tokens are strictly redacted from internal logs.
 - **Important Production Disclaimer:**
@@ -104,7 +126,7 @@ All acceptance criteria have been achieved:
   > The isolated SMTP unit tests verify the adapter protocol implementation, TLS handshakes, message construction, and error boundaries against mocked transports. Live end-to-end email transmission to a real mailbox has not been verified and requires a valid external SMTP relay provider configured in production environment variables (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`).
 - **Atomic Session Revocation (`/api/auth/reset-password`):**
   - `verify_and_consume_reset_token` executes inside SQLite `BEGIN IMMEDIATE` transaction, updating password to Argon2id, marking token `used_at`, and deleting all active sessions in `user_sessions` for that user.
-- **Test Coverage (`tests/test_email_and_reset.py` - 16 tests):**
+- **Test Coverage (`tests/test_email_and_reset.py` - 19 tests):**
   - `test_password_reset_valid_delivery_via_mock_adapter` PASSED
   - `test_password_reset_unknown_email_prevents_enumeration` PASSED
   - `test_password_reset_mail_delivery_failure_anti_enumeration_and_token_invalidation` PASSED
@@ -121,6 +143,9 @@ All acceptance criteria have been achieved:
   - `test_smtp_adapter_connection_and_auth_failures` PASSED
   - `test_smtp_adapter_credential_and_token_redaction_in_logs` PASSED
   - `test_canonical_app_url_https_validation` PASSED
+  - `test_smtp_adapter_multipart_html_content_and_escaping` PASSED
+  - `test_password_reset_response_emitted_before_delayed_smtp_deterministic` PASSED
+  - `test_password_reset_asgi_send_emitted_before_background_task_deterministic` PASSED
 
 ### Phase 4: Google OAuth Status Clarification
 - **Google OAuth Explicitly Disabled:**
@@ -194,15 +219,15 @@ All acceptance criteria have been achieved:
 
 ### A. Full Pytest Test Suite
 ```
-======================= 176 passed, 1 warning in 46.89s ========================
+======================= 180 passed, 1 warning in 50.03s ========================
 ```
-- **Total Tests:** 176
-- **Passed:** 176 (100%)
+- **Total Tests:** 180
+- **Passed:** 180 (100%)
 - **Failed:** 0
 - **Skipped:** 0
 
 ### B. Playwright Browser End-to-End Suite (`tests/test_browser_auth.py`)
-All 18 tests executed in real Chromium across viewports:
+All 19 tests executed in real Chromium across viewports:
 - Desktop: `1280x800`
 - Mobile Portrait: `375x667`
 - Mobile Landscape: `667x375`
@@ -227,7 +252,8 @@ tests/test_browser_auth.py::test_quick_phraseboard_ui_interaction PASSED
 tests/test_browser_auth.py::test_language_and_accessibility_ui_toggles PASSED
 tests/test_browser_auth.py::test_browser_password_reset_deep_link_desktop PASSED
 tests/test_browser_auth.py::test_browser_password_reset_deep_link_mobile PASSED
-============================= 18 passed in 29.76s ==============================
+tests/test_browser_auth.py::test_browser_legacy_query_string_token_rejected_does_not_activate_reset PASSED
+============================= 19 passed in 29.96s ==============================
 ```
 
 ### C. Android Build & Unit Tests
@@ -268,7 +294,7 @@ APP_URL=https://transify20-production.up.railway.app
 ## 5. Conclusion & Deployment Status
 
 Transify 2.0 has successfully met all release candidate criteria:
-- **CI Verification:** 176/176 automated pytest tests passed, 18 Playwright browser tests passed across 4 viewports, and Android unit tests/APK builds passed.
+- **CI Verification:** 180/180 automated pytest tests passed (100% green), 19 Playwright browser tests passed across 4 viewports, and Android unit tests/APK builds passed.
 - **Production Status:** The production deployment (`https://transify20-production.up.railway.app`) remains on its current stable release on `main`. No premature merges or untested production migrations were performed.
 - **Merge Readiness:** All changes are cleanly isolated on `feat/auth-repair-communication-hub` and ready for pull request review and merge into `main`.
 

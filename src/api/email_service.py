@@ -8,6 +8,7 @@ import os
 import smtplib
 import logging
 import hashlib
+import html
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional, List, Dict, Any
@@ -139,7 +140,43 @@ This link and code will expire in 30 minutes. If you did not request this, pleas
 — The Transify Team
 Breaking Communication Barriers
 """
+
+        safe_token = html.escape(reset_token)
+        safe_url = html.escape(reset_url)
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transify Password Reset</title>
+<style>
+body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #1e1b4b; background-color: #f8fafc; margin: 0; padding: 24px; }}
+.container {{ max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 32px; border: 1px solid #e2e8f0; }}
+.btn {{ display: inline-block; background-color: #8338ec; color: #ffffff !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 20px 0; }}
+.code-box {{ background-color: #f1f5f9; padding: 12px 20px; border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 18px; letter-spacing: 2px; font-weight: bold; color: #8338ec; display: inline-block; }}
+.footer {{ margin-top: 32px; font-size: 13px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 16px; }}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Transify Password Reset</h2>
+<p>Hello,</p>
+<p>You recently requested to reset your password for your Transify account.</p>
+<p>Use the following one-time reset code to set a new password:</p>
+<p><span class="code-box">{safe_token}</span></p>
+<p>Or click the button below to open the recovery page:</p>
+<p><a href="{safe_url}" class="btn">Reset Password</a></p>
+<p><small style="color: #64748b;">If the button does not work, copy and paste this link into your browser:<br><a href="{safe_url}" style="color: #8338ec;">{safe_url}</a></small></p>
+<p>This link and code will expire in 30 minutes. If you did not request this, please disregard this email.</p>
+<div class="footer">
+<p>&mdash; The Transify Team<br>Breaking Communication Barriers</p>
+</div>
+</div>
+</body>
+</html>"""
+
         msg.attach(MIMEText(text_content, "plain", "utf-8"))
+        msg.attach(MIMEText(html_content, "html", "utf-8"))
 
         recipient_hash = hashlib.sha256(clean_to.encode("utf-8")).hexdigest()[:8]
         try:

@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 import pytest
 from fastapi.testclient import TestClient
 from src.api.server import app
+from src.api.email_service import get_email_adapter
 from src.database.db import (
     get_user_by_email,
     authenticate_user,
@@ -500,8 +501,10 @@ def test_password_recovery_workflow(client):
     assert forgot_res.status_code == 200
     forgot_data = forgot_res.json()
     assert "instructions have been processed" in forgot_data["message"]
-    # In testing environment, test_token is provided for verification
-    test_token = forgot_data.get("test_token")
+    # Password reset instructions processed asynchronously via background task
+    adapter = get_email_adapter()
+    assert len(adapter.sent_emails) > 0
+    test_token = adapter.sent_emails[-1]["token"]
     assert test_token is not None
 
     # Reset password using token
