@@ -114,6 +114,42 @@
       pointer-events: none;
     }
 
+    /* Staggered Home Card Entrance Dynamics (UI/UX Pro Max) */
+    @keyframes homeCardStagger {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .planner-card-frame > .frame-top-row {
+      animation: homeCardStagger 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: 0.04s;
+    }
+    .planner-card-frame > div:nth-of-type(1) {
+      animation: homeCardStagger 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: 0.08s;
+    }
+    .planner-card-frame > .segment-hand-signal {
+      animation: homeCardStagger 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: 0.12s;
+    }
+    .planner-card-frame > .segment-braille {
+      animation: homeCardStagger 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: 0.18s;
+    }
+    .planner-card-frame > .bottom-segments-row {
+      animation: homeCardStagger 0.48s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: 0.24s;
+    }
+    .planner-card-frame > div:nth-of-type(2) {
+      animation: homeCardStagger 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: 0.30s;
+    }
+
     /* Top Bar: Menu & Avatar */
     .frame-top-row {
       display: flex;
@@ -451,6 +487,31 @@
       visibility: visible;
     }
 
+    /* Staggered Slide Content Entrance Dynamics (UI/UX Pro Max) */
+    @keyframes slideInnerStagger {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .slide-screen.active .slide-actor-titles {
+      animation: slideInnerStagger 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: 0.08s;
+    }
+    .slide-screen.active .slide-body-padding > * {
+      animation: slideInnerStagger 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .slide-screen.active .slide-body-padding > *:nth-child(1) { animation-delay: 0.06s; }
+    .slide-screen.active .slide-body-padding > *:nth-child(2) { animation-delay: 0.12s; }
+    .slide-screen.active .slide-body-padding > *:nth-child(3) { animation-delay: 0.18s; }
+    .slide-screen.active .slide-body-padding > *:nth-child(4) { animation-delay: 0.24s; }
+    .slide-screen.active .slide-body-padding > *:nth-child(5) { animation-delay: 0.30s; }
+    .slide-screen.active .slide-body-padding > *:nth-child(6) { animation-delay: 0.36s; }
+
     /* Inner Slide Content Box with Soft Blurred Ambient Background */
     .slide-inner-frame {
       width: 100%;
@@ -660,14 +721,20 @@
       transform: scale(0.96);
     }
     .stt-mic-button.listening {
-      background: #dc2626;
+      background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
       border-color: #fca5a5;
-      animation: pulse-mic 1.4s infinite;
+      animation: pulse-mic 1.5s infinite ease-out;
     }
     @keyframes pulse-mic {
-      0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); }
-      70% { box-shadow: 0 0 0 18px rgba(220, 38, 38, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+      0% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.75), 0 0 0 0 rgba(249, 115, 22, 0.45);
+      }
+      70% {
+        box-shadow: 0 0 0 20px rgba(220, 38, 38, 0), 0 0 0 38px rgba(249, 115, 22, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0), 0 0 0 0 rgba(249, 115, 22, 0);
+      }
     }
 
     /* Subtle Glassmorphism Touches on Option Elements */
@@ -1386,6 +1453,9 @@
 
         <!-- Slide-up Frosted Glass Card -->
         <div class="auth-sheet-card" id="auth-sheet-card">
+          <!-- Tactile Drag Handle -->
+          <div class="auth-sheet-drag-handle" aria-hidden="true"></div>
+
           <!-- Sheet Top Navigation: Clean Back Button & Dual Tab Switcher -->
           <div class="auth-sheet-top-bar" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 12px;">
             <button type="button" class="auth-sheet-back-btn" id="auth-back-btn" onclick="window.TransifyApp.closeAuthSheet()" aria-label="Back to welcome screen">

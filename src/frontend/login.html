@@ -48,13 +48,31 @@
       overflow-x: hidden;
     }
 
-    /* Decorative Organic Ambient Shapes */
+    /* Decorative Organic Ambient Shapes with Calibrated Breathing Physics */
+    @keyframes ambientBreathe {
+      0%, 100% {
+        transform: translate(0, 0) scale(1);
+      }
+      50% {
+        transform: translate(14px, -12px) scale(1.05);
+      }
+    }
+    @keyframes ambientBreatheReverse {
+      0%, 100% {
+        transform: translate(0, 0) scale(1);
+      }
+      50% {
+        transform: translate(-14px, 12px) scale(0.96);
+      }
+    }
+
     .ambient-shape {
       position: absolute;
       border-radius: 50%;
       filter: blur(54px);
       pointer-events: none;
       z-index: 1;
+      will-change: transform;
     }
     .shape-pink {
       top: -60px;
@@ -62,6 +80,7 @@
       width: 320px;
       height: 320px;
       background: rgba(254, 110, 161, 0.45);
+      animation: ambientBreathe 14s ease-in-out infinite;
     }
     .shape-yellow-top {
       top: -50px;
@@ -69,6 +88,7 @@
       width: 280px;
       height: 240px;
       background: rgba(254, 214, 80, 0.4);
+      animation: ambientBreathe 12s ease-in-out infinite alternate;
     }
     .shape-purple {
       bottom: -70px;
@@ -76,6 +96,7 @@
       width: 340px;
       height: 340px;
       background: rgba(190, 110, 241, 0.45);
+      animation: ambientBreatheReverse 16s ease-in-out infinite;
     }
     .shape-yellow-bottom {
       bottom: -60px;
@@ -83,6 +104,7 @@
       width: 320px;
       height: 300px;
       background: rgba(254, 200, 74, 0.38);
+      animation: ambientBreatheReverse 15s ease-in-out infinite alternate;
     }
 
     /* Main Container (Unified Centered Device Frame with Exact Reference Mockup) */
@@ -380,6 +402,24 @@
       box-shadow: 0 8px 22px var(--primary-glow);
       transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
       margin-top: 4px;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .auth-primary-btn::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -130%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.32) 50%, transparent 100%);
+      transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .auth-primary-btn:hover::before {
+      transform: translateX(250%);
     }
     .auth-primary-btn:hover {
       background: var(--primary-hover);
@@ -388,6 +428,15 @@
     }
     .auth-primary-btn:active {
       transform: translateY(0);
+    }
+
+    .btn-arrow, .guest-arrow {
+      display: inline-block;
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .auth-primary-btn:hover:not(:disabled) .btn-arrow,
+    .guest-btn:hover .guest-arrow {
+      transform: translateX(4px);
     }
 
     /* Divider */
@@ -459,28 +508,36 @@
       transform: scale(1.02);
     }
 
-    /* Feedback Alert Banner */
-    .auth-alert {
+    /* Feedback Alert Banner with Tactile Error Shake */
+    @keyframes authShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-5px); }
+      40%, 80% { transform: translateX(5px); }
+    }
+
+    .auth-alert, .auth-status-alert {
       display: none;
       padding: 10px 14px;
       border-radius: 12px;
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 600;
       margin-bottom: 12px;
       text-align: center;
-      animation: fadeIn 0.3s ease;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .auth-alert.success {
+    .auth-alert.success, .auth-status-alert.success {
       display: block;
       background: rgba(34, 197, 94, 0.12);
       color: #15803d;
       border: 1px solid rgba(34, 197, 94, 0.3);
+      animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
-    .auth-alert.error {
+    .auth-alert.error, .auth-status-alert.error {
       display: block;
       background: rgba(239, 68, 68, 0.1);
       color: #b91c1c;
       border: 1px solid rgba(239, 68, 68, 0.3);
+      animation: authShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
     }
 
     /* --------------------------------------------------------------------------
@@ -661,6 +718,21 @@
     .auth-sheet-container.active .auth-sheet-card {
       transform: translateY(0);
       opacity: 1;
+    }
+
+    /* Tactile Drag Handle */
+    .auth-sheet-drag-handle {
+      width: 40px;
+      height: 4.5px;
+      background: rgba(131, 56, 236, 0.22);
+      border-radius: 9999px;
+      margin: 0 auto 14px auto;
+      flex-shrink: 0;
+      transition: background 0.22s ease, width 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .auth-sheet-card:hover .auth-sheet-drag-handle {
+      background: rgba(131, 56, 236, 0.42);
+      width: 50px;
     }
 
     .auth-sheet-top-bar {
@@ -885,6 +957,25 @@
   margin: 0 !important;
 }
 
+/* Reduced Motion Mode (WCAG 2.1 AAA & Motion Sensitivity) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transform: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transform: none !important;
+  scroll-behavior: auto !important;
+}
+
   </style>
   <script src="/static/auth-controller.js?v=20261118_authfix_v11"></script>
   <script>
@@ -1012,6 +1103,9 @@
 
       <!-- Slide-up Frosted Card -->
       <div class="auth-sheet-card" id="auth-sheet-card">
+        <!-- Tactile Drag Handle -->
+        <div class="auth-sheet-drag-handle" aria-hidden="true"></div>
+
         <!-- Sheet Top Navigation: Back Button & Mode Indicator -->
         <div class="auth-sheet-top-bar">
           <button type="button" class="auth-sheet-back-btn" id="auth-back-btn" onclick="closeAuthSheet()" aria-label="Back to welcome screen">
