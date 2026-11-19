@@ -1145,7 +1145,6 @@ var SignPage = window.SignPage = window.TransifySign = {
   predictTimer: null,
   lastPrediction: null,
   sessionId: 'transify_sess_' + Math.random().toString(36).substring(2, 10),
-  autoSpeak: false,
   currentMode: 'expressions',
   currentLanguageMode: 'bdsl',
   sentenceTokens: [],
@@ -1714,14 +1713,6 @@ var SignPage = window.SignPage = window.TransifySign = {
         } else {
           TransifyApp.showToast('No confirmed sign to speak.', 'warning');
         }
-      });
-    }
-
-    const autoSpeakCheck = document.getElementById('auto-speak-toggle');
-    if (autoSpeakCheck) {
-      this.autoSpeak = autoSpeakCheck.checked;
-      autoSpeakCheck.addEventListener('change', (e) => {
-        this.autoSpeak = e.target.checked;
       });
     }
   },

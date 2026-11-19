@@ -217,8 +217,11 @@ class MainActivity : AppCompatActivity() {
         settings.displayZoomControls = false
         settings.builtInZoomControls = false
 
-        // Media Autoplay (Required for live camera stream display)
-        settings.mediaPlaybackRequiresUserGesture = false
+        // Media Playback Gesture Requirement
+        // Enforce user gesture requirement to block unprompted autoplay audio elements.
+        // Muted camera video preview (<video autoplay muted playsinline>) from getUserMedia()
+        // triggered by the user's explicit "Start Camera" tap continues to function properly.
+        settings.mediaPlaybackRequiresUserGesture = true
 
         // File and Content Access Security
         // Keep file:// filesystem access disabled, but allow content:// access for Gallery / File Picker uploads

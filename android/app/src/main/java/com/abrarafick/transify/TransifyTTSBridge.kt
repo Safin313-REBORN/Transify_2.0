@@ -180,9 +180,12 @@ class TransifyTTSBridge(
 
     /**
      * Explicit stop method invoked when user presses stop or pauses.
+     * Clears any pending queue and abandons audio focus immediately.
      */
     fun stop() {
         mainHandler.post {
+            pendingSpeakText = null
+            pendingSpeakLang = null
             try {
                 if (tts?.isSpeaking == true) {
                     tts?.stop()
