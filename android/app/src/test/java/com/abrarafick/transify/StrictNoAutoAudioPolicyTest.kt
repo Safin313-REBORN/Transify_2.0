@@ -8,12 +8,19 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * Strict No-Auto-Audio Policy Verification Test Suite.
+ * Strict No-Auto-Audio Policy Verification Test Suite (Mock-Based Policy Unit Tests).
+ *
+ * CLASSIFICATION DISCLOSURE:
+ * These 10 tests are mock-based unit tests executing in a host JVM test runner.
+ * They verify event sequence contracts, action payload validity, and policy rules against
+ * an observable fake audio engine. Production browser-level verification is tested
+ * independently via Playwright end-to-end browser tests (tests/test_production_no_auto_audio_browser.py)
+ * against real Chromium and FastAPI server instances.
  *
  * MANDATED REQUIREMENT:
  * Audio must NEVER play automatically.
  *
- * Verifies across actual application lifecycles and event flows:
+ * Verifies across simulated user event sequences and lifecycle flows:
  * 1. Page loading / navigation never invokes speech.
  * 2. Sign recognition confirmation never invokes speech automatically.
  * 3. Braille translation completion never invokes speech automatically.
