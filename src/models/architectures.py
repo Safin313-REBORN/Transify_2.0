@@ -131,7 +131,7 @@ class UnknownRejectionFilter:
         }
 
 
-def build_champion_classifier():
+def build_champion_classifier(random_state: int = 42):
     """
     Builds the Deep MLP Champion Classifier with Batch Normalization emulation,
     Dropout emulation (early stopping on validation loss), and Adam optimization.
@@ -147,7 +147,7 @@ def build_champion_classifier():
         early_stopping=True,
         validation_fraction=0.15,
         n_iter_no_change=8,
-        random_state=42
+        random_state=random_state
     )
 
 

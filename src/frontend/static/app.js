@@ -1163,6 +1163,10 @@ var TransifySignDiagnostics = window.TransifySignDiagnostics = {
     this.enabled = false;
     this.metrics = [];
     this.videoFrameDeltas = [];
+    if (this.activeVideoEl && this.rvfcHandle && typeof this.activeVideoEl.cancelVideoFrameCallback === 'function') {
+      try { this.activeVideoEl.cancelVideoFrameCallback(this.rvfcHandle); } catch (_) {}
+    }
+    this.detachVideo();
     try { localStorage.removeItem('transify_debug_diagnostics'); } catch (_) {}
     console.info('[TransifySignDiagnostics] Performance diagnostics DISABLED.');
   },
@@ -1190,6 +1194,9 @@ var TransifySignDiagnostics = window.TransifySignDiagnostics = {
   },
 
   detachVideo() {
+    if (this.activeVideoEl && this.rvfcHandle && typeof this.activeVideoEl.cancelVideoFrameCallback === 'function') {
+      try { this.activeVideoEl.cancelVideoFrameCallback(this.rvfcHandle); } catch (_) {}
+    }
     this.activeVideoEl = null;
     this.lastVideoTimestamp = null;
     this.rvfcHandle = null;
@@ -1231,6 +1238,7 @@ var TransifySignDiagnostics = window.TransifySignDiagnostics = {
       samples_recorded: this.metrics.length,
       video_frame_callback_supported: (typeof HTMLVideoElement !== 'undefined' && typeof HTMLVideoElement.prototype.requestVideoFrameCallback === 'function'),
       video_delivery: {
+        metric_nature: "Estimated browser video-frame callback delivery cadence (requestVideoFrameCallback), NOT direct Camera2 hardware sensor FPS",
         samples: this.videoFrameDeltas.length,
         mean_cadence_ms: videoCadenceMs,
         estimated_fps: videoFps,
