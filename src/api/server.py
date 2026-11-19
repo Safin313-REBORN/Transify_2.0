@@ -368,14 +368,41 @@ def get_optional_user(request: Request) -> Optional[Dict[str, Any]]:
 
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
-    """Appends hardened HTTP security headers to all responses."""
+    """Appends hardened HTTP security headers and caching policies to all responses."""
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     if is_request_secure(request):
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
+    # Caching Policy (Item 13): Cache static assets; prevent caching of sensitive API state
+    if request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    elif request.url.path.startswith("/api/"):
+        if "Cache-Control" not in response.headers:
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+            
     return response
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """
+    Global exception handler (Item 14): Prevents unhandled internal exceptions
+    from leaking stack traces or internal environment variables to clients.
+    """
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+            headers=getattr(exc, "headers", None)
+        )
+    logger.error(f"Unhandled error on {request.method} {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal server error occurred. Please try again later."}
+    )
 
 
 @app.middleware("http")

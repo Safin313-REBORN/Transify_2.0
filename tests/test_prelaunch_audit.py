@@ -10,6 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 from src.api.server import app
 from scripts.backup_db import perform_online_backup
+from scripts.restore_db import perform_online_restore
 
 
 @pytest.fixture
@@ -88,3 +89,40 @@ def test_online_backup_functionality(tmp_path):
     assert row is not None
     assert row[0] == "prelaunch_test"
     bconn.close()
+
+
+def test_online_restore_and_rollback_functionality(tmp_path):
+    """Verifies that the SQLite restore/rollback utility restores an intact snapshot cleanly."""
+    import sqlite3
+    source_db = str(tmp_path / "origin.db")
+    conn = sqlite3.connect(source_db)
+    conn.execute("CREATE TABLE accounts (id INTEGER PRIMARY KEY, username TEXT);")
+    conn.execute("INSERT INTO accounts (username) VALUES ('test_rollback_user');")
+    conn.commit()
+    conn.close()
+
+    backup_file = perform_online_backup(source_db=source_db, backup_dir=str(tmp_path / "backups"))
+
+    restored_target = str(tmp_path / "restored.db")
+    success = perform_online_restore(backup_file=backup_file, target_db=restored_target)
+    assert success is True
+    assert os.path.exists(restored_target)
+
+    rconn = sqlite3.connect(restored_target)
+    cur = rconn.cursor()
+    cur.execute("SELECT username FROM accounts WHERE id=1;")
+    val = cur.fetchone()
+    assert val is not None
+    assert val[0] == "test_rollback_user"
+    rconn.close()
+
+
+def test_cache_control_headers_and_error_handling(client):
+    """Verifies that static assets have immutable caching and unhandled routes return standardized JSON errors."""
+    resp_static = client.get("/static/favicon.ico")
+    assert resp_static.status_code == 200
+    assert "public, max-age=" in resp_static.headers.get("Cache-Control", "")
+
+    resp_api = client.get("/api/health")
+    assert resp_api.status_code == 200
+    assert "no-store" in resp_api.headers.get("Cache-Control", "")

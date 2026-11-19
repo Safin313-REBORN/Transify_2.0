@@ -226,18 +226,52 @@ def init_db():
             PRIMARY KEY (pref_key, user_id)
         );
         """)
-        k_col = "pref_key" if "pref_key" in pref_cols else "key"
-        v_col = "pref_value" if "pref_value" in pref_cols else "value"
-        if "user_id" in pref_cols:
-            cursor.execute(f"""
-            INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
-            SELECT {k_col}, COALESCE(user_id, 0), {v_col}, updated_at FROM user_preferences;
-            """)
+        has_uid = "user_id" in pref_cols
+        has_pref_key = "pref_key" in pref_cols
+        has_pref_val = "pref_value" in pref_cols
+
+        if has_uid:
+            if has_pref_key and has_pref_val:
+                cursor.execute("""
+                INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
+                SELECT pref_key, COALESCE(user_id, 0), pref_value, updated_at FROM user_preferences;
+                """)
+            elif has_pref_key and not has_pref_val:
+                cursor.execute("""
+                INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
+                SELECT pref_key, COALESCE(user_id, 0), value, updated_at FROM user_preferences;
+                """)
+            elif not has_pref_key and has_pref_val:
+                cursor.execute("""
+                INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
+                SELECT key, COALESCE(user_id, 0), pref_value, updated_at FROM user_preferences;
+                """)
+            else:
+                cursor.execute("""
+                INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
+                SELECT key, COALESCE(user_id, 0), value, updated_at FROM user_preferences;
+                """)
         else:
-            cursor.execute(f"""
-            INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
-            SELECT {k_col}, 0, {v_col}, updated_at FROM user_preferences;
-            """)
+            if has_pref_key and has_pref_val:
+                cursor.execute("""
+                INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
+                SELECT pref_key, 0, pref_value, updated_at FROM user_preferences;
+                """)
+            elif has_pref_key and not has_pref_val:
+                cursor.execute("""
+                INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
+                SELECT pref_key, 0, value, updated_at FROM user_preferences;
+                """)
+            elif not has_pref_key and has_pref_val:
+                cursor.execute("""
+                INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
+                SELECT key, 0, pref_value, updated_at FROM user_preferences;
+                """)
+            else:
+                cursor.execute("""
+                INSERT OR REPLACE INTO user_preferences_migrated (pref_key, user_id, pref_value, updated_at)
+                SELECT key, 0, value, updated_at FROM user_preferences;
+                """)
         cursor.execute("DROP TABLE user_preferences;")
         cursor.execute("ALTER TABLE user_preferences_migrated RENAME TO user_preferences;")
         cursor.execute("""
