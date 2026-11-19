@@ -190,6 +190,8 @@ python scripts/restore_db.py backups/transify_backup_<timestamp>.db
 | **[Unified API Specification](docs/API_SPECIFICATION.md)** | Exhaustive reference for all 49 endpoints across 11 functional domains. |
 | **[Agents & Model Context Protocol (MCP)](docs/AGENTS_AND_MCP_SPECIFICATION.md)** | 98% Decision Gateway, agentic disambiguation, and MCP tool schemas. |
 | **[Development Roadmap](docs/DEVELOPMENT_ROADMAP.md)** | Engineering phase history, release milestones, and roadmap. |
+| **[Release Verification Report](docs/authentication_repair_and_accessibility_release_report.md)** | Authentication repair, timing decoupling, CI verification, and release sign-off. |
+| **[Compliance & Ethics Audit](docs/COMPLIANCE_AND_ETHICS_AUDIT.md)** | 20 global deployment pillars: GDPR, CCPA, COPPA, CAN-SPAM, and WCAG 2.1 AAA. |
 | **[Android Build Guide](ANDROID_BUILD_GUIDE.md)** | Android Studio / Gradle configuration and hardware WebView setup. |
 
 ---

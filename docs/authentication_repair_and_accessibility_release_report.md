@@ -7,8 +7,9 @@
 **Base Feature Commit SHA:** `63eaebf5421ffa43db590eb0908b7d237a14ad93`  
 **Intermediate Hardening Commit SHA:** `699a96fd2cef81ea21c3104f33889dfcd4f4391e` (CI Run `44472692849` - 167/167 passed)  
 **Security & Anti-Enumeration Commit SHA:** `58a42834f5bb2e779b82216758dc87184579dbac` (CI Run `44478143869` - 176/176 passed)  
-**Verified Documentation Commit SHA:** `b9c4ed3d624b08a5c622286ab5ab4471d63469cc` (CI Run `44479295565` - 176/176 passed)  
-**Final Timing-Decoupled Implementation Commit SHA:** `a81b3524091c19a95ae11ff655257d5e0454e0a1` (CI Run `44495070462` - 180/180 passed, 100% Green)  
+**Release Candidate Verification Commit SHA:** `b9c4ed3d624b08a5c622286ab5ab4471d63469cc` (CI Run `44479295565` - 176/176 passed)  
+**Timing-Decoupled Implementation Commit SHA:** `a81b3524091c19a95ae11ff655257d5e0454e0a1` (Implementation CI Run #9: `44495070462` — 180/180 passed, 100% Green)  
+**Documentation Verification Commit SHA:** `eead9eeb29718773500e1cc871f239cf76c41b47` (Documentation CI Run #10: `44496894303` — 180/180 passed, 100% Green)  
 **Production URL:** `https://transify20-production.up.railway.app` (Preserved on current stable release; feature branch isolated)  
 
 ---
@@ -265,7 +266,7 @@ tests/test_browser_auth.py::test_browser_legacy_query_string_token_rejected_does
 - **Task:** `./gradlew assembleDebug`
   ```
   BUILD SUCCESSFUL in 1s
-  38 actionable tasks: 38 up-to-date
+  38 actionable tasks: 18 executed, 20 up-to-date
   ```
 - **APK Artifact:** `android/app/build/outputs/apk/debug/app-debug.apk`
 - **APK Size:** 5.8 MB (6,013,858 bytes)
