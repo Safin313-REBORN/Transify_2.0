@@ -132,8 +132,7 @@
       <div class="badge badge-info" style="margin-bottom: var(--space-2);">Module 01: Computer Vision & MediaPipe Landmarks</div>
       <h1 style="font-size: var(--text-3xl); font-weight: 800;">Live ASL & HaGRID Hand Gesture Translator</h1>
       <p style="color: var(--text-secondary); max-width: 800px;">
-        Translates real-time American Sign Language (ASL) and HaGRID Hand Gestures into English text and spoken audio. 
-        Features a 98% Decision Gateway with custom local model evaluation and MCP resolver fallback.
+        Translates real-time Bangladesh Sign Language (10 verified production expressions), ASL manual alphabet (A–Z), and HaGRID gestures into English text and spoken audio. Features calibrated confidence evaluation, temporal consensus debounce, and ambiguity resolution with candidate selection.
       </p>
     </div>
 
@@ -219,6 +218,11 @@
             <div id="pred-gloss-text" class="pred-gloss">Position your hands in camera view or click a sample below</div>
             <div id="pred-status-note" class="pred-desc">Debounce consensus ready (3-frame verification)</div>
             <div id="sign-engine-note" style="display: none; font-size: 11px; margin-top: 4px; padding: 2px 6px; border-radius: 4px; width: fit-content;"></div>
+            <div style="display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap;">
+              <button id="pred-send-conv-btn" type="button" class="btn btn-secondary btn-sm" onclick="window.SignPage.sendPredictionToConversation()" title="Send current sign to Conversation Mode staging area">
+                💬 Send to Conversation Mode
+              </button>
+            </div>
           </div>
 
           <div style="text-align: right;">
@@ -294,6 +298,7 @@
             <button id="smooth-sentence-btn" class="btn btn-primary btn-sm">✨ Synthesize Natural Sentence</button>
             <button id="speak-sentence-btn" class="btn btn-secondary btn-sm">🔊 Speak Full Sentence</button>
             <button id="copy-sentence-btn" class="btn btn-secondary btn-sm">📋 Copy Text</button>
+            <button id="send-sentence-to-conv-btn" type="button" class="btn btn-info btn-sm" onclick="window.SignPage.sendToConversationMode()" title="Send synthesized sentence to Conversation Mode">💬 Send to Conversation Mode</button>
             <button id="clear-sentence-btn" class="btn btn-danger btn-sm">🗑️ Clear Tokens</button>
           </div>
 
@@ -401,7 +406,7 @@
       <li><a href="/cookies" class="footer-link">Cookies</a></li>
       <li><a href="/docs" class="footer-link" target="_blank">API Docs</a></li>
     </ul>
-    <p>Transify Assistive Platform — Live ASL & HaGRID Gesture Recognition Subsystem.</p>
+    <p>Transify Assistive Platform — Live BdSL, ASL &amp; HaGRID Gesture Recognition Subsystem.</p>
   </footer>
 
   <!-- Fixed Mobile Bottom Navigation Bar (< 768px viewports) -->

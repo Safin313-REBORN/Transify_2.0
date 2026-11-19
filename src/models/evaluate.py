@@ -40,7 +40,7 @@ def load_test_data(test_csv: str):
     labels = []
 
     for _, row in df.iterrows():
-        npy_path = row["landmark_filename"]
+        npy_path = str(row["landmark_filename"]).replace("\\", "/")
         seq = np.load(npy_path)
         raw_sequences.append(seq)
         features_list.append(extract_temporal_features(seq))

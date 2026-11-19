@@ -250,12 +250,14 @@ class MCPSignResolver:
         gloss_hint: str = ""
     ) -> Dict[str, Any]:
         """
-        Instant high-accuracy MCP agent fallback (< 2ms) ensuring zero customer delay.
-        Applies semantic ambiguity resolution when custom model confidence is < 98%.
+        Instant assistive ambiguity resolution agent (< 2ms) ensuring safety.
+        Transparently flags ambiguous or low-confidence signs without fabricating false certainty.
         """
         best_label = candidate_label if candidate_label and candidate_label != "UNKNOWN" else (
-            top_candidates[0]["label"] if top_candidates else "HELLO"
+            top_candidates[0]["label"] if top_candidates and top_candidates[0].get("label") != "UNKNOWN" else "UNKNOWN"
         )
+        is_unknown = (best_label == "UNKNOWN" or not best_label)
+        message = "Ambiguous sign detection — please verify or repeat." if not is_unknown else "Not sure—please repeat"
 
         return {
             "success": True,
@@ -264,9 +266,14 @@ class MCPSignResolver:
             "engine": "MCP_SERVER_AGENT",
             "source": "MCP Server Fallback Agent (< 98%)",
             "badge": "MCP Agent Resolver",
+            "status": "ambiguous" if not is_unknown else "uncertain",
+            "message": message,
+            "candidates": top_candidates or [],
+            "requires_confirmation": True,
             "notes": (
-                f"Local model confidence was {confidence * 100:.1f}%. "
-                f"MCP agent assisted to resolve '{best_label}'."
+                f"Local model calibrated confidence was {confidence * 100:.1f}%. "
+                f"Flagged for human verification: '{best_label}'." if not is_unknown
+                else "Uncertain landmark trajectory. Prompting user to repeat gesture."
             ),
             "is_fallback": True,
             "resolver_assisted": True

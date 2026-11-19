@@ -353,7 +353,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     {
       title: "Live Sign Language & Gesture AI",
       badge: "Step 2 of 4",
-      desc: "Our dual 10-Class BdSL Temporal model & ASL fingerspeller track 21 hand landmarks in real-time. Zero video is saved or transmitted. Hold your sign steady for 30 frames for 98%+ consensus verification.",
+      desc: "Our dual 10-Class BdSL Temporal model & ASL fingerspeller track 21 hand landmarks in real-time. Zero video is saved or transmitted. Hold your sign steady for 30 frames for temporal consensus verification.",
       actionHtml: '<button type="button" class="btn btn-secondary btn-sm" onclick="window.TransifyApp.trySignSample(\'thank_you\'); window.TransifyApp.closeOnboarding();" style="margin-top: 10px; font-weight: 700;">🎬 Try Sign Demo (No Camera Needed)</button>'
     },
     {
@@ -2287,6 +2287,51 @@ var SignPage = window.SignPage = window.TransifySign = {
     }
   },
 
+  sendToConversationMode() {
+    const outEl = document.getElementById('smooth-sentence-text');
+    let text = outEl ? outEl.textContent.trim() : '';
+    if (!text || text.includes('Waiting')) {
+      if (this.sentenceTokens && this.sentenceTokens.length) {
+        text = this.sentenceTokens.join(' ');
+      }
+    }
+    if (!text || text.includes('Waiting')) {
+      TransifyApp.showToast('No synthesized sentence or tokens to send.', 'warning');
+      return;
+    }
+    window.location.href = '/?slide=communication-hub&draft=' + encodeURIComponent(text);
+  },
+
+  sendPredictionToConversation() {
+    const labelEl = document.getElementById('pred-label-text');
+    let text = labelEl ? labelEl.textContent.trim() : '';
+    if (!text || text.includes('Waiting')) {
+      if (this.lastPrediction) {
+        text = this.lastPrediction;
+      }
+    }
+    if (!text || text.includes('Waiting')) {
+      TransifyApp.showToast('No recognized sign to send yet.', 'warning');
+      return;
+    }
+    window.location.href = '/?slide=communication-hub&draft=' + encodeURIComponent(text);
+  },
+
+  speakPrediction() {
+    const labelEl = document.getElementById('pred-label-text');
+    let text = labelEl ? labelEl.textContent.trim() : '';
+    if (!text || text.includes('Waiting')) {
+      if (this.lastPrediction) {
+        text = this.lastPrediction;
+      }
+    }
+    if (!text || text.includes('Waiting')) {
+      TransifyApp.showToast('No confirmed sign to speak.', 'warning');
+      return;
+    }
+    TransifyTTS.speak(text);
+  },
+
   async loadCommunicativeDomains() {
     try {
       const res = await fetch('/api/sign/categories');
@@ -2296,16 +2341,27 @@ var SignPage = window.SignPage = window.TransifySign = {
         if (container && data.categories) {
           container.innerHTML = Object.entries(data.categories).map(([key, cat]) => `
             <div class="card" style="padding: var(--space-4); border: 1px solid var(--border-color);">
-              <h3 style="font-size: var(--text-md); font-weight: 700; margin-bottom: 4px;">${cat.title}</h3>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; gap: 8px;">
+                <h3 style="font-size: var(--text-md); font-weight: 700; margin-bottom: 0;">${cat.title}</h3>
+                <span class="badge ${cat.status === 'PENDING_DEAF_COMMUNITY_REVIEW' ? 'badge-warning' : 'badge-info'}" style="font-size: 10px; padding: 2px 6px; white-space: nowrap;">
+                  ${cat.status === 'PENDING_DEAF_COMMUNITY_REVIEW' ? 'In Pipeline' : 'Active Domain'}
+                </span>
+              </div>
               <p style="font-size: var(--text-xs); color: var(--text-secondary); margin-bottom: var(--space-3);">${cat.description}</p>
               <div style="display: flex; flex-direction: column; gap: 6px;">
                 ${cat.expressions.map(exp => `
-                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; background: rgba(255,255,255,0.02); border-radius: 4px;">
-                    <div>
-                      <strong style="font-size: var(--text-xs);">${exp.label}</strong>
-                      <span style="font-size: var(--text-xs); color: var(--text-muted); display: block;">${exp.gloss}</span>
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid var(--border-subtle); gap: 8px;">
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <strong style="font-size: var(--text-xs); color: var(--text-primary);">${exp.label}</strong>
+                        ${exp.is_trained ? 
+                          '<span class="badge badge-success" style="font-size: 9.5px; padding: 1px 5px;">Live Supported</span>' : 
+                          '<span class="badge" style="font-size: 9.5px; padding: 1px 5px; background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3);" title="Candidate vocabulary in collection & community review pipeline">In Pipeline • Review</span>'
+                        }
+                      </div>
+                      <span style="font-size: 11px; color: var(--text-muted); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${exp.gloss}</span>
                     </div>
-                    <button class="btn btn-secondary btn-sm add-domain-token-btn" data-token="${exp.label}" style="font-size: 11px; padding: 2px 8px;">
+                    <button class="btn btn-secondary btn-sm add-domain-token-btn" data-token="${exp.label}" style="font-size: 11px; padding: 2px 8px; flex-shrink: 0;" title="Add to Sentence Builder">
                       ➕ Add
                     </button>
                   </div>
@@ -2340,9 +2396,15 @@ var SignPage = window.SignPage = window.TransifySign = {
           container.innerHTML = data.classes.map(c => `
             <button class="btn btn-secondary btn-sm sample-sign-btn" 
                     data-class="${c.label}" 
-                    title="Click to test ${c.label} (${c.bdsl_gloss})">
-              <span>${c.label}</span>
-              <span style="font-size: var(--text-xs); color: var(--text-muted); display: block;">${c.bdsl_gloss}</span>
+                    title="Click to test ${c.label} (${c.bdsl_gloss || ''}) - ${c.is_trained !== false ? 'Verified BdSL Sign' : 'Pipeline Class'}"
+                    style="display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 8px 12px; gap: 2px;">
+              <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; gap: 4px;">
+                <span style="font-weight: 700; font-size: 13px;">${c.label}</span>
+                <span class="badge ${c.is_trained !== false ? 'badge-success' : 'badge-warning'}" style="font-size: 9px; padding: 1px 4px;">
+                  ${c.is_trained !== false ? 'Verified' : 'Pipeline'}
+                </span>
+              </div>
+              <span style="font-size: 11px; color: var(--text-muted);">${c.bdsl_gloss || c.label}</span>
             </button>
           `).join('');
 
@@ -2994,12 +3056,12 @@ var SignPage = window.SignPage = window.TransifySign = {
         engineNote.style.background = 'rgba(234, 179, 8, 0.15)';
         engineNote.style.color = 'var(--text-warning, #eab308)';
         engineNote.style.border = '1px solid rgba(234, 179, 8, 0.3)';
-        engineNote.innerHTML = `🤖 <strong>${eng.badge || 'MCP Resolver (<98%)'}:</strong> ${eng.notes || ''}`;
+        engineNote.innerHTML = `🤖 <strong>${eng.badge || 'MCP Ambiguity Resolver'}:</strong> ${eng.notes || ''}`;
       } else {
         engineNote.style.background = 'rgba(34, 197, 94, 0.12)';
         engineNote.style.color = 'var(--text-success, #22c55e)';
         engineNote.style.border = '1px solid rgba(34, 197, 94, 0.25)';
-        engineNote.innerHTML = `🎯 <strong>Custom AI Model (&ge; 98%):</strong> Processed in ultra-fast time (&lt; 15ms)`;
+        engineNote.innerHTML = `🎯 <strong>${eng.badge || 'Custom AI Model (High Confidence)'}:</strong> ${eng.notes || 'Processed in ultra-fast time (< 15ms)'}`;
       }
     }
 
@@ -3414,7 +3476,7 @@ var BraillePage = window.BraillePage = {
           engineNote.style.borderRadius = '8px';
           engineNote.style.padding = '8px 12px';
           engineNote.style.fontSize = '12px';
-          engineNote.innerHTML = `<strong>⚠️ MCP Resolver used (&lt; 98%):</strong> ${engine.notes || 'Shifted to MCP/Chatbot resolver for maximum accuracy.'}`;
+          engineNote.innerHTML = `<strong>⚠️ Ambiguity Resolver used:</strong> ${engine.notes || 'Shifted to MCP/ambiguity resolver for disambiguation.'}`;
         } else {
           engineNote.style.background = 'rgba(34, 197, 94, 0.12)';
           engineNote.style.color = '#15803d';
@@ -3422,7 +3484,7 @@ var BraillePage = window.BraillePage = {
           engineNote.style.borderRadius = '8px';
           engineNote.style.padding = '8px 12px';
           engineNote.style.fontSize = '12px';
-          engineNote.innerHTML = `<strong>🎯 High Confidence (&ge; 98%):</strong> Output from local custom-trained ExtraTrees model (${engine.source || 'Local AI'}).`;
+          engineNote.innerHTML = `<strong>🎯 Calibrated High Confidence:</strong> Output from local custom-trained ExtraTrees model (${engine.source || 'Local AI'}).`;
         }
       }
 
@@ -3454,7 +3516,7 @@ var BraillePage = window.BraillePage = {
       if (statsBadge) {
         const engineBadge = engine.is_fallback
           ? `<span class="badge badge-warning" title="${engine.source || 'MCP'}">🤖 ${engine.badge || 'MCP Resolver'}</span>`
-          : `<span class="badge badge-success" title="${engine.source || 'Local AI'}">🎯 ${engine.badge || 'AI Model ≥98%'}</span>`;
+          : `<span class="badge badge-success" title="${engine.source || 'Local AI'}">🎯 ${engine.badge || 'Calibrated Model'}</span>`;
         const confDisplay = (typeof result.mean_confidence === 'number' && !isNaN(result.mean_confidence))
           ? `Conf: ${(result.mean_confidence * 100).toFixed(1)}%`
           : 'Conf: Unavailable';
@@ -3871,6 +3933,336 @@ var TransifyTTSPage = window.TransifyTTSPage = {
 
 
 // ============================================================================
+// TRANSIFY 2.0 CONVERSATION MODE CONTROLLER (HACKATHON RELEASE)
+// Orchestration & workspace connecting all input modalities (Speech, Sign, Braille, Phrases, Typed)
+// to user-controlled review, editing, and output actions (Large Text, TTS, Copy, Feed).
+// ============================================================================
+window.ConversationMode = {
+  activeDraft: {
+    text: '',
+    source: 'typed',
+    sourceLabel: '⌨️ Typed Input',
+    status: 'draft',
+    confidence: null,
+    isAmbiguous: false,
+    candidates: []
+  },
+  isSpeaking: false,
+  _isListening: false,
+  _initialized: false,
+  _recognition: null,
+
+  init() {
+    if (!this._initialized) {
+      this._initialized = true;
+      this.bindEvents();
+    }
+    this.updatePrivacyBadge();
+    this.populateQuickPhrases();
+  },
+
+  bindEvents() {
+    const draftArea = document.getElementById('conversation-draft-text');
+    if (draftArea) {
+      draftArea.addEventListener('input', (e) => {
+        this.activeDraft.text = e.target.value;
+        const hiddenIn = document.getElementById('hub-input-text');
+        if (hiddenIn) hiddenIn.value = e.target.value;
+      });
+    }
+  },
+
+  selectInputMode(mode) {
+    const tabs = document.querySelectorAll('.conv-mod-btn');
+    tabs.forEach(btn => btn.classList.remove('active'));
+    const activeTab = document.getElementById(`conv-tab-${mode}`);
+    if (activeTab) activeTab.classList.add('active');
+
+    const helperContainer = document.getElementById('conv-input-helper-container');
+    const helpers = ['speech', 'sign', 'braille', 'phrase'];
+    helpers.forEach(h => {
+      const el = document.getElementById(`conv-helper-${h}`);
+      if (el) el.style.display = 'none';
+    });
+
+    if (mode === 'typed') {
+      if (helperContainer) helperContainer.style.display = 'none';
+      const draftArea = document.getElementById('conversation-draft-text');
+      if (draftArea) draftArea.focus();
+    } else {
+      if (helperContainer) helperContainer.style.display = 'block';
+      const targetHelper = document.getElementById(`conv-helper-${mode}`);
+      if (targetHelper) targetHelper.style.display = 'block';
+      if (mode === 'phrase') this.populateQuickPhrases();
+    }
+  },
+
+  setDraft(text, source = 'typed', meta = {}) {
+    this.activeDraft.text = text || '';
+    this.activeDraft.source = source;
+    this.activeDraft.sourceLabel = meta.sourceLabel || this.getLabelForSource(source);
+    this.activeDraft.confidence = meta.confidence || null;
+    this.activeDraft.isAmbiguous = Boolean(meta.isAmbiguous);
+    this.activeDraft.candidates = meta.candidates || [];
+
+    const draftArea = document.getElementById('conversation-draft-text');
+    if (draftArea) {
+      draftArea.value = this.activeDraft.text;
+      draftArea.focus();
+    }
+
+    const hiddenIn = document.getElementById('hub-input-text');
+    if (hiddenIn) hiddenIn.value = this.activeDraft.text;
+
+    const sourceChip = document.getElementById('conv-source-chip');
+    if (sourceChip) sourceChip.textContent = this.activeDraft.sourceLabel;
+
+    const statusChip = document.getElementById('conv-status-chip');
+    if (statusChip) statusChip.textContent = 'Draft (Unconfirmed)';
+
+    this.renderAmbiguityNotice();
+  },
+
+  getLabelForSource(source) {
+    switch (source) {
+      case 'speech': return '🎙️ Speech Transcript';
+      case 'sign': return '🖐️ BdSL / ASL Sign';
+      case 'braille': return '⠃ Braille OCR (UEB 1)';
+      case 'phrase': return '💬 My Phrasebook';
+      default: return '⌨️ Typed Input';
+    }
+  },
+
+  renderAmbiguityNotice() {
+    const notice = document.getElementById('conv-ambiguity-notice');
+    const msgEl = document.getElementById('conv-ambiguity-msg');
+    const listEl = document.getElementById('conv-candidates-list');
+    if (!notice || !listEl) return;
+
+    if (this.activeDraft.isAmbiguous && this.activeDraft.candidates.length > 0) {
+      notice.style.display = 'block';
+      if (msgEl) msgEl.textContent = 'Model detection uncertain. Please select verified candidate or edit draft:';
+      while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
+      this.activeDraft.candidates.forEach(c => {
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.className = 'conv-candidate-pill';
+        const confStr = c.confidence ? ` (${Math.round(c.confidence * 100)}%)` : '';
+        pill.textContent = `${c.label}${confStr}`;
+        pill.addEventListener('click', () => {
+          this.setDraft(c.label, this.activeDraft.source, {
+            sourceLabel: `${this.activeDraft.sourceLabel} [Selected]`,
+            isAmbiguous: false
+          });
+        });
+        listEl.appendChild(pill);
+      });
+    } else {
+      notice.style.display = 'none';
+    }
+  },
+
+  toggleSTT() {
+    const btn = document.getElementById('conv-stt-record-btn');
+    if (this._isListening) {
+      this.stopSTT();
+      if (btn) btn.textContent = '🎙️ Start Speaking';
+      return;
+    }
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      TransifyApp.showToast('Speech recognition is not supported in this browser.', 'warning');
+      return;
+    }
+
+    try {
+      this._recognition = new SpeechRec();
+      this._recognition.continuous = false;
+      this._recognition.interimResults = true;
+      this._recognition.lang = TransifyApp.speechLang || 'en-US';
+
+      this._recognition.onstart = () => {
+        this._isListening = true;
+        if (btn) btn.textContent = '⏹️ Listening... (Tap to stop)';
+        TransifyApp.showToast('Listening... Speak clearly.', 'info');
+      };
+
+      this._recognition.onresult = (e) => {
+        let transcript = '';
+        for (let i = 0; i < e.results.length; i++) {
+          transcript += e.results[i][0].transcript;
+        }
+        this.setDraft(transcript, 'speech', { sourceLabel: `🎙️ Speech Transcript (${this._recognition.lang})` });
+      };
+
+      this._recognition.onerror = (e) => {
+        console.warn('ConversationMode STT error:', e);
+        this.stopSTT();
+        if (btn) btn.textContent = '🎙️ Start Speaking';
+      };
+
+      this._recognition.onend = () => {
+        this._isListening = false;
+        if (btn) btn.textContent = '🎙️ Start Speaking';
+      };
+
+      this._recognition.start();
+    } catch (e) {
+      console.warn('STT start exception:', e);
+    }
+  },
+
+  stopSTT() {
+    if (this._recognition) {
+      try { this._recognition.stop(); } catch (_) {}
+      this._recognition = null;
+    }
+    this._isListening = false;
+  },
+
+  loadSampleSign() {
+    this.setDraft('ধন্যবাদ (Thank You)', 'sign', {
+      sourceLabel: '🖐️ BdSL Supported Sign (Verified)',
+      isAmbiguous: false
+    });
+    TransifyApp.showToast('Loaded verified BdSL sample: "ধন্যবাদ (Thank You)"', 'success');
+  },
+
+  loadSampleBraille() {
+    this.setDraft('WELCOME TO TRANSIFY ASSISTIVE OCR', 'braille', {
+      sourceLabel: '⠃ Braille OCR (ICEB UEB Grade 1)',
+      isAmbiguous: false
+    });
+    TransifyApp.showToast('Loaded verified Braille sample: "WELCOME TO TRANSIFY"', 'success');
+  },
+
+  populateQuickPhrases() {
+    const grid = document.getElementById('conv-phrase-quick-grid');
+    if (!grid) return;
+    while (grid.firstChild) grid.removeChild(grid.firstChild);
+
+    const phrases = (window.Phraseboard && window.Phraseboard.phrases) || [];
+    const sampleSet = phrases.slice(0, 10);
+    sampleSet.forEach(p => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'btn btn-secondary btn-sm';
+      chip.style.fontSize = '12px';
+      chip.style.padding = '4px 10px';
+      chip.textContent = p.text_en;
+      chip.addEventListener('click', () => {
+        this.setDraft(p.text_en, 'phrase', {
+          sourceLabel: `💬 My Phrases (${p.category || 'Everyday'})`
+        });
+      });
+      grid.appendChild(chip);
+    });
+  },
+
+  showLargeText(customText) {
+    const text = customText || this.activeDraft.text;
+    if (!text) {
+      TransifyApp.showToast('No message to display in large text.', 'warning');
+      return;
+    }
+    const modal = document.getElementById('conversation-large-text-modal');
+    const display = document.getElementById('conv-large-text-display');
+    if (modal && display) {
+      display.textContent = text;
+      modal.style.display = 'flex';
+      TransifyApp.announce(`Showing large text: ${text}`);
+    }
+  },
+
+  closeLargeText() {
+    const modal = document.getElementById('conversation-large-text-modal');
+    if (modal) modal.style.display = 'none';
+  },
+
+  speakLargeText() {
+    const display = document.getElementById('conv-large-text-display');
+    const text = display ? display.textContent : '';
+    if (text) {
+      window.TransifyTTS.speak(text);
+    }
+  },
+
+  toggleSpeak() {
+    const btn = document.getElementById('conv-speak-btn');
+    const icon = document.getElementById('conv-speak-icon');
+    const label = document.getElementById('conv-speak-label');
+    const text = this.activeDraft.text;
+
+    if (this.isSpeaking) {
+      window.TransifyTTS.stop();
+      this.isSpeaking = false;
+      if (btn) btn.classList.remove('conv-speaking-pulse');
+      if (icon) icon.textContent = '🔊';
+      if (label) label.textContent = 'Speak Aloud';
+      return;
+    }
+
+    if (!text) {
+      TransifyApp.showToast('No message text to speak aloud.', 'warning');
+      return;
+    }
+
+    this.isSpeaking = true;
+    if (btn) btn.classList.add('conv-speaking-pulse');
+    if (icon) icon.textContent = '⏹️';
+    if (label) label.textContent = 'Stop Speech';
+
+    window.TransifyTTS.speak(text, {
+      onend: () => {
+        this.isSpeaking = false;
+        if (btn) btn.classList.remove('conv-speaking-pulse');
+        if (icon) icon.textContent = '🔊';
+        if (label) label.textContent = 'Speak Aloud';
+      }
+    });
+  },
+
+  copyDraft() {
+    const text = this.activeDraft.text;
+    if (!text) {
+      TransifyApp.showToast('No message text to copy.', 'warning');
+      return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+      TransifyApp.showToast('Message copied to clipboard!', 'success');
+    }).catch(() => {
+      TransifyApp.showToast('Unable to copy text.', 'warning');
+    });
+  },
+
+  commitDraft() {
+    const text = this.activeDraft.text.trim();
+    if (!text) {
+      TransifyApp.showToast('Please type or import a message first.', 'warning');
+      return;
+    }
+
+    const mod = this.activeDraft.source || 'typed';
+    if (window.CommunicationHub && typeof window.CommunicationHub.sendMessage === 'function') {
+      window.CommunicationHub.sendMessage(text, mod);
+    }
+
+    const statusChip = document.getElementById('conv-status-chip');
+    if (statusChip) statusChip.textContent = 'Confirmed & Shared';
+
+    TransifyApp.showToast('Message added to conversation feed!', 'success');
+  },
+
+  updatePrivacyBadge() {
+    const badge = document.getElementById('conv-privacy-status');
+    if (!badge) return;
+    const isAuth = Boolean(localStorage.getItem('transify_auth_user'));
+    badge.textContent = isAuth ? '☁️ Account Synced' : '🔒 Local Session (Private)';
+  }
+};
+
+// ============================================================================
 // TRANSIFY 2.0 COMMUNICATION HUB CONTROLLER
 // Multimodal accessible communication feed supporting sign, Braille, speech, and typed input.
 // ============================================================================
@@ -3883,6 +4275,9 @@ window.CommunicationHub = {
     if (!this._initialized) {
       this._initialized = true;
       this.bindEvents();
+    }
+    if (window.ConversationMode && window.ConversationMode.init) {
+      window.ConversationMode.init();
     }
     await this.ensureConversation();
     await this.loadMessages();
@@ -3898,6 +4293,8 @@ window.CommunicationHub = {
         if (text) {
           this.sendMessage(text, 'typed');
           if (input) input.value = '';
+          const draftArea = document.getElementById('conversation-draft-text');
+          if (draftArea) draftArea.value = '';
         }
       });
     }
@@ -3924,7 +4321,12 @@ window.CommunicationHub = {
                      (document.getElementById('smooth-sentence-text') && document.getElementById('smooth-sentence-text').textContent) ||
                      '';
         if (text && !text.includes('Waiting')) {
-          this.sendMessage(text, 'sign');
+          if (window.ConversationMode) {
+            window.ConversationMode.setDraft(text, 'sign', { sourceLabel: '🖐️ BdSL Supported Sign' });
+            TransifyApp.showToast(`Imported to draft: "${text}"`, 'info');
+          } else {
+            this.sendMessage(text, 'sign');
+          }
         } else {
           TransifyApp.showToast('No sign translation available to import.', 'warning');
         }
@@ -3937,7 +4339,12 @@ window.CommunicationHub = {
         const el = document.getElementById('braille-text-output');
         const text = el ? el.value.trim() : '';
         if (text) {
-          this.sendMessage(text, 'braille');
+          if (window.ConversationMode) {
+            window.ConversationMode.setDraft(text, 'braille', { sourceLabel: '⠃ Braille OCR (UEB 1)' });
+            TransifyApp.showToast(`Imported to draft: "${text}"`, 'info');
+          } else {
+            this.sendMessage(text, 'braille');
+          }
         } else {
           TransifyApp.showToast('No Braille text available to import.', 'warning');
         }
@@ -3950,7 +4357,12 @@ window.CommunicationHub = {
         const el = document.getElementById('stt-transcript-output');
         const text = el ? el.textContent.trim() : '';
         if (text && !text.includes('Listening')) {
-          this.sendMessage(text, 'speech');
+          if (window.ConversationMode) {
+            window.ConversationMode.setDraft(text, 'speech', { sourceLabel: '🎙️ Speech Transcript' });
+            TransifyApp.showToast(`Imported to draft: "${text}"`, 'info');
+          } else {
+            this.sendMessage(text, 'speech');
+          }
         } else {
           TransifyApp.showToast('No speech transcript available to import.', 'warning');
         }
@@ -4140,6 +4552,18 @@ window.CommunicationHub = {
       speakBtn.textContent = '🔊 Speak';
       speakBtn.addEventListener('click', () => this.speakText(msg.content || ''));
       actions.appendChild(speakBtn);
+
+      const largeBtn = document.createElement('button');
+      largeBtn.type = 'button';
+      largeBtn.className = 'hub-action-btn';
+      largeBtn.title = 'Display in large high-contrast text';
+      largeBtn.textContent = '🔍 Large';
+      largeBtn.addEventListener('click', () => {
+        if (window.ConversationMode) {
+          window.ConversationMode.showLargeText(msg.content || '');
+        }
+      });
+      actions.appendChild(largeBtn);
 
       card.appendChild(header);
       card.appendChild(body);
@@ -4355,9 +4779,17 @@ window.Phraseboard = {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) localCustom = parsed;
+        if (Array.isArray(parsed)) {
+          localCustom = parsed.filter(item => item && typeof item === 'object' && item.text_en);
+        } else {
+          console.warn('Phrasebook storage corrupted (not array). Resetting to defaults.');
+          localStorage.removeItem(this.STORAGE_KEY);
+        }
       }
-    } catch (_) {}
+    } catch (err) {
+      console.warn('Phrasebook JSON parse error, resetting corrupted storage:', err);
+      localStorage.removeItem(this.STORAGE_KEY);
+    }
 
     try {
       const res = await fetch('/api/phrases', { credentials: 'same-origin' });
@@ -4523,6 +4955,30 @@ window.Phraseboard = {
 
       // Custom phrase controls: Edit & Delete
       if (p.is_custom) {
+        const upBtn = document.createElement('button');
+        upBtn.type = 'button';
+        upBtn.className = 'phrase-icon-btn';
+        upBtn.title = 'Move phrase up';
+        upBtn.setAttribute('aria-label', `Move up: ${p.text_en || ''}`);
+        upBtn.textContent = '⬆️';
+        upBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.movePhraseUp(p.id);
+        });
+        controls.appendChild(upBtn);
+
+        const downBtn = document.createElement('button');
+        downBtn.type = 'button';
+        downBtn.className = 'phrase-icon-btn';
+        downBtn.title = 'Move phrase down';
+        downBtn.setAttribute('aria-label', `Move down: ${p.text_en || ''}`);
+        downBtn.textContent = '⬇️';
+        downBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.movePhraseDown(p.id);
+        });
+        controls.appendChild(downBtn);
+
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
         editBtn.className = 'phrase-icon-btn';
@@ -4582,14 +5038,65 @@ window.Phraseboard = {
         <button type="button" class="btn btn-primary active-phrase-btn" onclick="window.Phraseboard.speakActivePhrase()">
           🔊 Speak Aloud
         </button>
+        <button type="button" class="btn btn-secondary active-phrase-btn" onclick="window.Phraseboard.showActivePhraseLarge()">
+          🔍 Large Text
+        </button>
         <button type="button" class="btn btn-secondary active-phrase-btn" onclick="window.Phraseboard.copyActivePhrase()">
           📋 Copy Text
+        </button>
+        <button type="button" class="btn btn-secondary active-phrase-btn" onclick="window.Phraseboard.placeActivePhraseInComposer()">
+          ➕ In Composer
         </button>
         <button type="button" class="btn btn-secondary active-phrase-btn" onclick="window.Phraseboard.addActivePhraseToHub()">
           ➕ Add to Comm Hub
         </button>
       </div>
     `;
+  },
+
+  showActivePhraseLarge() {
+    if (!this.activePhrase || !this.activePhrase.text_en) return;
+    if (window.ConversationMode) {
+      window.ConversationMode.showLargeText(this.activePhrase.text_en);
+    }
+  },
+
+  placeActivePhraseInComposer() {
+    if (!this.activePhrase || !this.activePhrase.text_en) return;
+    const text = this.activePhrase.text_en;
+    if (window.ConversationMode) {
+      window.ConversationMode.setDraft(text, 'phrase', {
+        sourceLabel: `💬 My Phrases (${this.activePhrase.category || 'Everyday'})`
+      });
+      openSlide('slide-communication-hub');
+      TransifyApp.showToast(`Placed in composer: "${text}"`, 'success');
+    }
+  },
+
+  movePhraseUp(id) {
+    const customPhrases = this.phrases.filter(p => p.is_custom);
+    const idx = customPhrases.findIndex(p => p.id === id);
+    if (idx <= 0) return;
+    const temp = customPhrases[idx];
+    customPhrases[idx] = customPhrases[idx - 1];
+    customPhrases[idx - 1] = temp;
+    this.phrases = [...this.starterPhrases, ...customPhrases];
+    this.saveCustomPhrasesToStorage();
+    this.renderGrid();
+    TransifyApp.announce(`Moved phrase up: ${temp.text_en}`);
+  },
+
+  movePhraseDown(id) {
+    const customPhrases = this.phrases.filter(p => p.is_custom);
+    const idx = customPhrases.findIndex(p => p.id === id);
+    if (idx < 0 || idx >= customPhrases.length - 1) return;
+    const temp = customPhrases[idx];
+    customPhrases[idx] = customPhrases[idx + 1];
+    customPhrases[idx + 1] = temp;
+    this.phrases = [...this.starterPhrases, ...customPhrases];
+    this.saveCustomPhrasesToStorage();
+    this.renderGrid();
+    TransifyApp.announce(`Moved phrase down: ${temp.text_en}`);
   },
 
   selectPhrase(phrase) {

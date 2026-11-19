@@ -114,15 +114,15 @@ class SignLanguageAdapter:
         """
         letter, raw_conf, probs = self.predictor.predict(crop_28x28)
 
-        # Apply 98% Decision Gateway
+        # Apply Calibrated Decision Gateway
         if not self.mcp_resolver.is_low_confidence(raw_conf):
             engine_info = {
                 "engine": "LOCAL_CUSTOM_MODEL",
-                "source": "SignFrame AI Custom Model (>= 98% Confidence)",
+                "source": "SignFrame AI Custom Model (High Confidence)",
                 "is_fallback": False,
                 "confidence": raw_conf,
                 "threshold": self.mcp_resolver.threshold,
-                "badge": "SignFrame AI Model (>= 98%)",
+                "badge": "SignFrame AI Model",
                 "notes": f"High confidence recognition ({raw_conf * 100:.1f}%) handled directly by SignFrame CNN."
             }
             final_letter = letter
@@ -143,11 +143,11 @@ class SignLanguageAdapter:
             resolver_assisted = bool(mcp_res.get("resolver_assisted", True))
             engine_info = {
                 "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
-                "source": mcp_res.get("source", "MCP Server / Chatbot"),
+                "source": mcp_res.get("source", "MCP Assistive Ambiguity Disambiguator"),
                 "is_fallback": True,
                 "confidence": mcp_conf,
                 "threshold": self.mcp_resolver.threshold,
-                "badge": mcp_res.get("badge", "MCP Resolver (< 98%)"),
+                "badge": mcp_res.get("badge", "MCP Resolver"),
                 "notes": mcp_res.get("notes", f"SignFrame AI confidence was {raw_conf * 100:.1f}%. Shifted to MCP resolver."),
                 "latency_ms": mcp_res.get("latency_ms", 3.0),
                 "resolver_assisted": resolver_assisted
@@ -346,18 +346,18 @@ class SignLanguageAdapter:
                 "probabilities": None
             }
 
-        # 98% Decision Gateway (Calibrated Confidence Required for Local Authorization)
+        # Calibrated Decision Gateway (Calibrated Confidence Required for Local Authorization)
         if cal_conf is not None and not self.mcp_resolver.is_low_confidence(cal_conf):
-            # Calibrated confidence >= 0.98: Local model authorized to decide directly
+            # Calibrated confidence meets threshold: Local model authorized to decide directly
             engine_info = {
                 "engine": "LOCAL_CUSTOM_MODEL",
-                "source": f"{model_name} (>= 98% Calibrated Confidence)",
+                "source": f"{model_name} (Calibrated High Confidence)",
                 "is_fallback": False,
                 "confidence": cal_conf,
                 "raw_confidence": raw_conf,
                 "calibrated_confidence": cal_conf,
                 "threshold": self.mcp_resolver.threshold,
-                "badge": f"{source_badge_prefix} (>= 98%)",
+                "badge": f"{source_badge_prefix} (Calibrated)",
                 "notes": f"High calibrated confidence {active_lang.upper()} recognition ({cal_conf * 100:.1f}%) handled directly by custom model."
             }
             final_label = class_meta["label"]
@@ -365,7 +365,7 @@ class SignLanguageAdapter:
             resolver_assisted = False
             authorization_granted = True
         else:
-            # Shift to MCP resolver when calibrated_confidence is < 0.98 OR when calibration is unavailable
+            # Shift to MCP resolver when calibrated_confidence is below threshold OR when calibration is unavailable
             candidate_conf = cal_conf if cal_conf is not None else 0.0
             top_candidates = [{"label": class_meta["label"], "confidence": candidate_conf}]
             mcp_res = self.mcp_resolver.resolve(
@@ -379,16 +379,16 @@ class SignLanguageAdapter:
             mcp_conf = mcp_res.get("confidence")
             final_conf = mcp_conf if mcp_conf is not None else cal_conf
             resolver_assisted = bool(mcp_res.get("resolver_assisted", True))
-            reason_str = f"Calibrated confidence was {cal_conf * 100:.1f}% (< 98%)" if cal_conf is not None else "Calibrated confidence unavailable"
+            reason_str = f"Calibrated confidence was {cal_conf * 100:.1f}% (< threshold)" if cal_conf is not None else "Calibrated confidence unavailable"
             engine_info = {
                 "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
-                "source": mcp_res.get("source", "MCP Server / Chatbot"),
+                "source": mcp_res.get("source", "MCP Assistive Ambiguity Disambiguator"),
                 "is_fallback": True,
                 "confidence": final_conf,
                 "raw_confidence": raw_conf,
                 "calibrated_confidence": cal_conf,
                 "threshold": self.mcp_resolver.threshold,
-                "badge": mcp_res.get("badge", "MCP Fallback (< 98%)"),
+                "badge": mcp_res.get("badge", "MCP Fallback"),
                 "notes": mcp_res.get("notes", f"{reason_str}. Shifted to MCP resolver."),
                 "latency_ms": mcp_res.get("latency_ms", 3.0),
                 "resolver_assisted": resolver_assisted

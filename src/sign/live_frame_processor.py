@@ -983,16 +983,16 @@ class LiveSignFrameProcessor:
                         predicted_letter = "UNKNOWN"
                         raw_conf = 0.0
 
-                # 98% Decision Gateway for BdSL Letters
+                # Decision gateway for ASL Fingerspelled Letters
                 if not self.mcp_resolver.is_low_confidence(raw_conf):
                     engine_info = {
                         "engine": "LOCAL_CUSTOM_MODEL",
-                        "source": "BdSL Recognition Model (>= 98% Confidence)",
+                        "source": "ASL Fingerspelling Model (Calibrated)",
                         "is_fallback": False,
                         "confidence": raw_conf,
                         "threshold": self.mcp_resolver.threshold,
-                        "badge": "BdSL Model (>= 98%)",
-                        "notes": f"High confidence BdSL recognition ({raw_conf * 100:.1f}%) handled directly by BdSL model."
+                        "badge": "ASL Model",
+                        "notes": f"ASL fingerspelling recognition ({raw_conf * 100:.1f}%) handled directly by local model."
                     }
                     final_letter = predicted_letter
                     final_conf = raw_conf
@@ -1001,18 +1001,18 @@ class LiveSignFrameProcessor:
                         candidate_label=predicted_letter,
                         confidence=raw_conf,
                         top_candidates=[{"label": predicted_letter, "confidence": raw_conf}],
-                        gloss_hint=f"BdSL manual alphabet {predicted_letter}"
+                        gloss_hint=f"ASL manual alphabet {predicted_letter}"
                     )
                     final_letter = mcp_res.get("label", predicted_letter)
                     final_conf = mcp_res.get("confidence", raw_conf)
                     engine_info = {
                         "engine": mcp_res.get("engine", "MCP_SIGN_RESOLVER"),
-                        "source": mcp_res.get("source", "MCP Server / Chatbot"),
+                        "source": mcp_res.get("source", "MCP Assistive Ambiguity Disambiguator"),
                         "is_fallback": True,
                         "confidence": final_conf,
                         "threshold": self.mcp_resolver.threshold,
-                        "badge": mcp_res.get("badge", "MCP Fallback (< 98%)"),
-                        "notes": mcp_res.get("notes", f"BdSL letter confidence {raw_conf * 100:.1f}% shifted to MCP."),
+                        "badge": mcp_res.get("badge", "MCP Fallback"),
+                        "notes": mcp_res.get("notes", f"ASL fingerspelled letter confidence {raw_conf * 100:.1f}% reviewed via MCP."),
                         "latency_ms": mcp_res.get("latency_ms", 3.0),
                         "resolver_assisted": bool(mcp_res.get("resolver_assisted", True))
                     }
@@ -1026,8 +1026,8 @@ class LiveSignFrameProcessor:
                 self.composer.text = session.composer.text
 
                 unified_translation = {
-                    "source_language": "BdSL",
-                    "source_model": model_display_name,
+                    "source_language": "ASL",
+                    "source_model": "ASL Fingerspeller (SignFrame AI)",
                     "recognized_concept": final_letter,
                     "english_text": final_letter,
                     "speech_ready": True

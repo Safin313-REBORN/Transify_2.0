@@ -1792,10 +1792,11 @@
         <!-- Desktop Primary Navigation Bar -->
         <nav class="desktop-nav-menu" aria-label="Primary Navigation">
           <a href="/" class="desktop-nav-link active"><span>🏠</span><span>Home</span></a>
+          <button type="button" class="desktop-nav-link" onclick="openSlide('slide-communication-hub')" style="background:none; border:none; cursor:pointer;"><span>💬</span><span>Conversation Mode</span></button>
           <a href="/sign" class="desktop-nav-link"><span>✋</span><span>Hand-Sign</span></a>
           <a href="/braille" class="desktop-nav-link"><span>⠃</span><span>Braille OCR</span></a>
           <button type="button" class="desktop-nav-link" onclick="openSlide('slide-stt')" style="background:none; border:none; cursor:pointer;"><span>🎙️</span><span>Speech &amp; Voice</span></button>
-          <button type="button" class="desktop-nav-link" onclick="openSlide('slide-phraseboard')" style="background:none; border:none; cursor:pointer;"><span>💬</span><span>My Phrases</span></button>
+          <button type="button" class="desktop-nav-link" onclick="openSlide('slide-phraseboard')" style="background:none; border:none; cursor:pointer;"><span>⚡</span><span>My Phrases</span></button>
           <a href="/dashboard" class="desktop-nav-link"><span>📊</span><span>Dashboard</span></a>
         </nav>
       </div>
@@ -1979,11 +1980,11 @@
 
     <!-- Unified Hub, Phraseboard & Dashboard Navigation Row -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px;">
-      <button type="button" class="mini-sub-card" id="btn-open-hub" onclick="openSlide('slide-communication-hub')" aria-label="Open Communication Hub" style="padding: 14px; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 18px; cursor: pointer; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 84px;">
+      <button type="button" class="mini-sub-card" id="btn-open-hub" onclick="openSlide('slide-communication-hub')" aria-label="Open Conversation Mode" style="padding: 14px; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); border-radius: 18px; cursor: pointer; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 84px;">
         <div style="font-size: 24px;">💬</div>
         <div>
-          <div style="font-size: 13px; font-weight: 800; color: var(--text-primary);" data-i18n="hub_title">Comm Hub</div>
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;" data-i18n="hub_sub">Unified Multimodal Chat</div>
+          <div style="font-size: 13px; font-weight: 800; color: var(--text-primary);" data-i18n="hub_title">Conversation Mode</div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;" data-i18n="hub_sub">Unified Assistive Workspace</div>
         </div>
       </button>
 
@@ -2627,9 +2628,9 @@
   </div>
 
   <!-- =============================================================
-       SLIDE 5: COMMUNICATION HUB (SLIDES IN FROM LEFT)
+       SLIDE 5: CONVERSATION MODE (COMMUNICATION HUB)
        ============================================================= -->
-  <div id="slide-communication-hub" class="slide-screen slide-from-left" role="dialog" aria-modal="true" aria-label="Communication Hub Slide">
+  <div id="slide-communication-hub" class="slide-screen slide-from-left" role="dialog" aria-modal="true" aria-label="Conversation Mode Slide">
     <div class="slide-inner-frame">
       <div class="slide-banner-segment-wrap">
         <div class="slide-actor-banner" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);">
@@ -2638,18 +2639,21 @@
               <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
               </button>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <span id="conv-privacy-status" class="badge" style="background: rgba(255,255,255,0.2); color: #fff; font-size: 11px; padding: 4px 10px; border-radius: 20px;">🔒 Local Session</span>
+              </div>
             </div>
             <div class="slide-actor-titles">
-              <h2 class="slide-actor-h2" data-i18n="hub_title">Communication Hub</h2>
-              <p class="slide-actor-sub" data-i18n="hub_subtitle">Unified Multimodal Conversation Feed</p>
+              <h2 class="slide-actor-h2" data-i18n="hub_title">Conversation Mode</h2>
+              <p class="slide-actor-sub" data-i18n="hub_subtitle">Compose, Review &amp; Share via Any Assistive Modality</p>
             </div>
           </div>
         </div>
       </div>
 
       <div class="slide-body-padding">
-        <!-- Hub Actions Row -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
+        <!-- Top Session Actions Row -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 8px; flex-wrap: wrap;">
           <div style="display: flex; gap: 6px;">
             <button type="button" id="hub-copy-all-btn" class="btn btn-secondary btn-sm" title="Copy full conversation text">📋 Copy All</button>
             <button type="button" id="hub-export-btn" class="btn btn-secondary btn-sm" title="Export conversation as .txt file">📥 Export .txt</button>
@@ -2657,23 +2661,138 @@
           <button type="button" id="hub-clear-btn" class="btn btn-danger btn-sm" title="Clear conversation history">🗑️ Clear Feed</button>
         </div>
 
-        <!-- Quick Insert from Translators -->
-        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
-          <button type="button" id="hub-import-sign-btn" class="btn btn-secondary btn-sm" style="font-size: 11px;">+ From Sign</button>
-          <button type="button" id="hub-import-braille-btn" class="btn btn-secondary btn-sm" style="font-size: 11px;">+ From Braille</button>
-          <button type="button" id="hub-import-stt-btn" class="btn btn-secondary btn-sm" style="font-size: 11px;">+ From STT</button>
+        <!-- STEP 1: Input Modality Bar -->
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); display: block; margin-bottom: 6px;">1. Choose Input Source</label>
+          <div class="conv-modality-tabs" role="tablist" aria-label="Input Modality Sources">
+            <button type="button" class="conv-mod-btn active" id="conv-tab-type" onclick="window.ConversationMode.selectInputMode('typed')"><span>⌨️</span><span>Type</span></button>
+            <button type="button" class="conv-mod-btn" id="conv-tab-speech" onclick="window.ConversationMode.selectInputMode('speech')"><span>🎙️</span><span>Speech</span></button>
+            <button type="button" class="conv-mod-btn" id="conv-tab-sign" onclick="window.ConversationMode.selectInputMode('sign')"><span>🖐️</span><span>Sign</span></button>
+            <button type="button" class="conv-mod-btn" id="conv-tab-braille" onclick="window.ConversationMode.selectInputMode('braille')"><span>⠃</span><span>Braille</span></button>
+            <button type="button" class="conv-mod-btn" id="conv-tab-phrase" onclick="window.ConversationMode.selectInputMode('phrase')"><span>💬</span><span>Phrases</span></button>
+          </div>
         </div>
+
+        <!-- Quick Import / Modality Helper Drawers -->
+        <div id="conv-input-helper-container" style="display: none; margin-bottom: 12px; padding: 12px; background: var(--bg-surface); border-radius: 14px; border: 1.5px solid var(--border-subtle);">
+          <!-- Speech helper -->
+          <div id="conv-helper-speech" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 12.5px; font-weight: 600;">🎙️ Speech-to-Text Recognition</span>
+              <span style="font-size: 11px; color: var(--text-muted);">Microphone permission required</span>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" id="conv-stt-record-btn" class="btn btn-primary btn-sm" onclick="window.ConversationMode.toggleSTT()">🎙️ Start Speaking</button>
+              <button type="button" id="hub-import-stt-btn" class="btn btn-secondary btn-sm">+ From STT Page</button>
+            </div>
+          </div>
+          <!-- Sign helper -->
+          <div id="conv-helper-sign" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 12.5px; font-weight: 600;">🖐️ Sign Language Recognition</span>
+              <span style="font-size: 11px; color: var(--text-muted);">BdSL &amp; ASL Models</span>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" id="hub-import-sign-btn" class="btn btn-secondary btn-sm">+ Import Latest Sign</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openSlide('slide-hand-signal')">📷 Open Live Camera</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.ConversationMode.loadSampleSign()">✨ Try Sign Sample</button>
+            </div>
+          </div>
+          <!-- Braille helper -->
+          <div id="conv-helper-braille" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 12.5px; font-weight: 600;">⠃ Braille Document Translation</span>
+              <span style="font-size: 11px; color: var(--text-muted);">ICEB UEB Grade 1</span>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" id="hub-import-braille-btn" class="btn btn-secondary btn-sm">+ Import Latest Braille</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openSlide('slide-braille')">📄 Open Braille Scanner</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.ConversationMode.loadSampleBraille()">✨ Try Braille Sample</button>
+            </div>
+          </div>
+          <!-- Phrases helper drawer -->
+          <div id="conv-helper-phrase" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 12.5px; font-weight: 600;">💬 Pick From Your Phrasebook</span>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openSlide('slide-phraseboard')" style="font-size: 11px; padding: 2px 8px;">Open Full Board</button>
+            </div>
+            <div id="conv-phrase-quick-grid" style="display: flex; gap: 6px; flex-wrap: wrap; max-height: 120px; overflow-y: auto;"></div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Central Review & Editing Workspace -->
+        <div class="conv-staging-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <label for="conversation-draft-text" style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 0;">2. Review &amp; Edit Message</label>
+              <span id="conv-source-chip" class="badge" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 11px;">⌨️ Typed Input</span>
+            </div>
+            <span id="conv-status-chip" class="badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 11px;">Draft (Unconfirmed)</span>
+          </div>
+
+          <!-- Ambiguity / Candidate Notification -->
+          <div id="conv-ambiguity-notice" style="display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; font-size: 12px; color: var(--text-primary);">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+              <span>⚠️</span>
+              <strong id="conv-ambiguity-msg">Model detection uncertain. Please review candidates:</strong>
+            </div>
+            <div id="conv-candidates-list" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+          </div>
+
+          <textarea id="conversation-draft-text" class="conv-draft-textarea" placeholder="Compose, review, or edit your message here..." rows="3" aria-label="Review and edit message draft"></textarea>
+
+          <!-- STEP 3: Choose Output Action -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button type="button" id="conv-large-text-btn" class="btn btn-secondary btn-sm" onclick="window.ConversationMode.showLargeText()" title="Display in huge text across the room">
+                <span>🔍</span><span>Large Text</span>
+              </button>
+              <button type="button" id="conv-speak-btn" class="btn btn-secondary btn-sm" onclick="window.ConversationMode.toggleSpeak()" title="Speak aloud via speech synthesis (Zero Auto-Audio)">
+                <span id="conv-speak-icon">🔊</span><span id="conv-speak-label">Speak Aloud</span>
+              </button>
+              <button type="button" id="conv-copy-draft-btn" class="btn btn-secondary btn-sm" onclick="window.ConversationMode.copyDraft()" title="Copy draft to clipboard">
+                <span>📋</span><span>Copy</span>
+              </button>
+            </div>
+            <button type="button" id="conv-commit-btn" class="btn btn-primary btn-sm" onclick="window.ConversationMode.commitDraft()" style="padding: 7px 16px; font-weight: 700;">
+              <span>➕ Add to Feed</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick text input form -->
+        <form id="hub-input-form" class="hub-input-bar" style="margin-top: 12px; display: flex; gap: 8px;">
+          <input type="text" id="hub-input-text" class="hub-input-field" placeholder="Type a message to share..." autocomplete="off" aria-label="Type a message">
+          <button type="submit" id="hub-send-btn" class="btn btn-primary">Send</button>
+        </form>
 
         <!-- Live Message Feed -->
-        <div id="hub-feed-container" class="hub-feed-container" role="log" aria-live="polite" aria-label="Conversation messages">
-          <div style="text-align: center; color: #94a3b8; font-size: 13px; padding: 24px 0;">No messages yet. Send a typed message or translate from any modality.</div>
+        <div style="margin-top: 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 0;">3. Conversation Timeline</label>
+            <span style="font-size: 11px; color: var(--text-muted);">Sequential dialog feed</span>
+          </div>
+          <div id="hub-feed-container" class="hub-feed-container" role="log" aria-live="polite" aria-label="Conversation messages">
+            <div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 24px 0;">No messages in this session yet. Compose a draft above or select an input modality.</div>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- Typed Input Bar -->
-        <form id="hub-input-form" class="hub-input-bar">
-          <input type="text" id="hub-input-text" class="hub-input-field" placeholder="Type a message to share..." autocomplete="off" aria-label="Type a message">
-          <button type="submit" id="hub-send-btn" class="btn btn-primary" style="padding: 12px 18px; border-radius: 14px;">Send</button>
-        </form>
+  <!-- =============================================================
+       FULLSCREEN LARGE TEXT DISPLAY MODAL
+       ============================================================= -->
+  <div id="conversation-large-text-modal" class="conv-large-modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Large High-Contrast Text Display">
+    <div class="conv-large-modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <span style="font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #a5b4fc;">🔍 High-Contrast Large Text</span>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.ConversationMode.closeLargeText()" aria-label="Close Large Text Display" style="background: rgba(255,255,255,0.15); color: #fff; border: none; font-size: 13px; padding: 6px 14px; border-radius: 10px; cursor: pointer;">✕ Close</button>
+      </div>
+      <div id="conv-large-text-display" class="conv-large-text-content"></div>
+      <div style="margin-top: 24px; display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" id="conv-large-speak-btn" class="btn btn-primary" onclick="window.ConversationMode.speakLargeText()" style="border-radius: 12px; font-weight: 700;">🔊 Speak Aloud</button>
+        <button type="button" class="btn btn-secondary" onclick="window.ConversationMode.closeLargeText()" style="border-radius: 12px;">Done</button>
       </div>
     </div>
   </div>
