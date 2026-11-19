@@ -20,6 +20,12 @@
     <string name="perm_audio_rationale">Transify needs microphone access for speech-to-text recognition.</string>
     <string name="perm_storage_rationale">Storage access is required to save translated files.</string>
     
+    <!-- Offline & Network Status Strings -->
+    <string name="desc_offline_icon">Offline status alert</string>
+    <string name="status_offline_notice">Offline Mode: Live AI recognition and sync require network connectivity.</string>
+    <string name="status_online_reconnected">Reconnected to Transify network.</string>
+    <string name="toast_back_exit">Press back again to exit Transify</string>
+
     <!-- Accessibility -->
     <string name="desc_logo">Transify Brand Logo</string>
     <string name="desc_loading">Loading Transify assistive interface…</string>

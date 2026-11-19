@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.webkit.CookieManager
@@ -16,16 +17,19 @@ import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.webkit.JavaScriptReplyProxy
 import androidx.webkit.WebMessageCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.abrarafick.transify.databinding.ActivityMainBinding
+import java.io.File
 
 /**
  * MainActivity — Native Full-Screen Android Host for Transify.
@@ -66,6 +70,11 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var speechBridge: TransifySpeechBridge
     private lateinit var downloadBridge: TransifyDownloadBridge
+    private lateinit var ttsBridge: TransifyTTSBridge
+    private lateinit var networkMonitor: NetworkMonitor
+
+    private var cameraCaptureUri: Uri? = null
+    private var lastBackPressTime: Long = 0L
 
     // Runtime permission launcher for Camera and Audio
     private val mediaPermissionLauncher: ActivityResultLauncher<Array<String>> =
@@ -109,7 +118,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    // File chooser launcher for Braille image uploads
+    // File chooser launcher for Braille image uploads (supporting gallery and direct camera capture)
     private val fileChooserLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val callback = pendingFileChooserCallback
@@ -117,7 +126,7 @@ class MainActivity : AppCompatActivity() {
 
             if (callback == null) return@registerForActivityResult
 
-            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            if (result.resultCode == Activity.RESULT_OK) {
                 val dataIntent = result.data
                 val clipData = dataIntent?.clipData
                 val singleUri = dataIntent?.data
@@ -127,6 +136,11 @@ class MainActivity : AppCompatActivity() {
                     clipData != null && clipData.itemCount > 0 -> {
                         Array(clipData.itemCount) { i -> clipData.getItemAt(i).uri }
                     }
+                    cameraCaptureUri != null -> {
+                        val uri = cameraCaptureUri
+                        cameraCaptureUri = null
+                        if (uri != null) arrayOf(uri) else null
+                    }
                     else -> null
                 }
 
@@ -134,6 +148,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "File chooser received: ${results?.joinToString()}")
             } else {
                 Log.d(TAG, "File chooser canceled by user")
+                cameraCaptureUri = null
                 callback.onReceiveValue(null)
             }
         }
@@ -161,7 +176,17 @@ class MainActivity : AppCompatActivity() {
                 } else if (binding.webView.canGoBack()) {
                     binding.webView.goBack()
                 } else {
-                    finish()
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastBackPressTime < 2000) {
+                        finish()
+                    } else {
+                        lastBackPressTime = currentTime
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.toast_back_exit),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
         })
@@ -214,6 +239,8 @@ class MainActivity : AppCompatActivity() {
         // Native Bridges
         speechBridge = TransifySpeechBridge(this, webView)
         downloadBridge = TransifyDownloadBridge(this, webView)
+        ttsBridge = TransifyTTSBridge(this, webView) { uri -> isTrustedOrigin(uri) }
+        networkMonitor = NetworkMonitor(this)
 
         webView.setDownloadListener(downloadBridge)
 
@@ -302,6 +329,23 @@ class MainActivity : AppCompatActivity() {
                         val mimeType = json.optString("mimeType", "text/plain")
                         val data = json.optString("data", "")
                         downloadBridge.saveDataUri(data, mimeType, filename)
+                    }
+                    "tts_speak" -> {
+                        val text = json.optString("text", "")
+                        val lang = json.optString("lang", "en-US")
+                        ttsBridge.speak(text, lang)
+                    }
+                    "tts_stop" -> {
+                        ttsBridge.stop()
+                    }
+                    "get_network_status" -> {
+                        val isOnline = networkMonitor.isOnline
+                        val type = networkMonitor.networkType
+                        val quotedType = org.json.JSONObject.quote(type)
+                        binding.webView.evaluateJavascript(
+                            "window._transifyNetworkCallback && window._transifyNetworkCallback($isOnline, $quotedType);",
+                            null
+                        )
                     }
                 }
             }
@@ -428,7 +472,27 @@ class MainActivity : AppCompatActivity() {
         pendingFileChooserCallback = callback
 
         return try {
-            val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && params != null) {
+            val cameraIntents = mutableListOf<Intent>()
+            try {
+                val captureDir = File(cacheDir, "camera_captures").apply { mkdirs() }
+                val photoFile = File(captureDir, "braille_${System.currentTimeMillis()}.jpg")
+                val photoUri = FileProvider.getUriForFile(
+                    this,
+                    "${packageName}.fileprovider",
+                    photoFile
+                )
+                cameraCaptureUri = photoUri
+
+                val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                    putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+                    addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                cameraIntents.add(captureIntent)
+            } catch (e: Exception) {
+                Log.w(TAG, "Unable to prepare camera capture intent: ${e.message}")
+            }
+
+            val galleryIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && params != null) {
                 params.createIntent().apply {
                     putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
                 }
@@ -440,7 +504,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            val chooserIntent = Intent.createChooser(intent, "Select Braille Image")
+            val chooserIntent = Intent.createChooser(galleryIntent, "Select or Capture Braille Image").apply {
+                if (cameraIntents.isNotEmpty()) {
+                    putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toTypedArray())
+                }
+            }
+
             fileChooserLauncher.launch(chooserIntent)
             true
         } catch (e: Exception) {
@@ -448,6 +517,34 @@ class MainActivity : AppCompatActivity() {
             pendingFileChooserCallback?.onReceiveValue(null)
             pendingFileChooserCallback = null
             false
+        }
+    }
+
+    private fun setupNetworkMonitoring() {
+        networkMonitor.startMonitoring { isOnline, type ->
+            runOnUiThread {
+                if (isOnline) {
+                    binding.offlineBanner.visibility = View.GONE
+                } else {
+                    binding.offlineBanner.visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
+    private fun cleanupOldCameraCaptures() {
+        try {
+            val captureDir = File(cacheDir, "camera_captures")
+            if (captureDir.exists()) {
+                val cutoff = System.currentTimeMillis() - (24 * 60 * 60 * 1000)
+                captureDir.listFiles()?.forEach { file ->
+                    if (file.lastModified() < cutoff) {
+                        file.delete()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error cleaning old camera captures", e)
         }
     }
 
@@ -482,11 +579,15 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         binding.webView.onResume()
+        setupNetworkMonitoring()
     }
 
     override fun onPause() {
         // Stop speech recognition listening
         speechBridge.stopListening()
+
+        // Stop TTS playback immediately
+        ttsBridge.stop()
 
         // Safely stop web camera capture if active
         binding.webView.evaluateJavascript(
@@ -500,12 +601,16 @@ class MainActivity : AppCompatActivity() {
             null
         )
 
+        networkMonitor.stopMonitoring()
         binding.webView.onPause()
         super.onPause()
     }
 
     override fun onDestroy() {
+        networkMonitor.stopMonitoring()
         speechBridge.destroy()
+        ttsBridge.destroy()
+        cleanupOldCameraCaptures()
         binding.webView.loadUrl("about:blank")
         binding.webView.stopLoading()
         binding.webView.destroy()

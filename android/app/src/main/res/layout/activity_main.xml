@@ -35,6 +35,40 @@
         tools:progress="60"
         tools:visibility="visible" />
 
+    <!-- Native Offline Banner (animates in when device loses connection) -->
+    <LinearLayout
+        android:id="@+id/offlineBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="#FEF3C7"
+        android:elevation="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="10dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="@string/desc_offline_icon"
+            android:src="@android:drawable/stat_sys_warning"
+            app:tint="#D97706" />
+
+        <TextView
+            android:id="@+id/offlineText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/status_offline_notice"
+            android:textColor="#92400E"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
     <!-- Connection Error View (shown on network failure or unreachable server) -->
     <LinearLayout
         android:id="@+id/errorView"

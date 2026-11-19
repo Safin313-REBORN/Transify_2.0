@@ -170,9 +170,75 @@ class TransifySpeechBridge(
                     }
                 }, true);
 
+                // Native TTS Bridge Object and Callbacks
+                window.transifyNativeTTS = {
+                    speak: function(text, lang) {
+                        if (!text) return;
+                        const payload = JSON.stringify({
+                            action: 'tts_speak',
+                            text: text,
+                            lang: lang || 'en-US'
+                        });
+                        if (window.transifyNativeBridge && typeof window.transifyNativeBridge.postMessage === 'function') {
+                            window.transifyNativeBridge.postMessage(payload);
+                        }
+                    },
+                    stop: function() {
+                        const payload = JSON.stringify({ action: 'tts_stop' });
+                        if (window.transifyNativeBridge && typeof window.transifyNativeBridge.postMessage === 'function') {
+                            window.transifyNativeBridge.postMessage(payload);
+                        }
+                    }
+                };
+
+                window._transifyTTSCallback = {
+                    onStart: function(utteranceId) {
+                        const utt = window._transifyActiveUtterance;
+                        if (utt && typeof utt.onstart === 'function') {
+                            utt.onstart(new Event('start'));
+                        }
+                    },
+                    onDone: function(utteranceId) {
+                        const utt = window._transifyActiveUtterance;
+                        if (utt && typeof utt.onend === 'function') {
+                            utt.onend(new Event('end'));
+                        }
+                        window._transifyActiveUtterance = null;
+                    },
+                    onError: function(errMessage) {
+                        const utt = window._transifyActiveUtterance;
+                        if (utt && typeof utt.onerror === 'function') {
+                            utt.onerror({ error: 'synthesis-failed', message: errMessage });
+                        }
+                        window._transifyActiveUtterance = null;
+                    }
+                };
+
+                // Bridge window.speechSynthesis to native Android TextToSpeech
+                if (window.speechSynthesis) {
+                    const originalSpeak = window.speechSynthesis.speak.bind(window.speechSynthesis);
+                    const originalCancel = window.speechSynthesis.cancel.bind(window.speechSynthesis);
+
+                    window.speechSynthesis.speak = function(utterance) {
+                        if (utterance && utterance.text && window.transifyNativeBridge) {
+                            window._transifyActiveUtterance = utterance;
+                            window.transifyNativeTTS.speak(utterance.text, utterance.lang || 'en-US');
+                        } else {
+                            originalSpeak(utterance);
+                        }
+                    };
+
+                    window.speechSynthesis.cancel = function() {
+                        if (window.transifyNativeBridge) {
+                            window.transifyNativeTTS.stop();
+                        }
+                        originalCancel();
+                    };
+                }
+
                 window.SpeechRecognition = WebViewSpeechRecognition;
                 window.webkitSpeechRecognition = WebViewSpeechRecognition;
-                console.log("[Transify] Web Speech API polyfill registered successfully.");
+                console.log("[Transify] Web Speech API and Native TTS polyfill registered successfully.");
             })();
         """.trimIndent()
     }

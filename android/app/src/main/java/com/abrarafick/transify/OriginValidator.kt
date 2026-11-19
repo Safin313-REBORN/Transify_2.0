@@ -16,12 +16,16 @@ import java.net.URI
 object OriginValidator {
 
     const val MAX_PAYLOAD_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB payload limit
+    const val MAX_TTS_TEXT_LENGTH = 5000 // 5000 characters limit for TTS requests
 
     val ALLOWED_BRIDGE_ACTIONS = setOf(
         "stt_start",
         "stt_stop",
         "stt_abort",
-        "download_blob"
+        "download_blob",
+        "tts_speak",
+        "tts_stop",
+        "get_network_status"
     )
 
     private val PLACEHOLDER_KEYWORDS = listOf(
@@ -216,6 +220,22 @@ object OriginValidator {
                 if (data.isBlank()) {
                     return ValidationResult.Error("Missing or empty data payload for download_blob")
                 }
+            }
+            "tts_speak" -> {
+                val text = json.optString("text", "").trim()
+                if (text.isEmpty()) {
+                    return ValidationResult.Error("Missing or empty text for tts_speak")
+                }
+                if (text.length > MAX_TTS_TEXT_LENGTH) {
+                    return ValidationResult.Error("Text length exceeds $MAX_TTS_TEXT_LENGTH characters limit for tts_speak")
+                }
+                val lang = json.optString("lang", "en-US").trim()
+                if (lang.isNotEmpty() && !lang.matches(Regex("^[a-zA-Z0-9_-]{2,15}$"))) {
+                    return ValidationResult.Error("Invalid language tag for tts_speak: '$lang'")
+                }
+            }
+            "tts_stop", "get_network_status", "stt_stop", "stt_abort" -> {
+                // Parameter-free actions
             }
         }
 
