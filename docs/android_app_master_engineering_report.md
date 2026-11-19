@@ -3,14 +3,15 @@
 **Repository:** `Safin313-REBORN/Transify_2.0`
 **Active Branch:** `feat/auth-repair-communication-hub`
 **Target Branch:** `main`
-**Latest Verified Implementation Checkpoint:** `00e76129c842fd8bef2d850bc9741f1728380c85` (Phase 16 Pairwise Mathematics, Verifier Hardening & CI Resilience)
+**Latest Verified Implementation Checkpoint:** `8e92c1290859be02d27bfcd4e824632eada31aa2` (Phase 17 UX Overhaul, Assistive Features Delivery & Railway Deployment)
+**Preceding Implementation Checkpoint:** `00e76129c842fd8bef2d850bc9741f1728380c85` (Phase 16 Pairwise Mathematics, Verifier Hardening & CI Resilience)
 **Latest Verified CI Runs:** CI Run #41 (ID `44610683718`, Success), LOSO Evaluation Run #3 (ID `44610683733`, Success)
 **Historical Engineering Checkpoints:** `dc03786e548686e9bf5482c3bc08f387c2577664` (Run #40 / Run #2), `118dd1b08bb2724e466402a79bf231aa0356ad81` (Run #39), `7e966637781223f992597cda8544eee4a3ee10b4` (Phase 15 Verification), `79928c95e52549bf0ea6547ca677254550ee1382` (Run #38), `7d5e99a4d2b05903d80367f004d2ba91b2d6a809` (Run #36), `dd4c196b6e0276ea392238be372f822014e365e6` (Run #37), `33c2ef78f9249fc4a4dfdbbd24cb2c488b0f51f5` (Run #34), `6f8ff9c8e7d70680189ceb6d6619a095df4ee736` (Run #35), `68be13661b20201a91a463c9693a64bd246d9e95` (Run #33), `738caa3e84e488a930f14b32fd784a4440934aad` (Run #31), `74244a7f0c62bfb5e7be6afd37905ed3c9850cfc` (Run #28)
 **Railway Production URL:** [https://transify20-production.up.railway.app](https://transify20-production.up.railway.app)
-**Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=a988526c-9357-431d-9539-e2b423098149)
-**Active Railway Deployment ID:** `a988526c-9357-431d-9539-e2b423098149` (Status: ● Online / Healthy)
+**Railway Deployment Dashboard:** [https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=00edb792-cff0-422d-beb0-f226ab357309](https://railway.com/project/cf17911b-4222-431e-87cd-666aabf88422/service/8b4fd318-c669-49ca-bdc2-516cf229211d?id=00edb792-cff0-422d-beb0-f226ab357309)
+**Active Railway Deployment ID:** `00edb792-cff0-422d-beb0-f226ab357309` (Status: ● Online / Healthy)
 **Date:** November 20, 2026
-**Document Status:** Complete Pairwise Mathematics Correction, LOSO CI Hardening, Scientific Interpretation Remediation & Final Engineering Sign-Off (Phase 16)
+**Document Status:** Complete User Experience Overhaul, Personal Phraseboard, Onboarding Walkthrough, Universal Accessibility, History Management, and Production Release (Phase 17)
 
 ---
 
@@ -484,16 +485,84 @@ To eliminate ambiguity, the following 9 engineering boundaries are explicitly af
 | **Gate 3: Backend & Web Pytest** | Complete pytest regression suite passes | 227 passed, 1 warning, 0 failed, 0 skipped | **PASS** |
 | **Gate 4: Android Test Packaging** | Instrumentation APK compiles cleanly and is packaged in CI | `app-debug-androidTest.apk` assembled (619 KB); uploaded in `.github/workflows/ci.yml` | **PASS** |
 | **Gate 5: Debug APK Packaging** | Android application debug APK compiles cleanly | `app-debug.apk` assembled (6.18 MB) | **PASS** |
-| **Gate 6: API Contract Alignment** | Endpoints match `src/api/server.py` Pydantic schemas | Validated: JSON auth, multipart Braille, JSON TTS directive | **PASS** |
+| **Gate 6: API Contract Alignment** | Endpoints match `src/api/server.py` Pydantic schemas | Validated: JSON auth, multipart Braille, JSON TTS directive, DELETE /api/history/{id} | **PASS** |
 | **Gate 7: Security & Sandboxing** | Strict WebView sandboxing, exact origin check, secure cookies | Validated: allowFileAccess=false, SameSite=Lax, HttpOnly | **PASS** |
 | **Gate 8: Cloud Deployment** | Backend running and healthy on Railway | 6 live endpoints verified; all models loaded; latency < 505 ms | **PASS** |
 | **Gate 9: Physical Device Run** | Execution on physical hardware | `adb devices -l` showed 0 attached devices | **PARTIAL** (Disclosed) |
 | **Gate 10: Camera Sensor Benchmark**| Hardware camera FPS measurement | Unmeasured on hardware; ~5 FPS submission documented | **PARTIAL** (Disclosed) |
+| **Gate 11: Universal Responsive Layout** | Zero horizontal overflow across 5 viewports (360px - 1440px) | Validated via Playwright on /, /sign, /braille, /dashboard | **PASS** |
+| **Gate 12: Assistive Communication Board** | Local-first Phraseboard with CRUD, Undo, and explicit speech | Validated: 5 categories, active showcase, zero auto-audio | **PASS** |
 
 ### Engineering Sign-Off Verdict
-- **Backend & Cloud Services:** **APPROVED FOR PRODUCTION CONTINUOUS OPERATION**.
+- **Backend & Cloud Services:** **APPROVED FOR PRODUCTION CONTINUOUS OPERATION** (Deployment ID `00edb792-cff0-422d-beb0-f226ab357309`).
 - **Android Debug Application:** **APPROVED FOR STAGING DISTRIBUTION AND QA TESTING**.
 - **Hardware Integration Next Steps:** Once a physical test handset or cloud device lab (e.g. Firebase Test Lab) is attached, execute the reproducible acceptance procedure documented in Section 2 to promote Gate 9 and Gate 10 to full PASS.
+
+---
+
+## 10. Phase 17 — Responsive Product Redesign, Assistive Features & Production Release
+
+### 10.1 Feature 1: Personal "My Phrases" Communication Board
+- **Core Purpose:** Empowers speech-impaired, non-verbal, and emergency-situation users to rapidly vocalize structured, high-frequency phrases without typing or camera input.
+- **Starter Categories & Curated Tiles:**
+  - `Everyday`: "Hello, how are you?", "Thank you very much", "Yes, please", "No, thank you", "I understand", "Could you repeat that?", "Please write it down".
+  - `Needs`: "I need water, please", "I need some food", "Where is the restroom?", "I need assistance", "Please wait a moment", "I am tired", "Can you help me find this?".
+  - `Health`: "I need to take my medication", "I am in pain", "I feel dizzy / unwell", "Please call my emergency contact", "I need to sit down", "My allergies are acting up".
+  - `Emergency`: "I need immediate help!", "Please call emergency services (911/999)", "Medical emergency — do not leave me", "I cannot breathe well", "Lost — please help me contact family".
+- **Interaction Architecture:**
+  - **Tile Tap:** Instant visual selection and active showcase card population (`#phrase-active-showcase`).
+  - **Strict Zero Auto-Audio Policy:** Tapping any phrase tile produces **zero audio playback** by default. Speech vocalization occurs strictly when the user activates the explicit `🔊 Speak Aloud` button (`#phrase-speak-btn`).
+  - **Showcase Actions:** `🔊 Speak Aloud` (synthesizes via `TransifyTTS`), `📋 Copy Text` (copies phrase to clipboard with visual confirmation), and `➕ Add to Comm Hub` (injects text into active session hub context).
+  - **Phrase Management (CRUD):** Users can add custom phrases via modal form (`#add-phrase-form`), favorite phrases (saved to `is_fav`), and delete phrases with a non-destructive floating Undo snackbar (`.transify-undo-snackbar`) offering a 5-second restoration window.
+  - **Local-First Privacy & Disclaimers:** Versioned localStorage schema (`transify_phrasebook_v1`) stores phrases locally on-device. Prominent amber alert explicitly clarifies that Transify phrases do not replace medical or certified emergency response services.
+
+### 10.2 Feature 2: First-Use Onboarding Guide & Zero-Permission Interactive Samples
+- **4-Step Welcoming Onboarding Tour:**
+  - Step 1: *Welcome to Transify 2.0* — Introduces the multimodal assistive platform with zero-obligation entry.
+  - Step 2: *Camera & Privacy Protection* — Transparently explains on-device local frame processing; no video or image feeds are stored or streamed to third parties.
+  - Step 3: *Zero Auto-Audio Guarantee* — Assures users that audio will never play unexpectedly; speech is user-initiated.
+  - Step 4: *Interactive Sample Demos* — Direct action triggers to launch sample demonstrations without granting camera or microphone permissions.
+- **Interactive Demonstration Samples:**
+  - **Braille Sample (`TransifyApp.tryBrailleSample()`):** Renders authentic ICEB 2024 UEB Grade 1 cells for "WELCOME TO TRANSIFY ASSISTIVE OCR" without requiring a document upload or camera feed.
+  - **Sign Language Sample (`TransifyApp.trySignSample()`):** Animates 21 normalized hand landmark points on HTML5 canvas and drives consensus confidence to 100% for "ধন্যবাদ (Thank You)" without invoking `getUserMedia` or prompting for camera hardware.
+
+### 10.3 Feature 3: Universal Accessibility Settings & User Preferences
+- **Theme Modes:** Supports `light`, `dark`, and a dedicated `high-contrast` mode meeting WCAG 2.1 AAA contrast ratios (>7:1 on text, >3:1 on controls).
+- **Text Scaling:** Dynamic typography scaling across `small` (100%), `medium` (115%), and `large` (130%) without breaking flexbox or grid layouts.
+- **Speech Synthesis Customization:** Voice language selection (`en-US`, `en-GB`, `bn-BD`, `bn-IN`, `es-ES`), playback rate adjustments (`0.8x`, `1.0x`, `1.2x`, `1.5x`), and an explicit Auto-Speak Translation toggle (strictly defaulted to **OFF**).
+- **Physical & Motion Accommodations:** Reduced motion toggle (`.reduced-motion` disabling non-essential transitions) and Large Touch Targets mode (`.large-targets` expanding minimum interactive touch areas to >= 48px).
+
+### 10.4 Feature 4: Usable Communication History & Filtering
+- **History Toolbar:** Real-time search filter (`#history-search-input`), modality filter (`#history-modality-select`: All, Sign Language, Braille OCR, Text-to-Speech, Speech-to-Text), date range filter (`#history-date-select`), and favorites filter (`#history-fav-filter`).
+- **Individual Record Management:** Card-level `🔊 Speak Aloud`, `📋 Copy`, Favorite toggle, and Single-Record Deletion (`DELETE /api/history/{record_id}`) backed by strict backend owner authorization and 404/403 IDOR prevention.
+- **Guest Ephemeral Privacy Notice:** Prominently notifies unauthenticated users that guest history is stored in local browser memory and will clear upon session close.
+
+### 10.5 Feature 5: Hardware & Subsystem Readiness Diagnostic Panel
+- **Pre-flight Capability Audit:** Inspects client-side and backend capability states without prompting the user for permissions:
+  1. *Live Camera:* Checks `navigator.mediaDevices` availability.
+  2. *Speech-to-Text (STT):* Detects `webkitSpeechRecognition` / `SpeechRecognition` API support.
+  3. *Speech Synthesis (TTS):* Validates `window.speechSynthesis` and installed voice packs.
+  4. *Private Local Storage:* Verifies read/write quotas on browser `localStorage`.
+  5. *AI Backend Subsystems:* Pings `/api/ready` to verify status of BdSL temporal, HaGRID gesture, MediaPipe landmarker, and Braille OCR models.
+
+### 10.6 Responsive Verification Across Standard Viewports
+- Rigorous automated Playwright responsive verification confirmed **ZERO horizontal scrollbar overflow** across all core routes (`/`, `/sign`, `/braille`, `/dashboard`):
+  - **Mobile Small (360×800):** 0px overflow across all routes.
+  - **Mobile iPhone (390×844):** 0px overflow across all routes.
+  - **Tablet iPad (768×1024):** 0px overflow across all routes.
+  - **Laptop Standard (1280×800):** 0px overflow across all routes.
+  - **Desktop Pro (1440×900):** 0px overflow across all routes.
+- **Root Cause Fix:** Resolved `.footer-links` horizontal spill via `flex-wrap: wrap` and constrained transition animations with `html, body { max-width: 100%; overflow-x: hidden; }`.
+
+### 10.7 Final Verification & Production Deployment Status
+- **Backend & Browser Pytest Suite:** **227 passed, 1 warning in 59.96s** (100% pass rate).
+- **Android Native JVM Unit Tests:** **40 passed, 0 failed, 0 skipped** (100% pass rate).
+- **Railway Production Deployment:**
+  - **Deployment ID:** `00edb792-cff0-422d-beb0-f226ab357309`
+  - **Service Status:** ● Online / Healthy
+  - **Production Endpoint:** `https://transify20-production.up.railway.app`
+  - **Health Check (`GET /api/health`):** HTTP 200 OK (`{"status":"healthy","platform":"Transify Assistive Platform","version":"1.0.0"}`)
+  - **Ready Check (`GET /api/ready`):** HTTP 200 OK (All 4 AI models loaded, persistent volume mounted at `/app/data`).
 
 ---
 *Signed by: Senior Android Engineer, Full-Stack Architect, AI Research Engineer & Security Auditor*
