@@ -6,6 +6,7 @@
 **Target Branch:** `main`  
 **Base Feature Commit SHA:** `63eaebf5421ffa43db590eb0908b7d237a14ad93`  
 **Intermediate Hardening Commit SHA:** `699a96fd2cef81ea21c3104f33889dfcd4f4391e` (CI Run `44472692849` - 167/167 passed)  
+**Final Release Candidate Commit SHA:** `58a42834f5bb2e779b82216758dc87184579dbac` (CI Run `44478143869` - 176/176 passed, 100% Green)  
 **Production URL:** `https://transify20-production.up.railway.app` (Preserved on current stable release; feature branch isolated)  
 
 ---
