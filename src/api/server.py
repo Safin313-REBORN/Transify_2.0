@@ -129,7 +129,7 @@ class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=2, description="User full name")
     email: str = Field(..., description="User email address")
     password: str = Field(..., min_length=15, description="Account password (min 15 chars)")
-    role: Optional[str] = Field(default="user", description="Account role: user, patient, clinician")
+    role: Optional[str] = Field(default=None, description="Account role (ignored; public registration always assigns server-defined 'user')")
     consent_terms: bool = Field(..., description="Consent to Terms & Privacy")
 
 
@@ -180,11 +180,14 @@ def register_user(req: RegisterRequest, response: Response, request: Request):
         )
 
     try:
+        # CRITICAL P0-1: Public registration must never accept a client-supplied privileged account role.
+        # All new public registrations strictly receive the server-defined normal role 'user'.
+        # Privileged roles (clinician, admin, dev_clinician) require trusted server-side administrative assignment.
         user = create_user(
             name=req.name,
             email=req.email,
             password=req.password,
-            role=req.role or "user",
+            role="user",
             consent_terms=req.consent_terms
         )
     except ValueError as ex:

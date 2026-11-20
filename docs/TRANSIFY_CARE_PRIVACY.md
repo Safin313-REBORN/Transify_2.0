@@ -1,6 +1,6 @@
 # Transify Care — Patient Privacy, Consent & Data Governance
 **Standard**: Health Data Privacy, Role-Based Access Control (RBAC) & Tamper-Evident Auditing
-**Status**: Release Candidate Security & Privacy Remediation
+**Status**: Release Candidate Security & Privacy Remediation (Final Security Hardening)
 
 ---
 
@@ -20,11 +20,15 @@ Healthcare intake requires the highest ethical standard of patient autonomy. Tra
    - The patient identifier is derived strictly on the server from the authenticated session (`user-{id}`).
    - Client-supplied patient IDs, clinician IDs, or clinician names in request payloads are ignored.
    - User sessions are verified via cryptographically random session tokens (32-byte hex) with expiry.
-2. **Access Isolation**:
+2. **No Public Clinician Self-Registration**:
+   - Public account registration (`POST /api/auth/register`) strictly assigns the server-defined role `'user'`.
+   - Client-supplied `role` fields (e.g. attempting to register as `'clinician'`, `'admin'`, or `'dev_clinician'`) are explicitly discarded. Privileged roles require server-side administrative promotion.
+3. **Access Isolation**:
    - Patients can only retrieve their own intakes (`GET /api/care/intakes`, `GET /api/care/intake/{id}`).
    - Unauthorized cross-user access attempts are rejected with HTTP 403 (`Forbidden`).
-3. **Data Minimization & Aggregation**:
+4. **Data Minimization & Aggregation**:
    - Dashboard statistics (`/api/care/dashboard/stats`) expose only aggregate counters without leaking identifiable patient records or clinical summaries.
+   - Evidence search (`GET` and `POST /api/care/evidence/search`) requires authenticated access. The POST route accepts queries in the JSON body to prevent personal health terms from being recorded in HTTP server access logs.
 
 ---
 
@@ -34,7 +38,10 @@ Healthcare intake requires the highest ethical standard of patient autonomy. Tra
    - Browser `localStorage` draft serialization is strictly documented as an **unassessed offline draft capture prototype**.
    - The platform **does NOT** describe plaintext `localStorage` as encrypted.
    - No clinical triage results or urgency classifications are rendered while offline: the UI explicitly displays *"Draft saved locally — no clinical assessment performed while offline."*
-   - Offline drafts can only be synchronized to the backend with an authenticated user session.
+2. **Protection of Real Health Information**:
+   - Unencrypted browser storage is restricted exclusively to synthetic demo fixtures.
+   - Local offline draft caching of real personal health information is strictly disabled.
+   - Offline drafts can only be synchronized to the backend with an authenticated user session and explicit consent.
 
 ---
 
@@ -45,8 +52,14 @@ Healthcare intake requires the highest ethical standard of patient autonomy. Tra
    - Strictly forbidden from accessing clinician queues, review endpoints, or other patients' records.
 2. **Clinician Workspace**:
    - Requires verified clinician credentials (`role == 'clinician'` or `role == 'admin'`).
-   - In development environments without live hospital SSO, a controlled development clinician mode (`ENABLE_DEV_CLINICIAN_AUTH=1`) is available for testing, disabled by default in production.
    - Clinician review submissions require valid authenticated sessions; urgency overrides require a mandatory medical justification.
+3. **Fail-Closed Development Clinician Mode**:
+   - In development environments without live hospital SSO, development clinician mode defaults to **disabled**.
+   - Requires explicit local opt-in via `TRANSIFY_DEV_CLINICIAN_ENABLED=true`.
+   - In production environments, synthetic clinician mode is permanently disabled regardless of configuration flags.
+4. **Demo Reset Guard**:
+   - `POST /api/care/demo/reset` is strictly disabled in production (HTTP 403).
+   - In non-production, it resets only synthetic demo fixtures (`demo-patient-%`, `synthetic-demo-patient-%`) and never modifies or deletes real patient records (`user-%`).
 
 ---
 

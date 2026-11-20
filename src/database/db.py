@@ -34,25 +34,40 @@ DB_PATH = os.path.join(DB_DIR, "transify.db")
 def is_production() -> bool:
     """
     Fail-safe check for production deployment environment.
-    Evaluates RAILWAY_ENVIRONMENT, TRANSIFY_ENV, and ENVIRONMENT.
+    Evaluates RAILWAY_ENVIRONMENT, RAILWAY_PROJECT_ID, TRANSIFY_ENV, ENVIRONMENT, ENV, and NODE_ENV.
+    If ANY production indicator is detected, returns True immediately.
+    Conflicting indicators (e.g. ENVIRONMENT=production but TRANSIFY_ENV=development) fail-closed to True.
     """
-    railway_env = (os.getenv("RAILWAY_ENVIRONMENT") or "").strip().lower()
-    transify_env = (os.getenv("TRANSIFY_ENV") or "").strip().lower()
-    general_env = (os.getenv("ENVIRONMENT") or "").strip().lower()
-    for val in (railway_env, transify_env, general_env):
-        if val in ("production", "prod"):
+    env_vars = [
+        os.getenv("RAILWAY_ENVIRONMENT"),
+        os.getenv("RAILWAY_PROJECT_ID"),
+        os.getenv("TRANSIFY_ENV"),
+        os.getenv("ENVIRONMENT"),
+        os.getenv("ENV"),
+        os.getenv("NODE_ENV")
+    ]
+    for raw in env_vars:
+        val = (raw or "").strip().lower()
+        if val in ("production", "prod", "live"):
             return True
+        # If running inside Railway container with any Railway environment indicator set
+        if raw is not None and "railway" in (os.getenv("RAILWAY_ENVIRONMENT") or "").lower():
+            if "prod" in val:
+                return True
     return False
 
 
 def is_dev_clinician_enabled() -> bool:
     """
-    Returns True only in non-production environments when development clinician mode is enabled.
-    In production environments, always returns False.
+    Returns True ONLY in non-production environments when development clinician mode
+    is explicitly opted-in via TRANSIFY_DEV_CLINICIAN_ENABLED=true/1/yes.
+    Defaults to False (fail-closed disabled).
+    In production environments, ALWAYS returns False regardless of any flags or conflicting values.
     """
     if is_production():
         return False
-    val = (os.getenv("TRANSIFY_DEV_CLINICIAN_ENABLED") or "true").strip().lower()
+    # Fail-closed: missing environment variable defaults to 'false'
+    val = (os.getenv("TRANSIFY_DEV_CLINICIAN_ENABLED") or "false").strip().lower()
     return val in ("true", "1", "yes")
 
 
@@ -348,6 +363,10 @@ def create_user(name: str, email: str, password: str, role: str = "user", consen
         raise ValueError("Password must be at least 15 characters long.")
     if not consent_terms:
         raise ValueError("Consent to Terms of Service and Privacy Policy is required to create an account.")
+
+    role = (role or "user").strip().lower()
+    if role not in ("user", "clinician", "admin", "dev_clinician"):
+        role = "user"
 
     conn = get_connection()
     cursor = conn.cursor()

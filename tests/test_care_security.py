@@ -99,6 +99,14 @@ def test_unauthenticated_requests_return_401(client):
     r7 = client.get("/api/care/sources")
     assert r7.status_code == 401
 
+    # 8. GET /api/care/evidence/search
+    r8 = client.get("/api/care/evidence/search?q=fever")
+    assert r8.status_code == 401
+
+    # 9. POST /api/care/evidence/search
+    r9 = client.post("/api/care/evidence/search", json={"query": "fever"})
+    assert r9.status_code == 401
+
 
 # --- 2. Patient Cross-User Isolation (Patient A vs Patient B) ---
 
@@ -362,26 +370,306 @@ def test_audit_log_append_only_triggers():
         conn.close()
 
 
-# --- 11. Controlled Development Synthetic Clinician Mode ---
+# --- 11. Controlled Development Synthetic Clinician Mode (Fail-Closed) ---
 
 def test_dev_clinician_mode_and_production_guard(client):
-    """Development synthetic clinician mode works in dev but is strictly blocked in production."""
-    # 1. Dev Mode (Default)
-    res_dev = client.post("/api/care/dev/clinician-session")
-    assert res_dev.status_code == 200
-    assert res_dev.json()["success"] is True
-    assert res_dev.json()["role"] == "clinician"
-
-    # 2. Production Guard
+    """Development synthetic clinician mode requires explicit opt-in and is strictly blocked in production."""
+    # 1. Dev Mode with explicit opt-in
+    old_opt = os.environ.get("TRANSIFY_DEV_CLINICIAN_ENABLED")
     old_env = os.environ.get("ENVIRONMENT")
     try:
+        os.environ["TRANSIFY_DEV_CLINICIAN_ENABLED"] = "true"
+        os.environ.pop("ENVIRONMENT", None)
+        client.cookies.clear()
+        res_dev = client.post("/api/care/dev/clinician-session")
+        assert res_dev.status_code == 200
+        assert res_dev.json()["success"] is True
+        assert res_dev.json()["role"] == "clinician"
+
+        # 2. Production Guard (blocks even when opt-in flag is true)
         os.environ["ENVIRONMENT"] = "production"
         client.cookies.clear()
         res_prod = client.post("/api/care/dev/clinician-session")
         assert res_prod.status_code == 403
-        assert "disabled in production" in res_prod.json()["detail"]
+        assert "disabled in production" in res_prod.json()["detail"].lower()
     finally:
+        if old_opt is not None:
+            os.environ["TRANSIFY_DEV_CLINICIAN_ENABLED"] = old_opt
+        else:
+            os.environ.pop("TRANSIFY_DEV_CLINICIAN_ENABLED", None)
         if old_env is not None:
             os.environ["ENVIRONMENT"] = old_env
         else:
             os.environ.pop("ENVIRONMENT", None)
+
+
+# --- 12. P0-1: Prevent Public Clinician Self-Registration ---
+
+def test_public_registration_without_role_creates_normal_user(client):
+    """Public registration without a role creates a normal user with role 'user'."""
+    import uuid
+    client.cookies.clear()
+    email = f"normal_user_{uuid.uuid4().hex[:8]}@example.com"
+    res = client.post("/api/auth/register", json={
+        "name": "Standard User One",
+        "email": email,
+        "password": "SecurePassword2026!#",
+        "consent_terms": True
+    })
+    assert res.status_code == 200
+    data = res.json()
+    assert data["user"]["role"] == "user"
+
+    # Inspect the database to verify the server-stored role
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT role FROM users WHERE email = ? COLLATE NOCASE;", (email,))
+    row = cursor.fetchone()
+    conn.close()
+    assert row is not None
+    assert row["role"] == "user"
+
+
+def test_public_registration_with_role_clinician_cannot_elevate(client):
+    """Public registration requesting role=clinician strictly receives role 'user'."""
+    import uuid
+    client.cookies.clear()
+    email = f"fake_clinician_{uuid.uuid4().hex[:8]}@example.com"
+    res = client.post("/api/auth/register", json={
+        "name": "Attempted Clinician",
+        "email": email,
+        "password": "SecurePassword2026!#",
+        "role": "clinician",
+        "consent_terms": True
+    })
+    assert res.status_code == 200
+    data = res.json()
+    assert data["user"]["role"] == "user"
+
+    # Inspect DB: verified role is 'user', NEVER 'clinician'
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT role FROM users WHERE email = ? COLLATE NOCASE;", (email,))
+    row = cursor.fetchone()
+    conn.close()
+    assert row is not None
+    assert row["role"] == "user"
+
+
+def test_public_registration_with_role_admin_cannot_elevate(client):
+    """Public registration requesting role=admin strictly receives role 'user'."""
+    import uuid
+    client.cookies.clear()
+    email = f"fake_admin_{uuid.uuid4().hex[:8]}@example.com"
+    res = client.post("/api/auth/register", json={
+        "name": "Attempted Admin",
+        "email": email,
+        "password": "SecurePassword2026!#",
+        "role": "admin",
+        "consent_terms": True
+    })
+    assert res.status_code == 200
+    assert res.json()["user"]["role"] == "user"
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT role FROM users WHERE email = ? COLLATE NOCASE;", (email,))
+    row = cursor.fetchone()
+    conn.close()
+    assert row["role"] == "user"
+
+
+def test_public_registration_with_role_dev_clinician_cannot_elevate(client):
+    """Public registration requesting role=dev_clinician strictly receives role 'user'."""
+    import uuid
+    client.cookies.clear()
+    email = f"fake_dev_clinician_{uuid.uuid4().hex[:8]}@example.com"
+    res = client.post("/api/auth/register", json={
+        "name": "Attempted Dev Clinician",
+        "email": email,
+        "password": "SecurePassword2026!#",
+        "role": "dev_clinician",
+        "consent_terms": True
+    })
+    assert res.status_code == 200
+    assert res.json()["user"]["role"] == "user"
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT role FROM users WHERE email = ? COLLATE NOCASE;", (email,))
+    row = cursor.fetchone()
+    conn.close()
+    assert row["role"] == "user"
+
+
+def test_newly_registered_normal_user_receives_403_on_clinician_review(client):
+    """A newly registered normal user is rejected with HTTP 403 when calling clinician review."""
+    import uuid
+    client.cookies.clear()
+    email = f"normal_denied_{uuid.uuid4().hex[:8]}@example.com"
+    reg_res = client.post("/api/auth/register", json={
+        "name": "Non Clinician User",
+        "email": email,
+        "password": "SecurePassword2026!#",
+        "role": "clinician",  # Attempted escalation
+        "consent_terms": True
+    })
+    assert reg_res.status_code == 200
+
+    # User's session cookie is set; now attempt to review intake #1
+    rev_res = client.post("/api/care/intake/1/review", json={
+        "action": "COMPLETED",
+        "urgency_override": "NONE"
+    })
+    assert rev_res.status_code == 403
+    assert "Clinician authorization required" in rev_res.json()["detail"]
+
+
+def test_existing_verified_clinician_retains_authorized_access(client):
+    """Verified clinician accounts created via administrative processes retain review access."""
+    clinician_user = register_and_login(client, "Dr. Verified", "dr_verified_access@example.com", role="clinician")
+    assert clinician_user["role"] == "clinician"
+
+    # Create an intake for reviewing
+    intake_res = client.post("/api/care/intake", json={
+        "input_modality": "text",
+        "confirmed_text": "Fever and headache for 2 days",
+        "chief_complaint": "Fever",
+        "symptom_description": "Fever and headache",
+        "severity": 3,
+        "consent_granted": True
+    })
+    assert intake_res.status_code == 201
+    intake_id = intake_res.json()["intake_id"]
+
+    # Clinician review should succeed
+    rev_res = client.post(f"/api/care/intake/{intake_id}/review", json={
+        "action": "ACCEPTED",
+        "urgency_override": "NONE",
+        "clinical_notes": "Verified clinician approval."
+    })
+    assert rev_res.status_code == 200
+    assert rev_res.json()["success"] is True
+
+
+# --- 13. P0-2: Fail-Closed Development Clinician Mode Suite ---
+
+def test_dev_clinician_mode_fail_closed_scenarios(client):
+    """Thoroughly tests fail-closed behavior across all environment configurations."""
+    from src.database.db import is_dev_clinician_enabled, is_production
+
+    saved_env = dict(os.environ)
+    try:
+        # Scenario A: Missing environment variable -> disabled by default
+        os.environ.pop("TRANSIFY_DEV_CLINICIAN_ENABLED", None)
+        os.environ.pop("ENVIRONMENT", None)
+        os.environ.pop("RAILWAY_ENVIRONMENT", None)
+        os.environ.pop("TRANSIFY_ENV", None)
+        assert is_dev_clinician_enabled() is False
+
+        client.cookies.clear()
+        res_missing = client.post("/api/care/dev/clinician-session")
+        assert res_missing.status_code == 403
+
+        # Scenario B: Explicit false
+        os.environ["TRANSIFY_DEV_CLINICIAN_ENABLED"] = "false"
+        assert is_dev_clinician_enabled() is False
+        res_false = client.post("/api/care/dev/clinician-session")
+        assert res_false.status_code == 403
+
+        # Scenario C: Explicit true in local dev -> allowed
+        os.environ["TRANSIFY_DEV_CLINICIAN_ENABLED"] = "true"
+        assert is_dev_clinician_enabled() is True
+        res_true = client.post("/api/care/dev/clinician-session")
+        assert res_true.status_code == 200
+
+        # Scenario D: Production environment overrides explicit true -> disabled
+        os.environ["ENVIRONMENT"] = "production"
+        os.environ["TRANSIFY_DEV_CLINICIAN_ENABLED"] = "true"
+        assert is_production() is True
+        assert is_dev_clinician_enabled() is False
+        res_prod = client.post("/api/care/dev/clinician-session")
+        assert res_prod.status_code == 403
+
+        # Scenario E: Conflicting indicators (TRANSIFY_ENV=production, ENVIRONMENT=development)
+        os.environ["TRANSIFY_ENV"] = "production"
+        os.environ["ENVIRONMENT"] = "development"
+        assert is_production() is True
+        assert is_dev_clinician_enabled() is False
+
+        # Scenario F: Railway production configuration
+        os.environ.pop("TRANSIFY_ENV", None)
+        os.environ.pop("ENVIRONMENT", None)
+        os.environ["RAILWAY_ENVIRONMENT"] = "production"
+        assert is_production() is True
+        assert is_dev_clinician_enabled() is False
+        res_railway = client.post("/api/care/dev/clinician-session")
+        assert res_railway.status_code == 403
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_env)
+
+
+# --- 14. P1-3: Protect Demo Reset ---
+
+def test_demo_reset_production_guard_and_data_preservation(client):
+    """Demo reset endpoint is blocked in production and preserves real patient records in development."""
+    saved_env = dict(os.environ)
+    try:
+        # Register a real user and submit real patient intake
+        user = register_and_login(client, "Real Patient", "real_patient_persist@example.com", role="user")
+        real_intake_res = client.post("/api/care/intake", json={
+            "input_modality": "text",
+            "confirmed_text": "Real patient symptom records must never be deleted",
+            "chief_complaint": "Persistent abdominal ache",
+            "symptom_description": "Severe pain",
+            "severity": 4,
+            "consent_granted": True
+        })
+        assert real_intake_res.status_code == 201
+        real_intake_id = real_intake_res.json()["intake_id"]
+
+        # 1. In production -> demo reset must be rejected with HTTP 403
+        os.environ["ENVIRONMENT"] = "production"
+        res_prod_reset = client.post("/api/care/demo/reset")
+        assert res_prod_reset.status_code == 403
+        assert "disabled in production" in res_prod_reset.json()["detail"].lower()
+
+        # 2. In non-production -> demo reset succeeds
+        os.environ.pop("ENVIRONMENT", None)
+        res_dev_reset = client.post("/api/care/demo/reset")
+        assert res_dev_reset.status_code == 200
+        assert res_dev_reset.json()["success"] is True
+
+        # Verify real patient intake was NOT deleted!
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, patient_id FROM care_patient_intakes WHERE id = ?;", (real_intake_id,))
+        row = cursor.fetchone()
+        conn.close()
+        assert row is not None
+        assert row["patient_id"] == f"user-{user['id']}"
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_env)
+
+
+# --- 15. P1-4: Clarify Evidence Search Access ---
+
+def test_evidence_search_authenticated_access(client):
+    """Evidence search requires authenticated session for both GET and POST requests."""
+    client.cookies.clear()
+
+    # Unauthenticated -> 401
+    assert client.get("/api/care/evidence/search?q=dengue").status_code == 401
+    assert client.post("/api/care/evidence/search", json={"query": "dengue"}).status_code == 401
+
+    # Authenticated -> 200 with citations
+    register_and_login(client, "Search User", "search_user@example.com", role="user")
+    res_get = client.get("/api/care/evidence/search?q=dengue")
+    assert res_get.status_code == 200
+    assert "citations" in res_get.json()
+
+    res_post = client.post("/api/care/evidence/search", json={"query": "dengue"})
+    assert res_post.status_code == 200
+    assert "citations" in res_post.json()

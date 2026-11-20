@@ -165,14 +165,31 @@
       }
     },
 
+    isSyntheticDemoDraft: function(draft) {
+      if (!draft) return false;
+      const cc = (draft.chief_complaint || '').toLowerCase();
+      const raw = (draft.raw_input || '').toLowerCase();
+      const pid = (draft.patient_id || '').toLowerCase();
+      return cc.includes('synthetic') || cc.includes('demo') ||
+             raw.includes('synthetic') || raw.includes('demo') ||
+             pid.startsWith('demo-') || pid.startsWith('synthetic-') ||
+             window.TRANSIFY_SYNTHETIC_DEMO_MODE === true;
+    },
+
     saveDraftLocally: function(draft) {
       try {
+        if (!this.isSyntheticDemoDraft(draft)) {
+          console.warn('[Care Privacy] Local plaintext storage of real patient health data is disabled for privacy protection.');
+          return false;
+        }
         const drafts = this.getStoredDrafts();
         drafts.push(draft);
         localStorage.setItem('transify_care_drafts', JSON.stringify(drafts));
         this.updateOfflineBadge();
+        return true;
       } catch (e) {
         console.error('Failed to save draft locally', e);
+        return false;
       }
     },
 
@@ -324,8 +341,11 @@
       const self = this;
 
       if (!navigator.onLine) {
-        // Save locally in offline draft store
-        self.saveDraftLocally(payload);
+        if (self.isSyntheticDemoDraft(payload)) {
+          self.saveDraftLocally(payload);
+        } else {
+          alert('Offline caching of real patient health data is disabled for privacy protection. To protect personal health records, no plaintext data is cached in browser storage. Please reconnect to submit.');
+        }
         self.displayOfflineTriageResult(payload);
         self.goToStep(5);
         return;
@@ -370,8 +390,12 @@
           window.location.href = '/login';
           return;
         }
-        alert('Network or server error submitting intake. Saving locally for offline sync.');
-        self.saveDraftLocally(payload);
+        if (self.isSyntheticDemoDraft(payload)) {
+          alert('Network or server error submitting intake. Saving synthetic demo fixture locally for offline sync.');
+          self.saveDraftLocally(payload);
+        } else {
+          alert('Network or server error submitting intake. To protect patient privacy, real health records are not stored in unencrypted browser storage. Please reconnect to retry.');
+        }
         self.displayOfflineTriageResult(payload);
         self.goToStep(5);
       });
@@ -539,6 +563,8 @@
 
       clearElement(container);
 
+      const isDemo = this.isSyntheticDemoDraft(draft);
+
       const card = document.createElement('div');
       card.className = 'triage-result-card urgency-insufficient';
 
@@ -547,13 +573,13 @@
 
       const pill = document.createElement('span');
       pill.className = 'triage-level-pill';
-      pill.textContent = 'OFFLINE DRAFT — UNASSESSED';
+      pill.textContent = isDemo ? 'OFFLINE DEMO DRAFT — UNASSESSED' : 'OFFLINE — PRIVACY PROTECTED';
       header.appendChild(pill);
 
       const label = document.createElement('span');
       label.style.fontSize = 'var(--text-xs)';
       label.style.color = 'var(--text-muted)';
-      label.textContent = 'Saved Locally';
+      label.textContent = isDemo ? 'Demo Fixture Cached' : 'No Plaintext Storage';
       header.appendChild(label);
       card.appendChild(header);
 
@@ -562,14 +588,18 @@
       msg.style.fontWeight = '600';
       msg.style.lineHeight = '1.5';
       msg.style.margin = '8px 0';
-      msg.textContent = 'Draft saved locally — no clinical assessment performed while offline.';
+      msg.textContent = isDemo
+        ? 'Draft saved locally — no clinical assessment performed while offline.'
+        : 'Real patient health data is NOT stored in unencrypted browser storage.';
       card.appendChild(msg);
 
       const subMsg = document.createElement('p');
       subMsg.style.fontSize = 'var(--text-xs)';
       subMsg.style.color = 'var(--text-muted)';
       subMsg.style.margin = '4px 0';
-      subMsg.textContent = 'Notice: Transify Care requires an active, authenticated connection to perform deterministic triage and retrieve evidence. Do not store sensitive personal health records unencrypted on shared devices.';
+      subMsg.textContent = isDemo
+        ? 'Notice: Offline draft capture is active for synthetic demonstration fixtures only. No clinical assessment is performed offline.'
+        : 'Notice: To protect patient privacy, unencrypted local draft caching is disabled for real patient health records. Please connect to an authenticated network to submit your intake directly.';
       card.appendChild(subMsg);
 
       const concern = document.createElement('div');
@@ -577,6 +607,15 @@
       concern.style.color = 'var(--text-2)';
       concern.textContent = `Chief Concern: ${draft.chief_complaint} (${draft.input_modality.toUpperCase()})`;
       card.appendChild(concern);
+
+      const advice = document.createElement('p');
+      advice.style.fontSize = 'var(--text-xs)';
+      advice.style.color = 'var(--text-muted)';
+      advice.style.marginTop = '6px';
+      advice.textContent = isDemo
+        ? 'Status: Ready for authenticated sync when connectivity is restored.'
+        : 'Status: Submission deferred until authenticated connection is restored.';
+      card.appendChild(advice);
 
       container.appendChild(card);
     },
@@ -840,8 +879,18 @@
       loading.textContent = 'Searching cataloged guideline passages...';
       container.appendChild(loading);
 
-      fetch(`/api/care/evidence/search?q=${encodeURIComponent(query)}`)
-      .then(res => res.json())
+      fetch('/api/care/evidence/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: query })
+      })
+      .then(res => {
+        if (res.status === 401) {
+          throw new Error('Authentication required to query clinical evidence protocols.');
+        }
+        if (!res.ok) throw new Error('Evidence lookup failed.');
+        return res.json();
+      })
       .then(data => {
         clearElement(container);
         const cites = data.citations || [];

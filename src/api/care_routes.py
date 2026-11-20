@@ -118,6 +118,10 @@ class OfflineSyncBatch(BaseModel):
     drafts: List[PatientIntakeCreate]
 
 
+class EvidenceSearchRequest(BaseModel):
+    query: str = Field(..., min_length=2, description="Clinical search terms (transmitted via POST body to avoid query string logging)")
+
+
 # --- Route Implementations ---
 
 @router.post("/intake", status_code=status.HTTP_201_CREATED)
@@ -295,9 +299,29 @@ def review_patient_intake(
 
 
 @router.get("/evidence/search")
-def search_evidence(q: str = Query(..., min_length=2)):
-    """Searches cataloged clinical guideline excerpts via keyword prototype."""
+def search_evidence(
+    q: str = Query(..., min_length=2),
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """
+    Searches cataloged clinical guideline excerpts via keyword prototype.
+    Requires authenticated session.
+    """
     result = search_clinical_evidence(query=q, limit=3)
+    return result
+
+
+@router.post("/evidence/search")
+def search_evidence_post(
+    req: EvidenceSearchRequest,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """
+    Searches cataloged clinical guideline excerpts via keyword prototype.
+    Accepts search query via JSON body to avoid logging sensitive health terms in server URL logs.
+    Requires authenticated session.
+    """
+    result = search_clinical_evidence(query=req.query, limit=3)
     return result
 
 
@@ -475,12 +499,18 @@ def create_dev_clinician_session(response: Response):
 def reset_competition_demo_fixtures():
     """
     Resets synthetic demonstration fixtures for repeatable 180-second video recording.
-    Populates 3 representative cases (RED emergency, YELLOW urgent dengue, GREEN routine).
-    Demonstration fixtures are explicitly labelled as synthetic and isolated from real patient records.
+    Restricted to non-production environments.
+    Strictly deletes only synthetic demonstration fixtures and never real patient records.
     """
+    if is_production():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Demo reset is strictly disabled in production environments."
+        )
+
     conn = get_connection()
     cursor = conn.cursor()
-    # Delete only synthetic demo fixtures
+    # Delete only synthetic demo fixtures; never real patient records (e.g. user-*)
     cursor.execute("DELETE FROM care_patient_intakes WHERE patient_id LIKE 'synthetic-demo-patient-%' OR patient_id LIKE 'demo-patient-%';")
     cursor.execute("DELETE FROM care_clinician_reviews WHERE clinician_id = 'demo-dr-rahim' OR clinician_id LIKE 'synthetic-clinician-%';")
     conn.commit()

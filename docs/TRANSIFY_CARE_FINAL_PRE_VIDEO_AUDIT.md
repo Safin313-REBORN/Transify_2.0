@@ -12,7 +12,7 @@
 | Parameter | Observed Status | Audit Finding |
 |---|---|---|
 | **Base Branch** | `feat/transify-care` (`d091f2f`) | ✅ Base reference maintained |
-| **Active Remediation Branch** | `fix/care-pre-video-release-blockers` | ✅ Dedicated fix branch |
+| **Active Remediation Branch** | `fix/care-final-identity-security` | ✅ Dedicated fix branch |
 | **Working Tree** | Remediated & Validated | ✅ Verified |
 | **Main Branch Protection** | `main` unmodified; **NO merge performed** | ✅ Strict compliance |
 | **Deployment Guard** | Railway deployment **NOT triggered** | ✅ Strict compliance |
@@ -29,23 +29,38 @@
 platform linux -- Python 3.11.18, pytest-9.2.0, pluggy-1.7.0
 rootdir: /home/safin313/Downloads/transify-main
 plugins: anyio-4.16.0
-collected 63 items
+collected 78 items
 
-tests/test_care_security.py ...........                                  [ 17%]
-tests/test_care_system.py ..................                             [ 46%]
+tests/test_care_browser.py ......                                        [  7%]
+tests/test_care_security.py ....................                         [ 33%]
+tests/test_care_system.py ..................                             [ 56%]
 tests/test_full_system.py ..................................             [100%]
 
-======================== 63 passed, 1 warning in 5.20s =========================
+======================== 78 passed, 1 warning in 5.14s =========================
 ```
 
-- **Full Suite Pass Rate**: **63 / 63 (100%)**
+- **Full Suite Pass Rate**: **78 / 78 (100%)**
 - **Existing Transify 2.0 Baseline**: 34 / 34 passing (`tests/test_full_system.py`). Zero regressions in Sign, Braille, Voice, or Core endpoints.
 - **Transify Care Triage & Evidence Lookup**: 18 / 18 passing (`tests/test_care_system.py`).
-- **Care Security, RBAC & XSS Integration**: 11 / 11 passing (`tests/test_care_security.py`).
+- **Care Security, RBAC, XSS & Identity Tests**: 20 / 20 passing (`tests/test_care_security.py`).
+- **Browser Playwright E2E Verification**: 6 / 6 passing (`tests/test_care_browser.py`).
 
 ---
 
-## 3. P0 Release Blocker Remediation Summary
+## 3. Security & Safety Remediation Summary
+
+### 3.1 Final Identity & Safety Hardening (P0/P1)
+
+| Issue ID | Domain | Root Cause & Remediation | Verification Status |
+|---|---|---|---|
+| **P0-1** | Public Registration Hardening | Public registration (`POST /api/auth/register`) strictly sets `role="user"`. Client-supplied roles (clinician, admin, dev_clinician) are discarded. Database inspection proves stored role is always `user`. | ✅ Verified in 5 new security tests |
+| **P0-2** | Fail-Closed Dev Clinician Mode | Defaulted synthetic clinician mode to disabled. Requires explicit opt-in via `TRANSIFY_DEV_CLINICIAN_ENABLED=true` in non-production. Production environments permanently block synthetic clinician mode. Conflicting indicators fail-closed. | ✅ Verified across 6 environment scenarios |
+| **P1-3** | Demo Reset Protection | `POST /api/care/demo/reset` strictly rejected with HTTP 403 in production. In non-production, deletes only synthetic demo fixtures (`demo-patient-%`) and strictly preserves real patient intakes (`user-%`). | ✅ Verified via production guard test |
+| **P1-4** | Evidence Search Access & Privacy | Both `GET` and `POST /api/care/evidence/search` require authenticated sessions (HTTP 401 on missing session). POST body search avoids query string logging of sensitive clinical terms. | ✅ Verified via authenticated GET/POST tests |
+| **P1-5** | Offline Privacy Protection | Plaintext `localStorage` caching restricted strictly to synthetic demo fixtures. Offline caching of real personal health data is disabled with clear warning. No clinical assessments performed offline. | ✅ Verified in Playwright browser tests |
+| **P1-6** | Playwright Browser Verification | Implemented headless Chromium Playwright tests covering stored XSS safety, clinician control protection, registration UI role safety, offline warnings, and Zero Auto-Audio policy. | ✅ 6 / 6 browser tests passing |
+
+### 3.2 Baseline Release Blocker Remediation Summary
 
 | Issue ID | Domain | Root Cause & Remediation | Verification Status |
 |---|---|---|---|
