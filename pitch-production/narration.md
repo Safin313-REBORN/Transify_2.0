@@ -11,7 +11,7 @@
 
 *(0:00)*  
 In healthcare, communication is not a luxury. It is a vital sign.  
-Yet in Bangladesh, over fifty-nine percent of surveyed individuals with disabilities report dissatisfaction with access to healthcare information and communication.  
+Yet in Bangladesh, over fifty-nine percent of surveyed individuals with disabilities report dissatisfaction with access to healthcare information and communication (BMC Health Services Research, 2022 — Nawshin Torsha et al.).  
 
 *(0:15)*  
 When acute chest pain strikes, or a child suffers dengue complications, seconds decide survival.  

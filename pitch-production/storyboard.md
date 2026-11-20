@@ -22,7 +22,7 @@
 
 ### Scene 1.1: The Waiting Room (0:00 – 0:12)
 - **Visual**: Raking morning light in an outpatient primary clinic in Dhaka. An anxious Deaf patient sits opposite a busy doctor, trying to communicate chest discomfort. The doctor struggles to comprehend.
-- **On-Screen Text**: *"59.1% of surveyed individuals with disabilities in Bangladesh report dissatisfaction with healthcare information and communication."* (Source: BMC Health Services Research, 2022).
+- **On-Screen Text**: *"59.1% of surveyed individuals with disabilities in Bangladesh report dissatisfaction with healthcare information and communication."* (Source: BMC Health Services Research, 2022 — Nawshin Torsha et al.).
 - **Audio/Narration**: "In healthcare, communication is not a luxury. It is a vital sign. Yet in Bangladesh, over fifty-nine percent of surveyed individuals with disabilities report dissatisfaction with access to healthcare information and communication."
 - **Key Emotion**: Urgent, empathetic, real-world grounding.
 
