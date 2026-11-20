@@ -24,7 +24,7 @@
   <script src="/static/i18n.js"></script>
 
   <!-- Design System CSS -->
-  <link rel="stylesheet" href="/static/styles.css?v=20261120_single_line_btn">
+  <link rel="stylesheet" href="/static/styles.css?v=20261120_ambient_v3">
 
   <script>
     // Bulletproof routing & auth initialization
@@ -162,11 +162,21 @@
           <div class="ph" id="welcome-photo-bg"
             style="background: radial-gradient(50% 50% at 60% 40%,#B48866 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#43362D 0%,#191520 75%);">
           </div>
+
+          <!-- Animated Ambient Mesh & Glow Layer -->
+          <div class="welcome-animated-ambient" aria-hidden="true">
+            <div class="ambient-orb orb-gold"></div>
+            <div class="ambient-orb orb-indigo"></div>
+            <div class="ambient-orb orb-cyan"></div>
+            <div class="ambient-grid-lines"></div>
+            <div class="ambient-hand-backlight"></div>
+          </div>
+
           <svg class="grain" width="100%" height="100%" aria-hidden="true">
             <rect width="100%" height="100%" filter="url(#g)" />
           </svg>
           <div
-            style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(20,17,31,0) 55%, rgba(20,17,31,.9) 100%), linear-gradient(to top, rgba(20,17,31,.7), rgba(20,17,31,0) 40%); pointer-events: none;">
+            style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(20,17,31,0) 55%, rgba(20,17,31,.9) 100%), linear-gradient(to top, rgba(20,17,31,.7), rgba(20,17,31,0) 40%); pointer-events: none; z-index: 2;">
           </div>
 
           <div
@@ -213,8 +223,8 @@
               <div aria-live="polite" class="demo-sign-tag">
                 <span id="welcome-sign-typed">Hello</span>
                 <span class="caret"></span>
-                <span style="font-family: var(--font-ui); font-size: 15px; font-weight: 600; color: #9DEBC8;">98.7%
-                  sure</span>
+                <span class="live-confidence-pill"><span class="live-confidence-dot"></span><span style="font-family: var(--font-ui); font-size: 15px; font-weight: 600; color: #9DEBC8; white-space: nowrap;">98.7%
+                  sure</span></span>
               </div>
             </div>
 
@@ -324,7 +334,7 @@
             </div>
             <div style="margin-top: 8px;">
               <button type="button" class="welcome-guest-link" id="btn-demo-guest"
-                style="background: transparent; border: 0; padding: 0;"
+                style="appearance: none; -webkit-appearance: none; -moz-appearance: none; background: transparent !important; background-color: transparent !important; border: 0 !important; box-shadow: none !important; color: #C7C6D3 !important; padding: 6px 0 !important; cursor: pointer; text-decoration: underline;"
                 onclick="window.TransifyApp.handleDemoLogin()">Continue without an account</button>
             </div>
           </div>
@@ -389,34 +399,6 @@
                 <rect width="100%" height="100%" filter="url(#g)" />
               </svg>
               <div class="scrim-bottom"></div>
-              <!-- Decorative Animated Hand Sign SVG -->
-              <svg viewBox="0 0 120 120" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="tile-svg-hand">
-                <rect x="6" y="6" width="108" height="108" stroke="#FFCB05" stroke-width="2" stroke-dasharray="14 10" />
-                <path d="M60 112V90" />
-                <g class="fj f1">
-                  <path d="M60 90L38 74L26 56L18 42" />
-                  <circle cx="18" cy="42" r="3.2" fill="#FFCB05" stroke="none" />
-                </g>
-                <g class="fj f2">
-                  <path d="M48 68L44 42L42 24" />
-                  <circle cx="42" cy="24" r="3.2" fill="#FFCB05" stroke="none" />
-                </g>
-                <g class="fj f3">
-                  <path d="M58 64V36V16" />
-                  <circle cx="58" cy="16" r="3.2" fill="#FFCB05" stroke="none" />
-                </g>
-                <g class="fj f4">
-                  <path d="M68 66L72 40L74 24" />
-                  <circle cx="74" cy="24" r="3.2" fill="#FFCB05" stroke="none" />
-                </g>
-                <g class="fj f5">
-                  <path d="M76 72L86 50L92 36" />
-                  <circle cx="92" cy="36" r="3.2" fill="#FFCB05" stroke="none" />
-                </g>
-                <circle class="pulse" cx="58" cy="16" r="3.2" fill="none" stroke="#FFCB05" stroke-width="1.6"
-                  style="transform-box: fill-box; transform-origin: center;" />
-              </svg>
               <!-- Decorative Animated Real Hand Sign Visualizer -->
               <div class="tile-hand-container" aria-hidden="true">
                 <div class="tile-hand-box">
