@@ -1308,8 +1308,22 @@ var SignPage = window.SignPage = window.TransifySign = {
         toggleBtn.innerHTML = '🛑 Stop Camera';
         toggleBtn.classList.replace('btn-primary', 'btn-secondary');
       }
-      const placeholder = document.getElementById('camera-placeholder');
-      if (placeholder) placeholder.style.display = 'none';
+      const stopCamBtn = document.getElementById('stop-camera-btn');
+      if (stopCamBtn) stopCamBtn.style.display = 'block';
+
+      const overlay = document.getElementById('camera-off-overlay');
+      if (overlay) overlay.style.display = 'none';
+
+      const statusText = document.getElementById('sign-status-text');
+      const statusDot = document.getElementById('sign-status-dot');
+      if (statusText) statusText.textContent = 'Show your hand in the box';
+      if (statusDot) statusDot.style.background = '#FFCB05';
+
+      const statusLine = document.getElementById('pred-status-line');
+      if (statusLine) statusLine.textContent = 'Show your hand in the box';
+
+      const caret = document.getElementById('sign-caret');
+      if (caret) caret.style.display = 'inline-block';
 
       TransifyApp.showToast('Camera started. Tracking ASL signs.', 'success');
       TransifyApp.announce('Camera active. Ready for sign language input.');
@@ -1318,8 +1332,23 @@ var SignPage = window.SignPage = window.TransifySign = {
       this.startInferenceLoop();
     } catch (err) {
       console.error('Camera access error:', err);
-      TransifyApp.showToast('Camera access denied or unavailable. Use the 10 Sample Sign buttons below to test!', 'warning');
-      TransifyApp.announce('Camera access failed. Sample buttons available.');
+      const overlay = document.getElementById('camera-off-overlay');
+      if (overlay) {
+        overlay.style.display = 'flex';
+        const title = document.getElementById('camera-overlay-title');
+        const body = document.getElementById('camera-overlay-body');
+        if (title) title.textContent = 'Camera access is blocked';
+        if (body) body.textContent = "Allow the camera in your browser's site settings, then select Start camera.";
+        const btn = document.getElementById('toggle-camera-btn');
+        if (btn) btn.textContent = 'Try again';
+      }
+      const statusText = document.getElementById('sign-status-text');
+      const statusDot = document.getElementById('sign-status-dot');
+      if (statusText) statusText.textContent = 'Camera blocked';
+      if (statusDot) statusDot.style.background = '#FF6B8B';
+
+      TransifyApp.showToast('Camera access denied or unavailable.', 'warning');
+      TransifyApp.announce('Camera access failed.');
     }
   },
 
@@ -1339,11 +1368,44 @@ var SignPage = window.SignPage = window.TransifySign = {
 
     const toggleBtn = document.getElementById('toggle-camera-btn');
     if (toggleBtn) {
-      toggleBtn.innerHTML = '📹 Start Camera';
+      toggleBtn.innerHTML = 'Start camera';
       toggleBtn.classList.replace('btn-secondary', 'btn-primary');
     }
-    const placeholder = document.getElementById('camera-placeholder');
-    if (placeholder) placeholder.style.display = 'flex';
+    const stopCamBtn = document.getElementById('stop-camera-btn');
+    if (stopCamBtn) stopCamBtn.style.display = 'none';
+
+    const overlay = document.getElementById('camera-off-overlay');
+    if (overlay) overlay.style.display = 'flex';
+
+    const statusText = document.getElementById('sign-status-text');
+    const statusDot = document.getElementById('sign-status-dot');
+    if (statusText) statusText.textContent = 'Camera is off';
+    if (statusDot) statusDot.style.background = '#8E8BA8';
+
+    const s1 = document.getElementById('seg-1');
+    const s2 = document.getElementById('seg-2');
+    const s3 = document.getElementById('seg-3');
+    if (s1) s1.classList.remove('on');
+    if (s2) s2.classList.remove('on');
+    if (s3) s3.classList.remove('on');
+
+    const ringCircle = document.getElementById('confidence-ring-circle');
+    if (ringCircle) ringCircle.style.strokeDashoffset = '201';
+
+    const confBadge = document.getElementById('pred-confidence-badge');
+    if (confBadge) confBadge.textContent = '0%';
+
+    const wordEl = document.getElementById('pred-label-text');
+    if (wordEl) { wordEl.textContent = '—'; wordEl.classList.remove('on'); }
+
+    const statusLine = document.getElementById('pred-status-line');
+    if (statusLine) statusLine.textContent = 'Camera is off';
+
+    const speakBtn = document.getElementById('speak-pred-btn');
+    if (speakBtn) { speakBtn.disabled = true; speakBtn.textContent = 'Speak word'; }
+
+    const caret = document.getElementById('sign-caret');
+    if (caret) caret.style.display = 'none';
   },
 
   startInferenceLoop() {
@@ -1818,11 +1880,83 @@ var SignPage = window.SignPage = window.TransifySign = {
     }
 
     const confPct = (result.confidence * 100).toFixed(1);
-    if (labelEl) labelEl.textContent = result.label;
+    const confVal = Math.round((result.confidence || 0) * 100);
+
+    // Auto-fit recognized word (§6.4)
+    if (labelEl) {
+      const rawText = result.label || '—';
+      let letters = [];
+      if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+        try {
+          const seg = new Intl.Segmenter('en', { granularity: 'grapheme' });
+          for (const s of seg.segment(rawText)) {
+            letters.push(s.segment);
+          }
+        } catch(e) {
+          letters = rawText.split('');
+        }
+      } else {
+        letters = rawText.split('');
+      }
+      labelEl.innerHTML = letters.map((l, idx) => `<span class="l" style="animation-delay:${Math.min(idx * 0.06, 0.48)}s">${l}</span>`).join('');
+      labelEl.classList.add('on');
+
+      let fontSize = 96;
+      labelEl.style.fontSize = fontSize + 'px';
+      while (labelEl.scrollWidth > labelEl.clientWidth && fontSize > 40) {
+        fontSize -= 4;
+        labelEl.style.fontSize = fontSize + 'px';
+      }
+    }
+
     if (glossEl) glossEl.textContent = `[ASL: ${result.gloss || defaultGloss || result.label}]`;
     if (confEl) {
-      confEl.textContent = `${confPct}% Confidence`;
-      confEl.className = result.confidence > 0.85 ? 'badge badge-success' : 'badge badge-warning';
+      confEl.textContent = `${confVal}%`;
+      confEl.className = result.confidence > 0.85 ? 'ring-pct badge-success' : 'ring-pct badge-warning';
+    }
+
+    // Confidence Ring SVG (104x104)
+    const ringCircle = document.getElementById('confidence-ring-circle');
+    if (ringCircle) {
+      const offset = 201 * (1 - Math.min(1, Math.max(0, result.confidence || 0)));
+      ringCircle.style.strokeDashoffset = offset;
+      ringCircle.setAttribute('stroke', result.confirmed ? '#0F9D74' : '#8338EC');
+    }
+
+    // Segments
+    const count = result.debounce_count || (result.confirmed ? 3 : 1);
+    const seg1 = document.getElementById('seg-1');
+    const seg2 = document.getElementById('seg-2');
+    const seg3 = document.getElementById('seg-3');
+    if (seg1) seg1.classList.toggle('on', count >= 1);
+    if (seg2) seg2.classList.toggle('on', count >= 2);
+    if (seg3) seg3.classList.toggle('on', count >= 3);
+
+    // Status Line
+    const statusLine = document.getElementById('pred-status-line');
+    if (statusLine) {
+      if (result.confirmed) {
+        statusLine.textContent = 'Confirmed after 3 matching frames';
+      } else if (result.status === 'ANALYZING') {
+        statusLine.textContent = `Checking frame ${count} of 3`;
+      } else if (result.label && result.label !== 'IDLE') {
+        statusLine.textContent = `Observing ${result.label}`;
+      } else {
+        statusLine.textContent = 'Show your hand in the box';
+      }
+    }
+
+    // Speak word button
+    const speakWordBtn = document.getElementById('speak-pred-btn');
+    if (speakWordBtn) {
+      speakWordBtn.textContent = 'Speak ' + (result.label || 'word');
+      speakWordBtn.disabled = !result.confirmed;
+    }
+
+    // ROI Beam
+    const roiBox = document.getElementById('sign-roi-box');
+    if (roiBox) {
+      roiBox.classList.toggle('analyzing', !result.confirmed && result.status === 'ANALYZING');
     }
 
     // Unified Translation Layer display
@@ -2683,3 +2817,674 @@ window.showTransifySplashScreen = function(durationMs = 3500) {
   if (fill) fill.style.width = '0%';
   TransifyApp.initSplashScreen(durationMs);
 };
+
+// ============================================================================
+// 9. TRANSIFY 2.0 EDITORIAL CONTROLLER (Pixel-Exact Navigation & Interactions)
+// ============================================================================
+
+const EditorialController = {
+  activeRoute: 'home',
+  welcomeSlide: 0,
+  welcomePaused: false,
+  welcomeTimer: null,
+  welcomeDur: 5600,
+  welcomeStartTime: Date.now(),
+  brailleMap: {
+    '1': 'a', '12': 'b', '14': 'c', '145': 'd', '15': 'e', '124': 'f',
+    '1245': 'g', '125': 'h', '24': 'i', '245': 'j', '13': 'k', '123': 'l',
+    '134': 'm', '1345': 'n', '135': 'o', '1234': 'p', '12345': 'q', '1235': 'r',
+    '234': 's', '2345': 't', '136': 'u', '1236': 'v', '2456': 'w', '1346': 'x',
+    '13456': 'y', '1356': 'z'
+  },
+  defaultPhrases: [
+    { en: 'Hello', bn: 'হ্যালো', cat: 'Everyday' },
+    { en: 'Thank you', bn: 'ধন্যবাদ', cat: 'Everyday' },
+    { en: 'Please slow down', bn: 'দয়া করে আস্তে বলুন', cat: 'Everyday' },
+    { en: 'Can you write that down?', bn: 'আপনি কি এটা লিখে দিতে পারবেন?', cat: 'Everyday' },
+    { en: 'I do not understand', bn: 'আমি বুঝতে পারছি না', cat: 'Everyday' },
+    { en: 'I need water', bn: 'আমার পানি দরকার', cat: 'Needs' },
+    { en: 'Where is the restroom?', bn: 'টয়লেট কোথায়?', cat: 'Needs' },
+    { en: 'I need help reading this', bn: 'এটা পড়তে আমার সাহায্য দরকার', cat: 'Needs' },
+    { en: 'I need help', bn: 'আমার সাহায্য দরকার', cat: 'Emergency' },
+    { en: 'Please call a doctor', bn: 'দয়া করে ডাক্তার ডাকুন', cat: 'Emergency' },
+    { en: 'I am lost', bn: 'আমি পথ হারিয়ে ফেলেছি', cat: 'Emergency' }
+  ],
+
+  init() {
+    this.setupRouter();
+    this.setupWelcomeScreen();
+    this.setupHomeScreen();
+    this.setupPhrasesScreen();
+    this.setupBrailleInteractiveCell();
+    this.setupSettingsScreen();
+
+    // Check initial route
+    const hash = window.location.hash.replace('#', '').toLowerCase();
+    if (hash) {
+      this.routeTo(hash);
+    } else {
+      const welcomed = localStorage.getItem('transify.welcomed');
+      if (!welcomed) {
+        this.routeTo('welcome');
+      } else {
+        this.routeTo('home');
+      }
+    }
+  },
+
+  setupRouter() {
+    window.routeTo = (r) => this.routeTo(r);
+
+    // Rail buttons
+    document.querySelectorAll('.rail-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const route = btn.getAttribute('data-route');
+        if (route) this.routeTo(route);
+      });
+    });
+
+    // Hash change listener
+    window.addEventListener('hashchange', () => {
+      const h = window.location.hash.replace('#', '').toLowerCase();
+      if (h && h !== this.activeRoute) {
+        this.routeTo(h);
+      }
+    });
+  },
+
+  routeTo(rawRoute) {
+    let route = (rawRoute || 'home').toLowerCase();
+    if (route === 'voice') route = 'stt';
+    if (route === 'care') route = 'care';
+    if (route === 'care-intake') route = 'care';
+    if (route === 'clinician') route = 'care';
+
+    this.activeRoute = route;
+    if (history.pushState) {
+      const targetHash = '#' + (rawRoute || route);
+      if (window.location.hash !== targetHash) {
+        history.pushState(null, '', targetHash);
+      }
+    }
+
+    const appShell = document.getElementById('app-shell');
+    if (appShell) appShell.setAttribute('data-route', route);
+
+    const rail = document.getElementById('app-rail');
+    if (rail) {
+      if (route === 'welcome') {
+        rail.style.display = 'none';
+      } else {
+        rail.style.display = 'flex';
+        rail.classList.toggle('sign-rail', route === 'sign');
+      }
+    }
+
+    // Toggle active view
+    const viewMap = {
+      welcome: 'view-welcome',
+      home: 'view-home',
+      sign: 'view-sign',
+      phrases: 'view-phrases',
+      braille: 'view-braille',
+      stt: 'view-voice',
+      tts: 'view-voice',
+      care: 'view-care',
+      settings: 'view-settings'
+    };
+
+    const targetViewId = viewMap[route] || 'view-home';
+    document.querySelectorAll('.page-view').forEach(view => {
+      if (view.id === targetViewId) {
+        view.classList.add('active');
+        view.style.display = 'flex';
+      } else {
+        view.classList.remove('active');
+        view.style.display = 'none';
+      }
+    });
+
+    // Update rail items active state
+    document.querySelectorAll('.rail-item').forEach(btn => {
+      const r = btn.getAttribute('data-route');
+      const isActive = (r === route) || (r === 'voice' && (route === 'stt' || route === 'tts'));
+      btn.classList.toggle('active', isActive);
+      if (isActive) {
+        btn.setAttribute('aria-current', 'page');
+      } else {
+        btn.removeAttribute('aria-current');
+      }
+    });
+
+    // Sub-route handling
+    if (route === 'sign' && window.SignPage && window.SignPage.init) {
+      window.SignPage.init();
+    }
+
+    if (rawRoute === 'clinician') {
+      const clinicianTab = document.getElementById('care-tab-clinician-btn');
+      if (clinicianTab) clinicianTab.click();
+    } else if (rawRoute === 'care-intake' || rawRoute === 'care') {
+      const intakeTab = document.getElementById('care-tab-intake-btn');
+      if (intakeTab) intakeTab.click();
+    }
+
+    window.scrollTo(0, 0);
+  },
+
+  setupWelcomeScreen() {
+    const stage = document.getElementById('welcome-stage');
+    const pauseBtn = document.getElementById('welcome-pause-btn');
+    const langBtn = document.getElementById('welcome-lang-btn');
+    const skipBtn = document.getElementById('btn-demo-guest');
+
+    if (skipBtn) {
+      skipBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        try { localStorage.setItem('transify.welcomed', '1'); } catch(e) {}
+        this.routeTo('home');
+      });
+    }
+
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', () => {
+        this.welcomePaused = !this.welcomePaused;
+        pauseBtn.innerHTML = this.welcomePaused
+          ? '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>'
+          : '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+      });
+    }
+
+    // Story tab clicks
+    document.querySelectorAll('.story').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const slide = parseInt(tab.getAttribute('data-slide') || '0', 10);
+        this.setWelcomeSlide(slide);
+      });
+    });
+
+    // Welcome Language toggle
+    let isBn = false;
+    if (langBtn) {
+      langBtn.addEventListener('click', () => {
+        isBn = !isBn;
+        langBtn.textContent = isBn ? 'English' : 'বাংলা';
+        const line1 = document.getElementById('welcome-line-1');
+        const line2 = document.getElementById('welcome-line-2');
+        const sub = document.getElementById('welcome-subtext');
+        if (isBn) {
+          if (line1) line1.textContent = 'ইশারা থেকে কথা,';
+          if (line2) line2.textContent = 'সরাসরি শুনুন।';
+          if (sub) sub.textContent = 'ক্যামেরার সামনে ইশারা করুন। ট্রান্সিফাই বাংলা ও আমেরিকান সাইন ল্যাঙ্গুয়েজ চিনে তাৎক্ষণিক অনুবাদ শোনায়।';
+        } else {
+          if (line1) line1.textContent = 'Signs to words,';
+          if (line2) line2.textContent = 'spoken aloud.';
+          if (sub) sub.textContent = 'Hold a sign to the camera. Transify recognizes Bengali and American Sign Language and speaks the translation.';
+        }
+      });
+    }
+
+    // Interactive Braille dots in Welcome Demo
+    let selectedDots = [];
+    document.querySelectorAll('#welcome-demo-braille .dotb').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dot = btn.getAttribute('data-dot');
+        btn.classList.remove('hint');
+        btn.classList.toggle('active');
+        if (selectedDots.includes(dot)) {
+          selectedDots = selectedDots.filter(d => d !== dot);
+        } else {
+          selectedDots.push(dot);
+        }
+        selectedDots.sort();
+        const key = selectedDots.join('');
+        const char = this.brailleMap[key] || (key ? '–' : 'a');
+        const letterEl = document.getElementById('welcome-braille-letter');
+        const labelEl = document.getElementById('welcome-braille-dots-label');
+        if (letterEl) letterEl.textContent = char;
+        if (labelEl) labelEl.textContent = selectedDots.length ? `Dots ${selectedDots.join(', ')}` : 'Touch a dot';
+      });
+    });
+
+    // Voice mic toggle in Welcome Demo
+    const micBtn = document.getElementById('welcome-mic-toggle-btn');
+    const micWrap = document.getElementById('welcome-mic-wrap');
+    if (micBtn && micWrap) {
+      micBtn.addEventListener('click', () => {
+        micWrap.classList.toggle('live');
+      });
+    }
+
+    // Slideshow interval
+    setInterval(() => {
+      if (this.welcomePaused || this.activeRoute !== 'welcome') return;
+      const elapsed = Date.now() - this.welcomeStartTime;
+      const pct = Math.min(1, elapsed / this.welcomeDur);
+
+      const activeBar = document.getElementById(`welcome-bar-${this.welcomeSlide}`);
+      if (activeBar) activeBar.style.transform = `scaleX(${pct})`;
+
+      if (elapsed >= this.welcomeDur) {
+        this.welcomeStartTime = Date.now();
+        this.setWelcomeSlide((this.welcomeSlide + 1) % 3);
+      }
+    }, 80);
+  },
+
+  setWelcomeSlide(idx) {
+    this.welcomeSlide = idx;
+    this.welcomeStartTime = Date.now();
+
+    const photoBg = document.getElementById('welcome-photo-bg');
+    const bgs = [
+      'radial-gradient(50% 50% at 60% 40%,#B48866 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#43362D 0%,#191520 75%)',
+      'radial-gradient(70% 60% at 50% 40%,#D2C2A6 0%,rgba(210,194,166,0) 68%),linear-gradient(172deg,#6B5C4B 0%,#211D25 85%)',
+      'radial-gradient(60% 60% at 42% 36%,#9DB2C2 0%,rgba(157,178,194,0) 66%),radial-gradient(40% 40% at 90% 80%,#6B4A5E 0%,rgba(107,74,94,0) 70%),linear-gradient(168deg,#31414F 0%,#17151F 85%)'
+    ];
+    if (photoBg) photoBg.style.background = bgs[idx] || bgs[0];
+
+    // Toggle demo components
+    const dSign = document.getElementById('welcome-demo-sign');
+    const dBraille = document.getElementById('welcome-demo-braille');
+    const dVoice = document.getElementById('welcome-demo-voice');
+
+    if (dSign) dSign.style.display = idx === 0 ? 'flex' : 'none';
+    if (dBraille) dBraille.style.display = idx === 1 ? 'flex' : 'none';
+    if (dVoice) dVoice.style.display = idx === 2 ? 'flex' : 'none';
+
+    // Update story tabs
+    document.querySelectorAll('.story').forEach(tab => {
+      const s = parseInt(tab.getAttribute('data-slide') || '0', 10);
+      const isSel = (s === idx);
+      tab.setAttribute('aria-selected', isSel ? 'true' : 'false');
+      const bar = document.getElementById(`welcome-bar-${s}`);
+      if (bar) {
+        if (s < idx) bar.style.transform = 'scaleX(1)';
+        else if (s > idx) bar.style.transform = 'scaleX(0)';
+      }
+    });
+  },
+
+  setupHomeScreen() {
+    // 1. Hour greeting
+    const h = new Date().getHours();
+    const greet = h < 12 ? 'Good morning' : (h < 18 ? 'Good afternoon' : 'Good evening');
+    const greetEl = document.getElementById('home-greeting-text');
+    if (greetEl) greetEl.textContent = greet;
+
+    // 2. User name
+    const userJson = localStorage.getItem('transify_auth_user');
+    if (userJson) {
+      try {
+        const u = JSON.parse(userJson);
+        if (u.name) {
+          const nameEl = document.getElementById('home-user-name');
+          if (nameEl) nameEl.textContent = u.name;
+          const avEl = document.getElementById('frame-avatar-btn');
+          if (avEl) {
+            const parts = u.name.trim().split(' ');
+            avEl.textContent = parts.map(p => p[0]).join('').toUpperCase().slice(0, 2);
+          }
+        }
+      } catch(e) {}
+    }
+
+    // 3. Say aloud input & speak button
+    const sayInput = document.getElementById('say');
+    const sayBtn = document.getElementById('btn-say-speak');
+    const idleText = document.getElementById('say-speak-idle-text');
+    const activeBars = document.getElementById('say-speak-active-bars');
+    const activeText = document.getElementById('say-speak-active-text');
+
+    if (sayBtn && sayInput) {
+      sayBtn.addEventListener('click', () => {
+        const txt = sayInput.value.trim();
+        if (!txt) {
+          sayInput.focus();
+          return;
+        }
+        if (window.TransifyTTS && window.TransifyTTS.speak) {
+          if (idleText) idleText.style.display = 'none';
+          if (activeBars) activeBars.style.display = 'flex';
+          if (activeText) activeText.style.display = 'inline';
+
+          window.TransifyTTS.speak(txt, {
+            onEnd: () => {
+              if (idleText) idleText.style.display = 'inline';
+              if (activeBars) activeBars.style.display = 'none';
+              if (activeText) activeText.style.display = 'none';
+            }
+          });
+        }
+      });
+    }
+
+    // 4. Phrase chips populate input
+    document.querySelectorAll('.phrase-chip-btn').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const phrase = chip.getAttribute('data-phrase');
+        if (phrase && sayInput) {
+          sayInput.value = phrase;
+          sayInput.focus();
+        }
+      });
+    });
+
+    // 5. Interface language toggle
+    const enBtn = document.getElementById('home-lang-en');
+    const bnBtn = document.getElementById('home-lang-bn');
+    if (enBtn && bnBtn) {
+      enBtn.addEventListener('click', () => {
+        enBtn.classList.add('active');
+        enBtn.setAttribute('aria-pressed', 'true');
+        bnBtn.classList.remove('active');
+        bnBtn.setAttribute('aria-pressed', 'false');
+      });
+      bnBtn.addEventListener('click', () => {
+        bnBtn.classList.add('active');
+        bnBtn.setAttribute('aria-pressed', 'true');
+        enBtn.classList.remove('active');
+        enBtn.setAttribute('aria-pressed', 'false');
+      });
+    }
+  },
+
+  setupPhrasesScreen() {
+    const grid = document.getElementById('phrases-grid');
+    const emptyState = document.getElementById('phrases-empty-state');
+    const searchInput = document.getElementById('q');
+    const toggleAddBtn = document.getElementById('btn-toggle-add-phrase');
+    const addSection = document.getElementById('phrase-add-form');
+    const addBtnLabel = document.getElementById('add-phrase-btn-label');
+    const saveBtn = document.getElementById('btn-save-phrase');
+    const npInput = document.getElementById('np');
+    const toastMsg = document.getElementById('phrase-toast-msg');
+    const seedBtn = document.getElementById('btn-seed-starter-phrases');
+
+    let activeCategory = 'All';
+    let newCategory = 'Everyday';
+    let searchQuery = '';
+    let playingIdx = -1;
+
+    // Load phrases
+    let phrases = [];
+    try {
+      const stored = localStorage.getItem('transify_phrases');
+      if (stored) phrases = JSON.parse(stored);
+      else phrases = [...this.defaultPhrases];
+    } catch(e) {
+      phrases = [...this.defaultPhrases];
+    }
+
+    const savePhrases = () => {
+      try { localStorage.setItem('transify_phrases', JSON.stringify(phrases)); } catch(e) {}
+    };
+
+    const render = () => {
+      if (!grid) return;
+      const q = searchQuery.trim().toLowerCase();
+      const inCat = (p) => activeCategory === 'All' || p.cat === activeCategory;
+      const match = (p) => !q || p.en.toLowerCase().includes(q) || (p.bn && p.bn.includes(q));
+
+      const visible = phrases.filter(p => inCat(p) && match(p));
+
+      // Update counts
+      const counts = {
+        all: phrases.length,
+        everyday: phrases.filter(p => p.cat === 'Everyday').length,
+        needs: phrases.filter(p => p.cat === 'Needs').length,
+        emergency: phrases.filter(p => p.cat === 'Emergency').length
+      };
+
+      const cAll = document.getElementById('count-all');
+      const cEv = document.getElementById('count-everyday');
+      const cNd = document.getElementById('count-needs');
+      const cEm = document.getElementById('count-emergency');
+      if (cAll) cAll.textContent = counts.all;
+      if (cEv) cEv.textContent = counts.everyday;
+      if (cNd) cNd.textContent = counts.needs;
+      if (cEm) cEm.textContent = counts.emergency;
+
+      if (!visible.length) {
+        grid.style.display = 'none';
+        if (emptyState) {
+          emptyState.style.display = 'flex';
+          const title = document.getElementById('phrases-empty-title');
+          const body = document.getElementById('phrases-empty-body');
+          if (q) {
+            if (title) title.textContent = `No phrases match "${searchQuery}"`;
+            if (body) body.textContent = 'Check the spelling, or add it as a new phrase.';
+            if (seedBtn) seedBtn.style.display = 'none';
+          } else {
+            if (title) title.textContent = 'No phrases here yet';
+            if (body) body.textContent = 'Add the phrases you say most. They will appear here.';
+            if (seedBtn) seedBtn.style.display = 'inline-block';
+          }
+        }
+        return;
+      }
+
+      grid.style.display = 'grid';
+      if (emptyState) emptyState.style.display = 'none';
+
+      grid.innerHTML = visible.map((p, idx) => `
+        <li>
+          <button type="button" class="phrase-card press" data-idx="${idx}" aria-label="Say aloud: ${p.en}">
+            <span class="phrase-card-top ${p.cat === 'Emergency' ? 'emergency-tag' : ''}">
+              <span>${p.cat}</span>
+              <span class="phrase-card-icon" id="card-icon-${idx}">
+                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A4860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>
+              </span>
+            </span>
+            <span class="phrase-en">${p.en}</span>
+            ${p.bn ? `<span class="phrase-bn">${p.bn}</span>` : ''}
+          </button>
+        </li>
+      `).join('');
+
+      // Wire card click speech
+      grid.querySelectorAll('.phrase-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const i = parseInt(card.getAttribute('data-idx') || '0', 10);
+          const p = visible[i];
+          if (!p) return;
+
+          const iconEl = document.getElementById(`card-icon-${i}`);
+          if (iconEl) {
+            iconEl.innerHTML = '<span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>';
+          }
+
+          if (window.TransifyTTS && window.TransifyTTS.speak) {
+            window.TransifyTTS.speak(p.en, {
+              onEnd: () => {
+                if (iconEl) {
+                  iconEl.innerHTML = '<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A4860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>';
+                }
+              }
+            });
+          }
+        });
+      });
+    };
+
+    // Category Tabs click
+    document.querySelectorAll('.phrase-cat-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.phrase-cat-tab').forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        activeCategory = tab.getAttribute('data-cat') || 'All';
+        render();
+      });
+    });
+
+    // Search input
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        render();
+      });
+    }
+
+    // Toggle Add form
+    if (toggleAddBtn && addSection) {
+      toggleAddBtn.addEventListener('click', () => {
+        const isOpen = addSection.style.display !== 'none';
+        addSection.style.display = isOpen ? 'none' : 'flex';
+        toggleAddBtn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+        if (addBtnLabel) addBtnLabel.textContent = isOpen ? 'Add phrase' : 'Close';
+        if (!isOpen && npInput) npInput.focus();
+      });
+    }
+
+    // Category buttons inside Add form
+    document.querySelectorAll('.cat-select-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-select-btn').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+        newCategory = btn.getAttribute('data-cat') || 'Everyday';
+      });
+    });
+
+    // Save phrase
+    if (saveBtn && npInput) {
+      saveBtn.addEventListener('click', () => {
+        const text = npInput.value.trim();
+        if (!text) {
+          npInput.focus();
+          if (toastMsg) toastMsg.textContent = 'Type a phrase first';
+          return;
+        }
+
+        phrases.unshift({ en: text, bn: '', cat: newCategory });
+        savePhrases();
+        npInput.value = '';
+        if (addSection) addSection.style.display = 'none';
+        if (toggleAddBtn) {
+          toggleAddBtn.setAttribute('aria-expanded', 'false');
+          if (addBtnLabel) addBtnLabel.textContent = 'Add phrase';
+        }
+
+        if (toastMsg) {
+          toastMsg.textContent = `Phrase saved to ${newCategory}`;
+          setTimeout(() => { if (toastMsg.textContent.includes('saved')) toastMsg.textContent = ''; }, 2400);
+        }
+
+        render();
+      });
+    }
+
+    // Seed starter phrases
+    if (seedBtn) {
+      seedBtn.addEventListener('click', () => {
+        phrases = [...this.defaultPhrases];
+        savePhrases();
+        render();
+      });
+    }
+
+    // Initial render
+    render();
+  },
+
+  setupBrailleInteractiveCell() {
+    let activeDots = [];
+    const charDisplay = document.getElementById('braille-interactive-char');
+    document.querySelectorAll('[data-braille-dot]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dot = btn.getAttribute('data-braille-dot');
+        btn.classList.toggle('active');
+        if (activeDots.includes(dot)) {
+          activeDots = activeDots.filter(d => d !== dot);
+        } else {
+          activeDots.push(dot);
+        }
+        activeDots.sort();
+        const key = activeDots.join('');
+        const char = this.brailleMap[key] || (key ? '–' : '—');
+        if (charDisplay) {
+          charDisplay.textContent = `Character: ${char}`;
+        }
+      });
+    });
+  },
+
+  setupSettingsScreen() {
+    // Reduce motion toggle
+    const reduceMotionCheck = document.getElementById('setting-reduce-motion');
+    const isReduced = localStorage.getItem('transify_reduce_motion') === '1';
+    if (reduceMotionCheck) {
+      reduceMotionCheck.checked = isReduced;
+      if (isReduced) document.documentElement.setAttribute('data-motion', 'reduced');
+
+      reduceMotionCheck.addEventListener('change', (e) => {
+        const val = e.target.checked;
+        if (val) {
+          document.documentElement.setAttribute('data-motion', 'reduced');
+          try { localStorage.setItem('transify_reduce_motion', '1'); } catch(e) {}
+        } else {
+          document.documentElement.removeAttribute('data-motion');
+          try { localStorage.removeItem('transify_reduce_motion'); } catch(e) {}
+        }
+      });
+    }
+
+    // Care sub-tabs toggle
+    const intakeTab = document.getElementById('care-tab-intake-btn');
+    const clinicianTab = document.getElementById('care-tab-clinician-btn');
+    const intakeSlide = document.getElementById('slide-care-intake');
+    const clinicianSlide = document.getElementById('slide-clinician-portal');
+
+    if (intakeTab && clinicianTab && intakeSlide && clinicianSlide) {
+      intakeTab.addEventListener('click', () => {
+        intakeTab.classList.add('active');
+        clinicianTab.classList.remove('active');
+        intakeSlide.style.display = 'flex';
+        clinicianSlide.style.display = 'none';
+      });
+
+      clinicianTab.addEventListener('click', () => {
+        clinicianTab.classList.add('active');
+        intakeTab.classList.remove('active');
+        clinicianSlide.style.display = 'block';
+        intakeSlide.style.display = 'none';
+
+        if (window.TransifyCare && window.TransifyCare.loadClinicianQueue) {
+          window.TransifyCare.loadClinicianQueue();
+          window.TransifyCare.loadDashboardStats();
+        }
+      });
+    }
+
+    // Wire up Care intake submit button if care.js exists
+    const careSubmitBtn = document.getElementById('care-submit-intake-btn');
+    const hiddenCareSubmit = document.getElementById('care-submit-btn');
+    if (careSubmitBtn && hiddenCareSubmit) {
+      careSubmitBtn.addEventListener('click', () => {
+        // Synchronize inputs
+        const chiefInput = document.getElementById('care-chief-complaint');
+        const patInput = document.getElementById('care-patient-complaint');
+        if (chiefInput && patInput) patInput.value = chiefInput.value;
+
+        const check1 = document.getElementById('care-consent-check');
+        const check2 = document.getElementById('care-consent-checkbox');
+        if (check1 && check2) check2.checked = check1.checked;
+
+        hiddenCareSubmit.click();
+      });
+    }
+  }
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => EditorialController.init());
+} else {
+  EditorialController.init();
+}

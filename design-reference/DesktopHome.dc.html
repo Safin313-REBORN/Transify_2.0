@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Transify home, desktop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input{font-family:inherit}
+a{text-decoration:none;color:inherit}
+:focus-visible{outline:3px solid #8338EC;outline-offset:3px}
+.press{transition:transform .18s cubic-bezier(.2,.7,.2,1),background .2s,border-color .2s}
+.press:active{transform:scale(.98)}
+.tile{position:relative;display:block;overflow:hidden;border-radius:16px;background:#171420;color:#fff;animation:wipe 1s cubic-bezier(.7,0,.2,1) both}
+.t1{animation-delay:.1s}.t2{animation-delay:.22s}.t3{animation-delay:.34s}
+@keyframes wipe{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+.ph{position:absolute;inset:-5%;transition:transform .8s cubic-bezier(.2,.7,.2,1);animation:drift 22s ease-in-out infinite alternate}
+.t2 .ph{animation-duration:26s;animation-direction:alternate-reverse}.t3 .ph{animation-duration:24s}
+@keyframes drift{from{transform:scale(1.03) translate3d(0,0,0)}to{transform:scale(1.12) translate3d(-2%,-1.5%,0)}}
+.tile:hover .ph{transform:scale(1.14)}
+.grain{position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.2}
+.cap{position:absolute;left:20px;right:20px;bottom:18px;display:block}
+.cap b{display:block;font-family:'Schibsted Grotesk',sans-serif;font-weight:800;letter-spacing:-.025em}
+.go{position:absolute;right:16px;top:16px;width:44px;height:44px;border-radius:10px;background:rgba(20,17,31,.7);display:flex;align-items:center;justify-content:center;transition:background .2s,transform .25s cubic-bezier(.2,.8,.2,1)}
+.tile:hover .go{background:#FFCB05;transform:translate(3px,-3px)}
+.tile:hover .go svg{stroke:#14111F}
+.in{opacity:0;transform:translateY(10px);animation:in .7s cubic-bezier(.2,.8,.2,1) forwards}
+.i1{animation-delay:.05s}.i2{animation-delay:.14s}.i3{animation-delay:.5s}.i4{animation-delay:.6s}
+@keyframes in{to{opacity:1;transform:none}}
+.fj{transform-box:view-box;animation:fj 3.2s ease-in-out infinite}
+.f1{transform-origin:60px 90px}.f2{transform-origin:48px 68px;animation-delay:.2s}.f3{transform-origin:58px 64px;animation-delay:.4s}.f4{transform-origin:68px 66px;animation-delay:.6s}.f5{transform-origin:76px 72px;animation-delay:.8s}
+@keyframes fj{0%,100%{transform:rotate(0)}30%{transform:rotate(-9deg)}65%{transform:rotate(7deg)}}
+.pulse{animation:pulse 1.6s ease-out infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.4);opacity:0}}
+.bar{transform-origin:bottom;animation:bar .9s ease-in-out infinite}
+.bar:nth-child(2n){animation-delay:.15s}.bar:nth-child(3n){animation-delay:.3s}
+@keyframes bar{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
+.rail a{transition:background .2s,color .2s}
+.rail a:hover{background:rgba(255,255,255,.08)}
+.rec{transition:background .2s,border-color .2s}
+.rec:hover{background:#fff;border-color:#8338EC}
+@media (prefers-reduced-motion:reduce){.tile,.ph,.in,.fj,.pulse,.bar{animation:none;opacity:1;transform:none;clip-path:none}.press,.ph,.go,.rail a,.rec{transition:none}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;box-sizing:border-box;background:#EEEFF5;color:#14111F;font-family:'Hind Siliguri',system-ui,sans-serif;display:flex;flex-wrap:wrap">
+
+  <nav aria-label="Main" class="rail" style="flex:0 0 112px;min-height:900px;box-sizing:border-box;padding:28px 12px;background:#14111F;display:flex;flex-direction:column;align-items:stretch;gap:6px">
+    <div aria-hidden="true" style="align-self:center;margin-bottom:28px;display:grid;grid-template-columns:repeat(2,9px);grid-template-rows:repeat(3,9px);grid-auto-flow:column;gap:5px"><i style="border-radius:50%;background:rgba(255,255,255,.28)"></i><i style="border-radius:50%;background:#FFCB05"></i><i style="border-radius:50%;background:#FFCB05"></i><i style="border-radius:50%;background:rgba(255,255,255,.28)"></i><i style="border-radius:50%;background:#FFCB05"></i><i style="border-radius:50%;background:rgba(255,255,255,.28)"></i></div>
+    <a href="DesktopHome.dc.html" aria-current="page" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;border-radius:12px;background:#FFCB05;color:#14111F;font-size:13px;font-weight:700"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9H4z"/></svg>Home</a>
+    <a href="DesktopSign.dc.html" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;border-radius:12px;color:#CFCCE0;font-size:13px;font-weight:600"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V6a1.5 1.5 0 0 1 3 0v5M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6a1.5 1.5 0 0 1 3 0v7c0 4-2 7-6 7-3 0-4-2-6-5l-1-2a1.5 1.5 0 0 1 2.5-1.5L8 13"/></svg>Sign</a>
+    <a href="Braille.dc.html" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;border-radius:12px;color:#CFCCE0;font-size:13px;font-weight:600"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="9" cy="18" r="2.2"/><circle cx="16" cy="6" r="2.2" opacity=".3"/><circle cx="16" cy="12" r="2.2"/><circle cx="16" cy="18" r="2.2" opacity=".3"/></svg>Braille</a>
+    <a href="Voice.dc.html" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;border-radius:12px;color:#CFCCE0;font-size:13px;font-weight:600"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Voice</a>
+    <a href="DesktopPhrases.dc.html" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;border-radius:12px;color:#CFCCE0;font-size:13px;font-weight:600"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Phrases</a>
+    <a href="DesktopCover.dc.html" style="margin-top:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;border-radius:12px;color:#CFCCE0;font-size:13px;font-weight:600"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2L10 21h4l.6-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</a>
+  </nav>
+
+  <main style="flex:1 1 760px;min-width:0;box-sizing:border-box;padding:40px 48px 48px;display:flex;flex-direction:column;gap:24px">
+    <header class="in i1" style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:16px;font-weight:600;color:#4A4860">Good evening</div>
+        <h1 style="margin:0;font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:48px;line-height:1.02;letter-spacing:-.035em">Sarah Ahmed</h1>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px"><div role="group" aria-label="Interface language" style="display:flex;padding:3px;border-radius:12px;background:#DEDFEA"><button type="button" class="press" style="min-height:44px;padding:0 16px;border:0;border-radius:9px;background:#14111F;color:#fff;font-weight:700;font-size:15px;cursor:pointer">English</button><button type="button" class="press" style="min-height:44px;padding:0 16px;border:0;border-radius:9px;background:transparent;color:#14111F;font-weight:700;font-size:15px;cursor:pointer">বাংলা</button></div><a href="DesktopCover.dc.html" aria-label="Open profile" class="press" style="width:48px;height:48px;border-radius:12px;background:#14111F;color:#FFCB05;display:flex;align-items:center;justify-content:center;font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:16px">SA</a></div>
+    </header>
+
+    <section aria-label="Say something aloud" class="in i2" style="background:#fff;border:1.5px solid #D9DAE6;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;gap:10px;align-items:center">
+        <label for="say" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Say something aloud</label>
+        <input id="say" type="text" value="{{ text }}" onInput="{{ onInput }}" placeholder="Type something to say aloud" style="flex:1;min-width:0;height:56px;box-sizing:border-box;border:0;outline:none;padding:0 12px;font-size:22px;font-weight:500;color:#14111F;background:transparent">
+        <button type="button" onClick="{{ speak }}" class="press" style="flex:none;height:56px;min-width:132px;border:0;border-radius:10px;background:#8338EC;color:#fff;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer">
+          <sc-if value="{{ speaking }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="display:flex;align-items:center;gap:3px;height:22px"><span class="bar" style="width:3px;height:20px;background:#FFCB05"></span><span class="bar" style="width:3px;height:20px;background:#FFCB05"></span><span class="bar" style="width:3px;height:20px;background:#FFCB05"></span><span class="bar" style="width:3px;height:20px;background:#FFCB05"></span></span><span>Speaking</span></sc-if>
+          <sc-if value="{{ idle }}" hint-placeholder-val="{{ true }}"><span>Speak</span></sc-if>
+        </button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <sc-for list="{{ phrases }}" as="p" hint-placeholder-count="4">
+          <button type="button" onClick="{{ p.pick }}" class="press" style="min-height:44px;padding:0 16px;border:1.5px solid #D9DAE6;border-radius:10px;background:#F5F5FA;color:#14111F;font-size:16px;font-weight:600;cursor:pointer">{{ p.label }}</button>
+        </sc-for>
+      </div>
+    </section>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:20px;min-height:430px">
+      <a href="DesktopSign.dc.html" class="tile t1 press" aria-label="Open sign translator" style="grid-row:1 / span 2">
+        <div class="ph" style="background:radial-gradient(52% 52% at 62% 38%,#B8896A 0%,rgba(184,137,106,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#45382F 0%,#1A1621 75%)"></div>
+        <svg class="grain" width="100%" height="100%" aria-hidden="true"><filter id="g1"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#g1)"/></svg>
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(20,17,31,.92) 0%,rgba(20,17,31,0) 62%)"></div>
+        <svg viewBox="0 0 120 120" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:48px;top:48px;width:180px;height:180px">
+          <rect x="6" y="6" width="108" height="108" stroke="#FFCB05" stroke-width="2" stroke-dasharray="14 10"/>
+          <path d="M60 112V90"/>
+          <g class="fj f1"><path d="M60 90L38 74L26 56L18 42"/><circle cx="18" cy="42" r="3.2" fill="#FFCB05" stroke="none"/></g>
+          <g class="fj f2"><path d="M48 68L44 42L42 24"/><circle cx="42" cy="24" r="3.2" fill="#FFCB05" stroke="none"/></g>
+          <g class="fj f3"><path d="M58 64V36V16"/><circle cx="58" cy="16" r="3.2" fill="#FFCB05" stroke="none"/></g>
+          <g class="fj f4"><path d="M68 66L72 40L74 24"/><circle cx="74" cy="24" r="3.2" fill="#FFCB05" stroke="none"/></g>
+          <g class="fj f5"><path d="M76 72L86 50L92 36"/><circle cx="92" cy="36" r="3.2" fill="#FFCB05" stroke="none"/></g>
+          <circle class="pulse" cx="58" cy="16" r="3.2" fill="none" stroke="#FFCB05" stroke-width="1.6" style="transform-box:fill-box;transform-origin:center"/>
+        </svg>
+        <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span>
+        <span class="cap"><b style="font-size:40px;line-height:1.02">Translate signs</b><span style="display:block;margin-top:6px;font-size:18px;color:#E0DEEE">BdSL and ASL, spoken as you sign</span></span>
+      </a>
+      <a href="Braille.dc.html" class="tile t2 press" aria-label="Open Braille scanner">
+        <div class="ph" style="background:radial-gradient(70% 55% at 50% 30%,#C9B79B 0%,rgba(201,183,155,0) 65%),linear-gradient(170deg,#5A4D40 0%,#1D1A22 80%)"></div>
+        <svg class="grain" width="100%" height="100%" aria-hidden="true"><filter id="g2"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#g2)"/></svg>
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(20,17,31,.92) 0%,rgba(20,17,31,0) 65%)"></div>
+        <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span>
+        <span class="cap"><b style="font-size:28px;line-height:1.05">Read Braille</b><span style="display:block;margin-top:4px;font-size:16px;color:#E0DEEE">Scan a page, hear it read</span></span>
+      </a>
+      <a href="Voice.dc.html" class="tile t3 press" aria-label="Open voice hub">
+        <div class="ph" style="background:radial-gradient(60% 55% at 40% 28%,#9FB4C4 0%,rgba(159,180,196,0) 65%),linear-gradient(170deg,#2E3F4E 0%,#17151F 80%)"></div>
+        <svg class="grain" width="100%" height="100%" aria-hidden="true"><filter id="g3"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#g3)"/></svg>
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(20,17,31,.92) 0%,rgba(20,17,31,0) 65%)"></div>
+        <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span>
+        <span class="cap"><b style="font-size:28px;line-height:1.05">Voice hub</b><span style="display:block;margin-top:4px;font-size:16px;color:#E0DEEE">Live captions and read aloud</span></span>
+      </a>
+    </div>
+  </main>
+
+  <aside aria-label="Recent" class="in i3" style="flex:0 1 320px;min-width:0;box-sizing:border-box;padding:40px 32px 48px 0;display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.02em">Recent</h2>
+    <a href="DesktopSign.dc.html" class="rec press" style="display:block;padding:14px 16px;border:1.5px solid #D9DAE6;border-radius:12px;background:#F5F5FA"><div style="font-size:14px;font-weight:600;color:#4A4860">Sign, today</div><div style="margin-top:2px;font-size:18px;font-weight:700">Hello, I need help.</div></a>
+    <a href="Voice.dc.html" class="rec press" style="display:block;padding:14px 16px;border:1.5px solid #D9DAE6;border-radius:12px;background:#F5F5FA"><div style="font-size:14px;font-weight:600;color:#4A4860">Captions, today</div><div style="margin-top:2px;font-size:18px;font-weight:700">Can you show me the way to the library?</div></a>
+    <a href="Braille.dc.html" class="rec press" style="display:block;padding:14px 16px;border:1.5px solid #D9DAE6;border-radius:12px;background:#F5F5FA"><div style="font-size:14px;font-weight:600;color:#4A4860">Braille, yesterday</div><div style="margin-top:2px;font-size:18px;font-weight:700">hello</div></a>
+    <div style="margin-top:8px;padding:16px;border-radius:12px;background:#14111F;color:#fff"><div style="font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.01em">Stays on your device</div><p style="margin:6px 0 0;font-size:15px;line-height:1.4;color:#D4D2E4">Signs, Braille and speech are processed locally. Nothing leaves your computer.</p></div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { text: 'Hello, I need some help', speaking: false };
+  }
+  componentWillUnmount() {
+    clearTimeout(this._t);
+  }
+  renderVals() {
+    const labels = ['I need help', 'Thank you', 'Where is the exit?', 'Please slow down', 'Can you write that down?'];
+    return {
+      text: this.state.text,
+      speaking: this.state.speaking,
+      idle: !this.state.speaking,
+      onInput: (e) => this.setState({ text: e.target.value }),
+      speak: () => {
+        this.setState({ speaking: true });
+        clearTimeout(this._t);
+        this._t = setTimeout(() => this.setState({ speaking: false }), 2400);
+      },
+      phrases: labels.map((l) => ({ label: l, pick: () => this.setState({ text: l }) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

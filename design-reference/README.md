@@ -1,0 +1,1 @@
+Reference design files for Transify desktop. Read them as source (templating dialect: {{ }} = state value, sc-if = conditional, sc-for = loop). Every inline style and <style> rule is a real design value. They are not runnable without the canvas runtime.

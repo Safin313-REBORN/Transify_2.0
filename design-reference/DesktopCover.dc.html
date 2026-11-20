@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Transify welcome, desktop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font-family:inherit}
+a{text-decoration:none;color:inherit}
+:focus-visible{outline:3px solid #FFCB05;outline-offset:3px}
+.press{transition:transform .18s cubic-bezier(.2,.7,.2,1),background .2s,color .2s,border-color .2s}
+.press:active{transform:scale(.97)}
+.ph{position:absolute;inset:-5%;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.grain{position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.22}
+.wipe{animation:wipe 1.1s cubic-bezier(.7,0,.2,1) both}
+@keyframes wipe{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+.line{display:block;overflow:hidden}
+.line>span{display:block;transform:translateY(108%);animation:up .85s cubic-bezier(.2,.8,.2,1) forwards}
+.line:nth-child(2)>span{animation-delay:.1s}
+@keyframes up{to{transform:translateY(0)}}
+.rise{opacity:0;transform:translateY(12px);animation:rise .7s .25s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.pop{opacity:0;transform:scale(.94);animation:pp .6s .1s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes pp{to{opacity:1;transform:none}}
+.bar{position:relative;display:block;height:3px;background:rgba(255,255,255,.2);overflow:hidden}
+.bar i{position:absolute;inset:0;background:#FFCB05;transform-origin:left}
+.fj{transform-box:view-box;animation:fj 3.2s ease-in-out infinite}
+.f1{transform-origin:60px 90px}.f2{transform-origin:48px 68px;animation-delay:.2s}.f3{transform-origin:58px 64px;animation-delay:.4s}.f4{transform-origin:68px 66px;animation-delay:.6s}.f5{transform-origin:76px 72px;animation-delay:.8s}
+@keyframes fj{0%,100%{transform:rotate(0)}30%{transform:rotate(-8deg)}65%{transform:rotate(6deg)}}
+.brk{position:absolute;width:40px;height:40px;border:0 solid #FFCB05;animation:br .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes br{from{opacity:0;transform:scale(1.3)}to{opacity:1;transform:none}}
+.beam{position:absolute;left:8px;right:8px;top:0;height:2px;background:#8338EC;animation:beam 2.4s linear infinite}
+@keyframes beam{0%{transform:translateY(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(372px);opacity:0}}
+.dotb{width:76px;height:76px;border-radius:50%;box-sizing:border-box;cursor:pointer;transition:background .2s,transform .2s cubic-bezier(.2,.8,.2,1)}
+.dotb:hover{transform:scale(1.06)}
+.dotb:active{transform:scale(.92)}
+.hint{animation:hint 1.6s ease-out infinite}
+@keyframes hint{0%{box-shadow:0 0 0 0 rgba(255,203,5,.7)}100%{box-shadow:0 0 0 22px rgba(255,203,5,0)}}
+.letter{animation:lt .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes lt{from{opacity:0;transform:translateY(40%) rotate(5deg)}to{opacity:1;transform:none}}
+.ring{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;border:1.5px solid #FFCB05;opacity:0}
+.live .ring{animation:rg 2.6s cubic-bezier(.2,.6,.3,1) infinite}
+.live .ring.r2{animation-delay:.87s}.live .ring.r3{animation-delay:1.74s}
+@keyframes rg{0%{transform:scale(1);opacity:.8}100%{transform:scale(2.6);opacity:0}}
+.wv{display:flex;align-items:center;gap:4px;height:40px}
+.wv i{flex:1;height:100%;background:#FFCB05;transform:scaleY(.1)}
+.live-w i{animation:w 1.1s ease-in-out infinite}
+.live-w i:nth-child(3n){animation-duration:.8s;animation-delay:-.2s}.live-w i:nth-child(4n){animation-duration:1.3s;animation-delay:-.5s}
+@keyframes w{0%,100%{transform:scaleY(.12)}50%{transform:scaleY(.95)}}
+.word{display:inline-block;animation:wd .4s cubic-bezier(.2,.8,.2,1)}
+@keyframes wd{from{opacity:0;transform:translateY(60%)}to{opacity:1;transform:none}}
+.blink{animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.story{transition:background .25s}
+.story:hover{background:rgba(255,255,255,.06)}
+@media (prefers-reduced-motion:reduce){.wipe,.line>span,.rise,.pop,.fj,.brk,.beam,.hint,.letter,.live .ring,.live-w i,.word,.blink{animation:none;opacity:1;transform:none;clip-path:none}.live .ring{opacity:.3}.press,.dotb,.ph,.story{transition:none}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;box-sizing:border-box;background:#14111F;color:#fff;font-family:'Hind Siliguri',system-ui,sans-serif;display:flex;flex-wrap:wrap">
+
+  <section aria-label="Preview" onMouseMove="{{ onMove }}" onMouseLeave="{{ onLeave }}" class="wipe" style="position:relative;flex:1 1 720px;min-height:900px;overflow:hidden;background:#171420">
+    <div class="ph" style="transform:translate3d({{ tx }}px,{{ ty }}px,0) scale(1.08);background:{{ photoBg }}"></div>
+    <svg class="grain" width="100%" height="100%" aria-hidden="true"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+    <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(20,17,31,0) 55%,rgba(20,17,31,.9) 100%),linear-gradient(to top,rgba(20,17,31,.7),rgba(20,17,31,0) 40%)"></div>
+    <div style="position:absolute;left:40px;bottom:34px;font-size:13px;font-weight:500;color:rgba(255,255,255,.72);max-width:380px;line-height:1.4">{{ photoCaption }}</div>
+
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 40px 40px">
+      <sc-if value="{{ isSign }}" hint-placeholder-val="{{ true }}">
+        <div class="pop" style="display:flex;flex-direction:column;align-items:flex-start;gap:16px">
+          <div style="position:relative;width:388px;height:388px">
+            <i class="brk" style="left:0;top:0;border-left-width:5px;border-top-width:5px"></i><i class="brk" style="right:0;top:0;border-right-width:5px;border-top-width:5px;animation-delay:.08s"></i><i class="brk" style="left:0;bottom:0;border-left-width:5px;border-bottom-width:5px;animation-delay:.16s"></i><i class="brk" style="right:0;bottom:0;border-right-width:5px;border-bottom-width:5px;animation-delay:.24s"></i>
+            <svg viewBox="0 0 120 120" width="388" height="388" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="transform:translate3d({{ hx }}px,{{ hy }}px,0)">
+              <path d="M60 112V90"/>
+              <g class="fj f1"><path d="M60 90L38 74L26 56L18 42"/><circle cx="18" cy="42" r="2.6" fill="#FFCB05" stroke="none"/></g>
+              <g class="fj f2"><path d="M48 68L44 42L42 24"/><circle cx="42" cy="24" r="2.6" fill="#FFCB05" stroke="none"/></g>
+              <g class="fj f3"><path d="M58 64V36V16"/><circle cx="58" cy="16" r="2.6" fill="#FFCB05" stroke="none"/></g>
+              <g class="fj f4"><path d="M68 66L72 40L74 24"/><circle cx="74" cy="24" r="2.6" fill="#FFCB05" stroke="none"/></g>
+              <g class="fj f5"><path d="M76 72L86 50L92 36"/><circle cx="92" cy="36" r="2.6" fill="#FFCB05" stroke="none"/></g>
+            </svg>
+            <div class="beam"></div>
+          </div>
+          <div aria-live="polite" style="display:flex;align-items:center;gap:12px;height:52px;padding:0 18px;border-radius:10px;background:rgba(20,17,31,.85);font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.02em;min-width:80px">{{ signTyped }}<span class="blink" style="width:2px;height:28px;background:#FFCB05"></span><span style="font-family:'Hind Siliguri',sans-serif;font-size:15px;font-weight:600;color:#9DEBC8">{{ signSure }}</span></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isBraille }}" hint-placeholder-val="{{ false }}">
+        <div class="pop" style="display:flex;align-items:center;gap:56px;flex-wrap:wrap;justify-content:center">
+          <div style="display:grid;grid-template-columns:repeat(2,76px);grid-template-rows:repeat(3,76px);grid-auto-flow:column;gap:20px 24px" role="group" aria-label="Braille cell. Press dots to write a letter">
+            <sc-for list="{{ dotBtns }}" as="d" hint-placeholder-count="6">
+              <button type="button" class="dotb {{ d.cls }}" aria-pressed="{{ d.on }}" aria-label="{{ d.label }}" onClick="{{ d.toggle }}" style="border:3px solid {{ d.bd }};background:{{ d.bg }};color:#14111F;font-weight:800;font-size:20px">{{ d.n }}</button>
+            </sc-for>
+          </div>
+          <div aria-live="polite" style="min-width:240px">
+            <div style="font-size:16px;font-weight:600;color:#E6E3F2">{{ dotsText }}</div>
+            <div class="letter" style="font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:230px;line-height:1;letter-spacing:-.05em;min-height:230px">{{ letter }}</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isVoice }}" hint-placeholder-val="{{ false }}">
+        <div class="pop" style="width:min(580px,100%);display:flex;flex-direction:column;gap:18px;align-items:center">
+          <section aria-live="polite" aria-label="Live captions" style="width:100%;box-sizing:border-box;min-height:190px;border-radius:16px;background:rgba(20,17,31,.88);padding:20px 24px">
+            <div style="font-size:14px;font-weight:600;color:#D4D2E4;display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:{{ micDot }}"></span>{{ micStatus }}</div>
+            <p style="margin:12px 0 0;font-family:'Schibsted Grotesk',sans-serif;font-weight:700;font-size:36px;line-height:1.12;letter-spacing:-.02em"><sc-for list="{{ words }}" as="w" hint-placeholder-count="5"><span class="word" style="color:{{ w.color }}">{{ w.t }}&nbsp;</span></sc-for></p>
+          </section>
+          <div class="{{ waveCls }}" aria-hidden="true" style="width:100%"><div class="wv"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+          <div class="{{ micWrap }}" style="position:relative;width:84px;height:84px">
+            <i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i>
+            <button type="button" onClick="{{ toggleMic }}" aria-pressed="{{ listening }}" aria-label="{{ micLabel }}" class="press" style="position:absolute;inset:0;border:0;border-radius:50%;background:#FFCB05;color:#14111F;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </section>
+
+  <aside style="flex:0 1 540px;min-height:900px;box-sizing:border-box;padding:48px 56px 56px;display:flex;flex-direction:column;background:#14111F">
+    <header style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div aria-hidden="true" style="display:grid;grid-template-columns:repeat(2,8px);grid-template-rows:repeat(3,8px);grid-auto-flow:column;gap:4px"><i style="border-radius:50%;background:rgba(255,255,255,.28)"></i><i style="border-radius:50%;background:#FFCB05"></i><i style="border-radius:50%;background:#FFCB05"></i><i style="border-radius:50%;background:rgba(255,255,255,.28)"></i><i style="border-radius:50%;background:#FFCB05"></i><i style="border-radius:50%;background:rgba(255,255,255,.28)"></i></div>
+        <div style="font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.02em">Transify</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button type="button" onClick="{{ togglePause }}" aria-label="{{ pauseLabel }}" class="press" style="width:44px;height:44px;border-radius:10px;border:1.5px solid rgba(255,255,255,.4);background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer"><sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg></sc-if><sc-if value="{{ running }}" hint-placeholder-val="{{ true }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></sc-if></button>
+        <button type="button" onClick="{{ toggleLang }}" class="press" style="min-height:44px;padding:0 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-size:15px;font-weight:600;cursor:pointer">{{ langBtn }}</button>
+      </div>
+    </header>
+
+    <main style="margin-top:auto;padding-top:40px">
+      <sc-if value="{{ isSign }}" hint-placeholder-val="{{ true }}"><div><h1 style="margin:0;font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:64px;line-height:1;letter-spacing:-.035em"><span class="line"><span>{{ s0a }}</span></span><span class="line"><span>{{ s0b }}</span></span></h1><p class="rise" style="margin:18px 0 0;font-size:19px;line-height:1.45;color:#D4D2E4;max-width:420px">{{ s0p }}</p></div></sc-if>
+      <sc-if value="{{ isBraille }}" hint-placeholder-val="{{ false }}"><div><h1 style="margin:0;font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:64px;line-height:1;letter-spacing:-.035em"><span class="line"><span>{{ s1a }}</span></span><span class="line"><span>{{ s1b }}</span></span></h1><p class="rise" style="margin:18px 0 0;font-size:19px;line-height:1.45;color:#D4D2E4;max-width:420px">{{ s1p }}</p></div></sc-if>
+      <sc-if value="{{ isVoice }}" hint-placeholder-val="{{ false }}"><div><h1 style="margin:0;font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:64px;line-height:1;letter-spacing:-.035em"><span class="line"><span>{{ s2a }}</span></span><span class="line"><span>{{ s2b }}</span></span></h1><p class="rise" style="margin:18px 0 0;font-size:19px;line-height:1.45;color:#D4D2E4;max-width:420px">{{ s2p }}</p></div></sc-if>
+
+      <div role="tablist" aria-label="What Transify does" style="margin-top:36px;display:flex;flex-direction:column;border-top:1px solid rgba(255,255,255,.16)">
+        <sc-for list="{{ segs }}" as="s" hint-placeholder-count="3">
+          <button type="button" role="tab" aria-selected="{{ s.on }}" onClick="{{ s.pick }}" class="story" style="width:100%;min-height:64px;padding:12px 4px 0;border:0;border-bottom:1px solid rgba(255,255,255,.16);background:transparent;color:{{ s.fg }};text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:10px">
+            <span style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-family:'Schibsted Grotesk',sans-serif;font-weight:700;font-size:20px">{{ s.label }}</span><span style="font-size:15px;font-weight:500;color:#C9C6DC">{{ s.desc }}</span></span>
+            <span class="bar"><i style="transform:scaleX({{ s.fill }})"></i></span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="margin-top:32px;display:flex;gap:12px;flex-wrap:wrap">
+        <a href="DesktopHome.dc.html" class="press" style="flex:1 1 220px;display:flex;align-items:center;justify-content:center;height:60px;border-radius:12px;background:#FFCB05;color:#14111F;font-weight:700;font-size:19px">{{ createLabel }}</a>
+        <a href="DesktopHome.dc.html" class="press" style="flex:1 1 140px;display:flex;align-items:center;justify-content:center;height:60px;border-radius:12px;border:1.5px solid rgba(255,255,255,.45);color:#fff;font-weight:600;font-size:18px">{{ loginLabel }}</a>
+      </div>
+      <div style="margin-top:8px"><a href="DesktopHome.dc.html" style="display:inline-flex;align-items:center;min-height:48px;color:#D4D2E4;font-weight:600;font-size:16px;text-decoration:underline;text-underline-offset:4px">{{ guestLabel }}</a></div>
+    </main>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { slide: 0, t: 0, vt: 0, paused: false, touched: false, tx: 0, ty: 0, dots: [false, false, false, false, false, false], listening: true, bn: false };
+    this.DUR = 5600;
+    this.sentence = 'Can you show me the way to the library'.split(' ');
+    this.map = { '1': 'a', '12': 'b', '14': 'c', '145': 'd', '15': 'e', '124': 'f', '1245': 'g', '125': 'h', '24': 'i', '245': 'j', '13': 'k', '123': 'l', '134': 'm', '1345': 'n', '135': 'o', '1234': 'p', '12345': 'q', '1235': 'r', '234': 's', '2345': 't', '136': 'u', '1236': 'v', '2456': 'w', '1346': 'x', '13456': 'y', '1356': 'z' };
+  }
+  componentDidMount() {
+    this._iv = setInterval(() => this.tick(), 100);
+  }
+  componentWillUnmount() {
+    clearInterval(this._iv);
+  }
+  tick() {
+    const s = this.state;
+    if (s.paused) return;
+    const t = s.t + 100;
+    let vt = s.vt;
+    if (s.slide === 2 && s.listening) vt += 100;
+    if (t >= this.DUR && !s.touched) {
+      this.setState({ slide: (s.slide + 1) % 3, t: 0, vt: 0, touched: false });
+      return;
+    }
+    this.setState({ t: Math.min(t, this.DUR), vt });
+  }
+  go(i) {
+    this.setState({ slide: i, t: 0, vt: 0, touched: false });
+  }
+  renderVals() {
+    const s = this.state;
+    const bn = s.bn;
+    const labels = bn ? ['সাইন অনুবাদ', 'ব্রেইল স্ক্যান', 'ভয়েস হাব'] : ['Sign translator', 'Braille scanner', 'Voice hub'];
+    const descs = bn ? ['ইশারা থেকে কথা', 'ডট থেকে লেখা', 'কথা থেকে ক্যাপশন'] : ['Signs to speech', 'Dots to text', 'Speech to captions'];
+    const segs = [0, 1, 2].map((i) => ({
+      label: labels[i],
+      desc: descs[i],
+      on: s.slide === i,
+      fg: s.slide === i ? '#FFFFFF' : '#B9B6CF',
+      fill: i < s.slide ? 1 : (i === s.slide ? (s.t / this.DUR).toFixed(3) : 0),
+      pick: () => this.go(i)
+    }));
+    const bgs = [
+      'radial-gradient(50% 50% at 60% 40%,#B48866 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#43362D 0%,#191520 75%)',
+      'radial-gradient(70% 60% at 50% 40%,#D2C2A6 0%,rgba(210,194,166,0) 68%),linear-gradient(172deg,#6B5C4B 0%,#211D25 85%)',
+      'radial-gradient(60% 60% at 42% 36%,#9DB2C2 0%,rgba(157,178,194,0) 66%),radial-gradient(40% 40% at 90% 80%,#6B4A5E 0%,rgba(107,74,94,0) 70%),linear-gradient(168deg,#31414F 0%,#17151F 85%)'
+    ];
+    const caps = [
+      'Photo: two people signing across a desk, window light, wide framing',
+      'Photo: embossed Braille page filling the frame, raking side light',
+      'Photo: person reading live captions on a phone in a busy cafe'
+    ];
+    const typedN = Math.max(0, Math.min(5, Math.floor((s.t - 1200) / 160)));
+    const on = [];
+    s.dots.forEach((d, i) => { if (d) on.push(i + 1); });
+    const key = on.join('');
+    const letter = key ? (this.map[key] || '–') : '';
+    const dotBtns = [1, 2, 3, 4, 5, 6].map((n) => ({
+      n,
+      on: s.dots[n - 1],
+      label: 'Dot ' + n + (s.dots[n - 1] ? ', raised' : ', flat'),
+      cls: !s.touched && n === 1 ? 'hint' : '',
+      bg: s.dots[n - 1] ? '#FFCB05' : 'rgba(20,17,31,.55)',
+      bd: s.dots[n - 1] ? '#14111F' : 'rgba(255,255,255,.7)',
+      toggle: () => {
+        const d = this.state.dots.slice();
+        d[n - 1] = !d[n - 1];
+        this.setState({ dots: d, touched: true });
+      }
+    }));
+    const wn = Math.max(0, Math.min(this.sentence.length, Math.floor((s.vt - 500) / 450)));
+    const words = this.sentence.slice(0, wn).map((t, i) => ({ t, color: i >= wn - 2 && wn < this.sentence.length ? '#B3A8E0' : '#FFFFFF' }));
+    const copy = bn ? {
+      a0: 'ইশারা দিন।', b0: 'আমরা বলব।', p0: 'বক্সে হাতের ইশারা ধরুন। Transify সেটা জোরে বলে দেবে।',
+      a1: 'ডট চাপুন।', b1: 'অক্ষর লিখুন।', p1: 'ছয়টি ডট চেপে ব্রেইল অক্ষর বানান। পরে আসল পাতা স্ক্যান করুন।',
+      a2: 'কথা এখন', b2: 'লেখায়।', p2: 'মাইক চাপুন, আর কথার সঙ্গে সঙ্গে ক্যাপশন দেখুন।'
+    } : {
+      a0: 'Sign.', b0: 'It speaks.', p0: 'Hold a hand sign in the box. Transify says it out loud.',
+      a1: 'Press dots.', b1: 'Write.', p1: 'Tap the six dots to build a Braille letter. Scan real pages later.',
+      a2: 'Speech,', b2: 'in text.', p2: 'Tap the mic and watch captions appear while people talk.'
+    };
+    return {
+      segs,
+      isSign: s.slide === 0,
+      isBraille: s.slide === 1,
+      isVoice: s.slide === 2,
+      photoBg: bgs[s.slide],
+      photoCaption: caps[s.slide],
+      tx: (-s.tx * 22).toFixed(1),
+      ty: (-s.ty * 16).toFixed(1),
+      hx: (s.tx * 8).toFixed(1),
+      hy: (s.ty * 6).toFixed(1),
+      onMove: (e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        this.setState({ tx: ((e.clientX - r.left) / r.width - 0.5) * 2, ty: ((e.clientY - r.top) / r.height - 0.5) * 2 });
+      },
+      onLeave: () => this.setState({ tx: 0, ty: 0 }),
+      paused: s.paused,
+      running: !s.paused,
+      pauseLabel: s.paused ? 'Play the preview' : 'Pause the preview',
+      togglePause: () => this.setState({ paused: !s.paused }),
+      toggleLang: () => this.setState({ bn: !bn }),
+      langBtn: bn ? 'English' : 'বাংলা',
+      signTyped: 'Hello'.slice(0, typedN),
+      signSure: typedN >= 5 ? '98.7% sure' : '',
+      dotBtns,
+      letter,
+      dotsText: on.length ? 'Dots ' + on.join(' ') + (letter && letter !== '–' ? ' spell' : '') : 'Press the dots',
+      words,
+      listening: s.listening,
+      micWrap: s.listening ? 'live' : '',
+      waveCls: s.listening ? 'live-w' : '',
+      micDot: s.listening ? '#4ADE9A' : '#8E8BA8',
+      micStatus: s.listening ? 'Listening in English' : 'Paused. Click the mic.',
+      micLabel: s.listening ? 'Pause captions' : 'Start captions',
+      toggleMic: () => this.setState({ listening: !s.listening, touched: true }),
+      s0a: copy.a0, s0b: copy.b0, s0p: copy.p0,
+      s1a: copy.a1, s1b: copy.b1, s1p: copy.p1,
+      s2a: copy.a2, s2b: copy.b2, s2p: copy.p2,
+      createLabel: bn ? 'অ্যাকাউন্ট খুলুন' : 'Create account',
+      loginLabel: bn ? 'লগ ইন' : 'Log in',
+      guestLabel: bn ? 'অ্যাকাউন্ট ছাড়া চালিয়ে যান' : 'Continue without an account'
+    };
+  }
+}
+</script>
+</body>
+</html>

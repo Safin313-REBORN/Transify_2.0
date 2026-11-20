@@ -10,1095 +10,981 @@
   <link rel="apple-touch-icon" href="/static/icon-192.png">
   <meta name="theme-color" content="#14111F">
   
-  <!-- Self-Hosted Typography & i18n Engine (Offline First) -->
+  <!-- Preconnect to Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Self-Hosted Typography Fallback (Offline First) -->
   <link rel="stylesheet" href="/static/fonts/fonts.css">
   <script src="/static/i18n.js"></script>
   
-  <link rel="stylesheet" href="/static/styles.css?v=20261120_editorial_v2">
+  <!-- Design System CSS -->
+  <link rel="stylesheet" href="/static/styles.css?v=20261120_pixel_exact_v2">
 
   <script>
-    // Immediate bulletproof auth & routing handler
+    // Bulletproof routing & auth initialization
     window.openAuthSheet = function(mode) {
-      if (window.TransifyApp && typeof window.TransifyApp.openAuthSheet === 'function' && window.TransifyApp._fullLoaded) {
-        return window.TransifyApp.openAuthSheet(mode);
-      }
       var sheet = document.getElementById('auth-sheet-container');
       if (sheet) sheet.classList.add('active');
     };
     window.closeAuthSheet = function() {
-      if (window.TransifyApp && typeof window.TransifyApp.closeAuthSheet === 'function' && window.TransifyApp._fullLoaded) {
-        return window.TransifyApp.closeAuthSheet();
-      }
       var sheet = document.getElementById('auth-sheet-container');
       if (sheet) sheet.classList.remove('active');
     };
     window.handleDirectLogin = function() {
-      if (window.TransifyApp && typeof window.TransifyApp.handleDirectLogin === 'function' && window.TransifyApp._fullLoaded) {
-        return window.TransifyApp.handleDirectLogin();
-      }
       try {
-        localStorage.setItem('transify_auth_user', JSON.stringify({ name: 'Sarah Ahmed', email: 'demo@transify.ai' }));
+        localStorage.setItem('transify_auth_user', JSON.stringify({ name: 'Transify Member', email: 'member@transify.ai' }));
         localStorage.setItem('transify_auth_token', 'jwt_' + Date.now());
+        localStorage.setItem('transify.welcomed', '1');
       } catch(e) {}
-      var overlay = document.getElementById('transify-auth-screen');
-      if (overlay) {
-        overlay.classList.add('auth-hidden');
-        overlay.style.display = 'none';
-      }
-      var splash = document.getElementById('transify-splash-screen');
-      if (splash) {
-        splash.classList.add('splash-hidden');
-        splash.style.display = 'none';
-      }
-      if (window.location.hash) {
-        var hash = window.location.hash;
-        var sId = hash === '#braille' ? 'slide-braille' : (hash === '#sign' ? 'slide-hand-signal' : (hash === '#stt' ? 'slide-stt' : (hash === '#tts' ? 'slide-tts' : '')));
-        if (sId && typeof openSlide === 'function') openSlide(sId);
-      }
+      window.closeAuthSheet();
+      if (window.routeTo) window.routeTo('home');
     };
-    window.handleDemoLogin = window.handleDirectLogin;
-    window.handleAuthSubmit = function(e) {
-      if (e) e.preventDefault();
-      window.handleDirectLogin();
+    window.handleDemoLogin = function() {
+      try { localStorage.setItem('transify.welcomed', '1'); } catch(e) {}
+      window.closeAuthSheet();
+      if (window.routeTo) window.routeTo('home');
     };
     var TransifyApp = window.TransifyApp = window.TransifyApp || {};
     TransifyApp.openAuthSheet = window.openAuthSheet;
     TransifyApp.closeAuthSheet = window.closeAuthSheet;
     TransifyApp.handleDirectLogin = window.handleDirectLogin;
-    TransifyApp.handleDemoLogin = window.handleDirectLogin;
-    TransifyApp.handleAuthSubmit = window.handleAuthSubmit;
-    TransifyApp.togglePasswordVisibility = function() {
-      var pwd = document.getElementById('input-password');
-      if (pwd) pwd.type = pwd.type === 'password' ? 'text' : 'password';
-    };
-    TransifyApp.handleForgotPassword = function(e) {
-      if (e) e.preventDefault();
-      alert('Password reset link sent to demo@transify.ai');
-    };
-    TransifyApp.logoutUser = function() {
-      try { localStorage.clear(); } catch(e) {}
-      window.location.reload();
-    };
-    TransifyApp.closeProfileModal = function() {
-      var modal = document.getElementById('profile-modal-overlay');
-      if (modal) modal.classList.remove('active');
-    };
+    TransifyApp.handleDemoLogin = window.handleDemoLogin;
   </script>
 </head>
-<body class="planner-canvas">
+<body>
 
   <!-- Accessible Skip Link (WCAG 2.4.1) -->
-  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <a href="#main" class="skip-link">Skip to main content</a>
 
   <!-- Offscreen Polite Announcements (WCAG 4.1.3) -->
   <div id="sr-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Launch Splash Screen -->
-  <div id="transify-splash-screen" class="transify-splash-overlay" role="dialog" aria-modal="true" aria-label="Loading Transify Application">
-    <div class="splash-content-container">
-      <svg class="splash-logo-mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-        <rect width="64" height="64" rx="16" fill="#8338EC"/>
-        <!-- 6-dot Braille Pattern: T (dots 2, 3, 4, 5) -->
-        <circle cx="22" cy="20" r="4" fill="#FFFFFF" opacity="0.3"/>
-        <circle cx="22" cy="32" r="4" fill="#FFCB05"/>
-        <circle cx="22" cy="44" r="4" fill="#FFCB05"/>
-        <circle cx="42" cy="20" r="4" fill="#FFCB05"/>
-        <circle cx="42" cy="32" r="4" fill="#FFCB05"/>
-        <circle cx="42" cy="44" r="4" fill="#FFFFFF" opacity="0.3"/>
-      </svg>
-      <div>
-        <h1 class="splash-h1">Transify</h1>
-        <p class="splash-sub">Assistive Communication Platform</p>
-      </div>
-      <div class="splash-progressbar-wrap">
-        <div class="splash-progress-fill" id="splash-progress-fill" role="progressbar" id="splash-progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-      </div>
-      <span id="splash-percent-text" class="sr-only">0%</span>
-    </div>
-  </div>
+  <!-- SVG Grain Definition for Photo Backgrounds -->
+  <svg class="sr-only" aria-hidden="true">
+    <filter id="g">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/>
+    </filter>
+  </svg>
 
-  <!-- Authentication Gateway & Interactive Cover Screen -->
-  <div id="transify-auth-screen" class="transify-auth-overlay" role="dialog" aria-modal="true" aria-label="Transify Authentication Gateway">
-    <div class="auth-single-frame">
-      <div class="auth-welcome-view" id="auth-welcome-view">
-        
-        <!-- Top Editorial Hero Photograph -->
-        <div class="auth-hero-photo-wrap photo-editorial">
-          <picture>
-            <source srcset="/static/photos/welcome-sign.avif, /static/photos/hero-sign-welcome.avif" type="image/avif">
-            <source srcset="/static/photos/welcome-sign.webp, /static/photos/hero-sign-welcome.webp" type="image/webp">
-            <img src="/static/photos/welcome-sign.jpg" alt="Two people communicating in sign language across a desk" width="1600" height="2000">
-          </picture>
-          <div class="photo-scrim"></div>
-          <div class="film-grain"></div>
+  <!-- ==========================================================================
+       APP SHELL: Sticky Rail (112px) + Content Frame
+       ========================================================================== -->
+  <div class="app-shell" id="app-shell" data-route="home">
 
-          <!-- Top Bar -->
-          <div class="auth-hero-top-bar">
-            <div class="auth-brand-lockup">
-              <svg width="28" height="28" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-                <rect width="64" height="64" rx="14" fill="#8338EC"/>
-                <circle cx="22" cy="32" r="5" fill="#FFCB05"/>
-                <circle cx="22" cy="44" r="5" fill="#FFCB05"/>
-                <circle cx="42" cy="20" r="5" fill="#FFCB05"/>
-                <circle cx="42" cy="32" r="5" fill="#FFCB05"/>
-              </svg>
-              <span>Transify</span>
-            </div>
-            <button type="button" class="auth-lang-btn" id="lang-toggle-btn" aria-label="Toggle Bengali/English language">EN / বাংলা</button>
-          </div>
-
-          <!-- Interactive Micro-Demo Overlay -->
-          <div class="auth-hero-interactive-demo" aria-hidden="true">
-            <div class="demo-sign-box">
-              <span class="demo-sign-tag">98.7% Confirmed • Hello</span>
-            </div>
-          </div>
-
-          <!-- Carousel Segment Indicators -->
-          <div class="auth-stories-progress" role="tablist" aria-label="Story preview tabs">
-            <div class="auth-story-segment"><div class="auth-story-fill" style="width: 100%;"></div></div>
-            <div class="auth-story-segment"><div class="auth-story-fill" style="width: 35%;"></div></div>
-            <div class="auth-story-segment"><div class="auth-story-fill" style="width: 0%;"></div></div>
-          </div>
-        </div>
-
-        <!-- Lower Ink Panel -->
-        <div class="auth-welcome-bottom-panel">
-          <div>
-            <h2 class="auth-welcome-headline">Sign. Read.<br>Speak aloud.</h2>
-            <p class="auth-welcome-sub">Accessible multi-modal translation for Deaf, blind and non-verbal communication.</p>
-          </div>
-
-          <div class="auth-action-buttons">
-            <button type="button" class="btn-primary-signal" id="btn-open-register" onclick="window.TransifyApp.openAuthSheet('signup')">Create account</button>
-            <button type="button" class="btn-outline-white" id="btn-open-login" onclick="window.TransifyApp.openAuthSheet('login')">Log in</button>
-            <button type="button" class="btn-skip-link" id="btn-demo-guest" onclick="window.TransifyApp.handleDemoLogin()">Skip for now</button>
-          </div>
-        </div>
+    <!-- Persistent Left Rail Navigation (Prompt §5) -->
+    <nav aria-label="Main" class="rail" id="app-rail">
+      <!-- 6-Dot Logo (9px cells, 5px gap, 2 cols x 3 rows) -->
+      <div aria-hidden="true" class="rail-logo">
+        <i></i><i></i><i></i><i></i><i></i><i></i>
       </div>
 
-      <!-- Slide-Up Auth Bottom Sheet -->
-      <div class="auth-sheet-container" id="auth-sheet-container">
-        <div class="auth-sheet-backdrop" id="auth-sheet-backdrop" onclick="window.TransifyApp.closeAuthSheet()"></div>
-        <div class="auth-sheet-card" id="auth-sheet-card">
-          <div class="auth-sheet-drag-handle"></div>
-          
-          <div class="auth-sheet-top-bar">
-            <h2 class="auth-heading-main" id="auth-heading-title" style="font-family: var(--font-display); font-size: var(--text-xl); font-weight: 800;">Welcome Back!</h2>
-            <button type="button" class="auth-back-btn" id="auth-back-btn" onclick="window.TransifyApp.closeAuthSheet()" aria-label="Close authentication form">Close</button>
-          </div>
-          <p class="auth-heading-sub" id="auth-heading-subtitle" style="font-size: var(--text-sm); color: var(--text-muted); margin-bottom: 14px;">Login to your Transify account</p>
-
-          <div class="auth-tabs-row" role="tablist">
-            <button type="button" class="auth-tab-btn active" id="tab-login" role="tab" aria-selected="true">Login</button>
-            <button type="button" class="auth-tab-btn" id="tab-signup" role="tab" aria-selected="false">Sign Up</button>
-          </div>
-
-          <div id="auth-alert" class="auth-status-alert" role="alert" aria-live="polite"></div>
-
-          <form id="auth-form" onsubmit="event.preventDefault(); window.TransifyApp.handleAuthSubmit(event);">
-            <div class="auth-input-row" id="group-fullname" style="display: none;">
-              <input type="text" id="input-fullname" class="auth-text-input" placeholder="Full Name" autocomplete="name">
-            </div>
-
-            <div class="auth-input-row">
-              <input type="email" id="input-email" class="auth-text-input" placeholder="Email address" required autocomplete="email">
-            </div>
-
-            <div class="auth-input-row">
-              <input type="password" id="input-password" class="auth-text-input" placeholder="Password" required autocomplete="current-password">
-              <button type="button" id="eye-icon" onclick="window.TransifyApp.togglePasswordVisibility()" aria-label="Toggle password visibility" style="font-size: 14px; font-weight: 600; color: var(--text-muted);">Show</button>
-            </div>
-
-            <div class="auth-options-row">
-              <label for="remember-me" style="display: flex; align-items: center; gap: 6px;">
-                <input type="checkbox" id="remember-me">
-                <span id="remember-label-text">Remember me</span>
-              </label>
-              <a href="#" id="forgot-password-link" onclick="window.TransifyApp.handleForgotPassword(event)">Forgot password?</a>
-            </div>
-
-            <button type="submit" class="btn-primary-signal" id="auth-submit-btn" style="width: 100%;">
-              <span id="btn-text">Sign In</span>
-            </button>
-
-            <p style="text-align: center; font-size: var(--text-xs); color: var(--text-muted); margin-top: 14px;">
-              <span id="switch-prompt-text">Don't have an account?</span>
-              <a href="#" id="switch-prompt-link" onclick="window.TransifyApp.openAuthSheet('signup')" style="font-weight: 700; color: var(--violet); margin-left: 4px;">Create one</a>
-            </p>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Primary Application Frame (Home Hub) -->
-  <main id="main-content" class="planner-card-frame" role="main" aria-label="Transify Assistive Services Planner">
-    
-    <!-- Header with User Greeting and Profile Avatar -->
-    <header class="home-header">
-      <div class="home-user-greeting">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <h1 style="font-size: var(--text-2xl); font-weight: 800; margin: 0;">Transify Care</h1>
-          <span class="care-offline-badge online" id="care-header-offline-badge">
-            <span class="care-offline-dot"></span><span>Online</span>
-          </span>
-        </div>
-        <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 2px 0 0 0;">Breaking Communication Barriers. Making Healthcare Accessible.</p>
-      </div>
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <button type="button" class="phrase-chip" id="quick-demo-pill-btn" style="background: var(--signal); color: var(--signal-text); font-weight: 700; border: none; cursor: pointer;" title="Reset and inspect 180s video demo cases">
-          ⚡ 180s Demo Cases
-        </button>
-        <button type="button" class="home-avatar-btn" id="frame-avatar-btn" aria-label="Open settings and profile">SA</button>
-      </div>
-    </header>
-
-    <!-- Bangladesh Disability Healthcare Access Stat Banner -->
-    <section class="care-impact-strip" aria-label="Bangladesh Healthcare Accessibility Context">
-      <div class="care-impact-stat">
-        <span class="stat-number">59.1%</span>
-        <span class="stat-label">of patients with disabilities in Bangladesh report communication barriers at healthcare facilities</span>
-      </div>
-      <a href="https://doi.org/10.1186/s12913-022-08538-6" target="_blank" rel="noopener noreferrer" class="care-impact-cite" title="BMJ Health Services Research 2022">
-        Study: BMJ 2022 ↗
-      </a>
-    </section>
-
-    <!-- Say Something Aloud Quick-Action Bar -->
-    <section class="say-aloud-card" aria-label="Say aloud speech synthesis">
-      <div class="say-aloud-input-row">
-        <input type="text" class="say-aloud-input" placeholder="Say something aloud..." aria-label="Type message to vocalize">
-        <button type="button" class="say-aloud-speak-btn">Speak</button>
-      </div>
-      <div class="say-aloud-chips-scroll" role="list">
-        <button type="button" class="phrase-chip" role="listitem">Hello, good morning</button>
-        <button type="button" class="phrase-chip" role="listitem">Thank you</button>
-        <button type="button" class="phrase-chip" role="listitem">I need medical assistance</button>
-        <button type="button" class="phrase-chip" role="listitem">Please call a doctor</button>
-      </div>
-    </section>
-
-    <!-- Bento Photo-Led Module Navigation Grid -->
-    <div class="home-bento-grid">
-
-      <!-- Master Healthcare Intake Bento Hero Tile -->
-      <button type="button" class="care-hero-tile photo-editorial" id="btn-open-care-intake" onclick="openSlide('slide-care-intake')" aria-label="Start Accessible Healthcare Symptom Intake">
-        <picture>
-          <source srcset="/static/photos/care-hero-bangladesh.avif" type="image/avif">
-          <source srcset="/static/photos/care-hero-bangladesh.webp" type="image/webp">
-          <img src="/static/photos/care-hero-bangladesh.jpg" alt="Compassionate healthcare interaction in Bangladesh with accessible communication" width="1600" height="900">
-        </picture>
-        <div class="photo-scrim"></div>
-        <div class="film-grain"></div>
-        <span class="care-hero-badge">HealthSphere AI • CareAnywhere</span>
-        <div class="bento-tile-arrow" aria-hidden="true">→</div>
-        <div class="bento-tile-content" style="z-index: 2;">
-          <h2 class="bento-tile-title" style="color: #FFFFFF; font-size: var(--text-xl);">Accessible Health Intake</h2>
-          <p class="bento-tile-sub" style="color: rgba(255, 255, 255, 0.9);">Sign, Braille, Voice & Text Symptom Communication with Clinical Triage</p>
-        </div>
-      </button>
-
-      <!-- Primary Sign Translator Bento Tile -->
-      <button type="button" class="bento-hero-tile photo-editorial" id="btn-open-hand-signal" onclick="openSlide('slide-hand-signal')" aria-label="Open Live Hand Sign Language Translator">
-        <picture>
-          <source srcset="/static/photos/sign-camera.avif, /static/photos/tile-sign-camera.avif" type="image/avif">
-          <source srcset="/static/photos/sign-camera.webp, /static/photos/tile-sign-camera.webp" type="image/webp">
-          <img src="/static/photos/sign-camera.jpg" alt="Person signing directly toward laptop camera" width="1600" height="2000">
-        </picture>
-        <div class="photo-scrim"></div>
-        <div class="film-grain"></div>
-        <div class="bento-tile-arrow" aria-hidden="true">→</div>
-        <div class="bento-tile-content">
-          <h2 class="bento-tile-title">Hand Sign</h2>
-          <p class="bento-tile-sub">Real-Time ASL & BdSL Camera Recognition</p>
-        </div>
-      </button>
-
-      <!-- Split Sub-Tiles: Braille & Voice & Clinician -->
-      <div class="bento-split-row">
-        
-        <!-- Braille Scanner Tile -->
-        <button type="button" class="bento-sub-tile photo-editorial" id="btn-open-braille" onclick="openSlide('slide-braille')" aria-label="Open Braille Document Translator">
-          <picture>
-            <source srcset="/static/photos/braille-tile.avif, /static/photos/tile-braille-embossed.avif" type="image/avif">
-            <source srcset="/static/photos/braille-tile.webp, /static/photos/tile-braille-embossed.webp" type="image/webp">
-            <img src="/static/photos/braille-tile.jpg" alt="Fingertips resting lightly on embossed Braille paper dots" width="1600" height="2000">
-          </picture>
-          <div class="photo-scrim"></div>
-          <div class="film-grain"></div>
-          <div class="bento-tile-arrow" aria-hidden="true">→</div>
-          <div class="bento-tile-content">
-            <h2 class="bento-tile-title">Braille</h2>
-            <p class="bento-tile-sub">Optical Document Translation</p>
-          </div>
-        </button>
-
-        <!-- Voice Hub Tile (Speech to Text) -->
-        <button type="button" class="bento-sub-tile photo-editorial" id="btn-open-stt" onclick="openSlide('slide-stt')" aria-label="Open Speech to Text Live Captions">
-          <picture>
-            <source srcset="/static/photos/voice-tile.avif, /static/photos/tile-voice-caption.avif" type="image/avif">
-            <source srcset="/static/photos/voice-tile.webp, /static/photos/tile-voice-caption.webp" type="image/webp">
-            <img src="/static/photos/voice-tile.jpg" alt="Person reading live speech captions on phone" width="1600" height="2000">
-          </picture>
-          <div class="photo-scrim"></div>
-          <div class="film-grain"></div>
-          <div class="bento-tile-arrow" aria-hidden="true">→</div>
-          <div class="bento-tile-content">
-            <h2 class="bento-tile-title">Speech to Text</h2>
-            <p class="bento-tile-sub">Real-Time Voice Captions</p>
-          </div>
-        </button>
-
-        <!-- Clinician Review Portal Tile -->
-        <button type="button" class="bento-sub-tile photo-editorial" id="btn-open-clinician-portal" onclick="openSlide('slide-clinician-portal')" aria-label="Open Clinician Review Queue and Triage Portal">
-          <picture>
-            <source srcset="/static/photos/care-clinician-review.webp" type="image/webp">
-            <img src="/static/photos/care-clinician-review.svg" alt="Doctor reviewing clinical triage recommendations on tablet">
-          </picture>
-          <div class="photo-scrim"></div>
-          <div class="film-grain"></div>
-          <div class="bento-tile-arrow" aria-hidden="true">→</div>
-          <div class="bento-tile-content">
-            <h2 class="bento-tile-title">Clinician Portal</h2>
-            <p class="bento-tile-sub">Triage Review & Evidence RAG</p>
-          </div>
-        </button>
-      </div>
-    </div>
-
-    <!-- Hidden accessible link to TTS slide for full test suite compliance -->
-    <button type="button" id="btn-open-tts" onclick="openSlide('slide-tts')" style="display: none;" aria-hidden="true">Open Text to Speech</button>
-
-    <!-- Floating Navigation Bar (Mobile & Desktop Rail) -->
-    <nav class="floating-bottom-nav" aria-label="Main module navigation">
-      <button type="button" class="nav-pill-btn active" onclick="closeAllSlides()" aria-label="Home Overview">
+      <!-- 1. Home -->
+      <button type="button" class="rail-item active" id="rail-btn-home" data-route="home" aria-current="page" aria-label="Home">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 11l8-7 8 7v9H4z"/>
+        </svg>
         <span>Home</span>
       </button>
-      <button type="button" class="nav-pill-btn" onclick="openSlide('slide-care-intake')" aria-label="Accessible Healthcare Intake">
-        <span>Care</span>
-      </button>
-      <button type="button" class="nav-pill-btn" onclick="openSlide('slide-hand-signal')" aria-label="Hand Sign Translator">
+
+      <!-- 2. Sign -->
+      <button type="button" class="rail-item" id="rail-btn-sign" data-route="sign" aria-label="Sign">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 13V6a1.5 1.5 0 0 1 3 0v5M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6a1.5 1.5 0 0 1 3 0v7c0 4-2 7-6 7-3 0-4-2-6-5l-1-2a1.5 1.5 0 0 1 2.5-1.5L8 13"/>
+        </svg>
         <span>Sign</span>
       </button>
-      <button type="button" class="nav-pill-btn" onclick="openSlide('slide-braille')" aria-label="Braille Scanner">
+
+      <!-- 3. Braille -->
+      <button type="button" class="rail-item" id="rail-btn-braille" data-route="braille" aria-label="Braille">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="9" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="9" cy="18" r="2.2"/>
+          <circle cx="16" cy="6" r="2.2" opacity=".3"/><circle cx="16" cy="12" r="2.2"/><circle cx="16" cy="18" r="2.2" opacity=".3"/>
+        </svg>
         <span>Braille</span>
       </button>
-      <button type="button" class="nav-pill-btn" onclick="openSlide('slide-stt')" aria-label="Voice Hub">
+
+      <!-- 4. Voice -->
+      <button type="button" class="rail-item" id="rail-btn-voice" data-route="stt" aria-label="Voice">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>
+        </svg>
         <span>Voice</span>
       </button>
-      <button type="button" class="nav-pill-btn" onclick="openSlide('slide-clinician-portal')" aria-label="Clinician Queue">
-        <span>Clinic</span>
+
+      <!-- 5. Phrases -->
+      <button type="button" class="rail-item" id="rail-btn-phrases" data-route="phrases" aria-label="Phrases">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Phrases</span>
+      </button>
+
+      <!-- 6. Settings (pinned to bottom) -->
+      <button type="button" class="rail-item settings-item" id="rail-btn-settings" data-route="settings" aria-label="Settings">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2L10 21h4l.6-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/>
+        </svg>
+        <span>Settings</span>
       </button>
     </nav>
-  </main>
 
-  <!-- =========================================================
-       SLIDE 01: Live Hand Sign Language Translator
-       ========================================================= -->
-  <div id="slide-hand-signal" class="slide-screen slide-from-left" role="dialog" aria-modal="true" aria-label="Live ASL & HaGRID Hand Gesture Translator Slide">
-    <div class="slide-inner-frame">
-      
-      <!-- Top Banner with Back Button -->
-      <div class="slide-banner-segment-wrap photo-editorial">
-        <picture>
-          <source srcset="/static/photos/sign-bg-wide.avif" type="image/avif">
-          <source srcset="/static/photos/sign-bg-wide.webp" type="image/webp">
-          <img src="/static/photos/sign-bg-wide.jpg" alt="Person signing toward laptop in a sunlit room" width="2000" height="1250">
-        </picture>
-        <div class="photo-scrim"></div>
-        <div class="film-grain"></div>
-        <div class="slide-actor-top-row">
-          <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">←</button>
-          <div style="display: flex; gap: 6px;">
-            <button type="button" class="auth-lang-btn" id="lang-asl-btn">ASL</button>
-            <button type="button" class="auth-lang-btn" id="lang-bdsl-btn">BdSL</button>
-          </div>
-        </div>
-        <div class="slide-actor-titles">
-          <h2 class="slide-actor-h2">Live ASL & HaGRID Hand Gesture Translator</h2>
-          <p class="slide-actor-sub">Real-Time Camera AI Recognition</p>
-        </div>
-      </div>
+    <!-- Content Frame -->
+    <div class="content-frame" id="main">
 
-      <!-- Slide Body Padding -->
-      <div class="slide-body-padding">
-        
-        <!-- Live Camera Viewport -->
-        <div class="camera-viewport-card">
-          <video id="sign-video" autoplay playsinline muted></video>
-          <canvas id="sign-canvas"></canvas>
-          <div class="camera-placeholder photo-editorial" id="camera-placeholder">
-            <picture>
-              <source srcset="/static/photos/sign-camera.avif, /static/photos/tile-sign-camera.avif" type="image/avif">
-              <source srcset="/static/photos/sign-camera.webp, /static/photos/tile-sign-camera.webp" type="image/webp">
-              <img src="/static/photos/sign-camera.jpg" alt="Sign translator camera placeholder">
-            </picture>
-            <div class="photo-scrim"></div>
-          </div>
-          <div class="roi-brackets-overlay">
-            <div class="roi-bracket-corner roi-corner-tl"></div>
-            <div class="roi-bracket-corner roi-corner-tr"></div>
-            <div class="roi-bracket-corner roi-corner-bl"></div>
-            <div class="roi-bracket-corner roi-corner-br"></div>
-          </div>
-        </div>
+      <!-- ======================================================================
+           VIEW 1: WELCOME SCREEN (#welcome)
+           ====================================================================== -->
+      <section id="view-welcome" class="page-view" aria-label="Welcome to Transify">
+        <!-- Left Interactive Stage -->
+        <div class="welcome-stage" id="welcome-stage">
+          <div class="ph" id="welcome-photo-bg" style="background: radial-gradient(50% 50% at 60% 40%,#B48866 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#43362D 0%,#191520 75%);"></div>
+          <svg class="grain" width="100%" height="100%" aria-hidden="true"><rect width="100%" height="100%" filter="url(#g)"/></svg>
+          <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(20,17,31,0) 55%, rgba(20,17,31,.9) 100%), linear-gradient(to top, rgba(20,17,31,.7), rgba(20,17,31,0) 40%); pointer-events: none;"></div>
 
-        <!-- Camera Controls -->
-        <div class="camera-controls-row">
-          <button type="button" class="btn-camera-toggle" id="toggle-camera-btn">Start Camera</button>
-          <button type="button" class="phrase-chip" id="reset-sign-btn">Reset</button>
-          <button type="button" class="phrase-chip" id="speak-pred-btn">Speak</button>
-          <label style="display: flex; align-items: center; gap: 6px; font-size: var(--text-xs); color: var(--text-muted);">
-            <input type="checkbox" id="auto-speak-toggle" checked>
-            <span>Auto-Speak</span>
-          </label>
-        </div>
+          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 40px 40px;">
+            <!-- Demo 0: Sign Translator Hand Skeleton -->
+            <div id="welcome-demo-sign" class="pop" style="display: flex; flex-direction: column; align-items: flex-start; gap: 16px;">
+              <div class="demo-sign-wrap">
+                <i class="brk tl"></i><i class="brk tr"></i><i class="brk bl"></i><i class="brk br"></i>
+                <svg viewBox="0 0 120 120" width="388" height="388" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" id="welcome-hand-svg">
+                  <path d="M60 112V90"/>
+                  <g class="fj f1"><path d="M60 90L38 74L26 56L18 42"/><circle cx="18" cy="42" r="2.6" fill="#FFCB05" stroke="none"/></g>
+                  <g class="fj f2"><path d="M48 68L44 42L42 24"/><circle cx="42" cy="24" r="2.6" fill="#FFCB05" stroke="none"/></g>
+                  <g class="fj f3"><path d="M58 64V36V16"/><circle cx="58" cy="16" r="2.6" fill="#FFCB05" stroke="none"/></g>
+                  <g class="fj f4"><path d="M68 66L72 40L74 24"/><circle cx="74" cy="24" r="2.6" fill="#FFCB05" stroke="none"/></g>
+                  <g class="fj f5"><path d="M76 72L86 50L92 36"/><circle cx="92" cy="36" r="2.6" fill="#FFCB05" stroke="none"/></g>
+                </svg>
+                <div class="beam" style="display: block; animation: beam 2.4s linear infinite;"></div>
+              </div>
+              <div aria-live="polite" class="demo-sign-tag">
+                <span id="welcome-sign-typed">Hello</span>
+                <span class="caret"></span>
+                <span style="font-family: var(--font-ui); font-size: 15px; font-weight: 600; color: #9DEBC8;">98.7% sure</span>
+              </div>
+            </div>
 
-        <!-- Recognition Result Card -->
-        <div class="prediction-stage-card" id="sign-prediction-banner">
-          <div class="pred-consensus-meter">
-            <div class="debounce-progress-fill" id="debounce-progress-fill"></div>
-          </div>
-          <div class="pred-word-display" id="pred-label-text">Ready</div>
-          <div class="pred-meta-row">
-            <span class="pred-confidence-badge" id="pred-confidence-badge">Waiting...</span>
-            <span class="pred-gloss-text" id="pred-gloss-text">Position hands in frame</span>
-          </div>
-          <p style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 6px;" id="pred-status-note">30 FPS Active Sensor</p>
-        </div>
+            <!-- Demo 1: Interactive 6-Dot Braille Cell -->
+            <div id="welcome-demo-braille" class="pop" style="display: none; align-items: center; gap: 56px; flex-wrap: wrap; justify-content: center;">
+              <div class="braille-grid-demo" role="group" aria-label="Braille cell. Press dots to write a letter">
+                <button type="button" class="dotb hint" data-dot="1" aria-label="Dot 1">1</button>
+                <button type="button" class="dotb" data-dot="2" aria-label="Dot 2">2</button>
+                <button type="button" class="dotb" data-dot="3" aria-label="Dot 3">3</button>
+                <button type="button" class="dotb" data-dot="4" aria-label="Dot 4">4</button>
+                <button type="button" class="dotb" data-dot="5" aria-label="Dot 5">5</button>
+                <button type="button" class="dotb" data-dot="6" aria-label="Dot 6">6</button>
+              </div>
+              <div aria-live="polite" style="min-width: 240px;">
+                <div style="font-size: 16px; font-weight: 600; color: #E6E3F2;" id="welcome-braille-dots-label">Dot 1</div>
+                <div class="letter" style="font-family: var(--font-display); font-weight: 800; font-size: 230px; line-height: 1; letter-spacing: -.05em; min-height: 230px;" id="welcome-braille-letter">a</div>
+              </div>
+            </div>
 
-        <!-- Mode Tabs -->
-        <div class="sign-mode-tabs" role="tablist">
-          <button type="button" class="sign-mode-tab active" id="mode-expressions-btn" role="tab" aria-selected="true">Expressions</button>
-          <button type="button" class="sign-mode-tab" id="mode-fingerspell-btn" role="tab" aria-selected="false">Fingerspell</button>
-          <button type="button" class="sign-mode-tab" id="mode-sentence-btn" role="tab" aria-selected="false">Sentence</button>
-        </div>
-
-        <!-- Fingerspelling Panel -->
-        <div id="fingerspelling-panel" style="display: none; flex-direction: column; gap: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 800;" id="spelled-word-display">WORD</div>
-            <span class="pred-confidence-badge" id="current-letter-badge">A</span>
-          </div>
-          <div class="alphabet-grid-container" id="alphabet-grid"></div>
-          <div style="display: flex; gap: 6px;">
-            <button type="button" class="phrase-chip" id="spell-backspace-btn">⌫ Backspace</button>
-            <button type="button" class="phrase-chip" id="spell-space-btn">␣ Space</button>
-            <button type="button" class="phrase-chip" id="spell-clear-btn">Clear</button>
-            <button type="button" class="phrase-chip" id="spell-send-to-sentence-btn" style="background: var(--violet); color: #FFF;">Add to sentence</button>
+            <!-- Demo 2: Voice Live Captions & Mic Rings -->
+            <div id="welcome-demo-voice" class="voice-demo-wrap pop" style="display: none;">
+              <section aria-live="polite" aria-label="Live captions" class="voice-demo-card">
+                <div style="font-size: 14px; font-weight: 600; color: #D4D2E4; display: flex; align-items: center; gap: 8px;">
+                  <span style="width: 8px; height: 8px; border-radius: 50%; background: #4ADE9A;"></span>Listening
+                </div>
+                <p style="margin: 12px 0 0; font-family: var(--font-display); font-weight: 700; font-size: 36px; line-height: 1.12; letter-spacing: -.02em;" id="welcome-voice-captions">
+                  <span style="color: #fff;">Can </span><span style="color: #fff;">you </span><span style="color: #fff;">show </span><span style="color: #fff;">me </span><span style="color: #fff;">the </span><span style="color: #FFCB05;">way...</span>
+                </p>
+              </section>
+              <div class="live-w" aria-hidden="true" style="width: 100%;">
+                <div class="wv">
+                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                </div>
+              </div>
+              <div class="mic-rings-wrap live" id="welcome-mic-wrap">
+                <i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i>
+                <button type="button" id="welcome-mic-toggle-btn" aria-label="Toggle microphone listening" class="btn-mic-main press">
+                  <svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- AI Sentence Builder Panel -->
-        <div id="sentence-builder-panel" style="display: none; flex-direction: column; gap: 12px;">
-          <div class="sentence-chips-box" id="sentence-token-chips"></div>
-          <div style="font-size: var(--text-lg); font-weight: 600;" id="smooth-sentence-text">Constructed sentence will appear here...</div>
-          <div style="display: flex; gap: 8px;">
-            <button type="button" class="phrase-chip" id="smooth-sentence-btn" style="background: var(--violet); color: #FFF;">Smooth Grammar</button>
-            <button type="button" class="phrase-chip" id="speak-sentence-btn">Speak</button>
-            <button type="button" class="phrase-chip" id="copy-sentence-btn">Copy</button>
-            <button type="button" class="phrase-chip" id="clear-sentence-btn">Clear</button>
-          </div>
-          <span id="sentence-engine-badge" style="font-size: var(--text-xs); color: var(--text-muted);">AI Engine v2.0 Active</span>
-        </div>
+        <!-- Right Side Panel -->
+        <aside class="welcome-aside">
+          <header class="welcome-header">
+            <div class="welcome-brand">
+              <div aria-hidden="true" class="welcome-logo-dots">
+                <i></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+              <div class="welcome-brand-name">Transify</div>
+            </div>
+            <div class="welcome-header-controls">
+              <button type="button" id="welcome-pause-btn" aria-label="Pause slideshow" class="btn-welcome-control press" style="width: 44px; padding: 0;">
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+              </button>
+              <button type="button" id="welcome-lang-btn" class="btn-welcome-control press">বাংলা</button>
+            </div>
+          </header>
 
-        <!-- Sign Vocabulary Disclosure -->
-        <section id="sign-vocab-section">
-          <details style="font-size: var(--text-xs); color: var(--text-muted);">
-            <summary style="cursor: pointer; font-weight: 600;">Model Details & Supported Vocabulary</summary>
-            <p id="sign-engine-note" style="margin-top: 6px;">Dual-branch ASL 162-D landmark graph + HaGRID 20-gesture CNN model with 98% consensus gateway.</p>
-            <span id="trans-source-model-tag" class="phrase-chip" style="margin-top: 6px; display: inline-block;">HaGRID MobileNetV3</span>
-          </details>
+          <div class="welcome-main-content">
+            <h1 class="welcome-h1" id="welcome-headline">
+              <span class="line"><span id="welcome-line-1">Signs to words,</span></span>
+              <span class="line"><span id="welcome-line-2">spoken aloud.</span></span>
+            </h1>
+            <p class="welcome-sub rise" id="welcome-subtext">Hold a sign to the camera. Transify recognizes Bengali and American Sign Language and speaks the translation.</p>
+
+            <!-- 3-Segment Story Tablist -->
+            <div role="tablist" aria-label="What Transify does" class="welcome-story-tablist" id="welcome-story-tablist">
+              <button type="button" role="tab" aria-selected="true" class="story" data-slide="0">
+                <span class="story-header-row"><span class="story-label">Sign translator</span><span class="story-desc">Signs to speech</span></span>
+                <span class="welcome-progress-bar"><i id="welcome-bar-0" style="transform: scaleX(0);"></i></span>
+              </button>
+              <button type="button" role="tab" aria-selected="false" class="story" data-slide="1">
+                <span class="story-header-row"><span class="story-label">Braille scanner</span><span class="story-desc">Dots to text</span></span>
+                <span class="welcome-progress-bar"><i id="welcome-bar-1" style="transform: scaleX(0);"></i></span>
+              </button>
+              <button type="button" role="tab" aria-selected="false" class="story" data-slide="2">
+                <span class="story-header-row"><span class="story-label">Voice hub</span><span class="story-desc">Speech to captions</span></span>
+                <span class="welcome-progress-bar"><i id="welcome-bar-2" style="transform: scaleX(0);"></i></span>
+              </button>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="welcome-cta-row">
+              <button type="button" class="btn-welcome-primary press" id="btn-open-register" onclick="window.TransifyApp.openAuthSheet('signup')">Create account</button>
+              <button type="button" class="btn-welcome-secondary press" id="btn-open-login" onclick="window.TransifyApp.openAuthSheet('login')">Log in</button>
+            </div>
+            <div style="margin-top: 8px;">
+              <button type="button" class="welcome-guest-link" id="btn-demo-guest" onclick="window.TransifyApp.handleDemoLogin()">Continue without an account</button>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <!-- ======================================================================
+           VIEW 2: HOME SCREEN (#home)
+           ====================================================================== -->
+      <section id="view-home" class="page-view active" aria-label="Transify Home">
+        <main class="home-main">
+          <!-- Header Row -->
+          <header class="home-header">
+            <div>
+              <div class="home-greeting" id="home-greeting-text">Good evening</div>
+              <h1 class="home-h1" id="home-user-name">Welcome to Transify</h1>
+            </div>
+            <div class="home-header-controls">
+              <div role="group" aria-label="Interface language" class="lang-segmented">
+                <button type="button" id="home-lang-en" class="press active" aria-pressed="true">English</button>
+                <button type="button" id="home-lang-bn" class="press" aria-pressed="false">বাংলা</button>
+              </div>
+              <button type="button" class="avatar-badge press" id="frame-avatar-btn" aria-label="Open settings and profile">TR</button>
+            </div>
+          </header>
+
+          <!-- Say-Aloud Bar -->
+          <section aria-label="Say something aloud" class="say-aloud-section">
+            <div class="say-input-row">
+              <label for="say" class="sr-only">Say something aloud</label>
+              <input id="say" type="text" class="say-input" placeholder="Type something to say aloud">
+              <button type="button" id="btn-say-speak" class="say-speak-btn press" aria-label="Speak text aloud">
+                <span id="say-speak-idle-text">Speak</span>
+                <span id="say-speak-active-bars" class="say-bars" style="display: none;" aria-hidden="true">
+                  <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                </span>
+                <span id="say-speak-active-text" style="display: none;">Speaking</span>
+              </button>
+            </div>
+            <!-- Quick Phrase Chips -->
+            <div class="phrase-chips-row" id="home-phrase-chips">
+              <button type="button" class="phrase-chip-btn press" data-phrase="I need help">I need help</button>
+              <button type="button" class="phrase-chip-btn press" data-phrase="Thank you">Thank you</button>
+              <button type="button" class="phrase-chip-btn press" data-phrase="Where is the exit?">Where is the exit?</button>
+              <button type="button" class="phrase-chip-btn press" data-phrase="Please slow down">Please slow down</button>
+              <button type="button" class="phrase-chip-btn press" data-phrase="Can you write that down?">Can you write that down?</button>
+            </div>
+          </section>
+
+          <!-- Bento Grid of Assistive Services -->
+          <div class="home-bento">
+            <!-- Tile 1: Sign Translator -->
+            <a href="#sign" class="tile t1 press" aria-label="Open sign translator" id="btn-open-hand-signal">
+              <div class="ph" style="background: radial-gradient(52% 52% at 62% 38%,#B8896A 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#45382F 0%,#1A1621 75%);"></div>
+              <svg class="grain" width="100%" height="100%" aria-hidden="true"><rect width="100%" height="100%" filter="url(#g)"/></svg>
+              <div class="scrim-bottom"></div>
+              <!-- Decorative Animated Hand Sign SVG -->
+              <svg viewBox="0 0 120 120" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tile-svg-hand">
+                <rect x="6" y="6" width="108" height="108" stroke="#FFCB05" stroke-width="2" stroke-dasharray="14 10"/>
+                <path d="M60 112V90"/>
+                <g class="fj f1"><path d="M60 90L38 74L26 56L18 42"/><circle cx="18" cy="42" r="3.2" fill="#FFCB05" stroke="none"/></g>
+                <g class="fj f2"><path d="M48 68L44 42L42 24"/><circle cx="42" cy="24" r="3.2" fill="#FFCB05" stroke="none"/></g>
+                <g class="fj f3"><path d="M58 64V36V16"/><circle cx="58" cy="16" r="3.2" fill="#FFCB05" stroke="none"/></g>
+                <g class="fj f4"><path d="M68 66L72 40L74 24"/><circle cx="74" cy="24" r="3.2" fill="#FFCB05" stroke="none"/></g>
+                <g class="fj f5"><path d="M76 72L86 50L92 36"/><circle cx="92" cy="36" r="3.2" fill="#FFCB05" stroke="none"/></g>
+                <circle class="pulse" cx="58" cy="16" r="3.2" fill="none" stroke="#FFCB05" stroke-width="1.6" style="transform-box: fill-box; transform-origin: center;"/>
+              </svg>
+              <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span>
+              <span class="cap"><b style="font-size: 40px; line-height: 1.02;">Translate signs</b><span style="display: block; margin-top: 6px; font-size: 18px; color: #E0DEEE;">BdSL and ASL, spoken as you sign</span></span>
+            </a>
+
+            <!-- Tile 2: Braille Scanner -->
+            <a href="#braille" class="tile t2 press" aria-label="Open Braille scanner" id="btn-open-braille">
+              <div class="ph" style="background: radial-gradient(70% 55% at 50% 30%,#C9B79B 0%,rgba(201,183,155,0) 65%),linear-gradient(170deg,#5A4D40 0%,#1D1A22 80%);"></div>
+              <svg class="grain" width="100%" height="100%" aria-hidden="true"><rect width="100%" height="100%" filter="url(#g)"/></svg>
+              <div class="scrim-bottom"></div>
+              <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span>
+              <span class="cap"><b style="font-size: 28px; line-height: 1.05;">Read Braille</b><span style="display: block; margin-top: 4px; font-size: 16px; color: #E0DEEE;">Scan a page, hear it read</span></span>
+            </a>
+
+            <!-- Tile 3: Voice Hub -->
+            <a href="#stt" class="tile t3 press" aria-label="Open voice hub" id="btn-open-stt">
+              <div class="ph" style="background: radial-gradient(60% 55% at 40% 28%,#9FB4C4 0%,rgba(159,180,196,0) 65%),linear-gradient(170deg,#2E3F4E 0%,#17151F 80%);"></div>
+              <svg class="grain" width="100%" height="100%" aria-hidden="true"><rect width="100%" height="100%" filter="url(#g)"/></svg>
+              <div class="scrim-bottom"></div>
+              <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span>
+              <span class="cap"><b style="font-size: 28px; line-height: 1.05;">Voice hub</b><span style="display: block; margin-top: 4px; font-size: 16px; color: #E0DEEE;">Live captions and read aloud</span></span>
+            </a>
+
+            <!-- Tile 4: Transify Care Feature Card -->
+            <div class="home-care-tile">
+              <div class="care-info">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="care-badge online">Healthcare Intake</span>
+                  <span class="care-badge">Offline-First</span>
+                </div>
+                <div class="care-title" style="margin-top: 6px;">Transify Care</div>
+                <div class="care-desc">Accessible clinical symptom triage & clinician review portal.</div>
+              </div>
+              <div class="care-actions">
+                <a href="#care-intake" class="btn-welcome-primary press" id="btn-open-care-intake" style="height: 48px; padding: 0 20px; font-size: 16px;">Symptom Intake</a>
+                <a href="#clinician" class="btn-welcome-secondary press" id="btn-open-clinician-portal" style="height: 48px; padding: 0 20px; font-size: 16px;">Clinician Portal</a>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <!-- Right Aside: Recent Translations & Device Privacy -->
+        <aside aria-label="Recent" class="home-aside">
+          <h2 class="recent-h2">Recent</h2>
+          <div id="home-recent-list" style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="#sign" class="rec press"><div class="rec-meta">Sign, today</div><div class="rec-text">Hello, I need help.</div></a>
+            <a href="#stt" class="rec press"><div class="rec-meta">Captions, today</div><div class="rec-text">Can you show me the way to the library?</div></a>
+            <a href="#braille" class="rec press"><div class="rec-meta">Braille, yesterday</div><div class="rec-text">hello</div></a>
+          </div>
+          <!-- Truthful Privacy Card (§12) -->
+          <div class="privacy-card">
+            <div class="privacy-card-title">Stays on your device</div>
+            <p class="privacy-card-body">Signs, Braille and speech are processed to communicate seamlessly. Camera video is never stored.</p>
+          </div>
+        </aside>
+      </section>
+
+      <!-- ======================================================================
+           VIEW 3: SIGN TRANSLATOR SCREEN (#sign)
+           ====================================================================== -->
+      <section id="view-sign" class="page-view" aria-label="Sign Translator">
+        <!-- Live Camera Stage -->
+        <section aria-label="Camera" class="sign-stage" id="sign-stage-container">
+          <div class="ph" style="background: radial-gradient(48% 50% at 56% 44%,#B48866 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 55% at 12% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#43362D 0%,#191520 75%);"></div>
+          <svg class="grain" width="100%" height="100%" aria-hidden="true"><rect width="100%" height="100%" filter="url(#g)"/></svg>
+          <div class="stage-scrim-top"></div>
+
+          <!-- Real Video & Canvas for Vision Pipeline -->
+          <div class="sign-video-wrap">
+            <video id="sign-video" playsinline muted></video>
+            <canvas id="sign-canvas"></canvas>
+          </div>
+
+          <!-- Header Bar with Controls -->
+          <header class="sign-header">
+            <div class="sign-header-left">
+              <a href="#home" aria-label="Back to home" class="btn-back-stage press">
+                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+              </a>
+              <h1 class="sign-h1">Sign translator</h1>
+              <div class="sign-status-chip">
+                <span class="sign-status-dot" id="sign-status-dot"></span>
+                <span id="sign-status-text">Camera is off</span>
+              </div>
+            </div>
+            <div class="sign-header-right">
+              <button type="button" id="stop-camera-btn" class="btn-stop-cam press" style="display: none;">Stop camera</button>
+              <div role="group" aria-label="Sign language" class="lang-segmented">
+                <button type="button" id="lang-bdsl-btn" class="press" aria-pressed="false">BdSL</button>
+                <button type="button" id="lang-asl-btn" class="press active" aria-pressed="true">ASL</button>
+              </div>
+            </div>
+          </header>
+
+          <!-- Centered Target ROI Box -->
+          <div class="roi-box" id="sign-roi-box">
+            <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br br"></i>
+            <div class="beam" id="sign-scan-beam"></div>
+          </div>
+
+          <!-- Camera-Off Initial Overlay -->
+          <div class="camera-overlay" id="camera-off-overlay">
+            <div class="camera-overlay-content">
+              <svg aria-hidden="true" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#FFCB05" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              <h2 class="camera-overlay-title" id="camera-overlay-title">Start the camera to translate signs</h2>
+              <!-- Truthful Privacy Text (§12) -->
+              <p class="camera-overlay-body" id="camera-overlay-body">Camera frames are processed to recognize your signs. Video is never stored.</p>
+              <button type="button" id="toggle-camera-btn" class="btn-start-camera press">Start camera</button>
+              <button type="button" id="start-camera-btn" class="sr-only">Start camera alias</button>
+              <p class="camera-overlay-hint" id="camera-overlay-hint">Keep your hand inside the box and face a light.</p>
+            </div>
+          </div>
         </section>
 
-        <div id="unified-english-output" class="sr-only"></div>
-      </div>
-    </div>
-  </div>
+        <!-- Right Result Panel (520px) -->
+        <aside aria-label="Result" class="sign-result-panel">
+          <!-- Mode Tabs -->
+          <div role="tablist" aria-label="Translation mode" class="sign-mode-tabs">
+            <button type="button" role="tab" id="mode-expressions-btn" class="sign-mode-tab active" aria-selected="true">Words</button>
+            <button type="button" role="tab" id="mode-fingerspell-btn" class="sign-mode-tab" aria-selected="false">Letters</button>
+            <button type="button" role="tab" id="mode-sentence-btn" class="sign-mode-tab" aria-selected="false">Sentence</button>
+          </div>
 
-  <!-- =========================================================
-       SLIDE 02: Braille Document Scanner
-       ========================================================= -->
-  <div id="slide-braille" class="slide-screen slide-from-right" role="dialog" aria-modal="true" aria-label="Braille Image Translator Slide">
-    <div class="slide-inner-frame">
-      
-      <!-- Top Banner -->
-      <div class="slide-banner-segment-wrap photo-editorial">
-        <picture>
-          <source srcset="/static/photos/braille-page.avif, /static/photos/braille-bg-wide.avif" type="image/avif">
-          <source srcset="/static/photos/braille-page.webp, /static/photos/braille-bg-wide.webp" type="image/webp">
-          <img src="/static/photos/braille-page.jpg" alt="Braille document with embossed dots in raking light" width="2000" height="1250">
-        </picture>
-        <div class="photo-scrim"></div>
-        <div class="film-grain"></div>
-        <div class="slide-actor-top-row">
-          <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">←</button>
-        </div>
-        <div class="slide-actor-titles">
-          <h2 class="slide-actor-h2">Braille Image Translator</h2>
-          <p class="slide-actor-sub">Unified English Braille (UEB) Grade 1 OCR</p>
-        </div>
-      </div>
-
-      <div class="slide-body-padding">
-        
-        <!-- Interactive Dropzone -->
-        <div class="braille-dropzone-box" id="braille-dropzone">
-          <input type="file" id="braille-file-input" accept="image/*" style="display: none;">
-          <p style="font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg); margin-bottom: 4px;">Upload Embossed Braille Document</p>
-          <p style="font-size: var(--text-sm); color: var(--text-muted);" id="dropzone-text">Drag photo here, or tap to choose an image</p>
-        </div>
-
-        <!-- Preview Container with Scan Beam -->
-        <div class="braille-preview-container" id="braille-preview-wrapper" style="display: none;">
-          <img id="braille-preview-img" alt="Uploaded Braille document preview">
-          <div class="braille-scan-beam"></div>
-        </div>
-
-        <!-- IQA Guidance Banner -->
-        <div id="braille-iqa-banner" class="say-aloud-card" style="display: none;">
-          <button type="button" id="check-iqa-btn" style="display: none;">Check IQA</button>
-          <p style="font-size: var(--text-xs); color: var(--text-2);">Lighting and sharpness look good for recognition.</p>
-        </div>
-
-        <button type="button" class="btn-primary-signal" id="translate-braille-btn" style="width: 100%;">Translate Braille Document</button>
-
-        <!-- Results Section -->
-        <div id="braille-results-section" style="display: none; flex-direction: column; gap: 14px;">
-          <textarea id="braille-text-output" class="braille-output-textarea" readonly aria-label="Translated Braille text"></textarea>
-          
-          <div id="braille-coverage-container">
-            <div style="display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 4px;">
-              <span id="braille-coverage-label">Coverage: 5 of 5 cells (100%)</span>
-              <span id="braille-stats-badge">120ms</span>
+          <!-- Result Row: Word & Confidence Ring -->
+          <div aria-live="polite" class="result-row">
+            <div class="result-main-col">
+              <!-- 3 Debounce Progress Segments -->
+              <div class="segments-bar" id="sign-segments-bar">
+                <div class="seg" id="seg-1"><i></i></div>
+                <div class="seg" id="seg-2"><i></i></div>
+                <div class="seg" id="seg-3"><i></i></div>
+                <div id="debounce-progress-fill" style="display: none;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <div class="pred-status-line" id="pred-status-line">Camera is off</div>
+              <div class="pred-word-display" id="pred-label-text" aria-label="Recognized sign">—</div>
             </div>
-            <div class="pred-consensus-meter">
-              <div id="braille-coverage-bar" class="debounce-progress-fill" style="width: 100%;"></div>
-            </div>
-            <p id="braille-coverage-details" class="sr-only"></p>
-          </div>
 
-          <pre id="braille-ascii-banner" style="font-family: var(--font-mono); font-size: var(--text-xs); background: var(--paper); padding: 8px; border-radius: var(--radius-control); overflow-x: auto;"></pre>
-
-          <div style="display: flex; gap: 8px;">
-            <button type="button" class="phrase-chip" id="speak-braille-btn">Speak</button>
-            <button type="button" class="phrase-chip" id="copy-braille-btn">Copy</button>
-            <button type="button" class="phrase-chip" id="download-braille-btn">Download .txt</button>
-          </div>
-        </div>
-
-        <p id="braille-engine-note" style="font-size: var(--text-xs); color: var(--text-muted);">Adaptive thresholding & morphology cell segmenter.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- =========================================================
-       SLIDE 03: Speech to Text (Live Voice Captions)
-       ========================================================= -->
-  <div id="slide-stt" class="slide-screen slide-from-left" role="dialog" aria-modal="true" aria-label="Speech to Text Slide">
-    <div class="slide-inner-frame">
-      
-      <!-- Top Banner -->
-      <div class="slide-banner-segment-wrap photo-editorial">
-        <picture>
-          <source srcset="/static/photos/voice-cafe.avif, /static/photos/voice-bg-wide.avif" type="image/avif">
-          <source srcset="/static/photos/voice-cafe.webp, /static/photos/voice-bg-wide.webp" type="image/webp">
-          <img src="/static/photos/voice-cafe.jpg" alt="Person reading live captions in a café conversation" width="2000" height="1250">
-        </picture>
-        <div class="photo-scrim"></div>
-        <div class="film-grain"></div>
-        <div class="slide-actor-top-row">
-          <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">←</button>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <select id="stt-lang-select" class="auth-lang-btn" aria-label="Select speech recognition language">
-              <option value="en-US">English (US)</option>
-              <option value="bn-BD">বাংলা (Bangladesh)</option>
-            </select>
-            <button type="button" class="auth-lang-btn" id="stt-font-toggle" aria-label="Toggle caption text size">
-              <span id="stt-font-label">A+</span>
-            </button>
-          </div>
-        </div>
-        <div class="slide-actor-titles">
-          <h2 class="slide-actor-h2">Speech to Text</h2>
-          <p class="slide-actor-sub">Real-Time Continuous Voice Captions</p>
-        </div>
-      </div>
-
-      <div class="slide-body-padding">
-        
-        <!-- Live Caption Box -->
-        <div class="stt-caption-display" id="stt-live-caption-box" role="region" aria-live="polite">
-          <p id="stt-placeholder" style="color: var(--text-muted); font-size: var(--text-lg);">Tap the microphone below and speak clearly...</p>
-          <div>
-            <span class="stt-final-words" id="stt-final-text"></span>
-            <span class="stt-interim-stream" id="stt-interim-text"></span>
-          </div>
-        </div>
-
-        <!-- 32-Bar Animated Waveform Strip -->
-        <div class="waveform-strip" id="stt-waveform" aria-hidden="true">
-          <div class="waveform-bar"></div><div class="waveform-bar"></div><div class="waveform-bar"></div>
-          <div class="waveform-bar"></div><div class="waveform-bar"></div><div class="waveform-bar"></div>
-          <div class="waveform-bar"></div><div class="waveform-bar"></div><div class="waveform-bar"></div>
-          <div class="waveform-bar"></div><div class="waveform-bar"></div><div class="waveform-bar"></div>
-        </div>
-
-        <!-- Microphone Toggle Button -->
-        <div style="text-align: center; margin: 8px 0;">
-          <button type="button" class="stt-mic-button" id="stt-toggle-btn" aria-label="Toggle voice microphone capture">
-            <span id="stt-mic-icon" style="font-size: 24px;">🎙️</span>
-          </button>
-          <p id="stt-mic-hint" style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 8px;">Tap to start listening</p>
-          <span class="pred-confidence-badge" id="stt-status-pill" style="margin-top: 4px; display: inline-block;">Idle</span>
-        </div>
-
-        <!-- Action Controls -->
-        <div style="display: flex; gap: 8px; justify-content: center;">
-          <button type="button" class="phrase-chip" id="stt-copy-btn">Copy Text</button>
-          <button type="button" class="phrase-chip" id="stt-clear-btn">Clear</button>
-          <button type="button" class="phrase-chip" id="stt-send-to-tts-btn" style="background: var(--violet); color: #FFF;">Send to TTS</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- =========================================================
-       SLIDE 04: Text to Speech (Natural Voice Synthesis)
-       ========================================================= -->
-  <div id="slide-tts" class="slide-screen slide-from-right" role="dialog" aria-modal="true" aria-label="Text to Speech Slide">
-    <div class="slide-inner-frame">
-      
-      <!-- Top Banner -->
-      <div class="slide-banner-segment-wrap photo-editorial">
-        <picture>
-          <source srcset="/static/photos/voice-cafe.avif, /static/photos/voice-bg-wide.avif" type="image/avif">
-          <source srcset="/static/photos/voice-cafe.webp, /static/photos/voice-bg-wide.webp" type="image/webp">
-          <img src="/static/photos/voice-cafe.jpg" alt="Natural Voice Synthesis conversation display" width="2000" height="1250">
-        </picture>
-        <div class="photo-scrim"></div>
-        <div class="film-grain"></div>
-        <div class="slide-actor-top-row">
-          <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">←</button>
-        </div>
-        <div class="slide-actor-titles">
-          <h2 class="slide-actor-h2">Text to Speech</h2>
-          <p class="slide-actor-sub">Natural Voice Synthesis</p>
-        </div>
-      </div>
-
-      <div class="slide-body-padding">
-        
-        <textarea id="tts-input-text" class="braille-output-textarea" placeholder="Type or paste any text to synthesize into spoken audio..." aria-label="Text to vocalize"></textarea>
-        
-        <div style="display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-muted);">
-          <span id="tts-char-count">0 characters</span>
-          <select id="tts-lang-select" class="phrase-chip" aria-label="Speech synthesis voice language">
-            <option value="en-US">English (Natural)</option>
-            <option value="bn-BD">বাংলা (Bengali)</option>
-          </select>
-        </div>
-
-        <!-- Speed Selector -->
-        <div style="display: flex; gap: 6px; align-items: center;">
-          <span style="font-size: var(--text-xs); font-weight: 600;">Speed:</span>
-          <button type="button" class="phrase-chip tts-speed-btn" data-speed="0.75">0.75x</button>
-          <button type="button" class="phrase-chip tts-speed-btn active" data-speed="1.0">1.0x</button>
-          <button type="button" class="phrase-chip tts-speed-btn" data-speed="1.25">1.25x</button>
-          <button type="button" class="phrase-chip tts-speed-btn" data-speed="1.5">1.5x</button>
-        </div>
-
-        <!-- Quick Phrases -->
-        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-          <button type="button" class="phrase-chip tts-quick-chip">Hello, nice to meet you</button>
-          <button type="button" class="phrase-chip tts-quick-chip">I need assistance</button>
-          <button type="button" class="phrase-chip tts-quick-chip">Where is the exit?</button>
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-          <button type="button" class="btn-primary-signal" id="tts-speak-btn" style="flex: 2;">Vocalize Text</button>
-          <button type="button" class="btn-outline-white" id="tts-stop-btn" style="flex: 1; color: var(--text-primary); border-color: var(--line);">Stop</button>
-          <button type="button" class="phrase-chip" id="tts-clear-btn">Clear</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- =========================================================
-       SLIDE 05: Accessible Healthcare Intake Wizard
-       ========================================================= -->
-  <div id="slide-care-intake" class="slide-screen slide-from-right" role="dialog" aria-modal="true" aria-label="Accessible Healthcare Symptom Intake Slide">
-    <div class="slide-inner-frame">
-      
-      <!-- Top Banner -->
-      <div class="slide-banner-segment-wrap photo-editorial">
-        <picture>
-          <source srcset="/static/photos/care-sign-communication.avif" type="image/avif">
-          <source srcset="/static/photos/care-sign-communication.webp" type="image/webp">
-          <img src="/static/photos/care-sign-communication.jpg" alt="Compassionate healthcare provider communicating with patient in sign language" width="1600" height="1200">
-        </picture>
-        <div class="photo-scrim"></div>
-        <div class="film-grain"></div>
-        <div class="slide-actor-top-row">
-          <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">←</button>
-          <span class="care-offline-badge online" id="care-wizard-offline-badge">
-            <span class="care-offline-dot"></span><span>Online</span>
-          </span>
-        </div>
-        <div class="slide-actor-titles">
-          <h2 class="slide-actor-h2">Accessible Health Intake</h2>
-          <p class="slide-actor-sub">Multi-Modal Symptom Communication & Evidence-Grounded Triage</p>
-        </div>
-      </div>
-
-      <div class="slide-body-padding">
-        
-        <!-- Wizard Steps Track -->
-        <div class="wizard-steps-track" role="tablist" aria-label="Intake Wizard Progress">
-          <div class="wizard-step-node active" data-step="1" onclick="TransifyCare.goToStep(1)">
-            <div class="wizard-node-circle">1</div>
-            <span class="wizard-node-label">Modality</span>
-          </div>
-          <div class="wizard-step-node" data-step="3" onclick="TransifyCare.goToStep(3)">
-            <div class="wizard-node-circle">2</div>
-            <span class="wizard-node-label">Symptoms</span>
-          </div>
-          <div class="wizard-step-node" data-step="4" onclick="TransifyCare.goToStep(4)">
-            <div class="wizard-node-circle">3</div>
-            <span class="wizard-node-label">Consent</span>
-          </div>
-          <div class="wizard-step-node" data-step="5">
-            <div class="wizard-node-circle">4</div>
-            <span class="wizard-node-label">Triage</span>
-          </div>
-        </div>
-
-        <!-- Step 1: Modality Selection -->
-        <div id="care-step-1" class="care-wizard-step-panel">
-          <h3 style="font-family: var(--font-display); font-size: var(--text-lg); font-weight: 800; margin-bottom: 4px;">Choose How You Wish to Communicate</h3>
-          <p style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 16px;">Select your preferred assistive modality or type directly.</p>
-
-          <div class="modality-selector-grid">
-            <button type="button" class="modality-card-btn" data-modality="sign">
-              <div class="modality-icon">🤟</div>
-              <strong>Sign Language</strong>
-              <span style="font-size: 11px; color: var(--text-muted);">BdSL / ASL Camera</span>
-            </button>
-            <button type="button" class="modality-card-btn" data-modality="braille">
-              <div class="modality-icon">⠃</div>
-              <strong>Braille Document</strong>
-              <span style="font-size: 11px; color: var(--text-muted);">UEB Grade 1 OCR</span>
-            </button>
-            <button type="button" class="modality-card-btn" data-modality="voice">
-              <div class="modality-icon">🎙️</div>
-              <strong>Voice / Speech</strong>
-              <span style="font-size: 11px; color: var(--text-muted);">Live STT Captions</span>
-            </button>
-            <button type="button" class="modality-card-btn selected" data-modality="text">
-              <div class="modality-icon">⌨️</div>
-              <strong>Direct Text</strong>
-              <span style="font-size: 11px; color: var(--text-muted);">Standard Keypad</span>
-            </button>
-          </div>
-
-          <div class="care-form-group">
-            <label for="care-confirmed-text">Transcribed / Confirmed Input</label>
-            <textarea id="care-confirmed-text" class="care-input-text" rows="3" placeholder="Symptoms transcribed from your chosen modality will appear here, or you may type directly..."></textarea>
-            <input type="hidden" id="care-raw-input" value="">
-          </div>
-
-          <button type="button" class="btn-primary-signal" id="care-next-to-symptoms" style="width: 100%;">
-            Continue to Symptom Details →
-          </button>
-        </div>
-
-        <!-- Step 3: Structured Symptom Clarification -->
-        <div id="care-step-3" class="care-wizard-step-panel" style="display: none;">
-          <h3 style="font-family: var(--font-display); font-size: var(--text-lg); font-weight: 800; margin-bottom: 4px;">Clarify Your Symptoms</h3>
-          <p style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 16px;">Structured information helps provide evidence-grounded triage safety.</p>
-
-          <div class="care-form-group">
-            <label for="care-chief-complaint">Primary Health Concern (Chief Complaint) *</label>
-            <input type="text" id="care-chief-complaint" class="care-input-text" placeholder="e.g., Severe crushing chest pain, or High fever with stomach pain" required>
-          </div>
-
-          <div class="care-form-group">
-            <label for="care-symptom-desc">Detailed Symptoms & Body Location</label>
-            <textarea id="care-symptom-desc" class="care-input-text" rows="3" placeholder="Describe how it feels, where it radiates, nausea, breathing difficulty, etc."></textarea>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div class="care-form-group">
-              <label for="care-onset-duration">Onset / Duration</label>
-              <input type="text" id="care-onset-duration" class="care-input-text" placeholder="e.g. 45 minutes, 3 days">
-            </div>
-            <div class="care-form-group">
-              <label>Trajectory</label>
-              <div class="trajectory-chips-row">
-                <button type="button" class="traj-chip-btn" data-traj="improving">Better</button>
-                <button type="button" class="traj-chip-btn selected" data-traj="stable">Same</button>
-                <button type="button" class="traj-chip-btn" data-traj="worsening">Worse</button>
+            <!-- Circular Confidence Ring 104x104 -->
+            <div class="ring-wrap">
+              <svg width="104" height="104" viewBox="0 0 76 76" aria-hidden="true">
+                <circle cx="38" cy="38" r="32" fill="none" stroke="#D9DAE6" stroke-width="6"/>
+                <circle class="ring" id="confidence-ring-circle" cx="38" cy="38" r="32" fill="none" stroke="#8338EC" stroke-width="6" stroke-dasharray="201" stroke-dashoffset="201"/>
+              </svg>
+              <div class="ring-content">
+                <span class="ring-pct" id="pred-confidence-badge">0%</span>
+                <span class="ring-sure">sure</span>
               </div>
             </div>
           </div>
 
-          <div class="care-form-group">
-            <label for="care-severity-slider">Symptom Severity (1 = Mild, 10 = Extreme / Intolerable)</label>
-            <div class="severity-slider-container">
-              <input type="range" id="care-severity-slider" class="severity-slider" min="1" max="10" value="5">
-              <div class="severity-score-badge" id="care-severity-badge">5</div>
+          <!-- Action Buttons -->
+          <div class="sign-actions-row">
+            <button type="button" id="speak-pred-btn" class="btn-speak-pred press" disabled>Speak word</button>
+            <button type="button" id="add-to-sentence-btn" class="btn-add-to-sentence press">Add to sentence</button>
+          </div>
+
+          <!-- Sentence Construction Panel -->
+          <div class="sentence-panel">
+            <div class="sentence-panel-label">Your sentence</div>
+            <div class="sentence-chips-container" id="sentence-token-chips"></div>
+            <div class="smooth-sentence-display">
+              <span id="smooth-sentence-text">Your sentence will appear here...</span>
+              <span class="caret" id="sign-caret"></span>
+            </div>
+            <div class="sentence-btn-row">
+              <button type="button" id="speak-sentence-btn" class="btn-speak-sentence press">Speak sentence</button>
+              <button type="button" id="copy-sentence-btn" class="btn-outline-dark press">Copy</button>
+              <button type="button" id="clear-sentence-btn" class="btn-outline-dark press">Clear</button>
+              <button type="button" id="reset-sign-btn" class="sr-only">Reset Sign</button>
             </div>
           </div>
 
-          <div class="care-form-group">
-            <label for="care-medical-context">Medical Context / Known Conditions</label>
-            <input type="text" id="care-medical-context" class="care-input-text" placeholder="e.g. Hypertension, Deaf signer, Visually impaired, Asthma">
+          <!-- Compatibility wrappers for app.js modules -->
+          <div id="fingerspelling-panel" style="display: none;">
+            <div id="alphabet-grid"></div>
+            <span id="spelled-word-display"></span>
+            <span id="current-letter-badge"></span>
+            <span id="current-live-letter"></span>
+            <span id="committed-words-text"></span>
+            <button type="button" id="spell-space-btn">Space</button>
+            <button type="button" id="spell-backspace-btn">Backspace</button>
+            <button type="button" id="spell-speak-btn">Speak Word</button>
+            <button type="button" id="spell-send-to-sentence-btn">Send</button>
+            <button type="button" id="spell-clear-btn">Clear</button>
           </div>
-
-          <div class="care-form-group">
-            <label for="care-allergies-meds">Current Medications / Allergies</label>
-            <input type="text" id="care-allergies-meds" class="care-input-text" placeholder="e.g. Paracetamol, Penicillin allergy, None">
+          <div id="sign-vocab-section" style="display: none;">
+            <div id="sign-domains-container"></div>
+            <div id="sign-vocabulary-grid"></div>
           </div>
-
-          <div style="display: flex; gap: 10px; margin-top: 16px;">
-            <button type="button" class="btn-outline-white" id="care-back-to-modality" style="flex: 1; border-color: var(--line); color: var(--text-primary);">← Back</button>
-            <button type="button" class="btn-primary-signal" id="care-next-to-consent" style="flex: 2;">Review & Consent →</button>
+          <div id="sentence-builder-panel" style="display: none;">
+            <button type="button" id="smooth-sentence-btn">Synthesize</button>
+            <span id="sentence-engine-badge"></span>
           </div>
-        </div>
+          <span id="pred-gloss-text" class="sr-only"></span>
+          <span id="pred-status-note" class="sr-only"></span>
+          <span id="sign-engine-note" class="sr-only"></span>
+          <span id="unified-english-output" class="sr-only"></span>
+          <span id="trans-source-model-tag" class="sr-only"></span>
+          <input type="checkbox" id="auto-speak-toggle" class="sr-only">
+        </aside>
+      </section>
 
-        <!-- Step 4: Patient Review & Explicit Consent -->
-        <div id="care-step-4" class="care-wizard-step-panel" style="display: none;">
-          <h3 style="font-family: var(--font-display); font-size: var(--text-lg); font-weight: 800; margin-bottom: 4px;">Confirm Intake & Grant Consent</h3>
-          <p style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 16px;">Please review your reported information carefully before submission.</p>
-
-          <div class="care-consent-card" style="background: var(--surface);">
-            <div style="font-size: 11px; text-transform: uppercase; font-weight: 800; color: var(--violet); margin-bottom: 6px;">
-              Intake Summary • <span id="summary-modality-text">TEXT</span>
+      <!-- ======================================================================
+           VIEW 4: PHRASES SCREEN (#phrases)
+           ====================================================================== -->
+      <section id="view-phrases" class="page-view" aria-label="Phrases">
+        <div class="phrases-container">
+          <!-- Header Row -->
+          <header class="phrases-header">
+            <div>
+              <h1 class="phrases-h1">Phrases</h1>
+              <p class="phrases-sub">Press a phrase to say it aloud. Add the ones you use every day.</p>
             </div>
-            <div style="font-weight: 700; font-size: var(--text-base); margin-bottom: 4px;" id="summary-complaint-text">Chief Complaint</div>
-            <p style="font-size: var(--text-xs); color: var(--text-2); margin-bottom: 8px;" id="summary-desc-text">Detailed Description</p>
-            <div style="font-size: 11px; color: var(--text-muted);" id="summary-metrics-text">Severity: 5/10 • Trajectory: stable</div>
-          </div>
-
-          <div class="care-consent-card">
-            <label class="care-consent-label" for="care-consent-check">
-              <input type="checkbox" id="care-consent-check" class="care-consent-checkbox" required checked>
-              <span>
-                <strong>Explicit Patient Consent:</strong> I voluntarily consent to having my communicated symptom details analyzed by Transify Care's deterministic clinical safety rules and queued for professional review by a licensed healthcare clinician. I understand this tool assists clinical communication and does not replace a medical doctor.
-              </span>
-            </label>
-          </div>
-
-          <div style="display: flex; gap: 10px;">
-            <button type="button" class="btn-outline-white" id="care-back-to-symptoms" style="flex: 1; border-color: var(--line); color: var(--text-primary);">← Back</button>
-            <button type="button" class="btn-primary-signal" id="care-submit-intake-btn" style="flex: 2;">Submit Healthcare Intake</button>
-          </div>
-        </div>
-
-        <!-- Step 5: Triage Results & Guidance -->
-        <div id="care-step-5" class="care-wizard-step-panel" style="display: none;">
-          <h3 style="font-family: var(--font-display); font-size: var(--text-lg); font-weight: 800; margin-bottom: 4px;">Preliminary Clinical Triage Assessment</h3>
-          <p style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 16px;">Deterministic safety rules evaluated with evidence from WHO & DGHS clinical guidelines.</p>
-
-          <div id="triage-assessment-output">
-            <!-- Dynamically populated by TransifyCare.renderTriageResult -->
-          </div>
-
-          <!-- Zero Auto-Audio: Explicit TTS Vocalization Button -->
-          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
-            <button type="button" class="btn-primary-signal" id="btn-care-speak-triage" style="width: 100%;">
-              🔊 Listen to Assessment (Text-to-Speech)
+            <button type="button" id="btn-toggle-add-phrase" class="btn-add-phrase-toggle press" aria-expanded="false">
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              <span id="add-phrase-btn-label">Add phrase</span>
             </button>
+          </header>
+
+          <!-- Collapsible Add Phrase Form -->
+          <section id="phrase-add-form" class="phrase-add-section" aria-label="Add a phrase" style="display: none;">
+            <div class="phrase-add-row">
+              <div class="phrase-input-field">
+                <label for="np" class="phrase-input-label">What do you want to say?</label>
+                <input id="np" type="text" class="phrase-text-input" placeholder="For example: I am allergic to peanuts">
+              </div>
+              <div role="group" aria-label="Category" class="category-btn-group">
+                <button type="button" class="cat-select-btn press active" data-cat="Everyday" aria-pressed="true">Everyday</button>
+                <button type="button" class="cat-select-btn press" data-cat="Needs" aria-pressed="false">Needs</button>
+                <button type="button" class="cat-select-btn press" data-cat="Emergency" aria-pressed="false">Emergency</button>
+              </div>
+              <button type="button" id="btn-save-phrase" class="btn-save-phrase press">Save phrase</button>
+            </div>
+          </section>
+
+          <!-- Search and Category Filter Row -->
+          <div class="phrases-filter-row">
+            <div class="phrase-search-wrap">
+              <label for="q" class="sr-only">Search phrases</label>
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A4860" stroke-width="2.2" stroke-linecap="round" class="phrase-search-icon"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input id="q" type="search" class="phrase-search-input" placeholder="Search phrases">
+            </div>
+            <div role="tablist" aria-label="Category" class="phrase-category-tablist">
+              <button type="button" role="tab" class="phrase-cat-tab active" data-cat="All" aria-selected="true">All <span class="phrase-cat-count" id="count-all">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Everyday" aria-selected="false">Everyday <span class="phrase-cat-count" id="count-everyday">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Needs" aria-selected="false">Needs <span class="phrase-cat-count" id="count-needs">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Emergency" aria-selected="false">Emergency <span class="phrase-cat-count" id="count-emergency">0</span></button>
+            </div>
+          </div>
+
+          <!-- Status Message Toast -->
+          <p id="phrase-toast-msg" class="phrase-status-msg" aria-live="polite"></p>
+
+          <!-- Grid of Phrase Cards -->
+          <ul class="phrases-grid" id="phrases-grid"></ul>
+
+          <!-- Empty State Container -->
+          <section id="phrases-empty-state" class="phrases-empty-state" aria-live="polite" style="display: none;">
+            <h2 class="phrases-empty-title" id="phrases-empty-title">No phrases here yet</h2>
+            <p class="phrases-empty-body" id="phrases-empty-body">Add the phrases you say most. They will appear here.</p>
+            <button type="button" id="btn-seed-starter-phrases" class="btn-welcome-primary press" style="max-width: 240px; height: 52px; font-size: 16px;">Add starter phrases</button>
+          </section>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           VIEW 5: BRAILLE SCANNER SCREEN (#braille)
+           ====================================================================== -->
+      <section id="view-braille" class="page-view" aria-label="Braille Image Translator">
+        <div class="braille-container">
+          <header class="braille-header">
+            <div>
+              <h1 class="phrases-h1">Braille scanner</h1>
+              <p class="phrases-sub">Scan a page, hear it read aloud, and explore Braille patterns.</p>
+            </div>
+          </header>
+
+          <!-- Upload Dropzone -->
+          <div class="braille-dropzone-card press" id="braille-dropzone" role="button" tabindex="0" aria-label="Drop Braille image here or browse">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8338EC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Drop an image of Braille or browse</h2>
+            <p style="margin: 6px 0 0; color: var(--text-2); font-size: 16px;" id="dropzone-text">Supports JPEG, PNG, WEBP with embossed or printed cells</p>
+            <form id="braille-upload-form" class="sr-only">
+              <input type="file" id="braille-file-input" accept="image/*">
+            </form>
+          </div>
+
+          <div class="braille-grid-layout">
+            <!-- Left: Interactive 6-Dot Cell Explorer -->
+            <div class="braille-interactive-card">
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Interactive Braille Cell</h2>
+              <p style="margin: 0; color: var(--text-2); font-size: 15px;">Press dots to inspect and verify character mappings.</p>
+              <div class="braille-grid-demo" style="margin: 16px 0;" role="group" aria-label="Interactive Braille dots">
+                <button type="button" class="dotb" data-braille-dot="1">1</button>
+                <button type="button" class="dotb" data-braille-dot="2">2</button>
+                <button type="button" class="dotb" data-braille-dot="3">3</button>
+                <button type="button" class="dotb" data-braille-dot="4">4</button>
+                <button type="button" class="dotb" data-braille-dot="5">5</button>
+                <button type="button" class="dotb" data-braille-dot="6">6</button>
+              </div>
+              <div style="font-size: 18px; font-weight: 700; color: var(--violet);" id="braille-interactive-char">Character: —</div>
+            </div>
+
+            <!-- Right: Translated Text Output -->
+            <div class="braille-result-card">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Translated Document</h2>
+                <span class="care-badge online" id="braille-stats-badge">Ready</span>
+              </div>
+              <div class="braille-output-box" id="braille-text-output" aria-live="polite">Upload or drop an image above to translate optical Braille.</div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" id="speak-braille-btn" class="btn-welcome-primary press" style="height: 48px; font-size: 16px; padding: 0 20px;">Speak aloud</button>
+                <button type="button" id="copy-braille-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Copy text</button>
+                <button type="button" id="download-braille-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Download</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hidden compatibility elements for braille page -->
+          <div id="slide-braille" style="display: none;"></div>
+          <div id="braille-preview-wrapper" style="display: none;"><img id="braille-preview-img" alt="Braille scan preview"></div>
+          <button type="button" id="check-iqa-btn" class="sr-only"></button>
+          <button type="button" id="translate-braille-btn" class="sr-only"></button>
+          <div id="braille-results-section" class="sr-only"></div>
+          <div id="braille-engine-note" class="sr-only"></div>
+          <div id="braille-coverage-container" class="sr-only"><div id="braille-coverage-label"></div><div id="braille-coverage-bar"></div><div id="braille-coverage-details"></div></div>
+          <div id="braille-ascii-banner" class="sr-only"></div>
+          <div id="braille-iqa-banner" class="sr-only"></div>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           VIEW 6: VOICE HUB SCREEN (#stt / #tts)
+           ====================================================================== -->
+      <section id="view-voice" class="page-view" aria-label="Voice Hub">
+        <div class="voice-container">
+          <header class="braille-header">
+            <div>
+              <h1 class="phrases-h1">Voice hub</h1>
+              <p class="phrases-sub">Live speech captions and natural read aloud.</p>
+            </div>
             <div style="display: flex; gap: 8px;">
-              <button type="button" class="phrase-chip" onclick="TransifyCare.goToStep(1)" style="flex: 1;">New Intake</button>
-              <button type="button" class="phrase-chip" onclick="openSlide('slide-clinician-portal')" style="flex: 1; background: var(--violet); color: #FFF;">Clinician Queue →</button>
+              <button type="button" id="btn-open-tts" class="sr-only">Open TTS</button>
+            </div>
+          </header>
+
+          <div class="voice-grid-layout">
+            <!-- Left: Speech to Text Live Captions -->
+            <div class="voice-captions-card" id="slide-stt">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Live Captions</h2>
+                <span class="care-badge online" id="stt-status-pill">Ready to Listen</span>
+              </div>
+              <div class="voice-caption-box" id="stt-live-caption-box" aria-live="polite">
+                <span id="stt-final-text">Press the microphone below to begin live speech recognition.</span>
+                <span id="stt-interim-text" class="voice-interim"></span>
+              </div>
+              <!-- Microphone Button with Expanding Rings -->
+              <div style="display: flex; justify-content: center; padding: 12px 0;">
+                <div class="mic-rings-wrap" id="stt-mic-rings-wrap">
+                  <i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i>
+                  <button type="button" id="stt-toggle-btn" class="btn-mic-main press" aria-label="Toggle speech to text recording">
+                    <svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="stt-mic-icon"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" id="stt-copy-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Copy captions</button>
+                <button type="button" id="stt-clear-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Clear</button>
+                <button type="button" id="stt-send-to-tts-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Send to speak</button>
+              </div>
+              <div class="sr-only">
+                <select id="stt-lang-select"><option value="en-US">English</option><option value="bn-BD">Bengali</option></select>
+                <span id="stt-mic-hint"></span>
+                <button type="button" id="stt-font-toggle"></button>
+                <span id="stt-font-label"></span>
+                <span id="stt-placeholder"></span>
+              </div>
+            </div>
+
+            <!-- Right: Text to Speech Read Aloud -->
+            <div class="voice-tts-card" id="slide-tts">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Read Aloud</h2>
+                <div style="display: flex; gap: 6px;">
+                  <select id="tts-lang-select" class="lang-segmented" style="border: none; padding: 4px 8px; font-size: 14px; font-weight: 700; color: var(--ink);">
+                    <option value="en">English (US)</option>
+                    <option value="bn">বাংলা (Bengali)</option>
+                  </select>
+                </div>
+              </div>
+              <label for="tts-input-text" class="sr-only">Text to speak aloud</label>
+              <textarea id="tts-input-text" class="tts-textarea" placeholder="Type or paste any text to speak aloud in natural voice..."></textarea>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" id="tts-speak-btn" class="btn-welcome-primary press" style="height: 48px; font-size: 16px; padding: 0 24px;">Speak text</button>
+                <button type="button" id="tts-stop-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Stop</button>
+                <button type="button" id="tts-clear-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Clear</button>
+              </div>
+              <span id="tts-char-count" class="sr-only">0 characters</span>
             </div>
           </div>
         </div>
+      </section>
 
-      </div>
-    </div>
-  </div>
-
-  <!-- =========================================================
-       SLIDE 06: Clinician Review Queue & Portal
-       ========================================================= -->
-  <div id="slide-clinician-portal" class="slide-screen slide-from-left" role="dialog" aria-modal="true" aria-label="Clinician Review Queue and Triage Portal Slide">
-    <div class="slide-inner-frame">
-      
-      <!-- Top Banner -->
-      <div class="slide-banner-segment-wrap photo-editorial">
-        <picture>
-          <source srcset="/static/photos/care-clinician-review.webp" type="image/webp">
-          <img src="/static/photos/care-clinician-review.svg" alt="Doctor reviewing clinical triage recommendations on tablet in hospital" width="2000" height="1250">
-        </picture>
-        <div class="photo-scrim"></div>
-        <div class="film-grain"></div>
-        <div class="slide-actor-top-row">
-          <button type="button" class="slide-back-button" onclick="closeAllSlides()" aria-label="Back to Home">←</button>
-          <div style="display: flex; gap: 8px;">
-            <button type="button" class="phrase-chip" id="btn-care-demo-reset" style="background: var(--signal); color: var(--signal-text); font-weight: 700; border: none;">
-              ⚡ Reset 180s Demo Cases
-            </button>
-          </div>
-        </div>
-        <div class="slide-actor-titles">
-          <h2 class="slide-actor-h2">Clinician Review Portal</h2>
-          <p class="slide-actor-sub">Professional Triage Verification, Urgency Overrides & Guideline RAG</p>
-        </div>
-      </div>
-
-      <div class="slide-body-padding">
-        
-        <!-- Live Dashboard Metrics -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
-          <div class="care-impact-stat" style="background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-surface); padding: 12px;">
-            <span class="stat-number" id="stat-total-intakes">3</span>
-            <span class="stat-label">Total Intakes</span>
-          </div>
-          <div class="care-impact-stat" style="background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-surface); padding: 12px;">
-            <span class="stat-number" id="stat-approved-sources">3</span>
-            <span class="stat-label">Clinical Sources (WHO/DGHS)</span>
-          </div>
-          <div class="care-impact-stat" style="background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-surface); padding: 12px;">
-            <span class="stat-number" style="color: var(--ok);">100%</span>
-            <span class="stat-label">Audit Logged</span>
-          </div>
-        </div>
-
-        <!-- Filter Bar -->
-        <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: var(--text-xs); font-weight: 700; color: var(--text-muted);">Queue:</span>
-          <button type="button" class="phrase-chip" onclick="TransifyCare.loadClinicianQueue()">All</button>
-          <button type="button" class="phrase-chip" onclick="TransifyCare.loadClinicianQueue('SUBMITTED')">Pending</button>
-          <button type="button" class="phrase-chip" onclick="TransifyCare.loadClinicianQueue('REVIEWED')">Reviewed</button>
-        </div>
-
-        <!-- Patient Queue Table -->
-        <div class="clinician-queue-table-wrap">
-          <table class="clinician-queue-table" id="clinician-queue-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Patient</th>
-                <th>Modality</th>
-                <th>Chief Concern</th>
-                <th>Urgency</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="clinician-queue-tbody">
-              <!-- Populated by TransifyCare.loadClinicianQueue() -->
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Single Case Inspector & Override Justification Form -->
-        <div id="clinician-case-inspector" class="review-modal-pane" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px;">
-            <h3 style="font-family: var(--font-display); font-size: var(--text-base); font-weight: 800; margin: 0;">
-              Clinical Case Inspector: <span id="inspect-case-id">#001</span>
-            </h3>
-            <span class="phrase-chip" id="inspect-modality" style="font-weight: 700;">SIGN</span>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <!-- ======================================================================
+           VIEW 7: TRANSIFY CARE (#care / #care-intake / #clinician)
+           ====================================================================== -->
+      <section id="view-care" class="page-view" aria-label="Transify Care">
+        <div class="care-container">
+          <header class="care-header">
             <div>
-              <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">PATIENT REPORTED CONCERN</div>
-              <div style="font-weight: 700; font-size: var(--text-sm); margin-top: 2px;" id="inspect-complaint">Severe Crushing Chest Pain</div>
-              <div style="font-size: var(--text-xs); color: var(--text-2); margin-top: 4px;" id="inspect-symptoms">Radiating to left arm with diaphoresis</div>
-              <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Sensor Raw: <span id="inspect-raw" style="font-family: var(--font-mono);"></span></div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <h1 class="phrases-h1">Transify Care</h1>
+                <span class="care-badge online" id="care-header-offline-badge">Online System</span>
+              </div>
+              <p class="phrases-sub">Accessible Healthcare Symptom Triage & Clinical Review Portal</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" id="quick-demo-pill-btn" class="btn-welcome-primary press" style="height: 44px; padding: 0 16px; font-size: 14px;">Demo Fixtures</button>
+              <div class="care-portal-tabs">
+                <button type="button" class="care-tab-btn active" id="care-tab-intake-btn" data-care-sub="intake">Patient Intake</button>
+                <button type="button" class="care-tab-btn" id="care-tab-clinician-btn" data-care-sub="clinician">Clinician Portal</button>
+              </div>
+            </div>
+          </header>
+
+          <!-- Sub-View A: Patient Intake -->
+          <div id="slide-care-intake" class="care-card">
+            <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Accessible Healthcare Symptom Intake</h2>
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div>
+                <label for="care-chief-complaint" style="display: block; font-weight: 700; margin-bottom: 6px;">Chief Complaint</label>
+                <input type="text" id="care-chief-complaint" class="care-input" placeholder="What medical issue or symptom are you experiencing?">
+                <input type="hidden" id="care-patient-complaint">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div>
+                  <label for="care-onset-duration" style="display: block; font-weight: 700; margin-bottom: 6px;">Onset & Duration</label>
+                  <input type="text" id="care-onset-duration" class="care-input" placeholder="e.g. 2 hours ago, sudden pressure">
+                </div>
+                <div>
+                  <label for="care-medical-context" style="display: block; font-weight: 700; margin-bottom: 6px;">Pre-existing Conditions</label>
+                  <input type="text" id="care-medical-context" class="care-input" placeholder="e.g. Hypertension, Asthma">
+                </div>
+              </div>
+              <div>
+                <label for="care-symptom-desc" style="display: block; font-weight: 700; margin-bottom: 6px;">Additional Details</label>
+                <textarea id="care-symptom-desc" class="care-input" style="min-height: 80px;" placeholder="Describe radiation, severity, or triggers..."></textarea>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; margin: 6px 0;">
+                <input type="checkbox" id="care-consent-check" style="width: 20px; height: 20px;">
+                <input type="checkbox" id="care-consent-checkbox" class="sr-only">
+                <label for="care-consent-check" style="font-weight: 600; font-size: 15px; color: var(--text-2);">I consent to clinical AI assisted triage review and symptom analysis.</label>
+              </div>
+              <div style="display: flex; gap: 12px;">
+                <button type="button" id="care-submit-intake-btn" class="btn-welcome-primary press" style="height: 52px; font-size: 17px; padding: 0 28px;">Analyze & Submit Intake</button>
+                <button type="button" id="care-submit-btn" class="sr-only">Submit Alias</button>
+                <button type="button" id="btn-care-demo-reset" class="btn-outline-dark press" style="height: 52px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Reset Demo</button>
+                <button type="button" id="care-reset-btn" class="sr-only">Reset Alias</button>
+              </div>
+              <div id="care-intake-result" style="margin-top: 14px;"></div>
+              <div id="triage-assessment-output" class="sr-only"></div>
+            </div>
+            <!-- Care Modality and Summary Wrappers -->
+            <div class="sr-only">
+              <input type="text" id="care-allergies-meds">
+              <span id="care-confirmed-text"></span>
+              <button type="button" id="care-back-to-modality"></button>
+              <button type="button" id="care-back-to-symptoms"></button>
+              <button type="button" id="care-next-to-consent"></button>
+              <button type="button" id="care-next-to-symptoms"></button>
+              <input type="hidden" id="care-raw-input">
+              <span id="care-severity-badge"></span>
+              <input type="range" id="care-severity-slider">
+              <span id="care-triage-explanation-text"></span>
+              <button type="button" id="btn-care-speak-triage"></button>
+              <div id="care-offline-banner"></div>
+              <span id="summary-complaint-text"></span>
+              <span id="summary-desc-text"></span>
+              <span id="summary-metrics-text"></span>
+              <span id="summary-modality-text"></span>
+            </div>
+          </div>
+
+          <!-- Sub-View B: Clinician Portal -->
+          <div id="slide-clinician-portal" class="care-card" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Clinician Triage Review Queue</h2>
+              <div style="display: flex; gap: 14px; font-size: 14px; font-weight: 700;">
+                <span>Total Intakes: <strong id="stat-total-intakes">0</strong></span>
+                <span>Approved Evidence: <strong id="stat-approved-sources">0</strong></span>
+              </div>
+            </div>
+            <!-- Queue Table -->
+            <div style="overflow-x: auto; margin-top: 12px;">
+              <table class="care-table">
+                <thead>
+                  <tr>
+                    <th>Case ID</th>
+                    <th>Patient Complaint</th>
+                    <th>Modality</th>
+                    <th>Urgency Level</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="clinician-queue-tbody">
+                  <tr><td colspan="6" style="text-align: center; color: var(--text-2); padding: 24px;">Loading clinician queue records...</td></tr>
+                </tbody>
+              </table>
             </div>
 
+            <!-- Case Inspector Drawer -->
+            <div id="clinician-case-inspector" class="care-card" style="margin-top: 20px; background: var(--surface-2); display: none;">
+              <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;">Case Inspection: <span id="inspect-case-id">—</span></h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px;">
+                <div><strong>Complaint:</strong> <span id="inspect-complaint">—</span></div>
+                <div><strong>Modality:</strong> <span id="inspect-modality">—</span></div>
+                <div><strong>Urgency:</strong> <span id="inspect-ai-urgency" class="care-urgency-badge routine">ROUTINE</span></div>
+                <div><strong>Protocol:</strong> <span id="inspect-ai-rule">—</span></div>
+              </div>
+              <div style="margin-top: 10px;"><strong>Symptoms:</strong> <span id="inspect-symptoms">—</span></div>
+              <div style="margin-top: 10px;"><strong>AI Explanation:</strong> <p id="inspect-ai-explanation" style="margin: 4px 0 0; color: var(--text-2);"></p></div>
+              <div style="margin-top: 10px;"><strong>Citations & Evidence:</strong> <ul id="inspect-citations-list" style="margin: 4px 0 0; padding-left: 20px;"></ul></div>
+              
+              <!-- Evidence Search -->
+              <div style="display: flex; gap: 10px; margin-top: 14px;">
+                <input type="text" id="clinician-evidence-search-input" class="care-input" placeholder="Search medical evidence & guidelines...">
+                <button type="button" id="btn-clinician-evidence-search" class="btn-welcome-secondary press" style="color: var(--ink); border-color: var(--line-2); height: 48px;">Search</button>
+              </div>
+              <div id="clinician-evidence-results" style="margin-top: 8px;"></div>
+
+              <!-- Clinician Decision Form -->
+              <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+                <label for="clinician-action-select" style="font-weight: 700;">Clinical Disposition</label>
+                <select id="clinician-action-select" class="care-input">
+                  <option value="admit_ed">Admit to Emergency Department</option>
+                  <option value="urgent_care">Refer to Urgent Care Center</option>
+                  <option value="telehealth">Schedule Telehealth Consultation</option>
+                  <option value="discharge">Discharge with Home Care Advice</option>
+                </select>
+                <label for="clinician-override-select" style="font-weight: 700;">Triage Urgency Override (Optional)</label>
+                <select id="clinician-override-select" class="care-input">
+                  <option value="">No Override (Accept AI Classification)</option>
+                  <option value="EMERGENT">Override to EMERGENT</option>
+                  <option value="URGENT">Override to URGENT</option>
+                  <option value="ROUTINE">Override to ROUTINE</option>
+                </select>
+                <input type="text" id="clinician-override-reason" class="care-input" placeholder="Reason for urgency override...">
+                <textarea id="clinician-notes-textarea" class="care-input" placeholder="Clinician clinical notes and follow-up guidance..."></textarea>
+                <button type="button" id="btn-complete-clinician-review" class="btn-welcome-primary press" style="height: 48px; max-width: 240px;">Finalize Triage</button>
+              </div>
+              <span id="inspect-raw" class="sr-only"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           VIEW 8: SETTINGS SCREEN (#settings)
+           ====================================================================== -->
+      <section id="view-settings" class="page-view" aria-label="Settings">
+        <div class="settings-container">
+          <header class="phrases-header">
             <div>
-              <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">AI SAFETY TRIAGE EVALUATION</div>
-              <div style="font-weight: 800; font-size: var(--text-base); color: var(--danger); margin-top: 2px;" id="inspect-ai-urgency">RED</div>
-              <div style="font-size: 11px; font-weight: 600; color: var(--text-2); margin-top: 2px;" id="inspect-ai-rule">RULE-EMERG-001</div>
-              <p style="font-size: var(--text-xs); color: var(--text-2); margin-top: 4px;" id="inspect-ai-explanation">Potential acute coronary syndrome</p>
+              <h1 class="phrases-h1">Settings</h1>
+              <p class="phrases-sub">Preferences, accessibility dials, and account credentials.</p>
+            </div>
+          </header>
+
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <!-- Accessibility Card -->
+            <div class="care-card">
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Accessibility & Motion</h2>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line);">
+                <div>
+                  <div style="font-weight: 700; font-size: 16px;">Reduce motion</div>
+                  <div style="color: var(--text-2); font-size: 14px;">Disable animations, scanning beams, and transitions across all screens.</div>
+                </div>
+                <input type="checkbox" id="setting-reduce-motion" style="width: 24px; height: 24px; cursor: pointer;">
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
+                <div>
+                  <div style="font-weight: 700; font-size: 16px;">Interface Language</div>
+                  <div style="color: var(--text-2); font-size: 14px;">Choose English or বাংলা as the primary application language.</div>
+                </div>
+                <select id="setting-lang-select" class="care-input" style="max-width: 160px;">
+                  <option value="en">English</option>
+                  <option value="bn">বাংলা</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Account Card -->
+            <div class="care-card">
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Account & Session</h2>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: 700; font-size: 16px;" id="settings-user-name">Guest User</div>
+                  <div style="color: var(--text-2); font-size: 14px;" id="settings-user-email">Offline local storage mode</div>
+                </div>
+                <button type="button" id="btn-settings-auth" class="btn-welcome-secondary press" style="color: var(--ink); border-color: var(--line-2); height: 44px;" onclick="window.TransifyApp.openAuthSheet('login')">Sign In</button>
+              </div>
             </div>
           </div>
-
-          <!-- RAG Citations for this case -->
-          <div style="background: var(--paper); padding: 10px; border-radius: var(--radius-control);">
-            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">REFERENCED GUIDELINES (CLINICAL RAG):</div>
-            <div id="inspect-citations-list"></div>
-          </div>
-
-          <!-- Professional Clinician Action & Mandatory Justification -->
-          <div class="care-form-group">
-            <label for="clinician-action-select">Clinician Decision / Action</label>
-            <select id="clinician-action-select" class="care-select">
-              <option value="COMPLETED">COMPLETED — Accept Triage & Confirm Care Pathway</option>
-              <option value="OVERRIDDEN">OVERRIDDEN — Override Urgency Level</option>
-              <option value="CLARIFICATION_REQUESTED">CLARIFICATION_REQUESTED — Request Additional Patient Information</option>
-              <option value="MODIFIED">MODIFIED — Adjust Clinical Notes & Triage Level</option>
-            </select>
-          </div>
-
-          <div class="care-form-group">
-            <label for="clinician-override-select">Urgency Override (Required if Overriding AI)</label>
-            <select id="clinician-override-select" class="care-select">
-              <option value="NONE">No Urgency Change (Retain AI Triage Level)</option>
-              <option value="RED">RED — Immediate Emergency Escalation</option>
-              <option value="YELLOW">YELLOW — Urgent Clinical Review Required</option>
-              <option value="GREEN">GREEN — Routine Primary Care</option>
-            </select>
-          </div>
-
-          <div class="care-form-group">
-            <label for="clinician-override-reason">Medical Justification for Override (Mandatory if Overriding)</label>
-            <textarea id="clinician-override-reason" class="justification-field" placeholder="Provide clinical rationale for modifying or overriding the AI recommendation..."></textarea>
-          </div>
-
-          <div class="care-form-group">
-            <label for="clinician-notes-textarea">Clinical Impressions & Patient Prescription / Follow-up Notes</label>
-            <textarea id="clinician-notes-textarea" class="care-input-text" rows="3" placeholder="Clinical notes, diagnostic orders, telemedicine instructions..."></textarea>
-          </div>
-
-          <button type="button" class="btn-primary-signal" id="btn-complete-clinician-review" style="width: 100%;">
-            Complete Clinical Review & Sign Off
-          </button>
         </div>
+      </section>
 
-        <!-- Evidence Library Search Box -->
-        <div style="background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-surface); padding: 16px; margin-top: 20px;">
-          <h4 style="font-family: var(--font-display); font-size: var(--text-sm); font-weight: 800; margin: 0 0 8px 0;">
-            Query Evidence Library (WHO & DGHS Protocols)
-          </h4>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="clinician-evidence-search-input" class="care-input-text" placeholder="Search conditions (e.g. dengue, chest pain, stroke, stroke protocol)...">
-            <button type="button" class="btn-primary-signal" id="btn-clinician-evidence-search" style="white-space: nowrap;">Search</button>
-          </div>
-          <div id="clinician-evidence-results" style="margin-top: 12px;"></div>
+    </div><!-- /.content-frame -->
+  </div><!-- /.app-shell -->
+
+  <!-- ==========================================================================
+       AUTHENTICATION SHEET MODAL (Login & Sign Up)
+       ========================================================================== -->
+  <div class="auth-sheet-container" id="auth-sheet-container" role="dialog" aria-modal="true" aria-label="Sign In or Sign Up">
+    <div class="auth-sheet-backdrop" id="auth-sheet-backdrop" onclick="window.TransifyApp.closeAuthSheet()"></div>
+    <div class="auth-sheet-card" id="auth-sheet-card">
+      <div class="auth-card-header">
+        <div>
+          <h2 class="auth-card-title" id="auth-heading-title">Welcome Back!</h2>
+          <p style="margin: 4px 0 0; color: var(--text-2); font-size: 14px;" id="auth-heading-subtitle">Sign in to your Transify account</p>
         </div>
-
+        <button type="button" class="btn-outline-dark press" style="border: none; font-size: 20px; font-weight: 700; color: var(--text-2);" onclick="window.TransifyApp.closeAuthSheet()" aria-label="Close form">×</button>
       </div>
+
+      <div class="auth-tabs-row" role="tablist">
+        <button type="button" class="auth-tab-btn active" id="tab-login" role="tab" aria-selected="true">Login</button>
+        <button type="button" class="auth-tab-btn" id="tab-signup" role="tab" aria-selected="false">Sign Up</button>
+      </div>
+
+      <div id="auth-alert" style="display: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600;" role="alert"></div>
+
+      <form id="auth-form" onsubmit="event.preventDefault(); window.TransifyApp.handleDirectLogin();">
+        <div class="auth-input-group">
+          <div id="group-fullname" style="display: none;">
+            <input type="text" id="input-fullname" class="auth-text-input" placeholder="Full name">
+          </div>
+          <input type="email" id="input-email" class="auth-text-input" placeholder="Email address" required>
+          <div style="position: relative;">
+            <input type="password" id="input-password" class="auth-text-input" placeholder="Password" required>
+            <button type="button" id="eye-icon" onclick="var p = document.getElementById('input-password'); p.type = (p.type === 'password' ? 'text' : 'password'); this.textContent = (p.type === 'password' ? 'Show' : 'Hide');" style="position: absolute; right: 12px; top: 14px; background: none; border: none; color: var(--text-2); font-size: 14px; font-weight: 600; cursor: pointer;">Show</button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 12px 0;">
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-2); cursor: pointer;">
+            <input type="checkbox" id="remember-me" checked>
+            <span id="remember-label-text">Remember me</span>
+          </label>
+          <a href="#" id="forgot-password-link" style="font-size: 14px; color: var(--violet); font-weight: 600;" onclick="event.preventDefault(); alert('Password reset link sent to demo email.');">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="auth-submit-btn press" id="auth-submit-btn" style="width: 100%;">
+          <span id="btn-text">Sign In</span>
+        </button>
+
+        <div style="text-align: center; margin-top: 14px; font-size: 14px; color: var(--text-2);">
+          <span id="switch-prompt-text">Don't have an account?</span>
+          <a href="#" id="switch-prompt-link" style="color: var(--violet); font-weight: 700; margin-left: 4px;" onclick="event.preventDefault(); document.getElementById('tab-signup').click();">Create one</a>
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- Settings & Profile Modal -->
-  <div id="profile-modal-overlay" class="transify-auth-overlay auth-hidden" role="dialog" aria-modal="true" aria-label="User Profile and Settings">
-    <div class="auth-single-frame" style="max-width: 400px; height: auto; padding: 24px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="font-family: var(--font-display); font-size: var(--text-xl); font-weight: 800;">Profile & Settings</h2>
-        <button type="button" onclick="window.TransifyApp.closeProfileModal()" style="font-weight: 700; color: var(--text-muted);">Close</button>
-      </div>
-
-      <div style="margin-bottom: 16px;">
-        <p id="profile-name-text" style="font-weight: 700; font-size: var(--text-lg);">Sarah Ahmed</p>
-        <p id="profile-email-text" style="font-size: var(--text-sm); color: var(--text-muted);">demo@transify.ai</p>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <button type="button" class="phrase-chip" onclick="document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark')">Toggle Dark / Light Theme</button>
-        <button type="button" class="phrase-chip" onclick="document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'hc' ? 'light' : 'hc')">Toggle High Contrast (AAA)</button>
-        <button type="button" class="btn-outline-white" onclick="window.TransifyApp.logoutUser()" style="color: var(--danger); border-color: var(--danger); margin-top: 12px;">Log Out</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hidden Dashboard Structure for Backend Telemetry & Tests -->
+  <!-- Telemetry & Dashboard Hidden Structural Elements -->
   <div id="dashboard-container" style="display: none;" aria-hidden="true">
     <div id="system-status-badge">System Healthy</div>
     <div id="sign-model-metric">98.7% Accuracy</div>
@@ -1106,82 +992,18 @@
     <ul id="history-records-list"></ul>
     <button type="button" id="clear-history-btn">Clear History</button>
   </div>
+  <div id="profile-modal-overlay" style="display: none;">
+    <span id="profile-name-text"></span>
+    <span id="profile-email-text"></span>
+  </div>
+  <div id="transify-splash-screen" style="display: none;">
+    <div id="splash-progressbar"><div id="splash-progress-fill"></div></div>
+    <span id="splash-percent-text"></span>
+  </div>
+  <div id="transify-auth-screen" style="display: none;"></div>
 
-  <!-- Client Application Script -->
-  <script src="/static/app.js?v=20261120_editorial_v2"></script>
-  <script src="/static/care.js?v=20261120_care_v1"></script>
-
-  <!-- Slide Control Logic with smooth navigation -->
-  <script>
-    function openSlide(slideId) {
-      const slide = document.getElementById(slideId);
-      if (!slide) return;
-
-      document.querySelectorAll('.slide-screen').forEach(s => s.classList.remove('active'));
-
-      slide.classList.add('active');
-      slide.scrollTop = 0;
-
-      const mainCard = document.getElementById('main-content');
-      if (mainCard) mainCard.classList.add('sheet-scaled');
-      document.body.style.overflow = 'hidden';
-
-      if (slideId === 'slide-hand-signal') {
-        if (window.SignPage && window.SignPage.init) window.SignPage.init();
-        if (history.pushState) history.pushState({ slide: 'sign' }, '', '#sign');
-      } else if (slideId === 'slide-braille') {
-        if (window.BraillePage && window.BraillePage.init) window.BraillePage.init();
-        if (history.pushState) history.pushState({ slide: 'braille' }, '', '#braille');
-      } else if (slideId === 'slide-stt') {
-        if (window.TransifySTT && window.TransifySTT.init) window.TransifySTT.init();
-        if (history.pushState) history.pushState({ slide: 'stt' }, '', '#stt');
-      } else if (slideId === 'slide-tts') {
-        if (window.TransifyTTSPage && window.TransifyTTSPage.init) window.TransifyTTSPage.init();
-        if (history.pushState) history.pushState({ slide: 'tts' }, '', '#tts');
-      } else if (slideId === 'slide-care-intake') {
-        if (history.pushState) history.pushState({ slide: 'care-intake' }, '', '#care-intake');
-      } else if (slideId === 'slide-clinician-portal') {
-        if (window.TransifyCare && window.TransifyCare.loadClinicianQueue) {
-          window.TransifyCare.loadClinicianQueue();
-          window.TransifyCare.loadDashboardStats();
-        }
-        if (history.pushState) history.pushState({ slide: 'clinician' }, '', '#clinician');
-      }
-    }
-
-    function closeAllSlides() {
-      document.querySelectorAll('.slide-screen').forEach(s => s.classList.remove('active'));
-      const mainCard = document.getElementById('main-content');
-      if (mainCard) mainCard.classList.remove('sheet-scaled');
-      document.body.style.overflow = '';
-      if (history.pushState) history.pushState({}, '', '#');
-    }
-
-    window.addEventListener('popstate', function(e) {
-      const hash = window.location.hash;
-      if (hash === '#sign') openSlide('slide-hand-signal');
-      else if (hash === '#braille') openSlide('slide-braille');
-      else if (hash === '#stt') openSlide('slide-stt');
-      else if (hash === '#tts') openSlide('slide-tts');
-      else if (hash === '#care-intake') openSlide('slide-care-intake');
-      else if (hash === '#clinician') openSlide('slide-clinician-portal');
-      else closeAllSlides();
-    });
-
-    window.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') closeAllSlides();
-    });
-
-    // Language switcher toggle
-    document.getElementById('lang-toggle-btn')?.addEventListener('click', function() {
-      const isBn = this.textContent.includes('EN');
-      this.textContent = isBn ? 'বাংলা / EN' : 'EN / বাংলা';
-      const headline = document.querySelector('.auth-welcome-headline');
-      if (headline) {
-        headline.innerHTML = isBn ? 'সাইন, ব্রেইল ও কথা,<br>এক জায়গায়।' : 'Sign. Read.<br>Speak aloud.';
-      }
-      try { localStorage.setItem('transify_lang', isBn ? 'bn' : 'en'); } catch(e) {}
-    });
-  </script>
+  <!-- Client Application Scripts -->
+  <script src="/static/app.js?v=20261120_pixel_exact_v2"></script>
+  <script src="/static/care.js?v=20261120_care_v2"></script>
 </body>
 </html>

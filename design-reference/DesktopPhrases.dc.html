@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phrases, desktop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input{font-family:inherit}
+a{text-decoration:none;color:inherit}
+:focus-visible{outline:3px solid #8338EC;outline-offset:3px}
+.press{transition:transform .18s cubic-bezier(.2,.7,.2,1),background .2s,border-color .2s,color .2s}
+.press:active{transform:scale(.98)}
+.rail a{transition:background .2s,color .2s}
+.rail a:hover{background:rgba(255,255,255,.08)}
+.card{transition:border-color .2s,transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+.card:hover{border-color:#8338EC;transform:translateY(-2px)}
+.card:active{transform:scale(.985)}
+.in{opacity:0;transform:translateY(10px);animation:in .6s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes in{to{opacity:1;transform:none}}
+.drop{animation:drop .35s cubic-bezier(.2,.8,.2,1) both}
+@keyframes drop{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.wave{display:flex;align-items:center;gap:3px;height:22px}
+.wave i{width:3px;height:100%;background:#8338EC;transform-origin:center;animation:w .9s ease-in-out infinite}
+.wave i:nth-child(2n){animation-delay:-.3s}.wave i:nth-child(3n){animation-delay:-.55s}
+@keyframes w{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+.tab{transition:background .2s,color .2s}
+@media (prefers-reduced-motion:reduce){.in,.drop,.wave i{animation:none;opacity:1;transform:none}.press,.card,.tab,.rail a{transition:none}.card:hover{transform:none}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;box-sizing:border-box;background:#EEEFF5;color:#14111F;font-family:'Hind Siliguri',system-ui,sans-serif;display:flex;flex-wrap:wrap">
+
+  <nav aria-label="Main" class="rail" style="flex:0 0 112px;min-height:900px;box-sizing:border-box;padding:28px 12px;background:#14111F;display:flex;flex-direction:column;align-items:stretch;gap:6px">
+    <div aria-hidden="true" style="align-self:center;margin-bottom:28px;display:grid;grid-template-columns:repeat(2,9px);grid-template-rows:repeat(3,9px);grid-auto-flow:column;gap:5px"><i style="border-radius:50%;background:rgba(255,255,255,.28)"></i><i style="border-radius:50%;background:#FFCB05"></i><i style="border-radius:50%;background:#FFCB05"></i><i style="border-radius:50%;background:rgba(255,255,255,.28)"></i><i style="border-radius:50%;background:#FFCB05"></i><i style="border-radius:50%;background:rgba(255,255,255,.28)"></i></div>
+    <a href="DesktopHome.dc.html" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;border-radius:12px;color:#CFCCE0;font-size:13px;font-weight:600"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9H4z"/></svg>Home</a>
+    <a href="DesktopSign.dc.html" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;border-radius:12px;color:#CFCCE0;font-size:13px;font-weight:600"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V6a1.5 1.5 0 0 1 3 0v5M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6a1.5 1.5 0 0 1 3 0v7c0 4-2 7-6 7-3 0-4-2-6-5l-1-2a1.5 1.5 0 0 1 2.5-1.5L8 13"/></svg>Sign</a>
+    <a href="Braille.dc.html" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;border-radius:12px;color:#CFCCE0;font-size:13px;font-weight:600"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="9" cy="18" r="2.2"/><circle cx="16" cy="6" r="2.2" opacity=".3"/><circle cx="16" cy="12" r="2.2"/><circle cx="16" cy="18" r="2.2" opacity=".3"/></svg>Braille</a>
+    <a href="Voice.dc.html" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;border-radius:12px;color:#CFCCE0;font-size:13px;font-weight:600"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Voice</a>
+    <a href="DesktopPhrases.dc.html" aria-current="page" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:72px;border-radius:12px;background:#FFCB05;color:#14111F;font-size:13px;font-weight:700"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Phrases</a>
+  </nav>
+
+  <main style="flex:1 1 760px;min-width:0;box-sizing:border-box;padding:40px 56px 56px">
+    <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+
+      <header class="in" style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div>
+          <h1 style="margin:0;font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:44px;line-height:1.02;letter-spacing:-.035em">Phrases</h1>
+          <p style="margin:8px 0 0;font-size:18px;color:#4A4860">Press a phrase to say it aloud. Add the ones you use every day.</p>
+        </div>
+        <button type="button" onClick="{{ toggleAdd }}" aria-expanded="{{ adding }}" class="press" style="min-height:52px;padding:0 22px;border:0;border-radius:12px;background:#8338EC;color:#fff;font-weight:700;font-size:17px;display:flex;align-items:center;gap:10px;cursor:pointer"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>{{ addLabel }}</button>
+      </header>
+
+      <sc-if value="{{ adding }}" hint-placeholder-val="{{ false }}">
+        <section aria-label="Add a phrase" class="drop" style="background:#fff;border:1.5px solid #8338EC;border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div style="flex:1 1 360px">
+              <label for="np" style="display:block;font-size:15px;font-weight:600;margin-bottom:6px">What do you want to say?</label>
+              <input id="np" type="text" value="{{ newText }}" onInput="{{ onNew }}" placeholder="For example: I am allergic to peanuts" style="width:100%;box-sizing:border-box;height:52px;border:1.5px solid #B9BAD0;border-radius:10px;padding:0 14px;font-size:18px;color:#14111F;background:#FAFAFD">
+            </div>
+            <div role="group" aria-label="Category" style="display:flex;gap:6px">
+              <sc-for list="{{ newCats }}" as="c" hint-placeholder-count="3">
+                <button type="button" aria-pressed="{{ c.on }}" onClick="{{ c.pick }}" class="press" style="min-height:52px;padding:0 16px;border-radius:10px;border:1.5px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }};font-weight:700;font-size:16px;cursor:pointer">{{ c.label }}</button>
+              </sc-for>
+            </div>
+            <button type="button" onClick="{{ savePhrase }}" class="press" style="min-height:52px;padding:0 22px;border:0;border-radius:10px;background:#14111F;color:#fff;font-weight:700;font-size:17px;cursor:pointer">Save phrase</button>
+          </div>
+        </section>
+      </sc-if>
+
+      <div class="in" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;animation-delay:.08s">
+        <div style="position:relative;flex:1 1 320px;max-width:460px">
+          <label for="q" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search phrases</label>
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A4860" stroke-width="2.2" stroke-linecap="round" style="position:absolute;left:16px;top:16px"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="q" type="search" value="{{ q }}" onInput="{{ onSearch }}" placeholder="Search phrases" style="width:100%;box-sizing:border-box;height:52px;border:1.5px solid #B9BAD0;border-radius:10px;padding:0 14px 0 46px;font-size:17px;color:#14111F;background:#fff">
+        </div>
+        <div role="tablist" aria-label="Category" style="display:flex;gap:3px;padding:3px;border-radius:12px;background:#DEDFEA">
+          <sc-for list="{{ cats }}" as="c" hint-placeholder-count="4">
+            <button type="button" role="tab" aria-selected="{{ c.on }}" onClick="{{ c.pick }}" class="press tab" style="min-height:46px;padding:0 16px;border:0;border-radius:9px;font-size:16px;font-weight:700;cursor:pointer;background:{{ c.bg }};color:{{ c.fg }}">{{ c.label }} <span style="font-weight:600;opacity:.75">{{ c.count }}</span></button>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ true }}">
+        <ul style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+          <sc-for list="{{ items }}" as="p" hint-placeholder-count="6">
+            <li>
+              <button type="button" onClick="{{ p.speak }}" aria-label="{{ p.aria }}" class="card" style="width:100%;min-height:148px;box-sizing:border-box;text-align:left;border:1.5px solid #D9DAE6;border-radius:14px;background:#fff;padding:18px 18px 16px;display:flex;flex-direction:column;gap:6px;cursor:pointer;color:#14111F">
+                <span style="display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;color:{{ p.tagFg }}"><span style="display:flex;align-items:center;gap:6px">{{ p.cat }}</span>
+                  <sc-if value="{{ p.playing }}" hint-placeholder-val="{{ false }}"><span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></sc-if>
+                  <sc-if value="{{ p.idle }}" hint-placeholder-val="{{ true }}"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A4860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg></sc-if>
+                </span>
+                <span style="font-family:'Schibsted Grotesk',sans-serif;font-weight:700;font-size:24px;line-height:1.15;letter-spacing:-.02em">{{ p.en }}</span>
+                <span style="margin-top:auto;font-size:18px;line-height:1.5;color:#4A4860">{{ p.bn }}</span>
+              </button>
+            </li>
+          </sc-for>
+        </ul>
+      </sc-if>
+
+      <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+        <section aria-live="polite" style="padding:56px 24px;border:1.5px dashed #B9BAD0;border-radius:14px;text-align:center;background:#F6F6FB">
+          <h2 style="margin:0;font-family:'Schibsted Grotesk',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.02em">{{ emptyTitle }}</h2>
+          <p style="margin:8px auto 18px;font-size:17px;max-width:420px;color:#4A4860">{{ emptyBody }}</p>
+          <button type="button" onClick="{{ toggleAdd }}" class="press" style="min-height:52px;padding:0 22px;border:0;border-radius:12px;background:#8338EC;color:#fff;font-weight:700;font-size:17px;cursor:pointer">Add a phrase</button>
+        </section>
+      </sc-if>
+
+      <p aria-live="polite" style="margin:0;font-size:15px;color:#4A4860">{{ toast }}</p>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      cat: 'All', q: '', adding: false, newText: '', newCat: 'Everyday', playing: -1, toast: '',
+      phrases: [
+        { en: 'Hello', bn: 'হ্যালো', cat: 'Everyday' },
+        { en: 'Thank you', bn: 'ধন্যবাদ', cat: 'Everyday' },
+        { en: 'Please slow down', bn: 'দয়া করে আস্তে বলুন', cat: 'Everyday' },
+        { en: 'Can you write that down?', bn: 'আপনি কি এটা লিখে দিতে পারবেন?', cat: 'Everyday' },
+        { en: 'I do not understand', bn: 'আমি বুঝতে পারছি না', cat: 'Everyday' },
+        { en: 'I need water', bn: 'আমার পানি দরকার', cat: 'Needs' },
+        { en: 'Where is the restroom?', bn: 'টয়লেট কোথায়?', cat: 'Needs' },
+        { en: 'I need help reading this', bn: 'এটা পড়তে আমার সাহায্য দরকার', cat: 'Needs' },
+        { en: 'I need help', bn: 'আমার সাহায্য দরকার', cat: 'Emergency' },
+        { en: 'Please call a doctor', bn: 'দয়া করে ডাক্তার ডাকুন', cat: 'Emergency' },
+        { en: 'I am lost', bn: 'আমি পথ হারিয়ে ফেলেছি', cat: 'Emergency' }
+      ]
+    };
+  }
+  componentWillUnmount() {
+    clearTimeout(this._t);
+    clearTimeout(this._n);
+  }
+  renderVals() {
+    const s = this.state;
+    const q = s.q.trim().toLowerCase();
+    const inCat = (p) => s.cat === 'All' || p.cat === s.cat;
+    const match = (p) => !q || p.en.toLowerCase().indexOf(q) > -1 || p.bn.indexOf(s.q.trim()) > -1;
+    const visible = s.phrases.map((p, i) => ({ p, i })).filter((x) => inCat(x.p) && match(x.p));
+    const catNames = ['All', 'Everyday', 'Needs', 'Emergency'];
+    const cats = catNames.map((c) => ({
+      label: c,
+      count: c === 'All' ? s.phrases.length : s.phrases.filter((p) => p.cat === c).length,
+      on: s.cat === c,
+      bg: s.cat === c ? '#14111F' : 'transparent',
+      fg: s.cat === c ? '#fff' : '#14111F',
+      pick: () => this.setState({ cat: c })
+    }));
+    const newCats = ['Everyday', 'Needs', 'Emergency'].map((c) => ({
+      label: c,
+      on: s.newCat === c,
+      bg: s.newCat === c ? '#14111F' : '#fff',
+      fg: s.newCat === c ? '#fff' : '#14111F',
+      bd: s.newCat === c ? '#14111F' : '#B9BAD0',
+      pick: () => this.setState({ newCat: c })
+    }));
+    const items = visible.map(({ p, i }) => ({
+      en: p.en,
+      bn: p.bn,
+      cat: p.cat,
+      tagFg: p.cat === 'Emergency' ? '#B3173F' : '#4A4860',
+      aria: 'Say aloud: ' + p.en,
+      playing: s.playing === i,
+      idle: s.playing !== i,
+      speak: () => {
+        this.setState({ playing: i });
+        clearTimeout(this._t);
+        this._t = setTimeout(() => this.setState({ playing: -1 }), 2200);
+      }
+    }));
+    const empty = visible.length === 0;
+    return {
+      cats,
+      newCats,
+      items,
+      hasResults: !empty,
+      noResults: empty,
+      emptyTitle: q ? 'No phrases match "' + s.q.trim() + '"' : 'No phrases here yet',
+      emptyBody: q ? 'Check the spelling, or add it as a new phrase.' : 'Add the phrases you say most. They will appear here.',
+      adding: s.adding,
+      addLabel: s.adding ? 'Close' : 'Add phrase',
+      toggleAdd: () => this.setState({ adding: !s.adding }),
+      q: s.q,
+      onSearch: (e) => this.setState({ q: e.target.value }),
+      newText: s.newText,
+      onNew: (e) => this.setState({ newText: e.target.value }),
+      toast: s.toast,
+      savePhrase: () => {
+        const t = s.newText.trim();
+        if (!t) return;
+        const list = s.phrases.concat([{ en: t, bn: '', cat: s.newCat }]);
+        this.setState({ phrases: list, newText: '', adding: false, cat: 'All', q: '', toast: 'Phrase saved to ' + s.newCat });
+        clearTimeout(this._n);
+        this._n = setTimeout(() => this.setState({ toast: '' }), 2400);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
