@@ -376,17 +376,27 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
 
     // 6. High Contrast Toggle
     if (toggleContrast) {
-      const isContrast = localStorage.getItem('transify_high_contrast') === 'true';
+      const isContrast = localStorage.getItem('transify_high_contrast') === 'true' || localStorage.getItem('transify_theme') === 'high-contrast';
       toggleContrast.checked = isContrast;
-      if (isContrast) document.body.classList.add('high-contrast');
+      if (isContrast) {
+        document.body.classList.add('high-contrast');
+        document.documentElement.setAttribute('data-theme', 'high-contrast');
+        document.body.setAttribute('data-theme', 'high-contrast');
+      }
       toggleContrast.addEventListener('change', () => {
         if (toggleContrast.checked) {
           document.body.classList.add('high-contrast');
+          document.documentElement.setAttribute('data-theme', 'high-contrast');
+          document.body.setAttribute('data-theme', 'high-contrast');
           localStorage.setItem('transify_high_contrast', 'true');
-          this.showToast('High Contrast Mode Enabled', 'success');
+          localStorage.setItem('transify_theme', 'high-contrast');
+          this.showToast('High Contrast Mode Enabled (WCAG AAA)', 'success');
         } else {
           document.body.classList.remove('high-contrast');
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.body.setAttribute('data-theme', 'light');
           localStorage.setItem('transify_high_contrast', 'false');
+          localStorage.setItem('transify_theme', 'light');
           this.showToast('High Contrast Mode Disabled', 'info');
         }
       });
@@ -591,8 +601,18 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   },
 
   applyTheme(theme, save = false) {
-    this.theme = 'light';
-    document.documentElement.setAttribute('data-theme', 'light');
+    const isHC = localStorage.getItem('transify_high_contrast') === 'true' || localStorage.getItem('transify_theme') === 'high-contrast' || theme === 'high-contrast';
+    const effectiveTheme = isHC ? 'high-contrast' : (theme || localStorage.getItem('transify_theme') || 'light');
+    this.theme = effectiveTheme;
+    document.documentElement.setAttribute('data-theme', effectiveTheme);
+    if (document.body) {
+      document.body.setAttribute('data-theme', effectiveTheme);
+      if (isHC) document.body.classList.add('high-contrast');
+      else document.body.classList.remove('high-contrast');
+    }
+    if (save && theme) {
+      try { localStorage.setItem('transify_theme', theme); } catch(e) {}
+    }
   },
 
   cycleTheme() {
@@ -4286,8 +4306,16 @@ const EditorialController = {
 
     if (theme === 'high-contrast') {
       document.body.classList.add('high-contrast');
+      document.documentElement.setAttribute('data-theme', 'high-contrast');
+      document.body.setAttribute('data-theme', 'high-contrast');
+      localStorage.setItem('transify_high_contrast', 'true');
+      const toggleContrast = document.getElementById('toggle-high-contrast');
+      if (toggleContrast) toggleContrast.checked = true;
     } else {
       document.body.classList.remove('high-contrast');
+      localStorage.setItem('transify_high_contrast', 'false');
+      const toggleContrast = document.getElementById('toggle-high-contrast');
+      if (toggleContrast) toggleContrast.checked = false;
     }
   },
 

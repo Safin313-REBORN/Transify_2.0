@@ -4254,36 +4254,432 @@ button.welcome-guest-link {
   border-color: #EF4444;
 }
 
-/* High Contrast Mode Class */
+/* =============================================================
+   HIGH CONTRAST THEME (WCAG AAA Compliance & Crystal-Clear UI/UX)
+   ============================================================= */
 body.high-contrast,
-[data-theme="high-contrast"] {
+[data-theme="high-contrast"],
+html[data-theme="high-contrast"] {
   --ink: #FFFFFF !important;
   --paper: #000000 !important;
   --surface: #000000 !important;
-  --surface-1: #000000 !important;
-  --surface-2: #111111 !important;
-  --surface-3: #161616 !important;
+  --surface-1: #0A0A0A !important;
+  --surface-2: #121212 !important;
+  --surface-3: #1A1A1A !important;
   --line: #FFCB05 !important;
   --line-2: #FFFFFF !important;
   --text-primary: #FFFFFF !important;
   --text-2: #FFFFFF !important;
-  --text-muted: #E0E0E0 !important;
+  --text-muted: #E6E6E6 !important;
   --bg: #000000 !important;
   --violet: #FFCB05 !important;
   --signal: #FFCB05 !important;
 }
 
-[data-theme="high-contrast"] .rec,
-[data-theme="high-contrast"] .tile,
-[data-theme="high-contrast"] .profile-section-card,
-[data-theme="high-contrast"] .settings-card,
-[data-theme="high-contrast"] button,
-[data-theme="high-contrast"] input,
-[data-theme="high-contrast"] select,
-[data-theme="high-contrast"] textarea {
-  border-width: 2px !important;
-  border-color: #FFCB05 !important;
+body.high-contrast,
+[data-theme="high-contrast"] body {
+  background: #000000 !important;
   color: #FFFFFF !important;
+}
+
+/* Base Surfaces & App Shell in High Contrast */
+body.high-contrast .app-shell,
+body.high-contrast .content-frame,
+body.high-contrast .page-view,
+body.high-contrast .home-main,
+body.high-contrast .home-aside,
+[data-theme="high-contrast"] .app-shell,
+[data-theme="high-contrast"] .content-frame,
+[data-theme="high-contrast"] .page-view,
+[data-theme="high-contrast"] .home-main,
+[data-theme="high-contrast"] .home-aside {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+/* Left Rail Navigation in High Contrast */
+body.high-contrast .rail,
+[data-theme="high-contrast"] .rail {
+  background: #000000 !important;
+  border-right: 2px solid #FFCB05 !important;
+}
+
+body.high-contrast .rail-item,
+[data-theme="high-contrast"] .rail-item {
+  color: #FFFFFF !important;
+  border: 2px solid transparent !important;
+}
+
+body.high-contrast .rail-item:hover,
+[data-theme="high-contrast"] .rail-item:hover {
+  background: #1A1A1A !important;
+  border-color: #FFCB05 !important;
+  color: #FFCB05 !important;
+}
+
+body.high-contrast .rail-item.active,
+[data-theme="high-contrast"] .rail-item.active {
+  background: #FFCB05 !important;
+  color: #000000 !important;
+  border: 2px solid #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+body.high-contrast .rail-item.active svg,
+[data-theme="high-contrast"] .rail-item.active svg {
+  stroke: #000000 !important;
+  fill: none;
+}
+
+body.high-contrast .rail-item.active svg[fill="currentColor"],
+[data-theme="high-contrast"] .rail-item.active svg[fill="currentColor"] {
+  fill: #000000 !important;
+}
+
+/* All Cards, Panels, Modals & Surface Containers */
+body.high-contrast .card,
+body.high-contrast .settings-card,
+body.high-contrast .care-card,
+body.high-contrast .care-triage-card,
+body.high-contrast .care-history-card,
+body.high-contrast .care-intake-form,
+body.high-contrast .care-clinician-card,
+body.high-contrast .phrases-card,
+body.high-contrast .phrase-item,
+body.high-contrast .phrase-add-card,
+body.high-contrast .voice-box,
+body.high-contrast .chat-card,
+body.high-contrast .chat-main-card,
+body.high-contrast .chat-header-bar,
+body.high-contrast .profile-modal-card,
+body.high-contrast .profile-section-card,
+body.high-contrast .training-section-card,
+body.high-contrast .training-metric-card,
+body.high-contrast .home-care-tile,
+body.high-contrast .rec,
+body.high-contrast .modal-card,
+body.high-contrast .ocr-container,
+[data-theme="high-contrast"] .card,
+[data-theme="high-contrast"] .settings-card,
+[data-theme="high-contrast"] .care-card,
+[data-theme="high-contrast"] .care-triage-card,
+[data-theme="high-contrast"] .care-history-card,
+[data-theme="high-contrast"] .care-intake-form,
+[data-theme="high-contrast"] .care-clinician-card,
+[data-theme="high-contrast"] .phrases-card,
+[data-theme="high-contrast"] .phrase-item,
+[data-theme="high-contrast"] .phrase-add-card,
+[data-theme="high-contrast"] .voice-box,
+[data-theme="high-contrast"] .chat-card,
+[data-theme="high-contrast"] .chat-main-card,
+[data-theme="high-contrast"] .chat-header-bar,
+[data-theme="high-contrast"] .profile-modal-card,
+[data-theme="high-contrast"] .profile-section-card,
+[data-theme="high-contrast"] .training-section-card,
+[data-theme="high-contrast"] .training-metric-card,
+[data-theme="high-contrast"] .home-care-tile,
+[data-theme="high-contrast"] .rec,
+[data-theme="high-contrast"] .modal-card,
+[data-theme="high-contrast"] .ocr-container {
+  background: #0A0A0A !important;
+  border: 2px solid #FFCB05 !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+/* Card Titles, Headers & Labels inside Cards */
+body.high-contrast h1,
+body.high-contrast h2,
+body.high-contrast h3,
+body.high-contrast h4,
+body.high-contrast .settings-item-title,
+body.high-contrast .settings-card-title,
+body.high-contrast .care-title,
+body.high-contrast .phrases-h1,
+body.high-contrast .chat-header-title,
+body.high-contrast .training-sec-title,
+body.high-contrast .profile-modal-title,
+[data-theme="high-contrast"] h1,
+[data-theme="high-contrast"] h2,
+[data-theme="high-contrast"] h3,
+[data-theme="high-contrast"] h4,
+[data-theme="high-contrast"] .settings-item-title,
+[data-theme="high-contrast"] .settings-card-title,
+[data-theme="high-contrast"] .care-title,
+[data-theme="high-contrast"] .phrases-h1,
+[data-theme="high-contrast"] .chat-header-title,
+[data-theme="high-contrast"] .training-sec-title,
+[data-theme="high-contrast"] .profile-modal-title {
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+body.high-contrast .settings-item-desc,
+body.high-contrast .care-desc,
+body.high-contrast .phrases-sub,
+body.high-contrast .chat-header-desc,
+body.high-contrast .training-sec-desc,
+body.high-contrast .home-greeting,
+[data-theme="high-contrast"] .settings-item-desc,
+[data-theme="high-contrast"] .care-desc,
+[data-theme="high-contrast"] .phrases-sub,
+[data-theme="high-contrast"] .chat-header-desc,
+[data-theme="high-contrast"] .training-sec-desc,
+[data-theme="high-contrast"] .home-greeting {
+  color: #E6E6E6 !important;
+}
+
+/* Primary Yellow Buttons (Dark text on Yellow - Maximum Contrast & Legibility) */
+body.high-contrast .btn-welcome-primary,
+body.high-contrast .say-speak-btn,
+body.high-contrast .btn-start-train,
+body.high-contrast .chat-send-btn,
+body.high-contrast #btn-open-ai-chat,
+[data-theme="high-contrast"] .btn-welcome-primary,
+[data-theme="high-contrast"] .say-speak-btn,
+[data-theme="high-contrast"] .btn-start-train,
+[data-theme="high-contrast"] .chat-send-btn,
+[data-theme="high-contrast"] #btn-open-ai-chat {
+  background: #FFCB05 !important;
+  color: #000000 !important;
+  border: 2px solid #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+body.high-contrast .btn-welcome-primary svg,
+body.high-contrast .say-speak-btn svg,
+body.high-contrast .chat-send-btn svg,
+[data-theme="high-contrast"] .btn-welcome-primary svg,
+[data-theme="high-contrast"] .say-speak-btn svg,
+[data-theme="high-contrast"] .chat-send-btn svg {
+  stroke: #000000 !important;
+}
+
+/* Secondary / Outline Buttons (White text on Black with Yellow Border) */
+body.high-contrast .btn-welcome-secondary,
+body.high-contrast .btn-outline-dark,
+body.high-contrast .btn-speed,
+body.high-contrast .btn-chat-header-action,
+body.high-contrast .btn-add-sample,
+body.high-contrast .care-tab-btn,
+body.high-contrast .sign-mode-btn,
+body.high-contrast .btn-demo-fixture,
+[data-theme="high-contrast"] .btn-welcome-secondary,
+[data-theme="high-contrast"] .btn-outline-dark,
+[data-theme="high-contrast"] .btn-speed,
+[data-theme="high-contrast"] .btn-chat-header-action,
+[data-theme="high-contrast"] .btn-add-sample,
+[data-theme="high-contrast"] .care-tab-btn,
+[data-theme="high-contrast"] .sign-mode-btn,
+[data-theme="high-contrast"] .btn-demo-fixture {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFCB05 !important;
+}
+
+body.high-contrast .btn-welcome-secondary:hover,
+body.high-contrast .btn-outline-dark:hover,
+body.high-contrast .care-tab-btn.active,
+body.high-contrast .sign-mode-btn.active,
+[data-theme="high-contrast"] .btn-welcome-secondary:hover,
+[data-theme="high-contrast"] .btn-outline-dark:hover,
+[data-theme="high-contrast"] .care-tab-btn.active,
+[data-theme="high-contrast"] .sign-mode-btn.active {
+  background: #FFCB05 !important;
+  color: #000000 !important;
+  border-color: #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+/* Segmented Buttons */
+body.high-contrast .lang-segmented,
+body.high-contrast .segmented-control,
+[data-theme="high-contrast"] .lang-segmented,
+[data-theme="high-contrast"] .segmented-control {
+  background: #000000 !important;
+  border: 2px solid #FFCB05 !important;
+}
+
+body.high-contrast .lang-segmented button,
+body.high-contrast .segmented-control button,
+body.high-contrast .segmented-btn,
+[data-theme="high-contrast"] .lang-segmented button,
+[data-theme="high-contrast"] .segmented-control button,
+[data-theme="high-contrast"] .segmented-btn {
+  background: transparent !important;
+  color: #FFFFFF !important;
+  border: none !important;
+}
+
+body.high-contrast .lang-segmented button.active,
+body.high-contrast .segmented-control button.active,
+body.high-contrast .segmented-btn.active,
+[data-theme="high-contrast"] .lang-segmented button.active,
+[data-theme="high-contrast"] .segmented-control button.active,
+[data-theme="high-contrast"] .segmented-btn.active {
+  background: #FFCB05 !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+/* Inputs, Textareas, Selects */
+body.high-contrast input,
+body.high-contrast textarea,
+body.high-contrast select,
+body.high-contrast .say-input,
+body.high-contrast .chat-input,
+body.high-contrast .settings-select,
+body.high-contrast .train-select,
+[data-theme="high-contrast"] input,
+[data-theme="high-contrast"] textarea,
+[data-theme="high-contrast"] select,
+[data-theme="high-contrast"] .say-input,
+[data-theme="high-contrast"] .chat-input,
+[data-theme="high-contrast"] .settings-select,
+[data-theme="high-contrast"] .train-select {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFCB05 !important;
+}
+
+body.high-contrast input::placeholder,
+body.high-contrast textarea::placeholder,
+[data-theme="high-contrast"] input::placeholder,
+[data-theme="high-contrast"] textarea::placeholder {
+  color: #CCCCCC !important;
+}
+
+body.high-contrast input:focus,
+body.high-contrast textarea:focus,
+body.high-contrast select:focus,
+[data-theme="high-contrast"] input:focus,
+[data-theme="high-contrast"] textarea:focus,
+[data-theme="high-contrast"] select:focus {
+  outline: 3px solid #FFFFFF !important;
+  outline-offset: 2px !important;
+}
+
+/* Say Aloud Row & Phrase Chips */
+body.high-contrast .say-input-row,
+[data-theme="high-contrast"] .say-input-row {
+  background: #000000 !important;
+  border: 2px solid #FFCB05 !important;
+}
+
+body.high-contrast .phrase-chip-btn,
+[data-theme="high-contrast"] .phrase-chip-btn {
+  background: #0A0A0A !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFCB05 !important;
+}
+
+body.high-contrast .phrase-chip-btn:hover,
+[data-theme="high-contrast"] .phrase-chip-btn:hover {
+  background: #FFCB05 !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+/* Bento Grid Tiles in High Contrast */
+body.high-contrast .tile,
+[data-theme="high-contrast"] .tile {
+  border: 2px solid #FFCB05 !important;
+  background: #0A0A0A !important;
+}
+
+body.high-contrast .tile .cap b,
+[data-theme="high-contrast"] .tile .cap b {
+  color: #FFFFFF !important;
+}
+
+body.high-contrast .tile .cap span,
+[data-theme="high-contrast"] .tile .cap span {
+  color: #FFCB05 !important;
+  font-weight: 600 !important;
+}
+
+body.high-contrast .go,
+[data-theme="high-contrast"] .go {
+  background: #000000 !important;
+  border: 2px solid #FFCB05 !important;
+}
+
+body.high-contrast .go svg,
+[data-theme="high-contrast"] .go svg {
+  stroke: #FFCB05 !important;
+}
+
+body.high-contrast .tile:hover .go,
+[data-theme="high-contrast"] .tile:hover .go {
+  background: #FFCB05 !important;
+  border-color: #FFFFFF !important;
+}
+
+body.high-contrast .tile:hover .go svg,
+[data-theme="high-contrast"] .tile:hover .go svg {
+  stroke: #000000 !important;
+}
+
+/* Recent List in High Contrast */
+body.high-contrast .home-aside,
+[data-theme="high-contrast"] .home-aside {
+  border-left: 2px solid #FFCB05 !important;
+}
+
+body.high-contrast .recent-h2,
+[data-theme="high-contrast"] .recent-h2 {
+  color: #FFFFFF !important;
+}
+
+body.high-contrast .rec-meta,
+[data-theme="high-contrast"] .rec-meta {
+  color: #FFCB05 !important;
+  font-weight: 700 !important;
+}
+
+body.high-contrast .rec-text,
+[data-theme="high-contrast"] .rec-text {
+  color: #FFFFFF !important;
+}
+
+/* Badges & Pills in High Contrast */
+body.high-contrast .care-badge,
+body.high-contrast .badge,
+[data-theme="high-contrast"] .care-badge,
+[data-theme="high-contrast"] .badge {
+  background: #1A1A1A !important;
+  border: 1.5px solid #FFCB05 !important;
+  color: #FFCB05 !important;
+  font-weight: 700 !important;
+}
+
+/* Chat Messages in High Contrast */
+body.high-contrast .chat-bubble.bot,
+[data-theme="high-contrast"] .chat-bubble.bot {
+  background: #141414 !important;
+  border: 2px solid #FFCB05 !important;
+  color: #FFFFFF !important;
+}
+
+body.high-contrast .chat-bubble.user,
+[data-theme="high-contrast"] .chat-bubble.user {
+  background: #FFCB05 !important;
+  border: 2px solid #FFFFFF !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+body.high-contrast .chat-suggestion-chip,
+[data-theme="high-contrast"] .chat-suggestion-chip {
+  background: #000000 !important;
+  border: 2px solid #FFCB05 !important;
+  color: #FFFFFF !important;
+}
+
+body.high-contrast .chat-suggestion-chip:hover,
+[data-theme="high-contrast"] .chat-suggestion-chip:hover {
+  background: #FFCB05 !important;
+  color: #000000 !important;
 }
 
 /* Dark / Midnight Theme */
