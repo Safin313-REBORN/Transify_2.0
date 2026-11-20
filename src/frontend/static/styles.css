@@ -1887,12 +1887,28 @@ h1, h2, h3, .display {
   display: inline-flex;
   align-items: center;
   min-height: 48px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
   color: var(--body-on-dark);
+  font-family: inherit;
   font-weight: 600;
   font-size: 16px;
   text-decoration: underline;
   text-underline-offset: 4px;
   cursor: pointer;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.welcome-guest-link:hover {
+  color: #FFFFFF;
+}
+
+.welcome-guest-link:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 
 /* Interactive Demos on Welcome Stage */

@@ -20,7 +20,7 @@
   <script src="/static/i18n.js"></script>
   
   <!-- Design System CSS -->
-  <link rel="stylesheet" href="/static/styles.css?v=20261120_pixel_exact_v2">
+  <link rel="stylesheet" href="/static/styles.css?v=20261120_button_fix">
 
   <script>
     // Bulletproof routing & auth initialization
@@ -254,7 +254,7 @@
               <button type="button" class="btn-welcome-secondary press" id="btn-open-login" onclick="window.TransifyApp.openAuthSheet('login')">Log in</button>
             </div>
             <div style="margin-top: 8px;">
-              <button type="button" class="welcome-guest-link" id="btn-demo-guest" onclick="window.TransifyApp.handleDemoLogin()">Continue without an account</button>
+              <button type="button" class="welcome-guest-link" id="btn-demo-guest" style="background: transparent; border: 0; padding: 0;" onclick="window.TransifyApp.handleDemoLogin()">Continue without an account</button>
             </div>
           </div>
         </aside>
