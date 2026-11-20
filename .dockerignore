@@ -1,0 +1,16 @@
+.git
+.venv
+venv
+env
+ENV
+__pycache__
+*.py[cod]
+*$py.class
+.pytest_cache
+audit
+ui_audit
+design-reference
+data/audio_cache/*
+data/sign/raw/*
+data/braille/raw/*
+*.log

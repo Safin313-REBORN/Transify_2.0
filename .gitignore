@@ -5,6 +5,10 @@
 .env.development
 *.env
 !.env.example
+.venv/
+venv/
+env/
+ENV/
 
 # Node / Web artifacts
 node_modules/
