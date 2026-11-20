@@ -695,7 +695,9 @@ var TransifyTTS = window.TransifyTTS = {
 
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.rate = rate;
-      const targetLang = options.lang || 'en-US';
+      const hasBengali = /[\u0980-\u09FF]/.test(cleanText);
+      const isBnApp = window.TransifyI18n && window.TransifyI18n.getLanguage && window.TransifyI18n.getLanguage() === 'bn';
+      const targetLang = options.lang || (hasBengali || isBnApp ? 'bn-BD' : 'en-US');
       utterance.lang = targetLang;
 
       // Select matching voice or fallback to default
@@ -3564,22 +3566,14 @@ const EditorialController = {
     });
 
     // Welcome Language toggle
-    let isBn = false;
     if (langBtn) {
       langBtn.addEventListener('click', () => {
-        isBn = !isBn;
-        langBtn.textContent = isBn ? 'English' : 'বাংলা';
-        const line1 = document.getElementById('welcome-line-1');
-        const line2 = document.getElementById('welcome-line-2');
-        const sub = document.getElementById('welcome-subtext');
-        if (isBn) {
-          if (line1) line1.textContent = 'ইশারা থেকে কথা,';
-          if (line2) line2.textContent = 'সরাসরি শুনুন।';
-          if (sub) sub.textContent = 'ক্যামেরার সামনে ইশারা করুন। ট্রান্সিফাই বাংলা ও আমেরিকান সাইন ল্যাঙ্গুয়েজ চিনে তাৎক্ষণিক অনুবাদ শোনায়।';
-        } else {
-          if (line1) line1.textContent = 'Signs to words,';
-          if (line2) line2.textContent = 'spoken aloud.';
-          if (sub) sub.textContent = 'Hold a sign to the camera. Transify recognizes Bengali and American Sign Language and speaks the translation.';
+        const currentLang = (window.TransifyI18n && window.TransifyI18n.getLanguage && window.TransifyI18n.getLanguage()) || 'en';
+        const targetLang = (currentLang === 'bn') ? 'en' : 'bn';
+        if (window.TransifyI18n && window.TransifyI18n.setLanguage) {
+          window.TransifyI18n.setLanguage(targetLang);
+        } else if (typeof applyLocale === 'function') {
+          applyLocale(targetLang);
         }
       });
     }
@@ -3722,9 +3716,9 @@ const EditorialController = {
     // 4. Phrase chips populate input
     document.querySelectorAll('.phrase-chip-btn').forEach(chip => {
       chip.addEventListener('click', () => {
-        const phrase = chip.getAttribute('data-phrase');
-        if (phrase && sayInput) {
-          sayInput.value = phrase;
+        const text = chip.textContent.trim();
+        if (text && sayInput) {
+          sayInput.value = text;
           sayInput.focus();
         }
       });
@@ -3735,16 +3729,24 @@ const EditorialController = {
     const bnBtn = document.getElementById('home-lang-bn');
     if (enBtn && bnBtn) {
       enBtn.addEventListener('click', () => {
-        enBtn.classList.add('active');
-        enBtn.setAttribute('aria-pressed', 'true');
-        bnBtn.classList.remove('active');
-        bnBtn.setAttribute('aria-pressed', 'false');
+        if (window.TransifyI18n && window.TransifyI18n.setLanguage) {
+          window.TransifyI18n.setLanguage('en');
+        } else if (typeof applyLocale === 'function') {
+          applyLocale('en');
+        }
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('Language: English', 'info');
+        }
       });
       bnBtn.addEventListener('click', () => {
-        bnBtn.classList.add('active');
-        bnBtn.setAttribute('aria-pressed', 'true');
-        enBtn.classList.remove('active');
-        enBtn.setAttribute('aria-pressed', 'false');
+        if (window.TransifyI18n && window.TransifyI18n.setLanguage) {
+          window.TransifyI18n.setLanguage('bn');
+        } else if (typeof applyLocale === 'function') {
+          applyLocale('bn');
+        }
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('ভাষা পরিবর্তন: বাংলা', 'info');
+        }
       });
     }
   },

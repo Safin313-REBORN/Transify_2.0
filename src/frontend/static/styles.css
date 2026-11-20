@@ -522,9 +522,9 @@ h3,
   cursor: pointer;
   text-decoration: none;
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              background 0.2s ease,
-              border-color 0.2s ease,
-              box-shadow 0.2s ease;
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   overflow: visible;
 }
 
@@ -559,8 +559,15 @@ h3,
 }
 
 @keyframes logoAmbientBreathe {
-  0% { opacity: 0.35; transform: scale(0.95); }
-  100% { opacity: 0.75; transform: scale(1.1); }
+  0% {
+    opacity: 0.35;
+    transform: scale(0.95);
+  }
+
+  100% {
+    opacity: 0.75;
+    transform: scale(1.1);
+  }
 }
 
 .rail-logo {
@@ -601,15 +608,26 @@ h3,
   animation: logoDotPulse 2.8s ease-in-out infinite;
 }
 
-.rail-logo i:nth-child(2) { animation-delay: 0s; }
-.rail-logo i:nth-child(3) { animation-delay: 0.35s; }
-.rail-logo i:nth-child(5) { animation-delay: 0.7s; }
+.rail-logo i:nth-child(2) {
+  animation-delay: 0s;
+}
+
+.rail-logo i:nth-child(3) {
+  animation-delay: 0.35s;
+}
+
+.rail-logo i:nth-child(5) {
+  animation-delay: 0.7s;
+}
 
 @keyframes logoDotPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     box-shadow: 0 0 8px rgba(255, 203, 5, 0.55), 0 0 2px rgba(255, 203, 5, 0.9);
   }
+
   50% {
     transform: scale(1.22);
     box-shadow: 0 0 16px rgba(255, 203, 5, 0.95), 0 0 6px #FFE066;
