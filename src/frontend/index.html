@@ -24,7 +24,7 @@
   <script src="/static/i18n.js"></script>
 
   <!-- Design System CSS -->
-  <link rel="stylesheet" href="/static/styles.css?v=20261120_rec_wrap_v2">
+  <link rel="stylesheet" href="/static/styles.css?v=20261120_profile_v1">
 
   <script>
     // Bulletproof routing & auth initialization
@@ -1359,9 +1359,127 @@
     <ul id="history-records-list"></ul>
     <button type="button" id="clear-history-btn">Clear History</button>
   </div>
-  <div id="profile-modal-overlay" style="display: none;">
-    <span id="profile-name-text"></span>
-    <span id="profile-email-text"></span>
+  <!-- ======================================================================
+       PROFILE & ACCESSIBILITY SETTINGS MODAL (#frame-avatar-btn)
+       ====================================================================== -->
+  <div id="profile-modal-overlay" class="profile-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title" style="display: none;">
+    <div class="profile-modal-backdrop" id="profile-modal-backdrop"></div>
+    <div class="profile-modal-card">
+      <header class="profile-modal-header">
+        <div class="profile-modal-header-info">
+          <div class="profile-avatar-large" id="profile-avatar-initials">TR</div>
+          <div>
+            <h2 id="profile-dialog-title" class="profile-modal-title">Account & Accessibility</h2>
+            <div class="profile-status-badge">
+              <span class="status-indicator-dot"></span>
+              <span id="profile-status-text">Local Edge Mode (Private)</span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal press" id="btn-close-profile-modal" aria-label="Close settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </header>
+
+      <div class="profile-modal-body">
+        <!-- Section 1: User Identity Card -->
+        <div class="profile-section-card user-card">
+          <div class="user-info-row">
+            <div class="user-meta-col">
+              <span class="profile-meta-label">Signed in as</span>
+              <div class="profile-name" id="profile-name-text">Guest User</div>
+              <div class="profile-email" id="profile-email-text">Offline Edge Session</div>
+            </div>
+            <button type="button" class="btn-profile-auth press" id="btn-profile-auth-action" onclick="window.TransifyApp.handleProfileAuthAction()">
+              Sign In
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 2: Assistive & Audio Preferences -->
+        <div class="profile-section-card">
+          <h3 class="profile-section-heading">Audio & Speech Assist</h3>
+          <div class="setting-item">
+            <div class="setting-label-col">
+              <span class="setting-title">Text-to-Speech Speed</span>
+              <span class="setting-desc">Reading pace for translations, Braille and spoken text</span>
+            </div>
+            <div class="setting-controls-row">
+              <div role="group" aria-label="Speech speed" class="speed-segmented" id="profile-speed-group">
+                <button type="button" class="btn-speed press" data-speed="0.8">0.8x</button>
+                <button type="button" class="btn-speed press active" data-speed="1.0">1.0x</button>
+                <button type="button" class="btn-speed press" data-speed="1.2">1.2x</button>
+              </div>
+              <button type="button" class="btn-test-speech press" id="btn-test-speech-voice" aria-label="Play test audio">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+                <span>Test Voice</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Visual Accessibility Toggles -->
+        <div class="profile-section-card">
+          <h3 class="profile-section-heading">Visual Accessibility</h3>
+          
+          <div class="setting-row">
+            <div class="setting-label-col">
+              <span class="setting-title">High Contrast Mode</span>
+              <span class="setting-desc">Boost border definitions and high-visibility outlines</span>
+            </div>
+            <label class="toggle-switch" for="toggle-high-contrast">
+              <input type="checkbox" id="toggle-high-contrast" aria-label="Toggle High Contrast Mode">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-label-col">
+              <span class="setting-title">Larger Text Display</span>
+              <span class="setting-desc">Scale UI font size for enhanced reading comfort</span>
+            </div>
+            <label class="toggle-switch" for="toggle-large-text">
+              <input type="checkbox" id="toggle-large-text" aria-label="Toggle Larger Text Display">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-label-col">
+              <span class="setting-title">Reduced Motion</span>
+              <span class="setting-desc">Pause animated background orbs and transitions</span>
+            </div>
+            <label class="toggle-switch" for="toggle-reduced-motion">
+              <input type="checkbox" id="toggle-reduced-motion" aria-label="Toggle Reduced Motion">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section 4: Data Management & Privacy -->
+        <div class="profile-section-card">
+          <h3 class="profile-section-heading">Privacy & Activity Vault</h3>
+          <div class="privacy-guarantee-note">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span>On-Device Edge Storage: Camera frames and audio never leave your device.</span>
+          </div>
+          <div class="history-actions-row">
+            <span class="setting-desc" id="profile-history-count">Activity logs stored locally</span>
+            <button type="button" class="btn-clear-recent press" id="btn-profile-clear-history">
+              Clear Activity History
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="transify-splash-screen" style="display: none;">
     <div id="splash-progressbar">
@@ -1372,7 +1490,7 @@
   <div id="transify-auth-screen" style="display: none;"></div>
 
   <!-- Client Application Scripts -->
-  <script src="/static/app.js?v=20261120_pixel_exact_v2"></script>
+  <script src="/static/app.js?v=20261120_profile_v1"></script>
   <script src="/static/care.js?v=20261120_careanywhere"></script>
 </body>
 

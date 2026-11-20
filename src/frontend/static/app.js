@@ -313,24 +313,215 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     const emailText = document.getElementById('profile-email-text');
     if (nameText && userObj.name) nameText.textContent = userObj.name;
     if (emailText && userObj.email) emailText.textContent = userObj.email;
+    const avatarLarge = document.getElementById('profile-avatar-initials');
+    if (avatarLarge && userObj.name) {
+      const parts = userObj.name.trim().split(' ');
+      avatarLarge.textContent = parts.map(p => p[0]).join('').toUpperCase().slice(0, 2);
+    }
   },
 
   bindProfileModal() {
     const avatarBtn = document.getElementById('frame-avatar-btn');
+    const modal = document.getElementById('profile-modal-overlay');
+    const closeBtn = document.getElementById('btn-close-profile-modal');
+    const backdrop = document.getElementById('profile-modal-backdrop');
+    const testSpeechBtn = document.getElementById('btn-test-speech-voice');
+    const speedGroup = document.getElementById('profile-speed-group');
+    const toggleContrast = document.getElementById('toggle-high-contrast');
+    const toggleLargeText = document.getElementById('toggle-large-text');
+    const toggleReducedMotion = document.getElementById('toggle-reduced-motion');
+    const clearHistoryBtn = document.getElementById('btn-profile-clear-history');
+
+    // 1. Open on Avatar button click
     if (avatarBtn) {
       avatarBtn.style.cursor = 'pointer';
-      avatarBtn.onclick = () => this.openProfileModal();
+      avatarBtn.onclick = (e) => {
+        e.preventDefault();
+        this.openProfileModal();
+      };
+    }
+
+    // 2. Close on close button or backdrop click
+    if (closeBtn) closeBtn.onclick = () => this.closeProfileModal();
+    if (backdrop) backdrop.onclick = () => this.closeProfileModal();
+
+    // 3. Escape key closes modal
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal && modal.classList.contains('open')) {
+        this.closeProfileModal();
+      }
+    });
+
+    // 4. Voice Speed buttons
+    if (speedGroup) {
+      speedGroup.querySelectorAll('.btn-speed').forEach(btn => {
+        btn.addEventListener('click', () => {
+          speedGroup.querySelectorAll('.btn-speed').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const speedVal = parseFloat(btn.dataset.speed || '1.0');
+          this.speechRate = speedVal;
+          localStorage.setItem('transify_speech_rate', speedVal.toString());
+          this.showToast(`Voice speed set to ${speedVal}x`, 'info');
+        });
+      });
+    }
+
+    // 5. Test Voice Button
+    if (testSpeechBtn) {
+      testSpeechBtn.addEventListener('click', () => {
+        const testPhrase = 'Welcome to Transify. Speech and assistive communications are online.';
+        this.speak(testPhrase, { rate: this.speechRate || 1.0 });
+      });
+    }
+
+    // 6. High Contrast Toggle
+    if (toggleContrast) {
+      const isContrast = localStorage.getItem('transify_high_contrast') === 'true';
+      toggleContrast.checked = isContrast;
+      if (isContrast) document.body.classList.add('high-contrast');
+      toggleContrast.addEventListener('change', () => {
+        if (toggleContrast.checked) {
+          document.body.classList.add('high-contrast');
+          localStorage.setItem('transify_high_contrast', 'true');
+          this.showToast('High Contrast Mode Enabled', 'success');
+        } else {
+          document.body.classList.remove('high-contrast');
+          localStorage.setItem('transify_high_contrast', 'false');
+          this.showToast('High Contrast Mode Disabled', 'info');
+        }
+      });
+    }
+
+    // 7. Large Text Toggle
+    if (toggleLargeText) {
+      const isLarge = localStorage.getItem('transify_large_text') === 'true';
+      toggleLargeText.checked = isLarge;
+      if (isLarge) document.body.classList.add('large-text');
+      toggleLargeText.addEventListener('change', () => {
+        if (toggleLargeText.checked) {
+          document.body.classList.add('large-text');
+          localStorage.setItem('transify_large_text', 'true');
+          this.showToast('Large Text Scaling Enabled (+15%)', 'success');
+        } else {
+          document.body.classList.remove('large-text');
+          localStorage.setItem('transify_large_text', 'false');
+          this.showToast('Standard Text Scaling Restored', 'info');
+        }
+      });
+    }
+
+    // 8. Reduced Motion Toggle
+    if (toggleReducedMotion) {
+      const isReduced = localStorage.getItem('transify_reduced_motion') === 'true';
+      toggleReducedMotion.checked = isReduced;
+      if (isReduced) document.documentElement.setAttribute('data-motion', 'reduced');
+      toggleReducedMotion.addEventListener('change', () => {
+        if (toggleReducedMotion.checked) {
+          document.documentElement.setAttribute('data-motion', 'reduced');
+          localStorage.setItem('transify_reduced_motion', 'true');
+          this.showToast('Reduced Motion Enabled', 'info');
+        } else {
+          document.documentElement.removeAttribute('data-motion');
+          localStorage.setItem('transify_reduced_motion', 'false');
+          this.showToast('Motion Animations Restored', 'info');
+        }
+      });
+    }
+
+    // 9. Clear History Button
+    if (clearHistoryBtn) {
+      clearHistoryBtn.addEventListener('click', async () => {
+        const recentList = document.getElementById('home-recent-list');
+        if (recentList) {
+          recentList.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-2); font-size: 14px; font-weight: 600;">No recent translations yet.</div>';
+        }
+        const histCount = document.getElementById('profile-history-count');
+        if (histCount) histCount.textContent = '0 activity logs stored';
+        try {
+          await fetch('/api/history', { method: 'DELETE' });
+        } catch (_) {}
+        this.showToast('Activity history cleared', 'success');
+      });
+    }
+  },
+
+  handleProfileAuthAction() {
+    const userJson = localStorage.getItem('transify_auth_user');
+    if (userJson) {
+      // Logged in: Log out!
+      localStorage.removeItem('transify_auth_user');
+      localStorage.removeItem('transify_auth_token');
+      this.closeProfileModal();
+      this.showToast('Signed out of session', 'info');
+      const nameEl = document.getElementById('home-user-name');
+      if (nameEl) nameEl.textContent = 'Welcome to Transify';
+      const avEl = document.getElementById('frame-avatar-btn');
+      if (avEl) avEl.textContent = 'TR';
+      this.updateProfileUI({ name: 'Guest User', email: 'Offline Edge Session' });
+    } else {
+      // Not logged in: Open Auth Sheet!
+      this.closeProfileModal();
+      this.openAuthSheet('login');
     }
   },
 
   openProfileModal() {
     const modal = document.getElementById('profile-modal-overlay');
-    if (modal) modal.classList.add('open');
+    if (!modal) return;
+    this.refreshProfileModalState();
+    modal.classList.add('open');
+    modal.style.display = 'flex';
   },
 
   closeProfileModal() {
     const modal = document.getElementById('profile-modal-overlay');
-    if (modal) modal.classList.remove('open');
+    if (!modal) return;
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+  },
+
+  refreshProfileModalState() {
+    const userJson = localStorage.getItem('transify_auth_user');
+    const nameText = document.getElementById('profile-name-text');
+    const emailText = document.getElementById('profile-email-text');
+    const avatarLarge = document.getElementById('profile-avatar-initials');
+    const authBtn = document.getElementById('btn-profile-auth-action');
+    const statusText = document.getElementById('profile-status-text');
+
+    if (userJson) {
+      try {
+        const u = JSON.parse(userJson);
+        if (nameText && u.name) nameText.textContent = u.name;
+        if (emailText && u.email) emailText.textContent = u.email;
+        if (avatarLarge && u.name) {
+          const parts = u.name.trim().split(' ');
+          avatarLarge.textContent = parts.map(p => p[0]).join('').toUpperCase().slice(0, 2);
+        }
+        if (authBtn) {
+          authBtn.textContent = 'Sign Out';
+          authBtn.style.background = '#EF4444';
+        }
+        if (statusText) statusText.textContent = 'Verified User (Cloud Synced)';
+      } catch (_) {}
+    } else {
+      if (nameText) nameText.textContent = 'Guest User';
+      if (emailText) emailText.textContent = 'Offline Edge Session (Local)';
+      if (avatarLarge) avatarLarge.textContent = 'TR';
+      if (authBtn) {
+        authBtn.textContent = 'Sign In';
+        authBtn.style.background = 'var(--ink, #14111F)';
+      }
+      if (statusText) statusText.textContent = 'Local Edge Mode (Private)';
+    }
+
+    // Sync speed buttons
+    const speed = parseFloat(localStorage.getItem('transify_speech_rate') || '1.0');
+    const speedGroup = document.getElementById('profile-speed-group');
+    if (speedGroup) {
+      speedGroup.querySelectorAll('.btn-speed').forEach(b => {
+        b.classList.toggle('active', parseFloat(b.dataset.speed) === speed);
+      });
+    }
   },
 
   logoutUser() {
