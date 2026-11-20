@@ -803,10 +803,7 @@ def reset_competition_demo_fixtures(request: Request = None):
 # ===========================================================================
 
 @router.post("/vision/analyze")
-def analyze_vision_endpoint(
-    req: VisionAnalyzeRequest,
-    user: Dict[str, Any] = Depends(get_authenticated_user)
-):
+def analyze_vision_endpoint(req: VisionAnalyzeRequest):
     """
     CareAnywhere Computer Vision Pipeline:
     Analyzes smartphone photos of skin lesions (erythema, ABCDE melanoma screening, burns, ulcers)
@@ -815,13 +812,6 @@ def analyze_vision_endpoint(
     """
     try:
         analysis = analyze_multimodal_vision(req.image_data, req.condition_type or "auto")
-        log_care_audit(
-            "VISION_ANALYSIS_EXECUTED",
-            f"user-{user['id']}",
-            user.get("role", "patient"),
-            None,
-            {"target_organ": analysis.get("target_organ"), "urgency": analysis.get("urgency_level")}
-        )
         return {
             "success": True,
             "analysis": analysis
@@ -834,10 +824,7 @@ def analyze_vision_endpoint(
 
 
 @router.post("/audio/intake")
-def audio_intake_endpoint(
-    req: AudioIntakeRequest,
-    user: Dict[str, Any] = Depends(get_authenticated_user)
-):
+def audio_intake_endpoint(req: AudioIntakeRequest):
     """
     CareAnywhere Localized Speech-to-Text & Regional Dialect Interface:
     Processes verbal symptom descriptions in regional dialects (Sylheti, Chittagonian, Bengali idioms)
@@ -861,8 +848,7 @@ def get_outbreak_alerts_endpoint(
     lat: Optional[float] = Query(default=None),
     lon: Optional[float] = Query(default=None),
     district: Optional[str] = Query(default=None),
-    symptoms: Optional[str] = Query(default=""),
-    user: Dict[str, Any] = Depends(get_authenticated_user)
+    symptoms: Optional[str] = Query(default="")
 ):
     """
     CareAnywhere Predictive Outbreak & Epidemic Risk Alerts:
@@ -881,8 +867,7 @@ def get_nearby_facilities_endpoint(
     lat: float = Query(default=23.7258, description="Latitude (default: Dhaka Medical)"),
     lon: float = Query(default=90.3976, description="Longitude (default: Dhaka Medical)"),
     facility_type: Optional[str] = Query(default="all"),
-    limit: Optional[int] = Query(default=4, ge=1, le=10),
-    user: Dict[str, Any] = Depends(get_authenticated_user)
+    limit: Optional[int] = Query(default=4, ge=1, le=10)
 ):
     """
     CareAnywhere OpenStreetMap Health Facility Locator:
