@@ -766,6 +766,8 @@ window.closeAuthSheet = () => TransifyApp.closeAuthSheet();
 window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
 window.handleDemoLogin = () => TransifyApp.handleDemoLogin();
 window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
+window.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
+TransifyApp.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
 
 // ==========================================
 // 3. Central Assistive Dashboard Logic
@@ -2990,6 +2992,8 @@ function initTransifyAllModules() {
   window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
   window.handleDemoLogin = () => TransifyApp.handleDemoLogin();
   window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
+window.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
+TransifyApp.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
 }
 
 if (document.readyState === 'loading') {
@@ -3608,9 +3612,26 @@ const EditorialController = {
   },
 
   setupSettingsScreen() {
-    // Reduce motion toggle
+    // 1. Theme Picker & Real-Time Switching
+    const themeButtons = document.querySelectorAll('.theme-card-btn');
+    const savedTheme = localStorage.getItem('transify_theme') || 'light';
+    this.applyTheme(savedTheme);
+
+    themeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selected = btn.dataset.theme;
+        this.applyTheme(selected);
+        try { localStorage.setItem('transify_theme', selected); } catch(e) {}
+        const label = btn.querySelector('.theme-card-label');
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast(`Theme switched to ${label ? label.textContent : selected}`, 'info');
+        }
+      });
+    });
+
+    // 2. Reduce motion toggle
     const reduceMotionCheck = document.getElementById('setting-reduce-motion');
-    const isReduced = localStorage.getItem('transify_reduce_motion') === '1';
+    const isReduced = localStorage.getItem('transify_reduce_motion') === '1' || localStorage.getItem('transify_reduced_motion') === 'true';
     if (reduceMotionCheck) {
       reduceMotionCheck.checked = isReduced;
       if (isReduced) document.documentElement.setAttribute('data-motion', 'reduced');
@@ -3619,10 +3640,216 @@ const EditorialController = {
         const val = e.target.checked;
         if (val) {
           document.documentElement.setAttribute('data-motion', 'reduced');
-          try { localStorage.setItem('transify_reduce_motion', '1'); } catch(e) {}
+          try { 
+            localStorage.setItem('transify_reduce_motion', '1');
+            localStorage.setItem('transify_reduced_motion', 'true');
+          } catch(e) {}
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast('Reduced Motion Enabled', 'info');
+          }
         } else {
           document.documentElement.removeAttribute('data-motion');
-          try { localStorage.removeItem('transify_reduce_motion'); } catch(e) {}
+          try { 
+            localStorage.removeItem('transify_reduce_motion');
+            localStorage.setItem('transify_reduced_motion', 'false');
+          } catch(e) {}
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast('Animations Restored', 'info');
+          }
+        }
+      });
+    }
+
+    // 3. Typography Scaling
+    const fontScaleGroup = document.getElementById('settings-fontsize-group');
+    if (fontScaleGroup) {
+      const savedScale = localStorage.getItem('transify_font_scale') || 'normal';
+      this.applyFontScale(savedScale);
+
+      fontScaleGroup.querySelectorAll('.segmented-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const scale = btn.dataset.scale;
+          this.applyFontScale(scale);
+          try { localStorage.setItem('transify_font_scale', scale); } catch(e) {}
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast(`Typography scaled to ${btn.textContent}`, 'info');
+          }
+        });
+      });
+    }
+
+    // 4. Focus Rings
+    const focusRingToggle = document.getElementById('setting-focus-rings');
+    if (focusRingToggle) {
+      const isEnhanced = localStorage.getItem('transify_focus_rings') === 'true';
+      focusRingToggle.checked = isEnhanced;
+      if (isEnhanced) document.body.classList.add('enhanced-focus');
+
+      focusRingToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          document.body.classList.add('enhanced-focus');
+          try { localStorage.setItem('transify_focus_rings', 'true'); } catch(e) {}
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast('Prominent Keyboard Focus Rings Enabled', 'success');
+          }
+        } else {
+          document.body.classList.remove('enhanced-focus');
+          try { localStorage.setItem('transify_focus_rings', 'false'); } catch(e) {}
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast('Standard Focus Rings Restored', 'info');
+          }
+        }
+      });
+    }
+
+    // 5. Interface Language Select
+    const langSelect = document.getElementById('setting-lang-select');
+    if (langSelect) {
+      const currentLang = localStorage.getItem('transify_lang') || 'en';
+      langSelect.value = currentLang;
+
+      langSelect.addEventListener('change', (e) => {
+        const lang = e.target.value;
+        try { localStorage.setItem('transify_lang', lang); } catch(e) {}
+        if (typeof applyLocale === 'function') applyLocale(lang);
+        const enBtn = document.getElementById('home-lang-en');
+        const bnBtn = document.getElementById('home-lang-bn');
+        if (enBtn && bnBtn) {
+          enBtn.classList.toggle('active', lang === 'en');
+          enBtn.setAttribute('aria-pressed', lang === 'en');
+          bnBtn.classList.toggle('active', lang === 'bn');
+          bnBtn.setAttribute('aria-pressed', lang === 'bn');
+        }
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast(`Interface language: ${lang === 'bn' ? 'বাংলা' : 'English'}`, 'info');
+        }
+      });
+    }
+
+    // 6. Speech Synthesizer Rate
+    const speechRateGroup = document.getElementById('settings-speech-rate-group');
+    if (speechRateGroup) {
+      const currentRate = parseFloat(localStorage.getItem('transify_speech_rate') || '1.0');
+      speechRateGroup.querySelectorAll('.segmented-btn').forEach(b => {
+        b.classList.toggle('active', parseFloat(b.dataset.rate) === currentRate);
+        b.addEventListener('click', () => {
+          speechRateGroup.querySelectorAll('.segmented-btn').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          const rate = parseFloat(b.dataset.rate || '1.0');
+          if (window.TransifyApp) window.TransifyApp.speechRate = rate;
+          try { localStorage.setItem('transify_speech_rate', rate.toString()); } catch(e) {}
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast(`Speech rate set to ${rate}x`, 'info');
+          }
+        });
+      });
+    }
+
+    // 7. Test Voice Button
+    const testVoiceBtn = document.getElementById('btn-settings-test-voice');
+    if (testVoiceBtn) {
+      testVoiceBtn.addEventListener('click', () => {
+        const phrase = 'Welcome to Transify. Assistive voice synthesis is verified and operating.';
+        if (window.TransifyApp && window.TransifyApp.speak) {
+          window.TransifyApp.speak(phrase, { rate: window.TransifyApp.speechRate || 1.0 });
+        }
+      });
+    }
+
+    // 8. Sign Language Model Preset
+    const signLangGroup = document.getElementById('settings-sign-lang-group');
+    if (signLangGroup) {
+      const savedSign = localStorage.getItem('transify_default_sign_lang') || 'asl';
+      signLangGroup.querySelectorAll('.segmented-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.sign === savedSign);
+        b.addEventListener('click', () => {
+          signLangGroup.querySelectorAll('.segmented-btn').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          const signLang = b.dataset.sign;
+          try { localStorage.setItem('transify_default_sign_lang', signLang); } catch(e) {}
+          const aslBtn = document.getElementById('lang-asl-btn');
+          const bdslBtn = document.getElementById('lang-bdsl-btn');
+          if (aslBtn && bdslBtn) {
+            aslBtn.classList.toggle('active', signLang === 'asl');
+            bdslBtn.classList.toggle('active', signLang === 'bdsl');
+          }
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast(`Default sign lexicon: ${signLang.toUpperCase()}`, 'info');
+          }
+        });
+      });
+    }
+
+    // 9. Braille Standard Preset
+    const brailleGroup = document.getElementById('settings-braille-standard-group');
+    if (brailleGroup) {
+      const savedBraille = localStorage.getItem('transify_braille_standard') || 'grade1';
+      brailleGroup.querySelectorAll('.segmented-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.braille === savedBraille);
+        b.addEventListener('click', () => {
+          brailleGroup.querySelectorAll('.segmented-btn').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          const val = b.dataset.braille;
+          try { localStorage.setItem('transify_braille_standard', val); } catch(e) {}
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast(`Braille transcription: ${b.textContent}`, 'info');
+          }
+        });
+      });
+    }
+
+    // 10. Confidence Gate
+    const confGate = document.getElementById('setting-confidence-gate');
+    if (confGate) {
+      const savedConf = localStorage.getItem('transify_confidence_gate') || '85';
+      confGate.value = savedConf;
+      confGate.addEventListener('change', (e) => {
+        try { localStorage.setItem('transify_confidence_gate', e.target.value); } catch(e) {}
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast(`Vision confidence threshold: ${e.target.value}%`, 'info');
+        }
+      });
+    }
+
+    // 11. Sync Account Info
+    this.refreshSettingsUserUI();
+
+    // 12. Clear Activity History
+    const clearHistBtn = document.getElementById('btn-settings-clear-history');
+    if (clearHistBtn) {
+      clearHistBtn.addEventListener('click', async () => {
+        const recentList = document.getElementById('home-recent-list');
+        if (recentList) {
+          recentList.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-2); font-size: 14px; font-weight: 600;">No recent translations yet.</div>';
+        }
+        try { await fetch('/api/history', { method: 'DELETE' }); } catch(e) {}
+        const storageDesc = document.getElementById('settings-storage-size');
+        if (storageDesc) storageDesc.textContent = '0 local activity logs';
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('Activity history cleared successfully', 'success');
+        }
+      });
+    }
+
+    // 13. Reset to Defaults
+    const resetBtn = document.getElementById('btn-settings-reset-defaults');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        this.applyTheme('light');
+        this.applyFontScale('normal');
+        try {
+          localStorage.removeItem('transify_theme');
+          localStorage.removeItem('transify_font_scale');
+          localStorage.removeItem('transify_focus_rings');
+          localStorage.removeItem('transify_reduce_motion');
+          localStorage.removeItem('transify_speech_rate');
+        } catch(e) {}
+        if (reduceMotionCheck) reduceMotionCheck.checked = false;
+        if (focusRingToggle) focusRingToggle.checked = false;
+        document.documentElement.removeAttribute('data-motion');
+        document.body.classList.remove('enhanced-focus');
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('All settings reset to default', 'info');
         }
       });
     }
@@ -3667,6 +3894,101 @@ const EditorialController = {
         const check1 = document.getElementById('care-consent-check');
         const check2 = document.getElementById('care-consent-checkbox');
         if (check1 && check2) check2.checked = check1.checked;
+
+        hiddenCareSubmit.click();
+      });
+    }
+  },
+
+  applyTheme(theme) {
+    document.querySelectorAll('.theme-card-btn').forEach(btn => {
+      const isMatch = btn.dataset.theme === theme;
+      btn.classList.toggle('active', isMatch);
+      btn.setAttribute('aria-pressed', isMatch);
+    });
+
+    if (theme === 'system') {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const effectiveTheme = prefersDark ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', effectiveTheme);
+      document.body.setAttribute('data-theme', effectiveTheme);
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.body.setAttribute('data-theme', theme);
+    }
+
+    if (theme === 'high-contrast') {
+      document.body.classList.add('high-contrast');
+    } else {
+      document.body.classList.remove('high-contrast');
+    }
+  },
+
+  applyFontScale(scale) {
+    const group = document.getElementById('settings-fontsize-group');
+    if (group) {
+      group.querySelectorAll('.segmented-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.scale === scale);
+      });
+    }
+    document.documentElement.setAttribute('data-scale', scale);
+    document.body.setAttribute('data-scale', scale);
+  },
+
+  refreshSettingsUserUI() {
+    const userJson = localStorage.getItem('transify_auth_user');
+    const nameEl = document.getElementById('settings-user-name');
+    const emailEl = document.getElementById('settings-user-email');
+    const avEl = document.getElementById('settings-avatar-initials');
+    const authBtn = document.getElementById('btn-settings-auth');
+    const statusPill = document.getElementById('settings-session-status');
+
+    if (userJson) {
+      try {
+        const u = JSON.parse(userJson);
+        if (nameEl && u.name) nameEl.textContent = u.name;
+        if (emailEl && u.email) emailEl.textContent = u.email;
+        if (avEl && u.name) {
+          const parts = u.name.trim().split(' ');
+          avEl.textContent = parts.map(p => p[0]).join('').toUpperCase().slice(0, 2);
+        }
+        if (authBtn) {
+          authBtn.textContent = 'Sign Out';
+          authBtn.style.background = '#EF4444';
+        }
+        if (statusPill) statusPill.innerHTML = '<span class="status-dot"></span><span>Verified User (Synced)</span>';
+      } catch (_) {}
+    } else {
+      if (nameEl) nameEl.textContent = 'Guest User';
+      if (emailEl) emailEl.textContent = 'Offline local storage mode';
+      if (avEl) avEl.textContent = 'TR';
+      if (authBtn) {
+        authBtn.textContent = 'Sign In / Register';
+        authBtn.style.background = 'var(--ink)';
+      }
+      if (statusPill) statusPill.innerHTML = '<span class="status-dot"></span><span>Offline Edge Mode (Private)</span>';
+    }
+  },
+
+  handleSettingsAuthAction() {
+    const userJson = localStorage.getItem('transify_auth_user');
+    if (userJson) {
+      localStorage.removeItem('transify_auth_user');
+      localStorage.removeItem('transify_auth_token');
+      this.refreshSettingsUserUI();
+      const avEl = document.getElementById('frame-avatar-btn');
+      if (avEl) avEl.textContent = 'TR';
+      const homeName = document.getElementById('home-user-name');
+      if (homeName) homeName.textContent = 'Welcome to Transify';
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast('Signed out of session', 'info');
+      }
+    } else {
+      if (window.TransifyApp && window.TransifyApp.openAuthSheet) {
+        window.TransifyApp.openAuthSheet('login');
+      }
+    }
+  },
 
         hiddenCareSubmit.click();
       });
