@@ -20,7 +20,7 @@
   <script src="/static/i18n.js"></script>
   
   <!-- Design System CSS -->
-  <link rel="stylesheet" href="/static/styles.css?v=20261120_button_fix">
+  <link rel="stylesheet" href="/static/styles.css?v=20261120_real_hand">
 
   <script>
     // Bulletproof routing & auth initialization
@@ -145,18 +145,40 @@
           <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(20,17,31,0) 55%, rgba(20,17,31,.9) 100%), linear-gradient(to top, rgba(20,17,31,.7), rgba(20,17,31,0) 40%); pointer-events: none;"></div>
 
           <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 40px 40px;">
-            <!-- Demo 0: Sign Translator Hand Skeleton -->
+            <!-- Demo 0: Sign Translator Real Hand & AI Neural Tracking -->
             <div id="welcome-demo-sign" class="pop" style="display: flex; flex-direction: column; align-items: flex-start; gap: 16px;">
               <div class="demo-sign-wrap">
                 <i class="brk tl"></i><i class="brk tr"></i><i class="brk bl"></i><i class="brk br"></i>
-                <svg viewBox="0 0 120 120" width="388" height="388" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" id="welcome-hand-svg">
-                  <path d="M60 112V90"/>
-                  <g class="fj f1"><path d="M60 90L38 74L26 56L18 42"/><circle cx="18" cy="42" r="2.6" fill="#FFCB05" stroke="none"/></g>
-                  <g class="fj f2"><path d="M48 68L44 42L42 24"/><circle cx="42" cy="24" r="2.6" fill="#FFCB05" stroke="none"/></g>
-                  <g class="fj f3"><path d="M58 64V36V16"/><circle cx="58" cy="16" r="2.6" fill="#FFCB05" stroke="none"/></g>
-                  <g class="fj f4"><path d="M68 66L72 40L74 24"/><circle cx="74" cy="24" r="2.6" fill="#FFCB05" stroke="none"/></g>
-                  <g class="fj f5"><path d="M76 72L86 50L92 36"/><circle cx="92" cy="36" r="2.6" fill="#FFCB05" stroke="none"/></g>
-                </svg>
+                <div class="hand-visual-container">
+                  <picture>
+                    <source srcset="/static/photos/real-sign-hand.webp" type="image/webp">
+                    <img src="/static/photos/real-sign-hand.jpg" alt="Real human hand signing open palm hello" class="real-hand-img" width="388" height="388">
+                  </picture>
+                  <svg viewBox="0 0 100 100" class="real-hand-tracking-svg" aria-hidden="true" id="welcome-hand-svg">
+                    <path class="tracking-lines" d="M 48.36 84.46 L 59.43 77.63 M 48.36 84.46 L 57.32 50.17 M 57.32 50.17 L 49.94 49.45 M 49.94 49.45 L 43.21 51.92 M 43.21 51.92 L 36.82 56.73 M 48.36 84.46 L 36.82 56.73 M 59.43 77.63 L 67.55 66.08 M 67.55 66.08 L 71.91 54.92 L 71.91 54.92 L 76.36 46.61 M 57.32 50.17 L 58.99 36.29 M 58.99 36.29 L 59.24 28.14 M 59.24 28.14 L 59.08 20.92 M 49.94 49.45 L 49.43 34.15 M 49.43 34.15 L 48.99 24.9 M 48.99 24.9 L 48.09 17.09 M 43.21 51.92 L 41.4 37.78 M 41.4 37.78 L 41.01 29.42 M 41.01 29.42 L 40.72 21.83 M 36.82 56.73 L 34.03 46.36 M 34.03 46.36 L 32.71 39.75 M 32.71 39.75 L 31.96 33.34" />
+                    <circle class="lm-joint" cx="48.36" cy="84.46" r="1.4" />
+                    <circle class="lm-joint" cx="59.43" cy="77.63" r="1.4" />
+                    <circle class="lm-joint" cx="67.55" cy="66.08" r="1.4" />
+                    <circle class="lm-joint" cx="71.91" cy="54.92" r="1.4" />
+                    <circle class="lm-tip" cx="76.36" cy="46.61" r="2.2" />
+                    <circle class="lm-joint" cx="57.32" cy="50.17" r="1.4" />
+                    <circle class="lm-joint" cx="58.99" cy="36.29" r="1.4" />
+                    <circle class="lm-joint" cx="59.24" cy="28.14" r="1.4" />
+                    <circle class="lm-tip" cx="59.08" cy="20.92" r="2.2" />
+                    <circle class="lm-joint" cx="49.94" cy="49.45" r="1.4" />
+                    <circle class="lm-joint" cx="49.43" cy="34.15" r="1.4" />
+                    <circle class="lm-joint" cx="48.99" cy="24.9" r="1.4" />
+                    <circle class="lm-tip" cx="48.09" cy="17.09" r="2.2" />
+                    <circle class="lm-joint" cx="43.21" cy="51.92" r="1.4" />
+                    <circle class="lm-joint" cx="41.4" cy="37.78" r="1.4" />
+                    <circle class="lm-joint" cx="41.01" cy="29.42" r="1.4" />
+                    <circle class="lm-tip" cx="40.72" cy="21.83" r="2.2" />
+                    <circle class="lm-joint" cx="36.82" cy="56.73" r="1.4" />
+                    <circle class="lm-joint" cx="34.03" cy="46.36" r="1.4" />
+                    <circle class="lm-joint" cx="32.71" cy="39.75" r="1.4" />
+                    <circle class="lm-tip" cx="31.96" cy="33.34" r="2.2" />
+                  </svg>
+                </div>
                 <div class="beam" style="display: block; animation: beam 2.4s linear infinite;"></div>
               </div>
               <div aria-live="polite" class="demo-sign-tag">
