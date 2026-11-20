@@ -1,0 +1,42 @@
+[
+  {
+    "id": "custom_allergy_test",
+    "domain": "care_clinical",
+    "keywords": [
+      "peanut allergy",
+      "anaphylaxis test",
+      "allergy reaction"
+    ],
+    "patterns": [
+      "what is the protocol for severe peanut allergy"
+    ],
+    "response": "Administer intramuscular Epinephrine (EpiPen) into anterolateral thigh immediately and call emergency services.",
+    "citations": [
+      "Clinical Allergy & Anaphylaxis Protocol 2026"
+    ],
+    "suggested_replies": [
+      "EpiPen guide",
+      "Call 999"
+    ]
+  },
+  {
+    "id": "custom_allergy_test",
+    "domain": "care_clinical",
+    "keywords": [
+      "peanut allergy",
+      "anaphylaxis test",
+      "allergy reaction"
+    ],
+    "patterns": [
+      "what is the protocol for severe peanut allergy"
+    ],
+    "response": "Administer intramuscular Epinephrine (EpiPen) into anterolateral thigh immediately and call emergency services.",
+    "citations": [
+      "Clinical Allergy & Anaphylaxis Protocol 2026"
+    ],
+    "suggested_replies": [
+      "EpiPen guide",
+      "Call 999"
+    ]
+  }
+]

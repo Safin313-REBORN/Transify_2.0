@@ -52,6 +52,7 @@ from src.database.db import (
     clear_failed_logins
 )
 from src.api.care_routes import router as care_router
+from src.api.chatbot_routes import router as chat_router
 
 # Initialize FastAPI App
 app = FastAPI(
@@ -60,8 +61,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Mount Transify Care router
+# Mount Routers
 app.include_router(care_router)
+app.include_router(chat_router)
 
 # Enable CORS for cross-origin browser clients
 app.add_middleware(

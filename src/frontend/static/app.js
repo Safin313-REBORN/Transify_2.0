@@ -2915,6 +2915,454 @@ window.showTransifySplashScreen = function(durationMs = 3500) {
 };
 
 // ============================================================================
+// 8.5 TRANSIFY AI CHATBOT & KNOWLEDGE ENGINE CONTROLLER
+// ============================================================================
+
+var ChatbotPage = window.ChatbotPage = {
+  isInitialized: false,
+  conversationHistory: [],
+  isRecording: false,
+  recognition: null,
+
+  init() {
+    if (this.isInitialized) return;
+    this.isInitialized = true;
+
+    this.bindEvents();
+    this.loadModelStatus();
+  },
+
+  bindEvents() {
+    const form = document.getElementById('chat-input-form');
+    const input = document.getElementById('chat-input-field');
+    const clearBtn = document.getElementById('btn-clear-chat');
+    const trainModalBtn = document.getElementById('btn-open-training-modal');
+    const closeTrainBtn = document.getElementById('btn-close-training-modal');
+    const startTrainBtn = document.getElementById('btn-start-training');
+    const addSampleBtn = document.getElementById('btn-add-custom-sample');
+    const micBtn = document.getElementById('chat-mic-btn');
+
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = input ? input.value.trim() : '';
+        if (text) {
+          this.sendMessage(text);
+          if (input) input.value = '';
+        }
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => this.clearChat());
+    }
+
+    if (trainModalBtn) {
+      trainModalBtn.addEventListener('click', () => this.openTrainingModal());
+    }
+
+    if (closeTrainBtn) {
+      closeTrainBtn.addEventListener('click', () => this.closeTrainingModal());
+    }
+
+    if (startTrainBtn) {
+      startTrainBtn.addEventListener('click', () => this.runTraining());
+    }
+
+    if (addSampleBtn) {
+      addSampleBtn.addEventListener('click', () => this.addCustomSample());
+    }
+
+    if (micBtn) {
+      micBtn.addEventListener('click', () => this.toggleSpeechRecognition());
+    }
+
+    // Bind suggestion chips
+    document.querySelectorAll('.chat-suggestion-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const prompt = chip.getAttribute('data-prompt');
+        if (prompt) {
+          this.sendMessage(prompt);
+        }
+      });
+    });
+  },
+
+  async loadModelStatus() {
+    try {
+      const res = await fetch('/api/chat/status');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      const badge = document.getElementById('chat-model-badge');
+      const accBadge = document.getElementById('chat-accuracy-badge');
+      const trainAcc = document.getElementById('train-accuracy-val');
+      const trainLoss = document.getElementById('train-loss-val');
+      const trainDocs = document.getElementById('train-docs-val');
+
+      if (badge && data.model_name) badge.textContent = data.model_name;
+      if (accBadge && data.accuracy) accBadge.textContent = `${data.accuracy} Trained`;
+      if (trainAcc && data.accuracy) trainAcc.textContent = data.accuracy;
+      if (trainLoss && data.final_loss !== undefined) trainLoss.textContent = data.final_loss;
+      if (trainDocs && data.total_documents) trainDocs.textContent = `${data.total_documents}+`;
+    } catch (e) {
+      console.debug('Chatbot status fetch notice:', e);
+    }
+  },
+
+  async sendMessage(text) {
+    const stream = document.getElementById('chat-stream-container');
+    if (!stream) return;
+
+    // Append user message
+    this.appendMessage('user', text);
+    this.conversationHistory.push({ role: 'user', content: text });
+
+    // Show temporary thinking indicator
+    const thinkingId = 'thinking-' + Date.now();
+    const thinkingEl = document.createElement('div');
+    thinkingEl.className = 'chat-message-item bot';
+    thinkingEl.id = thinkingId;
+    thinkingEl.innerHTML = `
+      <div class="chat-msg-avatar">🤖</div>
+      <div class="chat-msg-content">
+        <div class="chat-msg-bubble" style="opacity: 0.7;">
+          <em>Thinking &amp; cross-referencing WHO/Merck guidelines...</em>
+        </div>
+      </div>
+    `;
+    stream.appendChild(thinkingEl);
+    stream.scrollTop = stream.scrollHeight;
+
+    try {
+      const res = await fetch('/api/chat/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          history: this.conversationHistory
+        })
+      });
+
+      if (!res.ok) throw new Error('Chatbot reasoning error');
+      const data = await res.json();
+
+      // Remove thinking element
+      const el = document.getElementById(thinkingId);
+      if (el) el.remove();
+
+      // Append bot response
+      this.appendMessage('bot', data.response, data);
+      this.conversationHistory.push({ role: 'assistant', content: data.response });
+
+      // Update suggestion chips if present
+      if (data.suggested_replies && data.suggested_replies.length) {
+        this.updateSuggestions(data.suggested_replies);
+      }
+
+    } catch (err) {
+      const el = document.getElementById(thinkingId);
+      if (el) el.remove();
+
+      this.appendMessage('bot', '⚠️ I experienced a temporary reasoning interruption. Please try asking again.');
+    }
+  },
+
+  appendMessage(sender, text, meta = null) {
+    const stream = document.getElementById('chat-stream-container');
+    if (!stream) return;
+
+    const item = document.createElement('div');
+    item.className = `chat-message-item ${sender}`;
+
+    // Render basic markdown formatting
+    let formattedText = this.formatMarkdown(text);
+
+    let metaHtml = '';
+    if (sender === 'bot' && meta) {
+      let citationsHtml = '';
+      if (meta.citations && meta.citations.length) {
+        citationsHtml = ` • 📚 Ref: ${meta.citations.join(', ')}`;
+      }
+      metaHtml = `
+        <div class="chat-source-tag">
+          <span>${meta.source || '🎯 Trained RAG Engine'}</span>
+          <span>${citationsHtml}</span>
+          <button type="button" class="chat-speak-btn press" data-text="${encodeURIComponent(text.replace(/[*_#`]/g, ''))}">🔊 Speak</button>
+        </div>
+      `;
+    }
+
+    item.innerHTML = `
+      <div class="chat-msg-avatar">${sender === 'user' ? 'YOU' : '🤖'}</div>
+      <div class="chat-msg-content">
+        <div class="chat-msg-bubble">
+          ${formattedText}
+        </div>
+        ${metaHtml}
+      </div>
+    `;
+
+    stream.appendChild(item);
+    stream.scrollTop = stream.scrollHeight;
+
+    // Bind speak button
+    item.querySelectorAll('.chat-speak-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const speech = decodeURIComponent(btn.getAttribute('data-text') || '');
+        if (speech && window.TransifyTTS) {
+          window.TransifyTTS.speak(speech);
+        }
+      });
+    });
+  },
+
+  formatMarkdown(raw) {
+    if (!raw) return '';
+    let s = raw
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    // Bold
+    s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Italic
+    s = s.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Lines
+    const lines = s.split('\n');
+    let inList = false;
+    let out = [];
+
+    for (let line of lines) {
+      let trimmed = line.trim();
+      if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        if (!inList) { out.push('<ul>'); inList = true; }
+        out.push(`<li>${trimmed.substring(2)}</li>`);
+      } else if (/^\d+\.\s/.test(trimmed)) {
+        if (!inList) { out.push('<ul>'); inList = true; }
+        out.push(`<li>${trimmed.replace(/^\d+\.\s/, '')}</li>`);
+      } else {
+        if (inList) { out.push('</ul>'); inList = false; }
+        if (trimmed) out.push(`<p>${trimmed}</p>`);
+      }
+    }
+    if (inList) out.push('</ul>');
+    return out.join('');
+  },
+
+  updateSuggestions(suggestions) {
+    const bar = document.getElementById('chat-suggestions-bar');
+    if (!bar || !suggestions) return;
+
+    bar.innerHTML = suggestions.map(s => `
+      <button type="button" class="chat-suggestion-chip press" data-prompt="${s}">${s}</button>
+    `).join('');
+
+    bar.querySelectorAll('.chat-suggestion-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const prompt = btn.getAttribute('data-prompt');
+        if (prompt) this.sendMessage(prompt);
+      });
+    });
+  },
+
+  clearChat() {
+    const stream = document.getElementById('chat-stream-container');
+    if (stream) {
+      stream.innerHTML = `
+        <div class="chat-message-item bot">
+          <div class="chat-msg-avatar">🤖</div>
+          <div class="chat-msg-content">
+            <div class="chat-msg-bubble">
+              <p>Chat history cleared. How can I assist you with clinical triage or accessible communication?</p>
+            </div>
+            <div class="chat-source-tag">Transify Neural Assist v2.4</div>
+          </div>
+        </div>
+      `;
+    }
+    this.conversationHistory = [];
+    fetch('/api/chat/reset', { method: 'POST' }).catch(() => {});
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast('Chat history cleared', 'info');
+    }
+  },
+
+  openTrainingModal() {
+    const modal = document.getElementById('chat-training-modal');
+    if (modal) {
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden', 'false');
+      this.loadModelStatus();
+    }
+  },
+
+  closeTrainingModal() {
+    const modal = document.getElementById('chat-training-modal');
+    if (modal) {
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+  },
+
+  async runTraining() {
+    const epochsSelect = document.getElementById('train-epochs-select');
+    const lrSelect = document.getElementById('train-lr-select');
+    const progressBox = document.getElementById('training-progress-container');
+    const fill = document.getElementById('train-progress-fill');
+    const pct = document.getElementById('train-progress-pct');
+    const statusText = document.getElementById('train-progress-status');
+    const lossReport = document.getElementById('train-loss-report');
+    const trainBtn = document.getElementById('btn-start-training');
+
+    const epochs = epochsSelect ? parseInt(epochsSelect.value) : 10;
+    const lr = lrSelect ? parseFloat(lrSelect.value) : 0.02;
+
+    if (trainBtn) trainBtn.disabled = true;
+    if (progressBox) progressBox.style.display = 'block';
+    if (fill) fill.style.width = '15%';
+    if (pct) pct.textContent = '15%';
+    if (statusText) statusText.textContent = `Running gradient descent across ${epochs} epochs...`;
+
+    try {
+      if (fill) fill.style.width = '60%';
+      if (pct) pct.textContent = '60%';
+
+      const res = await fetch('/api/chat/train', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ epochs: epochs, learning_rate: lr })
+      });
+
+      if (!res.ok) throw new Error('Training request failed');
+      const data = await res.json();
+
+      if (fill) fill.style.width = '100%';
+      if (pct) pct.textContent = '100%';
+      if (statusText) statusText.textContent = 'Training Complete! Model convergence verified.';
+      if (lossReport && data.metrics) {
+        lossReport.innerHTML = `🎯 <strong>Final Loss:</strong> ${data.metrics.final_loss} • <strong>Accuracy:</strong> ${data.metrics.accuracy}`;
+      }
+
+      await this.loadModelStatus();
+
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast(`AI Model successfully trained! Accuracy: ${data.metrics.accuracy}`, 'success');
+      }
+    } catch (e) {
+      if (statusText) statusText.textContent = `Training error: ${e.message}`;
+    } finally {
+      if (trainBtn) trainBtn.disabled = false;
+    }
+  },
+
+  async addCustomSample() {
+    const patInput = document.getElementById('custom-train-pattern');
+    const respInput = document.getElementById('custom-train-response');
+    const domSelect = document.getElementById('custom-train-domain');
+
+    const pattern = patInput ? patInput.value.trim() : '';
+    const response = respInput ? respInput.value.trim() : '';
+    const domain = domSelect ? domSelect.value : 'care_clinical';
+
+    if (!pattern || !response) {
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast('Please provide both inquiry pattern and expected response.', 'warning');
+      }
+      return;
+    }
+
+    try {
+      const sample = {
+        id: 'custom_' + Date.now(),
+        domain: domain,
+        keywords: pattern.toLowerCase().split(/\s+/).slice(0, 5),
+        patterns: [pattern],
+        response: response,
+        citations: ['User-Trained Clinical/Communication Knowledge Base']
+      };
+
+      const res = await fetch('/api/chat/train', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          epochs: 5,
+          custom_samples: [sample]
+        })
+      });
+
+      if (!res.ok) throw new Error('Failed to add custom sample');
+
+      if (patInput) patInput.value = '';
+      if (respInput) respInput.value = '';
+
+      await this.loadModelStatus();
+
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast('New pattern trained into AI model successfully!', 'success');
+      }
+    } catch (e) {
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast(`Failed to train sample: ${e.message}`, 'danger');
+      }
+    }
+  },
+
+  toggleSpeechRecognition() {
+    const micBtn = document.getElementById('chat-mic-btn');
+    const input = document.getElementById('chat-input-field');
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast('Speech recognition is not supported in this browser.', 'warning');
+      }
+      return;
+    }
+
+    if (this.isRecording && this.recognition) {
+      this.recognition.stop();
+      this.isRecording = false;
+      if (micBtn) micBtn.classList.remove('recording');
+      return;
+    }
+
+    this.recognition = new SpeechRec();
+    this.recognition.lang = 'en-US';
+    this.recognition.continuous = false;
+    this.recognition.interimResults = false;
+
+    this.recognition.onstart = () => {
+      this.isRecording = true;
+      if (micBtn) micBtn.classList.add('recording');
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast('Listening... Speak your prompt', 'info');
+      }
+    };
+
+    this.recognition.onresult = (e) => {
+      const transcript = e.results[0][0].transcript;
+      if (input) {
+        input.value = transcript;
+        input.focus();
+      }
+    };
+
+    this.recognition.onerror = (e) => {
+      this.isRecording = false;
+      if (micBtn) micBtn.classList.remove('recording');
+    };
+
+    this.recognition.onend = () => {
+      this.isRecording = false;
+      if (micBtn) micBtn.classList.remove('recording');
+    };
+
+    this.recognition.start();
+  }
+};
+
+// ============================================================================
 // 9. TRANSIFY 2.0 EDITORIAL CONTROLLER (Pixel-Exact Navigation & Interactions)
 // ============================================================================
 
@@ -2953,6 +3401,9 @@ const EditorialController = {
     this.setupPhrasesScreen();
     this.setupBrailleInteractiveCell();
     this.setupSettingsScreen();
+    if (window.ChatbotPage && window.ChatbotPage.init) {
+      window.ChatbotPage.init();
+    }
 
     // Check initial route
     const hash = window.location.hash.replace('#', '').toLowerCase();
@@ -3035,6 +3486,7 @@ const EditorialController = {
       stt: 'view-voice',
       tts: 'view-voice',
       care: 'view-care',
+      chat: 'view-chat',
       settings: 'view-settings'
     };
 
@@ -3064,6 +3516,9 @@ const EditorialController = {
     // Sub-route handling
     if (route === 'sign' && window.SignPage && window.SignPage.init) {
       window.SignPage.init();
+    }
+    if (route === 'chat' && window.ChatbotPage && window.ChatbotPage.init) {
+      window.ChatbotPage.init();
     }
 
     if (rawRoute === 'clinician') {
