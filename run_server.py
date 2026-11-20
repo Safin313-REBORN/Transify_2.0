@@ -41,7 +41,7 @@ def print_banner(host: str, port: int):
 def main():
     parser = argparse.ArgumentParser(description="Transify Assistive Platform Server")
     parser.add_argument("--host", default="0.0.0.0", help="Binding host address (default: 0.0.0.0)")
-    parser.add_argument("--port", type=int, default=8000, help="Server port (default: 8000)")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8000)), help="Server port (default: 8000 or $PORT)")
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
     args = parser.parse_args()
 
