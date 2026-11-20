@@ -130,6 +130,189 @@
         if (query) self.searchEvidence(query);
       });
 
+      // CareAnywhere Multimodal: Photo Input for Lesion & Eye Scanning
+      const photoInput = document.getElementById('care-photo-input');
+      if (photoInput) {
+        photoInput.addEventListener('change', function(e) {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            const dataUrl = evt.target.result;
+            self._attachedPhotoBase64 = dataUrl;
+            const previewCard = document.getElementById('care-vision-preview-card');
+            const thumb = document.getElementById('care-vision-thumb');
+            const findingsBox = document.getElementById('care-vision-findings-box');
+            if (previewCard && thumb && findingsBox) {
+              previewCard.style.display = 'block';
+              thumb.src = dataUrl;
+              findingsBox.textContent = 'Running computer vision screening...';
+              fetch('/api/care/vision/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image_data: dataUrl, condition_type: 'auto' })
+              })
+              .then(res => res.json())
+              .then(data => {
+                if (data.success && data.analysis) {
+                  const a = data.analysis;
+                  self._attachedPhotoConditionType = a.target_organ === 'DERMATOLOGY' ? 'skin' : 'eye';
+                  findingsBox.textContent = `${a.target_organ}: ${a.urgency_level} (${(a.confidence_score*100).toFixed(0)}% confidence). ${a.findings[0] || ''}`;
+                } else {
+                  findingsBox.textContent = 'Image attached. Will be processed with intake submission.';
+                }
+              })
+              .catch(() => {
+                findingsBox.textContent = 'Image attached. Computer vision analysis will finalize upon submission.';
+              });
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Remove Attached Photo
+      const removePhotoBtn = document.getElementById('btn-care-remove-photo');
+      if (removePhotoBtn) {
+        removePhotoBtn.addEventListener('click', function() {
+          self._attachedPhotoBase64 = null;
+          self._attachedPhotoConditionType = null;
+          const pInp = document.getElementById('care-photo-input');
+          if (pInp) pInp.value = '';
+          const previewCard = document.getElementById('care-vision-preview-card');
+          if (previewCard) previewCard.style.display = 'none';
+        });
+      }
+
+      // CareAnywhere Regional Dialect Intake
+      const voiceDialectBtn = document.getElementById('btn-care-voice-dialect');
+      if (voiceDialectBtn) {
+        voiceDialectBtn.addEventListener('click', function() {
+          const sample = prompt('Speak or enter your symptom in local regional dialect (e.g., Sylheti "bukor bitor fura", Chittagonian "souk laal oise", or rural Bengali "গা থরথর করে কাঁপে"):', 'বুকে তীব্র ব্যথা এবং দম আটকে আসে');
+          if (!sample) return;
+          fetch('/api/care/audio/intake', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transcript: sample, dialect_hint: 'auto' })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.data) {
+              const d = data.data;
+              const complaintInput = document.getElementById('care-chief-complaint');
+              const descInput = document.getElementById('care-symptom-desc');
+              const slider = document.getElementById('care-severity-slider');
+              const badge = document.getElementById('care-severity-badge');
+              if (complaintInput) complaintInput.value = d.chief_complaint;
+              if (descInput) descInput.value = `Spoken transcript: "${d.transcript}". Identified dialect: ${d.identified_dialect}. Inferred duration: ${d.inferred_duration}.`;
+              if (slider && d.inferred_severity) {
+                slider.value = d.inferred_severity;
+                if (badge) badge.textContent = d.inferred_severity;
+              }
+              self._attachedAudioTranscript = d.transcript;
+              alert(`Recognized: ${d.identified_dialect}\nChief Complaint: ${d.chief_complaint}\nInferred Severity: ${d.inferred_severity}/10`);
+            }
+          })
+          .catch(e => console.error('Voice dialect intake error', e));
+        });
+      }
+
+      // CareAnywhere Outbreak Alert Toggle
+      const outbreakBtn = document.getElementById('btn-care-outbreak-alert');
+      const outbreakModal = document.getElementById('care-outbreak-modal');
+      const closeOutbreakBtn = document.getElementById('btn-close-outbreak-modal');
+      if (outbreakBtn && outbreakModal) {
+        outbreakBtn.addEventListener('click', function() {
+          const isVisible = outbreakModal.style.display !== 'none';
+          if (isVisible) {
+            outbreakModal.style.display = 'none';
+          } else {
+            outbreakModal.style.display = 'block';
+            fetch('/api/care/outbreak/alerts?lat=23.8103&lon=90.4125&district=Dhaka&symptoms=fever')
+            .then(res => res.json())
+            .then(data => {
+              if (data.success && data.data) {
+                const z = data.data;
+                const title = document.getElementById('outbreak-modal-title');
+                const desc = document.getElementById('outbreak-modal-desc');
+                if (title) title.textContent = `${z.zone_name}: ${z.overall_epidemic_risk} Risk Alert`;
+                if (desc && z.outbreak_alerts && z.outbreak_alerts.length > 0) {
+                  const alert0 = z.outbreak_alerts[0];
+                  desc.textContent = `Active Pathogen: ${alert0.pathogen} (${alert0.vector}). ${alert0.guidance}`;
+                }
+              }
+            })
+            .catch(e => console.error('Failed to load outbreak alerts', e));
+          }
+        });
+      }
+      if (closeOutbreakBtn && outbreakModal) {
+        closeOutbreakBtn.addEventListener('click', () => { outbreakModal.style.display = 'none'; });
+      }
+
+      // CareAnywhere Nearby Emergency Facilities
+      const facilitiesBtn = document.getElementById('btn-care-nearby-facilities');
+      const facilitiesModal = document.getElementById('care-facilities-modal');
+      const closeFacilitiesBtn = document.getElementById('btn-close-facilities-modal');
+      if (facilitiesBtn && facilitiesModal) {
+        facilitiesBtn.addEventListener('click', function() {
+          const isVisible = facilitiesModal.style.display !== 'none';
+          if (isVisible) {
+            facilitiesModal.style.display = 'none';
+          } else {
+            facilitiesModal.style.display = 'block';
+            const listEl = document.getElementById('care-facilities-list');
+            if (listEl) listEl.textContent = 'Locating nearest verified emergency facilities (OpenStreetMap Health)...';
+            fetch('/api/care/facilities/nearby?lat=23.7258&lon=90.3976&limit=4')
+            .then(res => res.json())
+            .then(data => {
+              if (data.status === 'SUCCESS' && listEl) {
+                clearElement(listEl);
+                data.nearest_facilities.forEach(fac => {
+                  const div = document.createElement('div');
+                  div.style.padding = '8px 10px';
+                  div.style.borderRadius = '6px';
+                  div.style.background = 'var(--surface)';
+                  div.style.border = '1px solid var(--line)';
+                  div.style.display = 'flex';
+                  div.style.justifyContent = 'space-between';
+                  div.style.alignItems = 'center';
+
+                  const info = document.createElement('div');
+                  const strong = document.createElement('strong');
+                  strong.textContent = fac.name;
+                  info.appendChild(strong);
+
+                  const sub = document.createElement('div');
+                  sub.style.fontSize = '12px';
+                  sub.style.color = 'var(--text-muted)';
+                  sub.textContent = `${fac.facility_type} • ${fac.distance_km} km away (~${fac.estimated_transit_minutes} min drive) • Hotline: ${fac.hotline}`;
+                  info.appendChild(sub);
+                  div.appendChild(info);
+
+                  const callBtn = document.createElement('a');
+                  callBtn.href = `tel:${fac.hotline}`;
+                  callBtn.className = 'phrase-chip';
+                  callBtn.style.background = 'var(--signal)';
+                  callBtn.style.color = 'var(--ink)';
+                  callBtn.style.fontWeight = '700';
+                  callBtn.textContent = 'Call';
+                  div.appendChild(callBtn);
+
+                  listEl.appendChild(div);
+                });
+              }
+            })
+            .catch(e => {
+              if (listEl) listEl.textContent = 'Failed to locate facilities. If experiencing an emergency, immediately call 999 or 16263.';
+            });
+          }
+        });
+      }
+      if (closeFacilitiesBtn && facilitiesModal) {
+        closeFacilitiesBtn.addEventListener('click', () => { facilitiesModal.style.display = 'none'; });
+      }
+
       // TTS Speak Triage Result (Strict Zero Auto-Audio: Only triggered on explicit user click)
       const ttsBtn = document.getElementById('btn-care-speak-triage');
       if (ttsBtn) ttsBtn.addEventListener('click', () => self.speakTriageAssessment());
@@ -392,6 +575,18 @@
       };
 
       const self = this;
+
+      if (self._attachedPhotoBase64) {
+        payload.image_base64 = self._attachedPhotoBase64;
+        payload.condition_type = self._attachedPhotoConditionType || 'auto';
+        payload.input_modality = 'multimodal';
+      }
+      if (self._attachedAudioTranscript) {
+        payload.audio_transcript = self._attachedAudioTranscript;
+      }
+      payload.district = 'Dhaka';
+      payload.gps_latitude = 23.8103;
+      payload.gps_longitude = 90.4125;
 
       if (!navigator.onLine) {
         if (self.isSyntheticDemoDraft(payload)) {
@@ -865,6 +1060,55 @@
             noCite.style.color = 'var(--text-muted)';
             noCite.textContent = 'No direct citation retrieved.';
             citContainer.appendChild(noCite);
+          }
+        }
+
+        // Render CareAnywhere attached vision analysis
+        const visionBox = document.getElementById('inspect-vision-box');
+        const visionDetails = document.getElementById('inspect-vision-details');
+        if (visionBox && visionDetails) {
+          if (intake.vision_analysis) {
+            visionBox.style.display = 'block';
+            clearElement(visionDetails);
+            const va = intake.vision_analysis;
+            const f = (va.findings && va.findings[0]) || 'Visual features evaluated.';
+            visionDetails.textContent = `[${va.target_organ || 'DERM/OPHTH'}] Urgency: ${va.urgency_level} (${Math.round((va.confidence_score||0.8)*100)}% confidence). Finding: ${f}`;
+          } else {
+            visionBox.style.display = 'none';
+          }
+        }
+
+        // Render MeSH descriptors
+        const meshBox = document.getElementById('inspect-mesh-box');
+        const meshTags = document.getElementById('inspect-mesh-tags');
+        if (meshBox && meshTags) {
+          if (intake.mesh_descriptors && intake.mesh_descriptors.length > 0) {
+            meshBox.style.display = 'block';
+            clearElement(meshTags);
+            intake.mesh_descriptors.forEach(m => {
+              const badge = document.createElement('span');
+              badge.className = 'phrase-chip';
+              badge.style.fontSize = '11px';
+              badge.style.background = 'var(--surface-2)';
+              badge.style.border = '1px solid var(--line)';
+              badge.textContent = `${m.mesh_term} [${m.mesh_id}]`;
+              meshTags.appendChild(badge);
+            });
+          } else {
+            meshBox.style.display = 'none';
+          }
+        }
+
+        // Render Outbreak Context
+        const outbreakBox = document.getElementById('inspect-outbreak-box');
+        const outbreakDetails = document.getElementById('inspect-outbreak-details');
+        if (outbreakBox && outbreakDetails) {
+          if (intake.outbreak_context) {
+            outbreakBox.style.display = 'block';
+            const ob = intake.outbreak_context;
+            outbreakDetails.textContent = `${ob.zone_name} • Epidemic Risk: ${ob.overall_epidemic_risk} • Active Surveillance: ${ob.epidemiological_source}`;
+          } else {
+            outbreakBox.style.display = 'none';
           }
         }
       })

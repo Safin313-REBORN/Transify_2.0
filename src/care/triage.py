@@ -96,6 +96,54 @@ DETERMINISTIC_RULES = [
         "emergency_action": "Prompt physical clinical evaluation recommended today."
     },
     {
+        "rule_id": "RULE-EMERG-DERM-001",
+        "name": "Severe Full-Thickness Thermal/Chemical Burn or Necrotizing Skin Lesion",
+        "category": "DERMATOLOGY_EMERGENCY",
+        "keywords": ["severe burn", "third degree burn", "blistering all over", "skin peeling", "necrotizing", "black wound", "পুড়ে গেছে", "চামড়া ঝলসে গেছে"],
+        "severity_min": 7,
+        "assigned_level": "RED",
+        "clinical_source": "Merck Manual of Diagnosis and Therapy (Professional Edition) / WHO Burn Management",
+        "source_version": "2024.1",
+        "explanation": "Extensive cutaneous barrier compromise or suspected necrotizing soft tissue infection posing immediate shock, sepsis, and fluid loss hazards.",
+        "emergency_action": "Immediate emergency room or specialized burn center transfer required. Call Bangladesh Emergency 999."
+    },
+    {
+        "rule_id": "RULE-EMERG-OPHTH-001",
+        "name": "Acute Sudden Vision Loss or Penetrating Ocular Trauma",
+        "category": "OPHTHALMIC_EMERGENCY",
+        "keywords": ["sudden blindness", "loss of vision", "eye injury", "penetrating eye", "chemical in eye", "corneal tear", "চোখে দেখতে পাচ্ছি না", "চোখে আঘাত"],
+        "severity_min": 7,
+        "assigned_level": "RED",
+        "clinical_source": "Merck Manual of Diagnosis and Therapy / National Institute of Ophthalmology Protocol",
+        "source_version": "2024.1",
+        "explanation": "Acute compromise of visual pathway or penetrating globe trauma risking permanent irreversible vision loss.",
+        "emergency_action": "Immediate specialized ophthalmology emergency evaluation required. Call Bangladesh Emergency 999."
+    },
+    {
+        "rule_id": "RULE-URGENT-DERM-001",
+        "name": "Spreading Cutaneous Erythema, Suspect Cellulitis or Atypical Lesion",
+        "category": "DERMATOLOGY_URGENT",
+        "keywords": ["spreading red rash", "skin infection", "cellulitis", "melanoma", "skin ulcer", "pus in wound", "চামড়ায় ঘা", "চামড়া লাল ও গরম"],
+        "severity_min": 5,
+        "assigned_level": "YELLOW",
+        "clinical_source": "Merck Manual of Diagnosis and Therapy (Professional Edition)",
+        "source_version": "2024.1",
+        "explanation": "Spreading erythematous cutaneous involvement or non-healing ulceration warranting same-day medical clinical assessment.",
+        "emergency_action": "In-person clinical and dermoscopic examination recommended within 12-24 hours."
+    },
+    {
+        "rule_id": "RULE-URGENT-OPHTH-001",
+        "name": "Acute Red Eye with Severe Pain or Corneal Infiltrate",
+        "category": "OPHTHALMIC_URGENT",
+        "keywords": ["red eye", "corneal ulcer", "cloudy eye", "severe eye pain", "photophobia", "চোখ লাল", "চোখে তীব্র ব্যথা"],
+        "severity_min": 5,
+        "assigned_level": "YELLOW",
+        "clinical_source": "Merck Manual of Diagnosis and Therapy (Ophthalmic Protocols)",
+        "source_version": "2024.1",
+        "explanation": "Ciliary conjunctival injection and anterior segment inflammation requiring slit-lamp verification to rule out corneal ulcer or uveitis.",
+        "emergency_action": "Prompt ophthalmic clinical evaluation recommended today."
+    },
+    {
         "rule_id": "RULE-ROUTINE-001",
         "name": "Mild Upper Respiratory Symptoms or Non-Urgent Minor Concern",
         "category": "PRIMARY_CARE_ROUTINE",

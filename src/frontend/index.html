@@ -998,6 +998,58 @@
           <div id="slide-care-intake" class="care-card">
             <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Accessible
               Healthcare Symptom Intake</h2>
+
+            <!-- CareAnywhere Multimodal Toolbar -->
+            <div class="careanywhere-toolbar" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; margin-bottom: 4px;">
+              <label for="care-photo-input" class="btn-outline-dark press" style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px;">
+                <span>📷 Scan Lesion / Eye</span>
+                <input type="file" id="care-photo-input" accept="image/*" class="sr-only">
+              </label>
+              <button type="button" id="btn-care-voice-dialect" class="btn-outline-dark press" style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+                🎤 Voice Dialect
+              </button>
+              <button type="button" id="btn-care-outbreak-alert" class="btn-outline-dark press" style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: #E65100; border-color: #FFE082; background: #FFF8E1;">
+                📍 Outbreak Alert (Dhaka)
+              </button>
+              <button type="button" id="btn-care-nearby-facilities" class="btn-outline-dark press" style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+                🏥 Nearest Clinics (OSM)
+              </button>
+            </div>
+
+            <!-- Image Inspection Preview Drawer -->
+            <div id="care-vision-preview-card" style="display: none; padding: 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line-2); margin-bottom: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 700; font-size: 14px;">Attached Lesion/Eye Image</span>
+                <button type="button" id="btn-care-remove-photo" style="background: none; border: none; color: #D32F2F; font-size: 13px; font-weight: 700; cursor: pointer;">Remove</button>
+              </div>
+              <div style="display: flex; gap: 14px; margin-top: 8px; align-items: center;">
+                <img id="care-vision-thumb" src="" alt="Lesion photo preview" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line);">
+                <div id="care-vision-findings-box" style="flex: 1; font-size: 13px; color: var(--text-2);">
+                  Analyzing image features...
+                </div>
+              </div>
+            </div>
+
+            <!-- Outbreak Advisory Modal / Drawer -->
+            <div id="care-outbreak-modal" style="display: none; padding: 14px; border-radius: 10px; background: #FFF8E1; border: 1.5px solid #FFD54F; color: #5D4037; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong id="outbreak-modal-title" style="font-size: 15px;">Dhaka Division: Dengue Epidemic Alert</strong>
+                <button type="button" id="btn-close-outbreak-modal" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #5D4037;">×</button>
+              </div>
+              <p id="outbreak-modal-desc" style="margin: 6px 0 0; font-size: 13px; line-height: 1.4;">Active vector surge detected. WHO / DGHS Protocol: Maintain high fluid intake (ORS). Strict avoidance of Aspirin / NSAIDs due to hemorrhage hazard.</p>
+            </div>
+
+            <!-- Facilities Locator Modal / Drawer -->
+            <div id="care-facilities-modal" style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid var(--line-2); margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 15px;">Nearby Health Facilities (OpenStreetMap Health)</strong>
+                <button type="button" id="btn-close-facilities-modal" style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
+              </div>
+              <div id="care-facilities-list" style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                Loading nearby emergency centers...
+              </div>
+            </div>
+
             <div style="display: flex; flex-direction: column; gap: 14px;">
               <div>
                 <label for="care-chief-complaint" style="display: block; font-weight: 700; margin-bottom: 6px;">Chief
@@ -1115,6 +1167,18 @@
               </div>
               <div style="margin-top: 10px;"><strong>Citations & Evidence:</strong>
                 <ul id="inspect-citations-list" style="margin: 4px 0 0; padding-left: 20px;"></ul>
+              </div>
+              <div id="inspect-vision-box" style="margin-top: 10px; display: none;">
+                <strong>Attached Computer Vision Analysis:</strong>
+                <div id="inspect-vision-details" style="margin-top: 4px; padding: 10px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); font-size: 13px;"></div>
+              </div>
+              <div id="inspect-mesh-box" style="margin-top: 10px; display: none;">
+                <strong>Standardized MeSH Descriptors:</strong>
+                <div id="inspect-mesh-tags" style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;"></div>
+              </div>
+              <div id="inspect-outbreak-box" style="margin-top: 10px; display: none;">
+                <strong>Epidemiological Outbreak Context:</strong>
+                <div id="inspect-outbreak-details" style="margin-top: 4px; font-size: 13px; color: var(--text-2);"></div>
               </div>
 
               <!-- Evidence Search -->
@@ -1302,7 +1366,7 @@
 
   <!-- Client Application Scripts -->
   <script src="/static/app.js?v=20261120_pixel_exact_v2"></script>
-  <script src="/static/care.js?v=20261120_care_v2"></script>
+  <script src="/static/care.js?v=20261120_careanywhere"></script>
 </body>
 
 </html>

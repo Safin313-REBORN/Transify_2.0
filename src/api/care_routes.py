@@ -7,6 +7,7 @@ strict cross-user isolation, and controlled development synthetic clinician mode
 """
 
 import os
+import json
 from fastapi import APIRouter, HTTPException, Depends, Query, Request, Response, status
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
@@ -29,6 +30,14 @@ from src.care.db_care import (
 )
 from src.care.triage import evaluate_triage
 from src.care.clinical_rag import search_clinical_evidence, seed_clinical_sources_if_empty
+from src.care.care_anywhere import (
+    analyze_multimodal_vision,
+    process_regional_speech_intake,
+    assess_local_outbreak_risk,
+    find_nearby_health_facilities,
+    compute_intake_idempotency_hash,
+    map_text_to_mesh_descriptors
+)
 
 router = APIRouter(prefix="/api/care", tags=["Transify Care"])
 
@@ -114,7 +123,7 @@ def require_clinician(user: Dict[str, Any] = Depends(get_authenticated_user)) ->
 class PatientIntakeCreate(BaseModel):
     # Client-supplied patient_id is explicitly ignored by the server
     patient_id: Optional[str] = Field(default=None, description="Patient identifier (overridden by server)")
-    input_modality: str = Field(..., description="One of: 'sign', 'braille', 'voice', 'text'")
+    input_modality: str = Field(..., description="One of: 'sign', 'braille', 'voice', 'text', 'vision', 'multimodal'")
     raw_input: Optional[str] = Field(default="", description="Original sensor or transcript data")
     confirmed_text: str = Field(..., description="Patient-confirmed symptom text")
     chief_complaint: str = Field(..., description="Primary health concern in clear words")
@@ -125,6 +134,15 @@ class PatientIntakeCreate(BaseModel):
     medical_context: Optional[str] = Field(default="", description="Relevant health context or history")
     allergies_medications: Optional[str] = Field(default="", description="Known allergies or medications")
     consent_granted: bool = Field(..., description="Explicit patient consent for care intake (mandatory)")
+    # CareAnywhere Multimodal Extensions
+    image_base64: Optional[str] = Field(default=None, description="Base64 encoded smartphone image of skin lesion or eye condition")
+    condition_type: Optional[str] = Field(default="auto", description="'skin', 'eye', or 'auto'")
+    audio_transcript: Optional[str] = Field(default=None, description="Regional speech-to-text transcript")
+    gps_latitude: Optional[float] = Field(default=None, description="GPS latitude for localized outbreak assessment")
+    gps_longitude: Optional[float] = Field(default=None, description="GPS longitude for localized outbreak assessment")
+    district: Optional[str] = Field(default=None, description="Administrative district name")
+    idempotency_key: Optional[str] = Field(default=None, description="SHA-256 idempotency key for store-and-forward sync")
+    offline_created_at: Optional[str] = Field(default=None, description="Timestamp when draft was captured offline")
 
 
 class ClinicianReviewSubmit(BaseModel):
@@ -146,6 +164,21 @@ class EvidenceSearchRequest(BaseModel):
     query: str = Field(..., min_length=2, description="Clinical search terms (transmitted via POST body to avoid query string logging)")
 
 
+class VisionAnalyzeRequest(BaseModel):
+    image_data: str = Field(..., description="Base64 image data URI or raw base64 string")
+    condition_type: Optional[str] = Field(default="auto", description="'skin', 'eye', or 'auto'")
+
+
+class AudioIntakeRequest(BaseModel):
+    transcript: str = Field(..., description="Spoken symptom text or dialect transcript")
+    dialect_hint: Optional[str] = Field(default="auto", description="Optional dialect hint: 'sylheti', 'chittagonian', 'bn_standard'")
+
+
+class StoreAndForwardSyncRequest(BaseModel):
+    client_id: str = Field(default="offline-mobile-client")
+    batch: List[PatientIntakeCreate]
+
+
 # --- Route Implementations ---
 
 @router.post("/intake", status_code=status.HTTP_201_CREATED)
@@ -157,7 +190,8 @@ def submit_patient_intake(
     Creates a new accessible healthcare intake.
     Enforces mandatory explicit patient consent (rejects missing or false consent).
     Derives patient identity strictly from authenticated session.
-    Executes deterministic clinical triage safety rules and retrieves reference evidence.
+    Executes deterministic clinical triage safety rules, computer vision lesion analysis,
+    outbreak risk assessment, MeSH terminology mapping, and retrieves reference evidence.
     """
     # P0-2: Mandatory Consent Enforcement
     if not intake.consent_granted:
@@ -178,13 +212,54 @@ def submit_patient_intake(
         onset_duration=intake.onset_duration or ""
     )
 
-    # 2. Retrieve clinical evidence from reference guideline prototype
+    # 2. CareAnywhere Computer Vision Analysis (if image provided)
+    cv_analysis = None
+    cv_json = None
+    if intake.image_base64:
+        try:
+            cv_analysis = analyze_multimodal_vision(intake.image_base64, intake.condition_type or "auto")
+            cv_json = json.dumps(cv_analysis)
+            # Elevate triage level if vision reveals emergent or urgent finding
+            cv_urgency = cv_analysis.get("urgency_level")
+            if cv_urgency == "EMERGENT":
+                triage_result["urgency_level"] = "RED"
+                triage_result["explanation"] += f" [Computer Vision Warning: {cv_analysis['findings'][0]}]"
+            elif cv_urgency == "URGENT" and triage_result["urgency_level"] in ("GREEN", "ROUTINE", "UNKNOWN"):
+                triage_result["urgency_level"] = "YELLOW"
+                triage_result["explanation"] += f" [Computer Vision Finding: {cv_analysis['findings'][0]}]"
+        except Exception as e:
+            cv_analysis = {"error": f"Image processing failed: {str(e)}"}
+            cv_json = json.dumps(cv_analysis)
+
+    # 3. Regional Dialect Processing (if audio transcript provided)
+    dialect_analysis = None
+    if intake.audio_transcript:
+        dialect_analysis = process_regional_speech_intake(intake.audio_transcript)
+
+    # 4. Standardized U.S. NLM MeSH Terminology Normalization
+    combined_text = f"{intake.chief_complaint} {intake.symptom_description} {intake.confirmed_text}"
+    mesh_descriptors = map_text_to_mesh_descriptors(combined_text)
+    mesh_json = json.dumps(mesh_descriptors)
+
+    # 5. Localized Outbreak & Epidemic Risk Assessment
+    outbreak_analysis = None
+    outbreak_json = None
+    if intake.gps_latitude is not None or intake.gps_longitude is not None or intake.district:
+        outbreak_analysis = assess_local_outbreak_risk(
+            lat=intake.gps_latitude,
+            lon=intake.gps_longitude,
+            district=intake.district,
+            symptoms_text=combined_text
+        )
+        outbreak_json = json.dumps(outbreak_analysis)
+
+    # 6. Retrieve clinical evidence from reference guideline prototype (Merck Manuals, WHO, DGHS)
     rag_result = search_clinical_evidence(
         query=f"{intake.chief_complaint} {intake.symptom_description}",
         limit=2
     )
 
-    # 3. Create persistent intake record with server-derived identity
+    # 7. Create persistent intake record with server-derived identity
     intake_id = create_intake(
         patient_id=server_patient_id,
         input_modality=intake.input_modality,
@@ -202,7 +277,13 @@ def submit_patient_intake(
         urgency_level=triage_result["urgency_level"],
         triage_explanation=triage_result["explanation"],
         triage_rule_id=triage_result.get("rule_id", ""),
-        evidence_citations=rag_result.get("citations", [])
+        evidence_citations=rag_result.get("citations", []),
+        vision_analysis_json=cv_json,
+        audio_transcript=intake.audio_transcript,
+        outbreak_context_json=outbreak_json,
+        mesh_terms=mesh_json,
+        offline_synced_at=intake.offline_created_at,
+        idempotency_key=intake.idempotency_key
     )
 
     return {
@@ -215,6 +296,9 @@ def submit_patient_intake(
         "emergency_escalation": triage_result.get("emergency_escalation"),
         "evidence_citations": rag_result.get("citations", []),
         "evidence_found": rag_result.get("evidence_found", False),
+        "vision_analysis": cv_analysis,
+        "outbreak_context": outbreak_analysis,
+        "mesh_descriptors": mesh_descriptors,
         "message": "Healthcare intake created and queued for clinician review."
     }
 
@@ -711,4 +795,170 @@ def reset_competition_demo_fixtures(request: Request = None):
     return {
         "success": True,
         "message": "Demo fixtures initialized: RED (Sign), YELLOW (Voice), GREEN (Braille). All cases explicitly flagged as synthetic."
+    }
+
+
+# ===========================================================================
+# CareAnywhere Multimodal, Vision, Dialect, Outbreak & Geospatial Endpoints
+# ===========================================================================
+
+@router.post("/vision/analyze")
+def analyze_vision_endpoint(
+    req: VisionAnalyzeRequest,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """
+    CareAnywhere Computer Vision Pipeline:
+    Analyzes smartphone photos of skin lesions (erythema, ABCDE melanoma screening, burns, ulcers)
+    or ophthalmic eye conditions (conjunctival red eye, cataract opacity, corneal ulcers, scleral icterus).
+    Returns quantitative features, urgency classification, confidence scores, and safety guidance.
+    """
+    try:
+        analysis = analyze_multimodal_vision(req.image_data, req.condition_type or "auto")
+        log_care_audit(
+            "VISION_ANALYSIS_EXECUTED",
+            f"user-{user['id']}",
+            user.get("role", "patient"),
+            None,
+            {"target_organ": analysis.get("target_organ"), "urgency": analysis.get("urgency_level")}
+        )
+        return {
+            "success": True,
+            "analysis": analysis
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Computer vision analysis failed: {str(e)}"
+        )
+
+
+@router.post("/audio/intake")
+def audio_intake_endpoint(
+    req: AudioIntakeRequest,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """
+    CareAnywhere Localized Speech-to-Text & Regional Dialect Interface:
+    Processes verbal symptom descriptions in regional dialects (Sylheti, Chittagonian, Bengali idioms)
+    and maps them to standardized chief complaints, severity ratings, and U.S. NLM MeSH terminology.
+    """
+    try:
+        res = process_regional_speech_intake(req.transcript, req.dialect_hint or "auto")
+        return {
+            "success": True,
+            "data": res
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Speech intake processing failed: {str(e)}"
+        )
+
+
+@router.get("/outbreak/alerts")
+def get_outbreak_alerts_endpoint(
+    lat: Optional[float] = Query(default=None),
+    lon: Optional[float] = Query(default=None),
+    district: Optional[str] = Query(default=None),
+    symptoms: Optional[str] = Query(default=""),
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """
+    CareAnywhere Predictive Outbreak & Epidemic Risk Alerts:
+    Correlates GPS coordinates / administrative district against WHO Global Health Observatory
+    and DGHS epidemiological outbreak surveillance (Dengue, Cholera, Nipah, Heatstroke).
+    """
+    res = assess_local_outbreak_risk(lat=lat, lon=lon, district=district, symptoms_text=symptoms or "")
+    return {
+        "success": True,
+        "data": res
+    }
+
+
+@router.get("/facilities/nearby")
+def get_nearby_facilities_endpoint(
+    lat: float = Query(default=23.7258, description="Latitude (default: Dhaka Medical)"),
+    lon: float = Query(default=90.3976, description="Longitude (default: Dhaka Medical)"),
+    facility_type: Optional[str] = Query(default="all"),
+    limit: Optional[int] = Query(default=4, ge=1, le=10),
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """
+    CareAnywhere OpenStreetMap Health Facility Locator:
+    Finds nearest emergency hospitals, burn centers, eye clinics, and 24/7 pharmacies.
+    Computes Haversine distance, estimated transit time, direct telephone hotlines, and OSM routing links.
+    """
+    res = find_nearby_health_facilities(lat=lat, lon=lon, facility_type=facility_type or "all", limit=limit or 4)
+    return res
+
+
+@router.post("/store-and-forward/sync")
+def store_and_forward_sync_endpoint(
+    req: StoreAndForwardSyncRequest,
+    user: Dict[str, Any] = Depends(get_authenticated_user)
+):
+    """
+    CareAnywhere 'Store-and-Forward' Protocol Sync Handler:
+    Synchronizes offline edge-inferred intakes captured during low-bandwidth or disconnected states.
+    Uses SHA-256 idempotency hashing to guarantee duplicate-free background reconciliation.
+    """
+    server_patient_id = f"user-{user['id']}"
+    synced_intakes = []
+
+    for draft in req.batch:
+        if not draft.consent_granted:
+            continue
+
+        draft.patient_id = server_patient_id
+
+        # Compute or verify idempotency key
+        idem_key = draft.idempotency_key or compute_intake_idempotency_hash(
+            server_patient_id,
+            draft.chief_complaint,
+            draft.offline_created_at or datetime.now(timezone.utc).isoformat()
+        )
+        draft.idempotency_key = idem_key
+
+        # Deduplication check by idempotency_key or confirmed_text
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+        SELECT id FROM care_patient_intakes
+        WHERE patient_id = ? AND (idempotency_key = ? OR confirmed_text = ?);
+        """, (server_patient_id, idem_key, draft.confirmed_text))
+        existing = cursor.fetchone()
+        conn.close()
+
+        if existing:
+            synced_intakes.append({
+                "intake_id": existing["id"],
+                "status": "ALREADY_SYNCHRONIZED",
+                "idempotency_key": idem_key
+            })
+            continue
+
+        # Ingest intake through standard submit pipeline
+        resp = submit_patient_intake(draft, user=user)
+        synced_intakes.append({
+            "intake_id": resp["intake_id"],
+            "urgency_level": resp["urgency_level"],
+            "status": "SYNCHRONIZED",
+            "idempotency_key": idem_key
+        })
+
+    log_care_audit(
+        "STORE_AND_FORWARD_SYNC_COMPLETED",
+        server_patient_id,
+        "PATIENT",
+        None,
+        {"client_id": req.client_id, "synced_count": len(synced_intakes)}
+    )
+
+    return {
+        "success": True,
+        "client_id": req.client_id,
+        "total_synced": len(synced_intakes),
+        "results": synced_intakes,
+        "protocol": "CareAnywhere Store-and-Forward v2.0"
     }

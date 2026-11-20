@@ -124,6 +124,21 @@ def init_care_db():
     if "entry_hash" not in audit_cols:
         cursor.execute("ALTER TABLE care_audit_logs ADD COLUMN entry_hash TEXT;")
 
+    # Safe migration for existing care_patient_intakes tables (CareAnywhere features)
+    cursor.execute("PRAGMA table_info(care_patient_intakes);")
+    intake_cols = [r["name"] for r in cursor.fetchall()]
+    care_cols = [
+        ("vision_analysis_json", "TEXT"),
+        ("audio_transcript", "TEXT"),
+        ("outbreak_context_json", "TEXT"),
+        ("mesh_terms", "TEXT"),
+        ("offline_synced_at", "TEXT"),
+        ("idempotency_key", "TEXT")
+    ]
+    for c_name, c_type in care_cols:
+        if c_name not in intake_cols:
+            cursor.execute(f"ALTER TABLE care_patient_intakes ADD COLUMN {c_name} {c_type};")
+
     # Append-only enforcement via SQLite triggers
     cursor.execute("""
     CREATE TRIGGER IF NOT EXISTS prevent_care_audit_logs_update
@@ -189,7 +204,13 @@ def create_intake(
     urgency_level: str = "UNKNOWN",
     triage_explanation: str = "",
     triage_rule_id: str = "",
-    evidence_citations: Optional[List[Dict[str, Any]]] = None
+    evidence_citations: Optional[List[Dict[str, Any]]] = None,
+    vision_analysis_json: Optional[str] = None,
+    audio_transcript: Optional[str] = None,
+    outbreak_context_json: Optional[str] = None,
+    mesh_terms: Optional[str] = None,
+    offline_synced_at: Optional[str] = None,
+    idempotency_key: Optional[str] = None
 ) -> int:
     conn = get_connection()
     cursor = conn.cursor()
@@ -201,13 +222,17 @@ def create_intake(
         patient_id, input_modality, raw_input, confirmed_text, chief_complaint,
         symptom_description, onset_duration, trajectory, severity, medical_context,
         allergies_medications, consent_granted, status, urgency_level,
-        triage_explanation, triage_rule_id, evidence_citations, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        triage_explanation, triage_rule_id, evidence_citations, created_at, updated_at,
+        vision_analysis_json, audio_transcript, outbreak_context_json, mesh_terms,
+        offline_synced_at, idempotency_key
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     """, (
         patient_id, input_modality, raw_input, confirmed_text, chief_complaint,
         symptom_description, onset_duration, trajectory, severity, medical_context,
         allergies_medications, 1 if consent_granted else 0, status, urgency_level,
-        triage_explanation, triage_rule_id, citations_json, now_iso, now_iso
+        triage_explanation, triage_rule_id, citations_json, now_iso, now_iso,
+        vision_analysis_json, audio_transcript, outbreak_context_json, mesh_terms,
+        offline_synced_at, idempotency_key
     ))
     intake_id = cursor.lastrowid
     conn.commit()
@@ -230,6 +255,21 @@ def get_intake(intake_id: int) -> Optional[Dict[str, Any]]:
         d["evidence_citations"] = json.loads(d.get("evidence_citations") or "[]")
     except Exception:
         d["evidence_citations"] = []
+    if d.get("vision_analysis_json"):
+        try:
+            d["vision_analysis"] = json.loads(d["vision_analysis_json"])
+        except Exception:
+            d["vision_analysis"] = None
+    if d.get("outbreak_context_json"):
+        try:
+            d["outbreak_context"] = json.loads(d["outbreak_context_json"])
+        except Exception:
+            d["outbreak_context"] = None
+    if d.get("mesh_terms"):
+        try:
+            d["mesh_descriptors"] = json.loads(d["mesh_terms"])
+        except Exception:
+            d["mesh_descriptors"] = []
     return d
 
 
@@ -257,6 +297,21 @@ def list_intakes(patient_id: Optional[str] = None, status: Optional[str] = None,
             d["evidence_citations"] = json.loads(d.get("evidence_citations") or "[]")
         except Exception:
             d["evidence_citations"] = []
+        if d.get("vision_analysis_json"):
+            try:
+                d["vision_analysis"] = json.loads(d["vision_analysis_json"])
+            except Exception:
+                d["vision_analysis"] = None
+        if d.get("outbreak_context_json"):
+            try:
+                d["outbreak_context"] = json.loads(d["outbreak_context_json"])
+            except Exception:
+                d["outbreak_context"] = None
+        if d.get("mesh_terms"):
+            try:
+                d["mesh_descriptors"] = json.loads(d["mesh_terms"])
+            except Exception:
+                d["mesh_descriptors"] = []
         results.append(d)
     return results
 
