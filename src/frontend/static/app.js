@@ -1753,219 +1753,59 @@ var SignPage = window.SignPage = window.TransifySign = {
     const h = this.canvasEl.height;
     this.ctx.clearRect(0, 0, w, h);
 
-    const roi = this.getTargetRoi();
-    const boxX = roi[0] * w;
-    const boxY = roi[1] * h;
-    const boxW = (roi[2] - roi[0]) * w;
-    const boxH = (roi[3] - roi[1]) * h;
-
-    // 1. Ambient Vignette / Semi-transparent focus mask outside the Target Box
-    this.ctx.save();
-    this.ctx.fillStyle = 'rgba(10, 12, 24, 0.38)';
-    // Top band
-    this.ctx.fillRect(0, 0, w, boxY);
-    // Bottom band
-    this.ctx.fillRect(0, boxY + boxH, w, h - (boxY + boxH));
-    // Left band
-    this.ctx.fillRect(0, boxY, boxX, boxH);
-    // Right band
-    this.ctx.fillRect(boxX + boxW, boxY, w - (boxX + boxW), boxH);
-    this.ctx.restore();
-
     // Check live state
     const data = this.lastFrameData;
     const isRecentlyDetected = this.detectionState.isDetected && (Date.now() - this.detectionState.timestamp < 2500);
     const isAnalyzing = (data && data.hand_detected && data.status === 'ANALYZING');
     const isHandInRoi = (data && data.hand_detected && data.in_roi !== false);
-    const isHandOutsideRoi = (data && !data.hand_detected && data.hand_outside_roi === true);
 
-    if (isRecentlyDetected) {
-      // -------------------------------------------------------------
-      // STATE 1: GESTURE / WORD RECOGNIZED & CONFIRMED! (VIBRANT EMERALD GREEN)
-      // -------------------------------------------------------------
-      const greenColor = '#22c55e';
-      this.ctx.save();
-      this.ctx.strokeStyle = greenColor;
-      this.ctx.lineWidth = 4;
-      this.ctx.shadowColor = greenColor;
-      this.ctx.shadowBlur = 14;
+    // Sync state cleanly to HTML centered Target ROI Box (#sign-roi-box)
+    const roiBox = document.getElementById('sign-roi-box');
+    const statusTextEl = document.getElementById('sign-status-text');
 
-      // Soft emerald wash inside target box
-      this.ctx.fillStyle = 'rgba(34, 197, 94, 0.12)';
-      this.ctx.fillRect(boxX, boxY, boxW, boxH);
-      this.ctx.strokeRect(boxX, boxY, boxW, boxH);
-
-      // Corner target brackets
-      this._drawTargetBrackets(boxX, boxY, boxW, boxH, '#4ade80', 32, 6);
-
-      // Top Detected Header Badge
-      const modelTag = (this.detectionState && this.detectionState.model_name && this.detectionState.model_name.includes('HaGRID')) ? 'HaGRID' : 'ASL';
-      const badgeText = `✓ [${modelTag}] DETECTED: ${this.detectionState.label} (${Math.round(this.detectionState.confidence * 100)}%)`;
-      this._drawPillBadge(boxX + 12, boxY + 12, badgeText, '#22c55e', '#ffffff');
-
-      // Bottom confirmation ribbon inside target box
-      const bottomText = `🎯 Hand Sign Confirmed: "${this.detectionState.label}"`;
-      this._drawPillBadge(boxX + 12, boxY + boxH - 38, bottomText, 'rgba(15, 23, 42, 0.85)', '#4ade80');
-      this.ctx.restore();
-
-    } else if (isAnalyzing) {
-      // -------------------------------------------------------------
-      // STATE 2: ANALYZING HAND SIGN (PULSING ELECTRIC CYAN)
-      // -------------------------------------------------------------
-      const cyanColor = '#06b6d4';
-      this.ctx.save();
-      this.ctx.strokeStyle = cyanColor;
-      this.ctx.lineWidth = 3.5;
-      this.ctx.shadowColor = cyanColor;
-      this.ctx.shadowBlur = 12;
-
-      // Soft cyan wash
-      this.ctx.fillStyle = 'rgba(6, 182, 212, 0.09)';
-      this.ctx.fillRect(boxX, boxY, boxW, boxH);
-      this.ctx.strokeRect(boxX, boxY, boxW, boxH);
-
-      // Corner brackets
-      this._drawTargetBrackets(boxX, boxY, boxW, boxH, '#22d3ee', 28, 5);
-
-      // Top Status Pill
-      const pct = data.analysis_pct || 40;
-      const statusText = `🔍 Analyzing Sign (${pct}%)... Hold Steady ✋`;
-      this._drawPillBadge(boxX + 12, boxY + 12, statusText, '#0891b2', '#ffffff');
-
-      // Center guide message
-      this.ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = '#a5f3fc';
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText(`⏳ Evaluating Signal Stability (${data.consensus_progress || ''})`, boxX + boxW / 2, boxY + boxH / 2);
-
-      // Bottom candidate preview
-      if (data.candidate_label) {
-        const candidateText = `Candidate: [${data.candidate_label}]`;
-        this._drawPillBadge(boxX + 12, boxY + boxH - 38, candidateText, 'rgba(15, 23, 42, 0.80)', '#67e8f9');
+    if (roiBox) {
+      if (isRecentlyDetected) {
+        roiBox.classList.add('confirmed');
+        roiBox.classList.remove('analyzing');
+        if (statusTextEl && this.detectionState.label) {
+          statusTextEl.textContent = `Sign confirmed: ${this.detectionState.label}`;
+        }
+      } else if (isAnalyzing) {
+        roiBox.classList.add('analyzing');
+        roiBox.classList.remove('confirmed');
+        if (statusTextEl) {
+          statusTextEl.textContent = `Analyzing sign... hold steady`;
+        }
+      } else if (isHandInRoi) {
+        roiBox.classList.remove('confirmed', 'analyzing');
+        if (statusTextEl) {
+          statusTextEl.textContent = `Hand in position • Ready to sign`;
+        }
+      } else {
+        roiBox.classList.remove('confirmed', 'analyzing');
+        if (statusTextEl) {
+          statusTextEl.textContent = `Camera is active • Keep hand in box`;
+        }
       }
+    }
 
-      // Hand Bounding Box Tracking if present
-      if (this.lastHandBBox) {
-        const sX = w / (this.lastFrameDims ? this.lastFrameDims[0] : 640);
-        const sY = h / (this.lastFrameDims ? this.lastFrameDims[1] : 480);
-        const hX = this.lastHandBBox[0] * sX;
-        const hY = this.lastHandBBox[1] * sY;
-        const hW = this.lastHandBBox[2] * sX;
-        const hH = this.lastHandBBox[3] * sY;
+    // Only draw clean subtle hand tracking if detected — zero green bars, zero mirrored text
+    if (this.lastHandBBox) {
+      const sX = w / (this.lastFrameDims ? this.lastFrameDims[0] : 640);
+      const sY = h / (this.lastFrameDims ? this.lastFrameDims[1] : 480);
+      const hX = this.lastHandBBox[0] * sX;
+      const hY = this.lastHandBBox[1] * sY;
+      const hW = this.lastHandBBox[2] * sX;
+      const hH = this.lastHandBBox[3] * sY;
 
-        this.ctx.strokeStyle = '#67e8f9';
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(hX, hY, hW, hH);
-      }
-      this.ctx.restore();
-
-    } else if (isHandInRoi) {
-      // -------------------------------------------------------------
-      // STATE 3: HAND IN POSITION INSIDE TARGET BOX (EMERALD / READY)
-      // -------------------------------------------------------------
-      const activeColor = '#10b981';
       this.ctx.save();
-      this.ctx.strokeStyle = activeColor;
-      this.ctx.lineWidth = 2.5;
-      this.ctx.shadowColor = activeColor;
-      this.ctx.shadowBlur = 8;
-
-      // Soft active wash
-      this.ctx.fillStyle = 'rgba(16, 185, 129, 0.06)';
-      this.ctx.fillRect(boxX, boxY, boxW, boxH);
-      this.ctx.strokeRect(boxX, boxY, boxW, boxH);
-
-      // Corner brackets
-      this._drawTargetBrackets(boxX, boxY, boxW, boxH, '#34d399', 28, 4);
-
-      // Top Status Pill
-      const statusText = `✋ Hand In Position — Ready To Sign`;
-      this._drawPillBadge(boxX + 12, boxY + 12, statusText, '#10b981', '#ffffff');
-
-      // Center guide message
-      this.ctx.font = '600 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText(`Show a hand sign (e.g. Thumbs Up, Peace, OK, Fist, Hello)`, boxX + boxW / 2, boxY + boxH / 2);
-
-      // Hand Bounding Box Tracking if present
-      if (this.lastHandBBox) {
-        const sX = w / (this.lastFrameDims ? this.lastFrameDims[0] : 640);
-        const sY = h / (this.lastFrameDims ? this.lastFrameDims[1] : 480);
-        const hX = this.lastHandBBox[0] * sX;
-        const hY = this.lastHandBBox[1] * sY;
-        const hW = this.lastHandBBox[2] * sX;
-        const hH = this.lastHandBBox[3] * sY;
-
-        this.ctx.strokeStyle = '#6ee7b7';
-        this.ctx.lineWidth = 2;
-        this.ctx.shadowBlur = 4;
-        this.ctx.strokeRect(hX, hY, hW, hH);
-      }
-      this.ctx.restore();
-
-    } else if (isHandOutsideRoi) {
-      // -------------------------------------------------------------
-      // STATE 4: HAND DETECTED OUTSIDE TARGET BOX (AMBER WARNING)
-      // -------------------------------------------------------------
-      const amberColor = '#f59e0b';
-      this.ctx.save();
-      this.ctx.strokeStyle = amberColor;
-      this.ctx.lineWidth = 3;
-      this.ctx.setLineDash([8, 6]);
-      this.ctx.shadowColor = amberColor;
-      this.ctx.shadowBlur = 8;
-      this.ctx.strokeRect(boxX, boxY, boxW, boxH);
-      this.ctx.setLineDash([]);
-
-      this._drawTargetBrackets(boxX, boxY, boxW, boxH, '#fbbf24', 26, 5);
-
-      const warnText = `⚠️ Hand Outside Box — Place Hand Inside ✋`;
-      this._drawPillBadge(boxX + 12, boxY + 12, warnText, '#f59e0b', '#ffffff');
-
-      // Center guide message
-      this.ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = '#fef08a';
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText(`👉 Move Hand Inside This Target Box`, boxX + boxW / 2, boxY + boxH / 2);
-      this.ctx.restore();
-
-    } else {
-      // -------------------------------------------------------------
-      // STATE 5: WAITING / IDLE TARGET BOX (PURPLE HUD)
-      // -------------------------------------------------------------
-      const purpleColor = '#8338ec';
-      this.ctx.save();
-      this.ctx.strokeStyle = purpleColor;
-      this.ctx.lineWidth = 2.5;
-      this.ctx.setLineDash([8, 6]);
-      this.ctx.shadowColor = purpleColor;
-      this.ctx.shadowBlur = 8;
-      this.ctx.strokeRect(boxX, boxY, boxW, boxH);
-      this.ctx.setLineDash([]);
-
-      this._drawTargetBrackets(boxX, boxY, boxW, boxH, '#a855f7', 28, 5);
-
-      // Top Title Pill
-      const guideText = `🎯 Fixed Hand Sign Zone — Place Hand Here`;
-      this._drawPillBadge(boxX + 12, boxY + 12, guideText, '#8338ec', '#ffffff');
-
-      // Center Holographic Hand Icon & Subtext
-      this.ctx.textAlign = 'center';
-      this.ctx.font = '38px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-      this.ctx.fillText(`✋`, boxX + boxW / 2, boxY + boxH / 2 - 8);
-
-      this.ctx.font = '600 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      this.ctx.fillText(`Hold hand here for ASL & HaGRID recognition`, boxX + boxW / 2, boxY + boxH / 2 + 22);
-
-      // Sub-note explaining face is ignored
-      this.ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      this.ctx.fillStyle = 'rgba(216, 180, 254, 0.75)';
-      this.ctx.fillText(`(Face & background outside box are ignored)`, boxX + boxW / 2, boxY + boxH / 2 + 42);
+      this.ctx.strokeStyle = isRecentlyDetected ? 'rgba(34, 197, 94, 0.7)' : 'rgba(255, 203, 5, 0.6)';
+      this.ctx.lineWidth = 2;
+      this.ctx.setLineDash([6, 6]);
+      this.ctx.strokeRect(hX, hY, hW, hH);
       this.ctx.restore();
     }
+  },
   },
 
   _drawTargetBrackets(x, y, w, h, color, cLen, lineWidth) {

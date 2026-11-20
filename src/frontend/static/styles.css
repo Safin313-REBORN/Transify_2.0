@@ -1507,6 +1507,17 @@ a.rec,
   animation: beam 2.4s linear infinite;
 }
 
+.roi-box.analyzing .br {
+  border-color: var(--signal) !important;
+  filter: drop-shadow(0 0 12px rgba(255, 203, 5, 0.8));
+}
+
+.roi-box.confirmed .br {
+  border-color: #22c55e !important;
+  filter: drop-shadow(0 0 16px rgba(34, 197, 94, 0.9));
+  transition: border-color 0.25s ease, filter 0.25s ease;
+}
+
 /* Camera-Off Overlay */
 .camera-overlay {
   position: absolute;
