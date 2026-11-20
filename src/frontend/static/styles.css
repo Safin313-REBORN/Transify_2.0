@@ -71,12 +71,36 @@
 html, body {
   margin: 0;
   padding: 0;
-  min-height: 100dvh;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden !important;
   font-family: var(--font-ui);
   background: var(--paper);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove all scrolling options and scrollbars completely across the app */
+html, body, .app-shell, .content-frame, .page-view {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 button, input, textarea, select {
@@ -265,7 +289,13 @@ h1, h2, h3, .display {
    4. App Shell Layout & Persistent Rail
    ------------------------------------------------------------- */
 .app-shell {
-  min-height: 100dvh;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden !important;
   box-sizing: border-box;
   display: flex;
   background: var(--paper);
@@ -275,18 +305,23 @@ h1, h2, h3, .display {
 .rail {
   flex: 0 0 var(--rail-w);
   width: var(--rail-w);
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
   box-sizing: border-box;
-  padding: 28px 12px;
+  padding: clamp(14px, 2.5vh, 24px) 12px;
   background: var(--ink);
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
-  position: sticky;
+  gap: 4px;
+  position: relative;
   top: 0;
-  height: 100dvh;
   z-index: 20;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
 }
 
 .rail.sign-rail {
@@ -374,6 +409,13 @@ h1, h2, h3, .display {
 .content-frame {
   flex: 1 1 auto;
   min-width: 0;
+  width: calc(100vw - var(--rail-w));
+  max-width: calc(100vw - var(--rail-w));
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden !important;
   display: flex;
   flex-direction: column;
 }
@@ -382,7 +424,13 @@ h1, h2, h3, .display {
 .page-view {
   display: none;
   width: 100%;
-  min-height: 100dvh;
+  max-width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden !important;
+  box-sizing: border-box;
 }
 
 .page-view.active {
@@ -394,18 +442,28 @@ h1, h2, h3, .display {
    ------------------------------------------------------------- */
 #view-home.active {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden !important;
 }
 
 .home-main {
-  flex: 1 1 760px;
+  flex: 1 1 0;
   min-width: 0;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
   box-sizing: border-box;
-  padding: 40px 48px 48px;
+  padding: clamp(14px, 2vh, 26px) clamp(18px, 2.5vw, 36px);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: clamp(10px, 1.4vh, 18px);
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .home-header {
@@ -613,10 +671,11 @@ h1, h2, h3, .display {
 /* Bento Grid */
 .home-bento {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px;
-  min-height: 430px;
+  gap: clamp(10px, 1.5vh, 16px);
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 .tile {
@@ -850,13 +909,18 @@ h1, h2, h3, .display {
 
 /* Recent Aside */
 .home-aside {
-  flex: 0 1 320px;
+  flex: 0 0 clamp(240px, 20vw, 300px);
   min-width: 0;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
   box-sizing: border-box;
-  padding: 40px 32px 48px 0;
+  padding: clamp(14px, 2vh, 26px) clamp(16px, 2vw, 24px) clamp(14px, 2vh, 26px) 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .recent-h2 {
@@ -916,30 +980,29 @@ h1, h2, h3, .display {
   color: var(--body-on-dark);
 }
 
-/* Under 1180px, Recent aside moves below main */
-@media (max-width: 1179px) {
-  .home-aside {
-    flex: 1 1 100%;
-    padding: 0 48px 48px;
-  }
-}
-
 /* -------------------------------------------------------------
    6. Sign Translator View (#sign)
    ------------------------------------------------------------- */
 #view-sign.active {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden !important;
   background: #14111F;
   color: #fff;
 }
 
 .sign-stage {
   position: relative;
-  flex: 1 1 640px;
+  flex: 1 1 0;
   min-width: 0;
-  min-height: 900px;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
   overflow: hidden;
   background: #171420;
 }
@@ -1160,15 +1223,19 @@ h1, h2, h3, .display {
 
 /* Result Panel (520px) */
 .sign-result-panel {
-  flex: 0 1 520px;
-  min-height: 900px;
+  flex: 0 0 clamp(380px, 32vw, 480px);
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
   box-sizing: border-box;
-  padding: 28px 32px 32px;
+  padding: clamp(18px, 2.5vh, 28px);
   background: var(--paper);
   color: var(--ink);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .sign-mode-tabs {
@@ -1450,8 +1517,13 @@ h1, h2, h3, .display {
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
   box-sizing: border-box;
-  padding: 40px 56px 56px;
+  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px);
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .phrases-container {
@@ -1775,9 +1847,13 @@ h1, h2, h3, .display {
    ------------------------------------------------------------- */
 #view-welcome.active {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   width: 100%;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden !important;
   background: #14111F;
   color: #fff;
   position: relative;
@@ -1786,20 +1862,28 @@ h1, h2, h3, .display {
 
 .welcome-stage {
   position: relative;
-  flex: 1 1 720px;
-  min-height: 900px;
+  flex: 1 1 58%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
   overflow: hidden;
   background: #171420;
 }
 
 .welcome-aside {
-  flex: 0 1 540px;
-  min-height: 900px;
+  flex: 0 0 42%;
+  max-width: 540px;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
   box-sizing: border-box;
-  padding: 48px 56px 56px;
+  padding: clamp(20px, 3.5vh, 44px) clamp(24px, 3.5vw, 48px);
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   background: #14111F;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .welcome-header {
@@ -2497,8 +2581,13 @@ button.welcome-guest-link {
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
   box-sizing: border-box;
-  padding: 40px 56px 56px;
+  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px);
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .braille-container {
@@ -2507,7 +2596,7 @@ button.welcome-guest-link {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .braille-header {
@@ -2522,7 +2611,7 @@ button.welcome-guest-link {
   background: #fff;
   border: 2px dashed var(--line-2);
   border-radius: 16px;
-  padding: 48px 24px;
+  padding: 36px 24px;
   text-align: center;
   cursor: pointer;
   transition: border-color .2s, background .2s;
@@ -2535,7 +2624,7 @@ button.welcome-guest-link {
 
 .braille-grid-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 20px;
 }
 
@@ -2543,20 +2632,20 @@ button.welcome-guest-link {
   background: #fff;
   border: 1.5px solid var(--line);
   border-radius: 14px;
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .braille-result-card {
   background: #fff;
   border: 1.5px solid var(--line);
   border-radius: 14px;
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .braille-output-box {
@@ -2578,8 +2667,13 @@ button.welcome-guest-link {
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
   box-sizing: border-box;
-  padding: 40px 56px 56px;
+  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px);
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .voice-container {
@@ -2588,43 +2682,43 @@ button.welcome-guest-link {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .voice-grid-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 20px;
 }
 
 .voice-captions-card {
   background: #fff;
   border: 1.5px solid var(--line);
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .voice-tts-card {
   background: #fff;
   border: 1.5px solid var(--line);
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .voice-caption-box {
   background: var(--ink);
   color: #fff;
   border-radius: 12px;
-  padding: 20px;
-  min-height: 160px;
+  padding: 18px;
+  min-height: 140px;
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1.3;
 }
 
@@ -2635,7 +2729,7 @@ button.welcome-guest-link {
 .tts-textarea {
   width: 100%;
   box-sizing: border-box;
-  min-height: 140px;
+  min-height: 120px;
   border: 1.5px solid var(--line-2);
   border-radius: 10px;
   padding: 14px;
@@ -2648,12 +2742,18 @@ button.welcome-guest-link {
 /* -------------------------------------------------------------
    11. Transify Care View (#care / #care-intake / #clinician)
    ------------------------------------------------------------- */
-#view-care.active {
+#view-care.active,
+#view-settings.active {
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
   box-sizing: border-box;
-  padding: 40px 56px 56px;
+  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px);
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .care-container {
