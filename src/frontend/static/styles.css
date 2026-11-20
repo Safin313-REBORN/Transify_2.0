@@ -1618,6 +1618,183 @@ a.rec,
   color: #fff;
 }
 
+/* Fingerspelling Mode Panel (Letters Tab) */
+.fingerspelling-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface-2, #F4F4F7);
+  border: 1px solid var(--line, #E5E7EB);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.spell-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.spell-current-word {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.spell-label {
+  color: var(--text-2, #6B7280);
+  font-weight: 600;
+}
+
+.spell-current-word strong {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--ink, #111827);
+  letter-spacing: 0.04em;
+}
+
+.spell-letter-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(131, 56, 236, 0.12);
+  color: var(--violet, #8338EC);
+}
+
+.alphabet-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.letter-btn {
+  height: 38px;
+  border-radius: 8px;
+  border: 1.5px solid var(--line, #E5E7EB);
+  background: #ffffff;
+  color: var(--ink, #111827);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.letter-btn:hover {
+  background: var(--violet, #8338EC);
+  color: #ffffff;
+  border-color: var(--violet, #8338EC);
+  transform: translateY(-1px);
+}
+
+.letter-btn:active {
+  transform: scale(0.95);
+}
+
+.spell-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr 1fr;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.btn-spell-action {
+  height: 36px;
+  border-radius: 8px;
+  border: 1.5px solid var(--line, #E5E7EB);
+  background: #ffffff;
+  color: var(--ink, #111827);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-spell-action:hover {
+  background: var(--surface-hover, #F3F4F6);
+}
+
+.btn-spell-action.primary {
+  background: var(--violet, #8338EC);
+  color: #ffffff;
+  border-color: var(--violet, #8338EC);
+}
+
+.btn-spell-action.primary:hover {
+  background: var(--violet-hover, #7226d9);
+}
+
+.btn-spell-action.danger {
+  color: #DC2626;
+  border-color: rgba(220, 38, 38, 0.25);
+}
+
+.btn-spell-action.danger:hover {
+  background: rgba(220, 38, 38, 0.08);
+}
+
+/* Quick Vocabulary Mode Panel (Sentence Tab) */
+.sign-vocab-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface-2, #F4F4F7);
+  border: 1px solid var(--line, #E5E7EB);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.vocab-header-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2, #6B7280);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.vocab-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.quick-word-btn {
+  height: 40px;
+  border-radius: 9px;
+  border: 1.5px solid var(--line, #E5E7EB);
+  background: #ffffff;
+  color: var(--ink, #111827);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 10px;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.quick-word-btn:hover {
+  border-color: var(--violet, #8338EC);
+  background: rgba(131, 56, 236, 0.08);
+  transform: translateY(-1px);
+}
+
+.quick-word-btn:active {
+  transform: scale(0.97);
+}
+
 .result-row {
   display: flex;
   align-items: center;

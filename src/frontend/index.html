@@ -24,7 +24,7 @@
   <script src="/static/i18n.js"></script>
 
   <!-- Design System CSS -->
-  <link rel="stylesheet" href="/static/styles.css?v=20261120_clean_camera_v1">
+  <link rel="stylesheet" href="/static/styles.css?v=20261120_sign_perfect_v2">
 
   <script>
     // Bulletproof routing & auth initialization
@@ -689,24 +689,47 @@
             </div>
           </div>
 
-          <!-- Compatibility wrappers for app.js modules -->
-          <div id="fingerspelling-panel" style="display: none;">
-            <div id="alphabet-grid"></div>
-            <span id="spelled-word-display"></span>
-            <span id="current-letter-badge"></span>
-            <span id="current-live-letter"></span>
-            <span id="committed-words-text"></span>
-            <button type="button" id="spell-space-btn">Space</button>
-            <button type="button" id="spell-backspace-btn">Backspace</button>
-            <button type="button" id="spell-speak-btn">Speak Word</button>
-            <button type="button" id="spell-send-to-sentence-btn">Send</button>
-            <button type="button" id="spell-clear-btn">Clear</button>
+          <!-- Mode 2: Fingerspelling A-Z Panel (Letters Tab) -->
+          <div id="fingerspelling-panel" class="fingerspelling-container" style="display: none;">
+            <div class="spell-header-row">
+              <div class="spell-current-word">
+                <span class="spell-label">Spelling:</span>
+                <strong id="spelled-word-display">—</strong>
+              </div>
+              <span id="current-letter-badge" class="spell-letter-badge">ASL Alphabet</span>
+            </div>
+            <div id="alphabet-grid" class="alphabet-grid"></div>
+            <div class="spell-actions-row">
+              <button type="button" id="spell-space-btn" class="btn-spell-action press">Space</button>
+              <button type="button" id="spell-backspace-btn" class="btn-spell-action press">⌫ Back</button>
+              <button type="button" id="spell-send-to-sentence-btn" class="btn-spell-action primary press">Add Word</button>
+              <button type="button" id="spell-clear-btn" class="btn-spell-action danger press">Clear</button>
+            </div>
+            <span id="current-live-letter" class="sr-only"></span>
+            <span id="committed-words-text" class="sr-only"></span>
+            <button type="button" id="spell-speak-btn" class="sr-only">Speak Word</button>
           </div>
-          <div id="sign-vocab-section" style="display: none;">
-            <div id="sign-domains-container"></div>
-            <div id="sign-vocabulary-grid"></div>
+
+          <!-- Mode 3: Quick Vocabulary Chips (Sentence Tab) -->
+          <div id="sign-vocab-section" class="sign-vocab-container" style="display: none;">
+            <div class="vocab-header-label">Quick Healthcare &amp; Daily Signs</div>
+            <div id="sign-vocabulary-grid" class="vocab-chips-grid">
+              <button type="button" class="quick-word-btn press" data-word="hello">👋 Hello</button>
+              <button type="button" class="quick-word-btn press" data-word="thank_you">🙏 Thank you</button>
+              <button type="button" class="quick-word-btn press" data-word="help">🆘 Help</button>
+              <button type="button" class="quick-word-btn press" data-word="yes">✅ Yes</button>
+              <button type="button" class="quick-word-btn press" data-word="no">❌ No</button>
+              <button type="button" class="quick-word-btn press" data-word="please">🤲 Please</button>
+              <button type="button" class="quick-word-btn press" data-word="pain">⚡ Pain</button>
+              <button type="button" class="quick-word-btn press" data-word="doctor">🩺 Doctor</button>
+              <button type="button" class="quick-word-btn press" data-word="water">💧 Water</button>
+              <button type="button" class="quick-word-btn press" data-word="medicine">💊 Medicine</button>
+            </div>
+            <div id="sign-domains-container" class="sr-only"></div>
           </div>
-          <div id="sentence-builder-panel" style="display: none;">
+
+          <!-- Hidden compatibility elements for JS bindings -->
+          <div id="sentence-builder-panel" class="sr-only" aria-hidden="true" style="display: none;">
             <button type="button" id="smooth-sentence-btn">Synthesize</button>
             <span id="sentence-engine-badge"></span>
           </div>
@@ -1763,7 +1786,7 @@
   <div id="transify-auth-screen" style="display: none;"></div>
 
   <!-- Client Application Scripts -->
-  <script src="/static/app.js?v=20261120_clean_camera_v1"></script>
+  <script src="/static/app.js?v=20261120_sign_perfect_v2"></script>
   <script src="/static/care.js?v=20261120_careanywhere"></script>
 </body>
 

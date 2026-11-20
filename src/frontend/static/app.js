@@ -985,6 +985,18 @@ var SignPage = window.SignPage = window.TransifySign = {
   },
 
   setDetectionFeedback(label, confidence = 0.95) {
+    if (!label || label === 'IDLE' || label === 'ANALYZING' || label === 'OUT_OF_ROI' || label === 'READY') {
+      this.detectionState = {
+        isDetected: false,
+        label: '',
+        confidence: 0,
+        timestamp: 0
+      };
+      if (this.isStreaming) {
+        this.drawCanvasFeedback();
+      }
+      return;
+    }
     this.detectionState = {
       isDetected: true,
       label: label,
@@ -1026,38 +1038,46 @@ var SignPage = window.SignPage = window.TransifySign = {
     const spellBtn = document.getElementById('mode-fingerspell-btn');
     const sentBtn = document.getElementById('mode-sentence-btn');
 
-    const banner = document.getElementById('sign-prediction-banner');
+    const resultRow = document.querySelector('.result-row');
+    const actionRow = document.querySelector('.sign-actions-row');
     const spellPanel = document.getElementById('fingerspelling-panel');
-    const sentPanel = document.getElementById('sentence-builder-panel');
     const vocabPanel = document.getElementById('sign-vocab-section');
+    const sentPanel = document.querySelector('.sentence-panel');
 
-    // Reset button states
-    [exprBtn, spellBtn, sentBtn].forEach(b => {
-      if (b) {
-        b.classList.remove('btn-primary');
-        b.classList.add('btn-secondary');
+    // Update tab button visual state and accessibility attributes
+    [
+      { btn: exprBtn, id: 'expressions' },
+      { btn: spellBtn, id: 'fingerspell' },
+      { btn: sentBtn, id: 'sentence' }
+    ].forEach(({ btn, id }) => {
+      if (btn) {
+        const isActive = (id === mode);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        btn.classList.toggle('active', isActive);
       }
     });
 
-    // In all modes, Word Banner and Sentence Builder are ALWAYS VISIBLE underneath!
-    if (banner) banner.style.display = 'flex';
-    if (sentPanel) sentPanel.style.display = 'block';
-
     if (mode === 'expressions') {
-      if (exprBtn) { exprBtn.classList.remove('btn-secondary'); exprBtn.classList.add('btn-primary'); }
+      if (resultRow) resultRow.style.display = 'flex';
+      if (actionRow) actionRow.style.display = 'flex';
       if (spellPanel) spellPanel.style.display = 'none';
       if (vocabPanel) vocabPanel.style.display = 'none';
-      TransifyApp.announce('Switched to Live Words and Sentences Mode');
+      if (sentPanel) sentPanel.style.display = 'flex';
+      TransifyApp.announce('Switched to Words Mode');
     } else if (mode === 'fingerspell') {
-      if (spellBtn) { spellBtn.classList.remove('btn-secondary'); spellBtn.classList.add('btn-primary'); }
-      if (spellPanel) spellPanel.style.display = 'block';
+      if (resultRow) resultRow.style.display = 'none';
+      if (actionRow) actionRow.style.display = 'none';
+      if (spellPanel) spellPanel.style.display = 'flex';
       if (vocabPanel) vocabPanel.style.display = 'none';
-      TransifyApp.announce('Expanded A-Z Manual Alphabet Grid');
+      if (sentPanel) sentPanel.style.display = 'flex';
+      TransifyApp.announce('Switched to Letters Fingerspelling Mode');
     } else if (mode === 'sentence' || mode === 'vocab') {
-      if (sentBtn) { sentBtn.classList.remove('btn-secondary'); sentBtn.classList.add('btn-primary'); }
+      if (resultRow) resultRow.style.display = 'none';
+      if (actionRow) actionRow.style.display = 'none';
       if (spellPanel) spellPanel.style.display = 'none';
-      if (vocabPanel) vocabPanel.style.display = 'block';
-      TransifyApp.announce('Expanded Common Signs and Words');
+      if (vocabPanel) vocabPanel.style.display = 'flex';
+      if (sentPanel) sentPanel.style.display = 'flex';
+      TransifyApp.announce('Switched to Quick Vocabulary Mode');
     }
   },
 
@@ -1067,7 +1087,7 @@ var SignPage = window.SignPage = window.TransifySign = {
 
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     grid.innerHTML = alphabet.map(l => `
-      <button type="button" class="btn btn-secondary btn-sm letter-btn" data-letter="${l}" style="font-weight: 700; padding: 6px 0; font-family: var(--font-mono);">
+      <button type="button" class="letter-btn press" data-letter="${l}" aria-label="Sign letter ${l}">
         ${l}
       </button>
     `).join('');
@@ -1084,20 +1104,9 @@ var SignPage = window.SignPage = window.TransifySign = {
       btn.addEventListener('click', () => {
         const word = btn.getAttribute('data-word');
         if (word) {
-          this.setDetectionFeedback(word, 1.0);
-          this.updatePredictionUI({
-            label: word,
-            display_text: word.replace(/_/g, ' '),
-            bdsl_gloss: word,
-            confidence: 0.99,
-            confirmed: true,
-            engine_info: {
-              badge: 'Quick Sign Word',
-              is_fallback: false,
-              notes: 'Selected quick expressive vocabulary word.'
-            }
-          });
-          TransifyApp.showToast(`Added "${word.replace(/_/g, ' ')}" to sentence!`, 'success');
+          const displayWord = word.replace(/_/g, ' ');
+          this.addTokenToSentence(displayWord);
+          TransifyApp.showToast(`Added "${displayWord}" to sentence!`, 'success');
         }
       });
     });
@@ -1461,10 +1470,30 @@ var SignPage = window.SignPage = window.TransifySign = {
     const speakBtn = document.getElementById('speak-pred-btn');
     if (speakBtn) {
       speakBtn.addEventListener('click', () => {
-        if (this.lastPrediction) {
-          TransifyTTS.speak(this.lastPrediction);
+        const wordEl = document.getElementById('pred-label-text');
+        const text = (wordEl && wordEl.textContent && wordEl.textContent !== '—' && !wordEl.textContent.includes('Waiting'))
+          ? wordEl.textContent.trim()
+          : (this.lastPrediction || '');
+        if (text && text !== 'IDLE' && text !== 'ANALYZING' && text !== '—') {
+          TransifyTTS.speak(text);
         } else {
           TransifyApp.showToast('No confirmed sign to speak.', 'warning');
+        }
+      });
+    }
+
+    const addToSentBtn = document.getElementById('add-to-sentence-btn');
+    if (addToSentBtn) {
+      addToSentBtn.addEventListener('click', () => {
+        const wordEl = document.getElementById('pred-label-text');
+        const text = (wordEl && wordEl.textContent && wordEl.textContent !== '—' && !wordEl.textContent.includes('Waiting'))
+          ? wordEl.textContent.trim()
+          : (this.lastPrediction || '');
+        if (text && text !== 'IDLE' && text !== 'ANALYZING' && text !== '—') {
+          this.addTokenToSentence(text);
+          TransifyApp.showToast(`Added "${text}" to sentence!`, 'success');
+        } else {
+          TransifyApp.showToast('Please sign or select a word first.', 'warning');
         }
       });
     }
@@ -1806,7 +1835,6 @@ var SignPage = window.SignPage = window.TransifySign = {
       this.ctx.restore();
     }
   },
-  },
 
   _drawTargetBrackets(x, y, w, h, color, cLen, lineWidth) {
     this.ctx.save();
@@ -1905,55 +1933,78 @@ var SignPage = window.SignPage = window.TransifySign = {
     const sourceTagEl = document.getElementById('trans-source-model-tag');
 
     if (result.rejected) {
-      if (labelEl) labelEl.textContent = 'Signing...';
+      if (labelEl) { labelEl.textContent = '—'; labelEl.classList.remove('on'); }
       if (glossEl) glossEl.textContent = `[Filtering: ${result.rejection_reason || 'Low motion / Idle'}]`;
       if (progressFill) progressFill.style.width = '20%';
       if (engineNote) engineNote.style.display = 'none';
       return;
     }
 
-    const confPct = (result.confidence * 100).toFixed(1);
-    const confVal = Math.round((result.confidence || 0) * 100);
+    const isRealSign = Boolean(
+      result.label &&
+      result.label !== 'IDLE' &&
+      result.label !== 'ANALYZING' &&
+      result.label !== 'OUT_OF_ROI' &&
+      result.label !== 'READY' &&
+      (result.confirmed || (result.confidence && result.confidence >= 0.75))
+    );
+
+    const displayWord = isRealSign ? (result.display_text || result.label.replace(/_/g, ' ')) : '';
 
     // Auto-fit recognized word (§6.4)
     if (labelEl) {
-      const rawText = result.label || '—';
-      let letters = [];
-      if (typeof Intl !== 'undefined' && Intl.Segmenter) {
-        try {
-          const seg = new Intl.Segmenter('en', { granularity: 'grapheme' });
-          for (const s of seg.segment(rawText)) {
-            letters.push(s.segment);
+      if (isRealSign) {
+        const rawText = displayWord;
+        let letters = [];
+        if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+          try {
+            const seg = new Intl.Segmenter('en', { granularity: 'grapheme' });
+            for (const s of seg.segment(rawText)) {
+              letters.push(s.segment);
+            }
+          } catch(e) {
+            letters = rawText.split('');
           }
-        } catch(e) {
+        } else {
           letters = rawText.split('');
         }
-      } else {
-        letters = rawText.split('');
-      }
-      labelEl.innerHTML = letters.map((l, idx) => `<span class="l" style="animation-delay:${Math.min(idx * 0.06, 0.48)}s">${l}</span>`).join('');
-      labelEl.classList.add('on');
+        labelEl.innerHTML = letters.map((l, idx) => `<span class="l" style="animation-delay:${Math.min(idx * 0.06, 0.48)}s">${l}</span>`).join('');
+        labelEl.classList.add('on');
 
-      let fontSize = 96;
-      labelEl.style.fontSize = fontSize + 'px';
-      while (labelEl.scrollWidth > labelEl.clientWidth && fontSize > 40) {
-        fontSize -= 4;
+        let fontSize = 96;
         labelEl.style.fontSize = fontSize + 'px';
+        while (labelEl.scrollWidth > labelEl.clientWidth && fontSize > 40) {
+          fontSize -= 4;
+          labelEl.style.fontSize = fontSize + 'px';
+        }
+      } else {
+        labelEl.textContent = '—';
+        labelEl.classList.remove('on');
+        labelEl.style.fontSize = '96px';
       }
     }
 
-    if (glossEl) glossEl.textContent = `[ASL: ${result.gloss || defaultGloss || result.label}]`;
-    if (confEl) {
-      confEl.textContent = `${confVal}%`;
-      confEl.className = result.confidence > 0.85 ? 'ring-pct badge-success' : 'ring-pct badge-warning';
+    if (glossEl) {
+      glossEl.textContent = isRealSign ? `[ASL: ${result.gloss || defaultGloss || result.label}]` : '';
     }
 
     // Confidence Ring SVG (104x104)
+    const confVal = isRealSign ? Math.round((result.confidence || 0.95) * 100) : 0;
+    if (confEl) {
+      confEl.textContent = `${confVal}%`;
+      confEl.className = (isRealSign && confVal >= 80) ? 'ring-pct badge-success' : 'ring-pct';
+    }
+
     const ringCircle = document.getElementById('confidence-ring-circle');
     if (ringCircle) {
-      const offset = 201 * (1 - Math.min(1, Math.max(0, result.confidence || 0)));
-      ringCircle.style.strokeDashoffset = offset;
-      ringCircle.setAttribute('stroke', result.confirmed ? '#0F9D74' : '#8338EC');
+      if (isRealSign) {
+        const offset = 201 * (1 - Math.min(1, Math.max(0, result.confidence || 0.95)));
+        ringCircle.style.strokeDashoffset = offset;
+        ringCircle.setAttribute('stroke', result.confirmed ? '#0F9D74' : '#8338EC');
+      } else {
+        ringCircle.style.strokeDashoffset = 201;
+        ringCircle.setAttribute('stroke', '#D9DAE6');
+      }
     }
 
     // Segments
@@ -1968,12 +2019,16 @@ var SignPage = window.SignPage = window.TransifySign = {
     // Status Line
     const statusLine = document.getElementById('pred-status-line');
     if (statusLine) {
-      if (result.confirmed) {
+      if (result.confirmed && isRealSign) {
         statusLine.textContent = 'Confirmed after 3 matching frames';
       } else if (result.status === 'ANALYZING') {
-        statusLine.textContent = `Checking frame ${count} of 3`;
-      } else if (result.label && result.label !== 'IDLE') {
-        statusLine.textContent = `Observing ${result.label}`;
+        statusLine.textContent = `Analyzing sign... checking frame ${count} of 3`;
+      } else if (result.status === 'READY') {
+        statusLine.textContent = 'Hand detected • Ready to sign';
+      } else if (result.status === 'OUT_OF_ROI') {
+        statusLine.textContent = 'Bring hand inside the fixed guide box';
+      } else if (isRealSign) {
+        statusLine.textContent = `Observing ${displayWord}`;
       } else {
         statusLine.textContent = 'Show your hand in the box';
       }
@@ -1982,8 +2037,8 @@ var SignPage = window.SignPage = window.TransifySign = {
     // Speak word button
     const speakWordBtn = document.getElementById('speak-pred-btn');
     if (speakWordBtn) {
-      speakWordBtn.textContent = 'Speak ' + (result.label || 'word');
-      speakWordBtn.disabled = !result.confirmed;
+      speakWordBtn.textContent = isRealSign ? `Speak ${displayWord}` : 'Speak word';
+      speakWordBtn.disabled = !isRealSign;
     }
 
     // ROI Beam
@@ -1994,7 +2049,7 @@ var SignPage = window.SignPage = window.TransifySign = {
 
     // Unified Translation Layer display
     const englishText = result.english_text || result.display_text || result.label;
-    if (unifiedOutputEl && englishText) {
+    if (unifiedOutputEl && englishText && isRealSign) {
       unifiedOutputEl.textContent = `"${englishText}"`;
     }
     if (sourceTagEl) {
@@ -2004,7 +2059,7 @@ var SignPage = window.SignPage = window.TransifySign = {
     }
 
     // Engine Info and Latency Display
-    if (engineNote && result.engine_info) {
+    if (engineNote && result.engine_info && isRealSign) {
       const eng = result.engine_info;
       engineNote.style.display = 'inline-block';
       if (eng.is_fallback) {
@@ -2018,10 +2073,16 @@ var SignPage = window.SignPage = window.TransifySign = {
         engineNote.style.border = '1px solid rgba(34, 197, 94, 0.25)';
         engineNote.innerHTML = `🎯 <strong>Custom AI Model (&ge; 98%):</strong> Processed in ultra-fast time (&lt; 15ms)`;
       }
+    } else if (engineNote && !isRealSign) {
+      engineNote.style.display = 'none';
     }
 
-    // Trigger GREEN BOX on camera overlay whenever word / sign is detected
-    this.setDetectionFeedback(result.label, result.confidence || 0.95);
+    // Trigger detection feedback on camera overlay whenever valid sign is detected
+    if (isRealSign) {
+      this.setDetectionFeedback(result.label, result.confidence || 0.95);
+    } else {
+      this.setDetectionFeedback(null);
+    }
 
     // Update consensus debounce progress bar
     if (progressFill) {
@@ -2031,29 +2092,29 @@ var SignPage = window.SignPage = window.TransifySign = {
       progressFill.style.width = `${pct}%`;
     }
 
-    if (result.confirmed) {
+    if (result.confirmed && isRealSign) {
       const now = Date.now();
       const isNewSign = (result.label !== this.lastConfirmedSign);
       const isTimeElapsed = (now - this.lastConfirmedSpeechTime > 2500);
 
-      this.lastPrediction = result.label;
+      this.lastPrediction = displayWord;
 
       if (isNewSign || isTimeElapsed) {
         this.lastConfirmedSign = result.label;
         this.lastConfirmedSpeechTime = now;
 
-        TransifyApp.announce(`Recognized ASL Sign: ${result.label}`);
-        if (statusNote) statusNote.textContent = `Confirmed expression: ${result.label}`;
+        TransifyApp.announce(`Recognized ASL Sign: ${displayWord}`);
+        if (statusNote) statusNote.textContent = `Confirmed expression: ${displayWord}`;
 
         // Automatically append confirmed sign token to Sentence Builder
-        this.addTokenToSentence(result.label);
+        this.addTokenToSentence(displayWord);
 
         if (this.autoSpeak) {
-          TransifyTTS.speak(englishText);
+          TransifyTTS.speak(englishText || displayWord);
         }
       }
     } else {
-      if (statusNote) statusNote.textContent = `Debouncing consensus (${result.debounce_count}/${result.debounce_target})...`;
+      if (statusNote) statusNote.textContent = `Debouncing consensus (${result.debounce_count || 1}/${result.debounce_target || 3})...`;
     }
   },
 
@@ -3836,11 +3897,6 @@ const EditorialController = {
       if (window.TransifyApp && window.TransifyApp.openAuthSheet) {
         window.TransifyApp.openAuthSheet('login');
       }
-    }
-  },
-
-        hiddenCareSubmit.click();
-      });
     }
   }
 };
