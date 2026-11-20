@@ -83,6 +83,14 @@ button, input, textarea, select {
   font-family: inherit;
 }
 
+button, input[type="button"], input[type="submit"], input[type="reset"] {
+  white-space: nowrap;
+}
+
+button.story, .story button {
+  white-space: normal;
+}
+
 a {
   text-decoration: none;
   color: inherit;
@@ -94,6 +102,7 @@ a {
 }
 
 .press {
+  white-space: nowrap;
   transition: transform .18s var(--ease-press), background .2s, color .2s, border-color .2s;
   cursor: pointer;
 }
@@ -1904,6 +1913,7 @@ h1, h2, h3, .display {
   align-items: center;
   justify-content: center;
   height: 60px;
+  padding: 0 28px;
   border-radius: 12px;
   background: var(--signal);
   color: var(--ink);
@@ -1911,6 +1921,7 @@ h1, h2, h3, .display {
   font-size: 19px;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .btn-welcome-secondary {
@@ -1919,6 +1930,7 @@ h1, h2, h3, .display {
   align-items: center;
   justify-content: center;
   height: 60px;
+  padding: 0 24px;
   border-radius: 12px;
   border: 1.5px solid rgba(255, 255, 255, .45);
   color: #fff;
@@ -1926,11 +1938,13 @@ h1, h2, h3, .display {
   font-size: 18px;
   background: transparent;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .welcome-guest-link {
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
   min-height: 48px;
   padding: 0;
   margin: 0;
