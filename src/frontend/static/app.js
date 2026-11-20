@@ -3070,6 +3070,15 @@ const EditorialController = {
   setupRouter() {
     window.routeTo = (r) => this.routeTo(r);
 
+    // Rail logo click to go to Home
+    const logoBtn = document.getElementById('rail-logo-btn');
+    if (logoBtn) {
+      logoBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.routeTo('home');
+      });
+    }
+
     // Rail buttons
     document.querySelectorAll('.rail-item').forEach(btn => {
       btn.addEventListener('click', () => {

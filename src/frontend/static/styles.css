@@ -504,9 +504,68 @@ h3,
   background: var(--ink-deep);
 }
 
-.rail-logo {
+/* -------------------------------------------------------------
+   6-Dot Animated Logo Badge & Home Navigation Link
+   ------------------------------------------------------------- */
+.rail-logo-link {
+  position: relative;
   align-self: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.2s ease;
+  overflow: visible;
+}
+
+.rail-logo-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 203, 5, 0.55);
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 8px 24px rgba(255, 203, 5, 0.25), 0 0 16px rgba(131, 56, 236, 0.15);
+}
+
+.rail-logo-link:active {
+  transform: translateY(1px) scale(0.93);
+  background: rgba(255, 203, 5, 0.15);
+  border-color: var(--signal);
+}
+
+.rail-logo-glow {
+  position: absolute;
+  inset: -6px;
+  border-radius: 18px;
+  background: radial-gradient(circle at center, rgba(255, 203, 5, 0.4) 0%, rgba(131, 56, 236, 0.2) 50%, transparent 75%);
+  opacity: 0.45;
+  filter: blur(8px);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  animation: logoAmbientBreathe 4s ease-in-out infinite alternate;
+}
+
+.rail-logo-link:hover .rail-logo-glow {
+  opacity: 0.95;
+  transform: scale(1.22);
+}
+
+@keyframes logoAmbientBreathe {
+  0% { opacity: 0.35; transform: scale(0.95); }
+  100% { opacity: 0.75; transform: scale(1.1); }
+}
+
+.rail-logo {
+  position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: repeat(2, 9px);
   grid-template-rows: repeat(3, 9px);
@@ -519,18 +578,49 @@ h3,
   display: block;
   width: 9px;
   height: 9px;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .rail-logo i:nth-child(1),
 .rail-logo i:nth-child(4),
 .rail-logo i:nth-child(6) {
-  background: rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .32);
+}
+
+.rail-logo-link:hover .rail-logo i:nth-child(1),
+.rail-logo-link:hover .rail-logo i:nth-child(4),
+.rail-logo-link:hover .rail-logo i:nth-child(6) {
+  background: rgba(255, 255, 255, .55);
 }
 
 .rail-logo i:nth-child(2),
 .rail-logo i:nth-child(3),
 .rail-logo i:nth-child(5) {
-  background: var(--signal);
+  background: var(--signal, #FFCB05);
+  box-shadow: 0 0 8px rgba(255, 203, 5, 0.55), 0 0 2px rgba(255, 203, 5, 0.9);
+  animation: logoDotPulse 2.8s ease-in-out infinite;
+}
+
+.rail-logo i:nth-child(2) { animation-delay: 0s; }
+.rail-logo i:nth-child(3) { animation-delay: 0.35s; }
+.rail-logo i:nth-child(5) { animation-delay: 0.7s; }
+
+@keyframes logoDotPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 8px rgba(255, 203, 5, 0.55), 0 0 2px rgba(255, 203, 5, 0.9);
+  }
+  50% {
+    transform: scale(1.22);
+    box-shadow: 0 0 16px rgba(255, 203, 5, 0.95), 0 0 6px #FFE066;
+    background: #FFE066;
+  }
+}
+
+.rail-logo-link:hover .rail-logo i:nth-child(2),
+.rail-logo-link:hover .rail-logo i:nth-child(3),
+.rail-logo-link:hover .rail-logo i:nth-child(5) {
+  box-shadow: 0 0 16px rgba(255, 203, 5, 0.95), 0 0 6px #FFFFFF;
 }
 
 .rail-item {

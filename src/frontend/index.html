@@ -24,7 +24,7 @@
   <script src="/static/i18n.js"></script>
 
   <!-- Design System CSS -->
-  <link rel="stylesheet" href="/static/styles.css?v=20261120_settings_v1">
+  <link rel="stylesheet" href="/static/styles.css?v=20261120_logo_v1">
 
   <script>
     // Bulletproof routing & auth initialization
@@ -80,10 +80,13 @@
 
     <!-- Persistent Left Rail Navigation (Prompt §5) -->
     <nav aria-label="Main" class="rail" id="app-rail">
-      <!-- 6-Dot Logo (9px cells, 5px gap, 2 cols x 3 rows) -->
-      <div aria-hidden="true" class="rail-logo">
-        <i></i><i></i><i></i><i></i><i></i><i></i>
-      </div>
+      <!-- Interactive 6-Dot Logo Badge (Links to Home) -->
+      <a href="#home" class="rail-logo-link press" id="rail-logo-btn" aria-label="Transify Home" title="Transify Home">
+        <div class="rail-logo-glow" aria-hidden="true"></div>
+        <div class="rail-logo" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+      </a>
 
       <!-- 1. Home -->
       <button type="button" class="rail-item active" id="rail-btn-home" data-route="home" aria-current="page"
@@ -1760,7 +1763,7 @@
   <div id="transify-auth-screen" style="display: none;"></div>
 
   <!-- Client Application Scripts -->
-  <script src="/static/app.js?v=20261120_settings_v1"></script>
+  <script src="/static/app.js?v=20261120_logo_v1"></script>
   <script src="/static/care.js?v=20261120_careanywhere"></script>
 </body>
 
