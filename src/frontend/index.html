@@ -1,48 +1,52 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Transify — Breaking Communication Barriers</title>
-  <meta name="description" content="Accessible Sign Language, Braille, and Voice Translation Platform for English and Bengali.">
+  <meta name="description"
+    content="Accessible Sign Language, Braille, and Voice Translation Platform for English and Bengali.">
   <link rel="manifest" href="/static/manifest.json">
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <link rel="apple-touch-icon" href="/static/icon-192.png">
   <meta name="theme-color" content="#14111F">
-  
+
   <!-- Preconnect to Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
   <!-- Self-Hosted Typography Fallback (Offline First) -->
   <link rel="stylesheet" href="/static/fonts/fonts.css">
   <script src="/static/i18n.js"></script>
-  
+
   <!-- Design System CSS -->
   <link rel="stylesheet" href="/static/styles.css?v=20261120_real_hand">
 
   <script>
     // Bulletproof routing & auth initialization
-    window.openAuthSheet = function(mode) {
+    window.openAuthSheet = function (mode) {
       var sheet = document.getElementById('auth-sheet-container');
       if (sheet) sheet.classList.add('active');
     };
-    window.closeAuthSheet = function() {
+    window.closeAuthSheet = function () {
       var sheet = document.getElementById('auth-sheet-container');
       if (sheet) sheet.classList.remove('active');
     };
-    window.handleDirectLogin = function() {
+    window.handleDirectLogin = function () {
       try {
         localStorage.setItem('transify_auth_user', JSON.stringify({ name: 'Transify Member', email: 'member@transify.ai' }));
         localStorage.setItem('transify_auth_token', 'jwt_' + Date.now());
         localStorage.setItem('transify.welcomed', '1');
-      } catch(e) {}
+      } catch (e) { }
       window.closeAuthSheet();
       if (window.routeTo) window.routeTo('home');
     };
-    window.handleDemoLogin = function() {
-      try { localStorage.setItem('transify.welcomed', '1'); } catch(e) {}
+    window.handleDemoLogin = function () {
+      try { localStorage.setItem('transify.welcomed', '1'); } catch (e) { }
       window.closeAuthSheet();
       if (window.routeTo) window.routeTo('home');
     };
@@ -53,6 +57,7 @@
     TransifyApp.handleDemoLogin = window.handleDemoLogin;
   </script>
 </head>
+
 <body>
 
   <!-- Accessible Skip Link (WCAG 2.4.1) -->
@@ -64,7 +69,7 @@
   <!-- SVG Grain Definition for Photo Backgrounds -->
   <svg class="sr-only" aria-hidden="true">
     <filter id="g">
-      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch" />
     </filter>
   </svg>
 
@@ -81,17 +86,21 @@
       </div>
 
       <!-- 1. Home -->
-      <button type="button" class="rail-item active" id="rail-btn-home" data-route="home" aria-current="page" aria-label="Home">
-        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 11l8-7 8 7v9H4z"/>
+      <button type="button" class="rail-item active" id="rail-btn-home" data-route="home" aria-current="page"
+        aria-label="Home">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 11l8-7 8 7v9H4z" />
         </svg>
         <span>Home</span>
       </button>
 
       <!-- 2. Sign -->
       <button type="button" class="rail-item" id="rail-btn-sign" data-route="sign" aria-label="Sign">
-        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M8 13V6a1.5 1.5 0 0 1 3 0v5M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6a1.5 1.5 0 0 1 3 0v7c0 4-2 7-6 7-3 0-4-2-6-5l-1-2a1.5 1.5 0 0 1 2.5-1.5L8 13"/>
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M8 13V6a1.5 1.5 0 0 1 3 0v5M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6a1.5 1.5 0 0 1 3 0v7c0 4-2 7-6 7-3 0-4-2-6-5l-1-2a1.5 1.5 0 0 1 2.5-1.5L8 13" />
         </svg>
         <span>Sign</span>
       </button>
@@ -99,33 +108,43 @@
       <!-- 3. Braille -->
       <button type="button" class="rail-item" id="rail-btn-braille" data-route="braille" aria-label="Braille">
         <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="9" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="9" cy="18" r="2.2"/>
-          <circle cx="16" cy="6" r="2.2" opacity=".3"/><circle cx="16" cy="12" r="2.2"/><circle cx="16" cy="18" r="2.2" opacity=".3"/>
+          <circle cx="9" cy="6" r="2.2" />
+          <circle cx="9" cy="12" r="2.2" />
+          <circle cx="9" cy="18" r="2.2" />
+          <circle cx="16" cy="6" r="2.2" opacity=".3" />
+          <circle cx="16" cy="12" r="2.2" />
+          <circle cx="16" cy="18" r="2.2" opacity=".3" />
         </svg>
         <span>Braille</span>
       </button>
 
       <!-- 4. Voice -->
       <button type="button" class="rail-item" id="rail-btn-voice" data-route="stt" aria-label="Voice">
-        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="3" width="6" height="11" rx="3" />
+          <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
         </svg>
         <span>Voice</span>
       </button>
 
       <!-- 5. Phrases -->
       <button type="button" class="rail-item" id="rail-btn-phrases" data-route="phrases" aria-label="Phrases">
-        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
         <span>Phrases</span>
       </button>
 
       <!-- 6. Settings (pinned to bottom) -->
-      <button type="button" class="rail-item settings-item" id="rail-btn-settings" data-route="settings" aria-label="Settings">
-        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2L10 21h4l.6-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/>
+      <button type="button" class="rail-item settings-item" id="rail-btn-settings" data-route="settings"
+        aria-label="Settings">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2L10 21h4l.6-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z" />
         </svg>
         <span>Settings</span>
       </button>
@@ -140,22 +159,32 @@
       <section id="view-welcome" class="page-view" aria-label="Welcome to Transify">
         <!-- Left Interactive Stage -->
         <div class="welcome-stage" id="welcome-stage">
-          <div class="ph" id="welcome-photo-bg" style="background: radial-gradient(50% 50% at 60% 40%,#B48866 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#43362D 0%,#191520 75%);"></div>
-          <svg class="grain" width="100%" height="100%" aria-hidden="true"><rect width="100%" height="100%" filter="url(#g)"/></svg>
-          <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(20,17,31,0) 55%, rgba(20,17,31,.9) 100%), linear-gradient(to top, rgba(20,17,31,.7), rgba(20,17,31,0) 40%); pointer-events: none;"></div>
+          <div class="ph" id="welcome-photo-bg"
+            style="background: radial-gradient(50% 50% at 60% 40%,#B48866 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#43362D 0%,#191520 75%);">
+          </div>
+          <svg class="grain" width="100%" height="100%" aria-hidden="true">
+            <rect width="100%" height="100%" filter="url(#g)" />
+          </svg>
+          <div
+            style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(20,17,31,0) 55%, rgba(20,17,31,.9) 100%), linear-gradient(to top, rgba(20,17,31,.7), rgba(20,17,31,0) 40%); pointer-events: none;">
+          </div>
 
-          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 40px 40px;">
+          <div
+            style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0 40px 40px;">
             <!-- Demo 0: Sign Translator Real Hand & AI Neural Tracking -->
-            <div id="welcome-demo-sign" class="pop" style="display: flex; flex-direction: column; align-items: flex-start; gap: 16px;">
+            <div id="welcome-demo-sign" class="pop"
+              style="display: flex; flex-direction: column; align-items: flex-start; gap: 16px;">
               <div class="demo-sign-wrap">
                 <i class="brk tl"></i><i class="brk tr"></i><i class="brk bl"></i><i class="brk br"></i>
                 <div class="hand-visual-container">
                   <picture>
                     <source srcset="/static/photos/real-sign-hand.webp" type="image/webp">
-                    <img src="/static/photos/real-sign-hand.jpg" alt="Real human hand signing open palm hello" class="real-hand-img" width="388" height="388">
+                    <img src="/static/photos/real-sign-hand.jpg" alt="Real human hand signing open palm hello"
+                      class="real-hand-img" width="388" height="388">
                   </picture>
                   <svg viewBox="0 0 100 100" class="real-hand-tracking-svg" aria-hidden="true" id="welcome-hand-svg">
-                    <path class="tracking-lines" d="M 48.36 84.46 L 59.43 77.63 M 48.36 84.46 L 57.32 50.17 M 57.32 50.17 L 49.94 49.45 M 49.94 49.45 L 43.21 51.92 M 43.21 51.92 L 36.82 56.73 M 48.36 84.46 L 36.82 56.73 M 59.43 77.63 L 67.55 66.08 M 67.55 66.08 L 71.91 54.92 L 71.91 54.92 L 76.36 46.61 M 57.32 50.17 L 58.99 36.29 M 58.99 36.29 L 59.24 28.14 M 59.24 28.14 L 59.08 20.92 M 49.94 49.45 L 49.43 34.15 M 49.43 34.15 L 48.99 24.9 M 48.99 24.9 L 48.09 17.09 M 43.21 51.92 L 41.4 37.78 M 41.4 37.78 L 41.01 29.42 M 41.01 29.42 L 40.72 21.83 M 36.82 56.73 L 34.03 46.36 M 34.03 46.36 L 32.71 39.75 M 32.71 39.75 L 31.96 33.34" />
+                    <path class="tracking-lines"
+                      d="M 48.36 84.46 L 59.43 77.63 M 48.36 84.46 L 57.32 50.17 M 57.32 50.17 L 49.94 49.45 M 49.94 49.45 L 43.21 51.92 M 43.21 51.92 L 36.82 56.73 M 48.36 84.46 L 36.82 56.73 M 59.43 77.63 L 67.55 66.08 M 67.55 66.08 L 71.91 54.92 L 71.91 54.92 L 76.36 46.61 M 57.32 50.17 L 58.99 36.29 M 58.99 36.29 L 59.24 28.14 M 59.24 28.14 L 59.08 20.92 M 49.94 49.45 L 49.43 34.15 M 49.43 34.15 L 48.99 24.9 M 48.99 24.9 L 48.09 17.09 M 43.21 51.92 L 41.4 37.78 M 41.4 37.78 L 41.01 29.42 M 41.01 29.42 L 40.72 21.83 M 36.82 56.73 L 34.03 46.36 M 34.03 46.36 L 32.71 39.75 M 32.71 39.75 L 31.96 33.34" />
                     <circle class="lm-joint" cx="48.36" cy="84.46" r="1.4" />
                     <circle class="lm-joint" cx="59.43" cy="77.63" r="1.4" />
                     <circle class="lm-joint" cx="67.55" cy="66.08" r="1.4" />
@@ -184,12 +213,14 @@
               <div aria-live="polite" class="demo-sign-tag">
                 <span id="welcome-sign-typed">Hello</span>
                 <span class="caret"></span>
-                <span style="font-family: var(--font-ui); font-size: 15px; font-weight: 600; color: #9DEBC8;">98.7% sure</span>
+                <span style="font-family: var(--font-ui); font-size: 15px; font-weight: 600; color: #9DEBC8;">98.7%
+                  sure</span>
               </div>
             </div>
 
             <!-- Demo 1: Interactive 6-Dot Braille Cell -->
-            <div id="welcome-demo-braille" class="pop" style="display: none; align-items: center; gap: 56px; flex-wrap: wrap; justify-content: center;">
+            <div id="welcome-demo-braille" class="pop"
+              style="display: none; align-items: center; gap: 56px; flex-wrap: wrap; justify-content: center;">
               <div class="braille-grid-demo" role="group" aria-label="Braille cell. Press dots to write a letter">
                 <button type="button" class="dotb hint" data-dot="1" aria-label="Dot 1">1</button>
                 <button type="button" class="dotb" data-dot="2" aria-label="Dot 2">2</button>
@@ -199,19 +230,26 @@
                 <button type="button" class="dotb" data-dot="6" aria-label="Dot 6">6</button>
               </div>
               <div aria-live="polite" style="min-width: 240px;">
-                <div style="font-size: 16px; font-weight: 600; color: #E6E3F2;" id="welcome-braille-dots-label">Dot 1</div>
-                <div class="letter" style="font-family: var(--font-display); font-weight: 800; font-size: 230px; line-height: 1; letter-spacing: -.05em; min-height: 230px;" id="welcome-braille-letter">a</div>
+                <div style="font-size: 16px; font-weight: 600; color: #E6E3F2;" id="welcome-braille-dots-label">Dot 1
+                </div>
+                <div class="letter"
+                  style="font-family: var(--font-display); font-weight: 800; font-size: 230px; line-height: 1; letter-spacing: -.05em; min-height: 230px;"
+                  id="welcome-braille-letter">a</div>
               </div>
             </div>
 
             <!-- Demo 2: Voice Live Captions & Mic Rings -->
             <div id="welcome-demo-voice" class="voice-demo-wrap pop" style="display: none;">
               <section aria-live="polite" aria-label="Live captions" class="voice-demo-card">
-                <div style="font-size: 14px; font-weight: 600; color: #D4D2E4; display: flex; align-items: center; gap: 8px;">
+                <div
+                  style="font-size: 14px; font-weight: 600; color: #D4D2E4; display: flex; align-items: center; gap: 8px;">
                   <span style="width: 8px; height: 8px; border-radius: 50%; background: #4ADE9A;"></span>Listening
                 </div>
-                <p style="margin: 12px 0 0; font-family: var(--font-display); font-weight: 700; font-size: 36px; line-height: 1.12; letter-spacing: -.02em;" id="welcome-voice-captions">
-                  <span style="color: #fff;">Can </span><span style="color: #fff;">you </span><span style="color: #fff;">show </span><span style="color: #fff;">me </span><span style="color: #fff;">the </span><span style="color: #FFCB05;">way...</span>
+                <p style="margin: 12px 0 0; font-family: var(--font-display); font-weight: 700; font-size: 36px; line-height: 1.12; letter-spacing: -.02em;"
+                  id="welcome-voice-captions">
+                  <span style="color: #fff;">Can </span><span style="color: #fff;">you </span><span
+                    style="color: #fff;">show </span><span style="color: #fff;">me </span><span style="color: #fff;">the
+                  </span><span style="color: #FFCB05;">way...</span>
                 </p>
               </section>
               <div class="live-w" aria-hidden="true" style="width: 100%;">
@@ -222,8 +260,13 @@
               </div>
               <div class="mic-rings-wrap live" id="welcome-mic-wrap">
                 <i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i>
-                <button type="button" id="welcome-mic-toggle-btn" aria-label="Toggle microphone listening" class="btn-mic-main press">
-                  <svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+                <button type="button" id="welcome-mic-toggle-btn" aria-label="Toggle microphone listening"
+                  class="btn-mic-main press">
+                  <svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="3" width="6" height="11" rx="3" />
+                    <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -249,31 +292,40 @@
               <span class="line"><span id="welcome-line-1">Signs to words,</span></span>
               <span class="line"><span id="welcome-line-2">spoken aloud.</span></span>
             </h1>
-            <p class="welcome-sub rise" id="welcome-subtext">Hold a sign to the camera. Transify recognizes Bengali and American Sign Language and speaks the translation.</p>
+            <p class="welcome-sub rise" id="welcome-subtext">Hold a sign to the camera. Transify recognizes Bengali and
+              American Sign Language and speaks the translation.</p>
 
             <!-- 3-Segment Story Tablist -->
-            <div role="tablist" aria-label="What Transify does" class="welcome-story-tablist" id="welcome-story-tablist">
+            <div role="tablist" aria-label="What Transify does" class="welcome-story-tablist"
+              id="welcome-story-tablist">
               <button type="button" role="tab" aria-selected="true" class="story" data-slide="0">
-                <span class="story-header-row"><span class="story-label">Sign translator</span><span class="story-desc">Signs to speech</span></span>
+                <span class="story-header-row"><span class="story-label">Sign translator</span><span
+                    class="story-desc">Signs to speech</span></span>
                 <span class="welcome-progress-bar"><i id="welcome-bar-0" style="transform: scaleX(0);"></i></span>
               </button>
               <button type="button" role="tab" aria-selected="false" class="story" data-slide="1">
-                <span class="story-header-row"><span class="story-label">Braille scanner</span><span class="story-desc">Dots to text</span></span>
+                <span class="story-header-row"><span class="story-label">Braille scanner</span><span
+                    class="story-desc">Dots to text</span></span>
                 <span class="welcome-progress-bar"><i id="welcome-bar-1" style="transform: scaleX(0);"></i></span>
               </button>
               <button type="button" role="tab" aria-selected="false" class="story" data-slide="2">
-                <span class="story-header-row"><span class="story-label">Voice hub</span><span class="story-desc">Speech to captions</span></span>
+                <span class="story-header-row"><span class="story-label">Voice hub</span><span class="story-desc">Speech
+                    to captions</span></span>
                 <span class="welcome-progress-bar"><i id="welcome-bar-2" style="transform: scaleX(0);"></i></span>
               </button>
             </div>
 
             <!-- CTA Buttons -->
             <div class="welcome-cta-row">
-              <button type="button" class="btn-welcome-primary press" id="btn-open-register" onclick="window.TransifyApp.openAuthSheet('signup')">Create account</button>
-              <button type="button" class="btn-welcome-secondary press" id="btn-open-login" onclick="window.TransifyApp.openAuthSheet('login')">Log in</button>
+              <button type="button" class="btn-welcome-primary press" id="btn-open-register"
+                onclick="window.TransifyApp.openAuthSheet('signup')">Create account</button>
+              <button type="button" class="btn-welcome-secondary press" id="btn-open-login"
+                onclick="window.TransifyApp.openAuthSheet('login')">Log in</button>
             </div>
             <div style="margin-top: 8px;">
-              <button type="button" class="welcome-guest-link" id="btn-demo-guest" style="background: transparent; border: 0; padding: 0;" onclick="window.TransifyApp.handleDemoLogin()">Continue without an account</button>
+              <button type="button" class="welcome-guest-link" id="btn-demo-guest"
+                style="background: transparent; border: 0; padding: 0;"
+                onclick="window.TransifyApp.handleDemoLogin()">Continue without an account</button>
             </div>
           </div>
         </aside>
@@ -295,7 +347,8 @@
                 <button type="button" id="home-lang-en" class="press active" aria-pressed="true">English</button>
                 <button type="button" id="home-lang-bn" class="press" aria-pressed="false">বাংলা</button>
               </div>
-              <button type="button" class="avatar-badge press" id="frame-avatar-btn" aria-label="Open settings and profile">TR</button>
+              <button type="button" class="avatar-badge press" id="frame-avatar-btn"
+                aria-label="Open settings and profile">TR</button>
             </div>
           </header>
 
@@ -316,9 +369,12 @@
             <div class="phrase-chips-row" id="home-phrase-chips">
               <button type="button" class="phrase-chip-btn press" data-phrase="I need help">I need help</button>
               <button type="button" class="phrase-chip-btn press" data-phrase="Thank you">Thank you</button>
-              <button type="button" class="phrase-chip-btn press" data-phrase="Where is the exit?">Where is the exit?</button>
-              <button type="button" class="phrase-chip-btn press" data-phrase="Please slow down">Please slow down</button>
-              <button type="button" class="phrase-chip-btn press" data-phrase="Can you write that down?">Can you write that down?</button>
+              <button type="button" class="phrase-chip-btn press" data-phrase="Where is the exit?">Where is the
+                exit?</button>
+              <button type="button" class="phrase-chip-btn press" data-phrase="Please slow down">Please slow
+                down</button>
+              <button type="button" class="phrase-chip-btn press" data-phrase="Can you write that down?">Can you write
+                that down?</button>
             </div>
           </section>
 
@@ -326,19 +382,54 @@
           <div class="home-bento">
             <!-- Tile 1: Sign Translator -->
             <a href="#sign" class="tile t1 press" aria-label="Open sign translator" id="btn-open-hand-signal">
-              <div class="ph" style="background: radial-gradient(52% 52% at 62% 38%,#B8896A 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#45382F 0%,#1A1621 75%);"></div>
-              <svg class="grain" width="100%" height="100%" aria-hidden="true"><rect width="100%" height="100%" filter="url(#g)"/></svg>
+              <div class="ph"
+                style="background: radial-gradient(52% 52% at 62% 38%,#B8896A 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#45382F 0%,#1A1621 75%);">
+              </div>
+              <svg class="grain" width="100%" height="100%" aria-hidden="true">
+                <rect width="100%" height="100%" filter="url(#g)" />
+              </svg>
               <div class="scrim-bottom"></div>
+              <!-- Decorative Animated Hand Sign SVG -->
+              <svg viewBox="0 0 120 120" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="tile-svg-hand">
+                <rect x="6" y="6" width="108" height="108" stroke="#FFCB05" stroke-width="2" stroke-dasharray="14 10" />
+                <path d="M60 112V90" />
+                <g class="fj f1">
+                  <path d="M60 90L38 74L26 56L18 42" />
+                  <circle cx="18" cy="42" r="3.2" fill="#FFCB05" stroke="none" />
+                </g>
+                <g class="fj f2">
+                  <path d="M48 68L44 42L42 24" />
+                  <circle cx="42" cy="24" r="3.2" fill="#FFCB05" stroke="none" />
+                </g>
+                <g class="fj f3">
+                  <path d="M58 64V36V16" />
+                  <circle cx="58" cy="16" r="3.2" fill="#FFCB05" stroke="none" />
+                </g>
+                <g class="fj f4">
+                  <path d="M68 66L72 40L74 24" />
+                  <circle cx="74" cy="24" r="3.2" fill="#FFCB05" stroke="none" />
+                </g>
+                <g class="fj f5">
+                  <path d="M76 72L86 50L92 36" />
+                  <circle cx="92" cy="36" r="3.2" fill="#FFCB05" stroke="none" />
+                </g>
+                <circle class="pulse" cx="58" cy="16" r="3.2" fill="none" stroke="#FFCB05" stroke-width="1.6"
+                  style="transform-box: fill-box; transform-origin: center;" />
+              </svg>
               <!-- Decorative Animated Real Hand Sign Visualizer -->
               <div class="tile-hand-container" aria-hidden="true">
                 <div class="tile-hand-box">
                   <picture>
                     <source srcset="/static/photos/real-sign-hand.webp" type="image/webp">
-                    <img src="/static/photos/real-sign-hand.jpg" alt="" class="tile-real-hand-img" width="180" height="180">
+                    <img src="/static/photos/real-sign-hand.jpg" alt="" class="tile-real-hand-img" width="180"
+                      height="180">
                   </picture>
                   <svg viewBox="0 0 100 100" class="tile-hand-tracking-svg" aria-hidden="true">
-                    <rect x="4" y="4" width="92" height="92" rx="10" stroke="#FFCB05" stroke-width="2.2" stroke-dasharray="14 10" fill="none" class="tile-tracking-box"/>
-                    <path class="tracking-lines" d="M 48.36 84.46 L 59.43 77.63 M 48.36 84.46 L 57.32 50.17 M 57.32 50.17 L 49.94 49.45 M 49.94 49.45 L 43.21 51.92 M 43.21 51.92 L 36.82 56.73 M 48.36 84.46 L 36.82 56.73 M 59.43 77.63 L 67.55 66.08 M 67.55 66.08 L 71.91 54.92 L 71.91 54.92 L 76.36 46.61 M 57.32 50.17 L 58.99 36.29 M 58.99 36.29 L 59.24 28.14 M 59.24 28.14 L 59.08 20.92 M 49.94 49.45 L 49.43 34.15 M 49.43 34.15 L 48.99 24.9 M 48.99 24.9 L 48.09 17.09 M 43.21 51.92 L 41.4 37.78 M 41.4 37.78 L 41.01 29.42 M 41.01 29.42 L 40.72 21.83 M 36.82 56.73 L 34.03 46.36 M 34.03 46.36 L 32.71 39.75 M 32.71 39.75 L 31.96 33.34" />
+                    <rect x="4" y="4" width="92" height="92" rx="10" stroke="#FFCB05" stroke-width="2.2"
+                      stroke-dasharray="14 10" fill="none" class="tile-tracking-box" />
+                    <path class="tracking-lines"
+                      d="M 48.36 84.46 L 59.43 77.63 M 48.36 84.46 L 57.32 50.17 M 57.32 50.17 L 49.94 49.45 M 49.94 49.45 L 43.21 51.92 M 43.21 51.92 L 36.82 56.73 M 48.36 84.46 L 36.82 56.73 M 59.43 77.63 L 67.55 66.08 M 67.55 66.08 L 71.91 54.92 L 71.91 54.92 L 76.36 46.61 M 57.32 50.17 L 58.99 36.29 M 58.99 36.29 L 59.24 28.14 M 59.24 28.14 L 59.08 20.92 M 49.94 49.45 L 49.43 34.15 M 49.43 34.15 L 48.99 24.9 M 48.99 24.9 L 48.09 17.09 M 43.21 51.92 L 41.4 37.78 M 41.4 37.78 L 41.01 29.42 M 41.01 29.42 L 40.72 21.83 M 36.82 56.73 L 34.03 46.36 M 34.03 46.36 L 32.71 39.75 M 32.71 39.75 L 31.96 33.34" />
                     <circle class="lm-joint" cx="48.36" cy="84.46" r="1.5" />
                     <circle class="lm-joint" cx="59.43" cy="77.63" r="1.5" />
                     <circle class="lm-joint" cx="67.55" cy="66.08" r="1.5" />
@@ -363,26 +454,49 @@
                   </svg>
                 </div>
               </div>
-              <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span>
-              <span class="cap"><b style="font-size: 40px; line-height: 1.02;">Translate signs</b><span style="display: block; margin-top: 6px; font-size: 18px; color: #E0DEEE;">BdSL and ASL, spoken as you sign</span></span>
+              <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17L17 7M8 7h9v9" />
+                </svg></span>
+              <span class="cap"><b style="font-size: 40px; line-height: 1.02;">Translate signs</b><span
+                  style="display: block; margin-top: 6px; font-size: 18px; color: #E0DEEE;">BdSL and ASL, spoken as you
+                  sign</span></span>
             </a>
 
             <!-- Tile 2: Braille Scanner -->
             <a href="#braille" class="tile t2 press" aria-label="Open Braille scanner" id="btn-open-braille">
-              <div class="ph" style="background: radial-gradient(70% 55% at 50% 30%,#C9B79B 0%,rgba(201,183,155,0) 65%),linear-gradient(170deg,#5A4D40 0%,#1D1A22 80%);"></div>
-              <svg class="grain" width="100%" height="100%" aria-hidden="true"><rect width="100%" height="100%" filter="url(#g)"/></svg>
+              <div class="ph"
+                style="background: radial-gradient(70% 55% at 50% 30%,#C9B79B 0%,rgba(201,183,155,0) 65%),linear-gradient(170deg,#5A4D40 0%,#1D1A22 80%);">
+              </div>
+              <svg class="grain" width="100%" height="100%" aria-hidden="true">
+                <rect width="100%" height="100%" filter="url(#g)" />
+              </svg>
               <div class="scrim-bottom"></div>
-              <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span>
-              <span class="cap"><b style="font-size: 28px; line-height: 1.05;">Read Braille</b><span style="display: block; margin-top: 4px; font-size: 16px; color: #E0DEEE;">Scan a page, hear it read</span></span>
+              <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17L17 7M8 7h9v9" />
+                </svg></span>
+              <span class="cap"><b style="font-size: 28px; line-height: 1.05;">Read Braille</b><span
+                  style="display: block; margin-top: 4px; font-size: 16px; color: #E0DEEE;">Scan a page, hear it
+                  read</span></span>
             </a>
 
             <!-- Tile 3: Voice Hub -->
             <a href="#stt" class="tile t3 press" aria-label="Open voice hub" id="btn-open-stt">
-              <div class="ph" style="background: radial-gradient(60% 55% at 40% 28%,#9FB4C4 0%,rgba(159,180,196,0) 65%),linear-gradient(170deg,#2E3F4E 0%,#17151F 80%);"></div>
-              <svg class="grain" width="100%" height="100%" aria-hidden="true"><rect width="100%" height="100%" filter="url(#g)"/></svg>
+              <div class="ph"
+                style="background: radial-gradient(60% 55% at 40% 28%,#9FB4C4 0%,rgba(159,180,196,0) 65%),linear-gradient(170deg,#2E3F4E 0%,#17151F 80%);">
+              </div>
+              <svg class="grain" width="100%" height="100%" aria-hidden="true">
+                <rect width="100%" height="100%" filter="url(#g)" />
+              </svg>
               <div class="scrim-bottom"></div>
-              <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span>
-              <span class="cap"><b style="font-size: 28px; line-height: 1.05;">Voice hub</b><span style="display: block; margin-top: 4px; font-size: 16px; color: #E0DEEE;">Live captions and read aloud</span></span>
+              <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17L17 7M8 7h9v9" />
+                </svg></span>
+              <span class="cap"><b style="font-size: 28px; line-height: 1.05;">Voice hub</b><span
+                  style="display: block; margin-top: 4px; font-size: 16px; color: #E0DEEE;">Live captions and read
+                  aloud</span></span>
             </a>
 
             <!-- Tile 4: Transify Care Feature Card -->
@@ -396,8 +510,10 @@
                 <div class="care-desc">Accessible clinical symptom triage & clinician review portal.</div>
               </div>
               <div class="care-actions">
-                <a href="#care-intake" class="btn-welcome-primary press" id="btn-open-care-intake" style="height: 48px; padding: 0 20px; font-size: 16px;">Symptom Intake</a>
-                <a href="#clinician" class="btn-welcome-secondary press" id="btn-open-clinician-portal" style="height: 48px; padding: 0 20px; font-size: 16px;">Clinician Portal</a>
+                <a href="#care-intake" class="btn-welcome-primary press" id="btn-open-care-intake"
+                  style="height: 48px; padding: 0 20px; font-size: 16px;">Symptom Intake</a>
+                <a href="#clinician" class="btn-welcome-secondary press" id="btn-open-clinician-portal"
+                  style="height: 48px; padding: 0 20px; font-size: 16px;">Clinician Portal</a>
               </div>
             </div>
           </div>
@@ -407,14 +523,24 @@
         <aside aria-label="Recent" class="home-aside">
           <h2 class="recent-h2">Recent</h2>
           <div id="home-recent-list" style="display: flex; flex-direction: column; gap: 10px;">
-            <a href="#sign" class="rec press"><div class="rec-meta">Sign, today</div><div class="rec-text">Hello, I need help.</div></a>
-            <a href="#stt" class="rec press"><div class="rec-meta">Captions, today</div><div class="rec-text">Can you show me the way to the library?</div></a>
-            <a href="#braille" class="rec press"><div class="rec-meta">Braille, yesterday</div><div class="rec-text">hello</div></a>
+            <a href="#sign" class="rec press">
+              <div class="rec-meta">Sign, today</div>
+              <div class="rec-text">Hello, I need help.</div>
+            </a>
+            <a href="#stt" class="rec press">
+              <div class="rec-meta">Captions, today</div>
+              <div class="rec-text">Can you show me the way to the library?</div>
+            </a>
+            <a href="#braille" class="rec press">
+              <div class="rec-meta">Braille, yesterday</div>
+              <div class="rec-text">hello</div>
+            </a>
           </div>
           <!-- Truthful Privacy Card (§12) -->
           <div class="privacy-card">
             <div class="privacy-card-title">Stays on your device</div>
-            <p class="privacy-card-body">Signs, Braille and speech are processed to communicate seamlessly. Camera video is never stored.</p>
+            <p class="privacy-card-body">Signs, Braille and speech are processed to communicate seamlessly. Camera video
+              is never stored.</p>
           </div>
         </aside>
       </section>
@@ -425,8 +551,12 @@
       <section id="view-sign" class="page-view" aria-label="Sign Translator">
         <!-- Live Camera Stage -->
         <section aria-label="Camera" class="sign-stage" id="sign-stage-container">
-          <div class="ph" style="background: radial-gradient(48% 50% at 56% 44%,#B48866 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 55% at 12% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#43362D 0%,#191520 75%);"></div>
-          <svg class="grain" width="100%" height="100%" aria-hidden="true"><rect width="100%" height="100%" filter="url(#g)"/></svg>
+          <div class="ph"
+            style="background: radial-gradient(48% 50% at 56% 44%,#B48866 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 55% at 12% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#43362D 0%,#191520 75%);">
+          </div>
+          <svg class="grain" width="100%" height="100%" aria-hidden="true">
+            <rect width="100%" height="100%" filter="url(#g)" />
+          </svg>
           <div class="stage-scrim-top"></div>
 
           <!-- Real Video & Canvas for Vision Pipeline -->
@@ -439,7 +569,10 @@
           <header class="sign-header">
             <div class="sign-header-left">
               <a href="#home" aria-label="Back to home" class="btn-back-stage press">
-                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff"
+                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M15 6l-6 6 6 6" />
+                </svg>
               </a>
               <h1 class="sign-h1">Sign translator</h1>
               <div class="sign-status-chip">
@@ -448,7 +581,8 @@
               </div>
             </div>
             <div class="sign-header-right">
-              <button type="button" id="stop-camera-btn" class="btn-stop-cam press" style="display: none;">Stop camera</button>
+              <button type="button" id="stop-camera-btn" class="btn-stop-cam press" style="display: none;">Stop
+                camera</button>
               <div role="group" aria-label="Sign language" class="lang-segmented">
                 <button type="button" id="lang-bdsl-btn" class="press" aria-pressed="false">BdSL</button>
                 <button type="button" id="lang-asl-btn" class="press active" aria-pressed="true">ASL</button>
@@ -465,13 +599,19 @@
           <!-- Camera-Off Initial Overlay -->
           <div class="camera-overlay" id="camera-off-overlay">
             <div class="camera-overlay-content">
-              <svg aria-hidden="true" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#FFCB05" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              <svg aria-hidden="true" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#FFCB05"
+                stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 7l-7 5 7 5V7z" />
+                <rect x="1" y="5" width="15" height="14" rx="2" />
+              </svg>
               <h2 class="camera-overlay-title" id="camera-overlay-title">Start the camera to translate signs</h2>
               <!-- Truthful Privacy Text (§12) -->
-              <p class="camera-overlay-body" id="camera-overlay-body">Camera frames are processed to recognize your signs. Video is never stored.</p>
+              <p class="camera-overlay-body" id="camera-overlay-body">Camera frames are processed to recognize your
+                signs. Video is never stored.</p>
               <button type="button" id="toggle-camera-btn" class="btn-start-camera press">Start camera</button>
               <button type="button" id="start-camera-btn" class="sr-only">Start camera alias</button>
-              <p class="camera-overlay-hint" id="camera-overlay-hint">Keep your hand inside the box and face a light.</p>
+              <p class="camera-overlay-hint" id="camera-overlay-hint">Keep your hand inside the box and face a light.
+              </p>
             </div>
           </div>
         </section>
@@ -480,9 +620,12 @@
         <aside aria-label="Result" class="sign-result-panel">
           <!-- Mode Tabs -->
           <div role="tablist" aria-label="Translation mode" class="sign-mode-tabs">
-            <button type="button" role="tab" id="mode-expressions-btn" class="sign-mode-tab active" aria-selected="true">Words</button>
-            <button type="button" role="tab" id="mode-fingerspell-btn" class="sign-mode-tab" aria-selected="false">Letters</button>
-            <button type="button" role="tab" id="mode-sentence-btn" class="sign-mode-tab" aria-selected="false">Sentence</button>
+            <button type="button" role="tab" id="mode-expressions-btn" class="sign-mode-tab active"
+              aria-selected="true">Words</button>
+            <button type="button" role="tab" id="mode-fingerspell-btn" class="sign-mode-tab"
+              aria-selected="false">Letters</button>
+            <button type="button" role="tab" id="mode-sentence-btn" class="sign-mode-tab"
+              aria-selected="false">Sentence</button>
           </div>
 
           <!-- Result Row: Word & Confidence Ring -->
@@ -493,7 +636,8 @@
                 <div class="seg" id="seg-1"><i></i></div>
                 <div class="seg" id="seg-2"><i></i></div>
                 <div class="seg" id="seg-3"><i></i></div>
-                <div id="debounce-progress-fill" style="display: none;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                <div id="debounce-progress-fill" style="display: none;" role="progressbar" aria-valuenow="0"
+                  aria-valuemin="0" aria-valuemax="100"></div>
               </div>
               <div class="pred-status-line" id="pred-status-line">Camera is off</div>
               <div class="pred-word-display" id="pred-label-text" aria-label="Recognized sign">—</div>
@@ -502,8 +646,9 @@
             <!-- Circular Confidence Ring 104x104 -->
             <div class="ring-wrap">
               <svg width="104" height="104" viewBox="0 0 76 76" aria-hidden="true">
-                <circle cx="38" cy="38" r="32" fill="none" stroke="#D9DAE6" stroke-width="6"/>
-                <circle class="ring" id="confidence-ring-circle" cx="38" cy="38" r="32" fill="none" stroke="#8338EC" stroke-width="6" stroke-dasharray="201" stroke-dashoffset="201"/>
+                <circle cx="38" cy="38" r="32" fill="none" stroke="#D9DAE6" stroke-width="6" />
+                <circle class="ring" id="confidence-ring-circle" cx="38" cy="38" r="32" fill="none" stroke="#8338EC"
+                  stroke-width="6" stroke-dasharray="201" stroke-dashoffset="201" />
               </svg>
               <div class="ring-content">
                 <span class="ring-pct" id="pred-confidence-badge">0%</span>
@@ -576,7 +721,10 @@
               <p class="phrases-sub">Press a phrase to say it aloud. Add the ones you use every day.</p>
             </div>
             <button type="button" id="btn-toggle-add-phrase" class="btn-add-phrase-toggle press" aria-expanded="false">
-              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.4" stroke-linecap="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
               <span id="add-phrase-btn-label">Add phrase</span>
             </button>
           </header>
@@ -586,12 +734,15 @@
             <div class="phrase-add-row">
               <div class="phrase-input-field">
                 <label for="np" class="phrase-input-label">What do you want to say?</label>
-                <input id="np" type="text" class="phrase-text-input" placeholder="For example: I am allergic to peanuts">
+                <input id="np" type="text" class="phrase-text-input"
+                  placeholder="For example: I am allergic to peanuts">
               </div>
               <div role="group" aria-label="Category" class="category-btn-group">
-                <button type="button" class="cat-select-btn press active" data-cat="Everyday" aria-pressed="true">Everyday</button>
+                <button type="button" class="cat-select-btn press active" data-cat="Everyday"
+                  aria-pressed="true">Everyday</button>
                 <button type="button" class="cat-select-btn press" data-cat="Needs" aria-pressed="false">Needs</button>
-                <button type="button" class="cat-select-btn press" data-cat="Emergency" aria-pressed="false">Emergency</button>
+                <button type="button" class="cat-select-btn press" data-cat="Emergency"
+                  aria-pressed="false">Emergency</button>
               </div>
               <button type="button" id="btn-save-phrase" class="btn-save-phrase press">Save phrase</button>
             </div>
@@ -601,14 +752,22 @@
           <div class="phrases-filter-row">
             <div class="phrase-search-wrap">
               <label for="q" class="sr-only">Search phrases</label>
-              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A4860" stroke-width="2.2" stroke-linecap="round" class="phrase-search-icon"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A4860"
+                stroke-width="2.2" stroke-linecap="round" class="phrase-search-icon">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-3.5-3.5" />
+              </svg>
               <input id="q" type="search" class="phrase-search-input" placeholder="Search phrases">
             </div>
             <div role="tablist" aria-label="Category" class="phrase-category-tablist">
-              <button type="button" role="tab" class="phrase-cat-tab active" data-cat="All" aria-selected="true">All <span class="phrase-cat-count" id="count-all">0</span></button>
-              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Everyday" aria-selected="false">Everyday <span class="phrase-cat-count" id="count-everyday">0</span></button>
-              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Needs" aria-selected="false">Needs <span class="phrase-cat-count" id="count-needs">0</span></button>
-              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Emergency" aria-selected="false">Emergency <span class="phrase-cat-count" id="count-emergency">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab active" data-cat="All" aria-selected="true">All
+                <span class="phrase-cat-count" id="count-all">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Everyday" aria-selected="false">Everyday
+                <span class="phrase-cat-count" id="count-everyday">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Needs" aria-selected="false">Needs <span
+                  class="phrase-cat-count" id="count-needs">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Emergency"
+                aria-selected="false">Emergency <span class="phrase-cat-count" id="count-emergency">0</span></button>
             </div>
           </div>
 
@@ -621,8 +780,10 @@
           <!-- Empty State Container -->
           <section id="phrases-empty-state" class="phrases-empty-state" aria-live="polite" style="display: none;">
             <h2 class="phrases-empty-title" id="phrases-empty-title">No phrases here yet</h2>
-            <p class="phrases-empty-body" id="phrases-empty-body">Add the phrases you say most. They will appear here.</p>
-            <button type="button" id="btn-seed-starter-phrases" class="btn-welcome-primary press" style="max-width: 240px; height: 52px; font-size: 16px;">Add starter phrases</button>
+            <p class="phrases-empty-body" id="phrases-empty-body">Add the phrases you say most. They will appear here.
+            </p>
+            <button type="button" id="btn-seed-starter-phrases" class="btn-welcome-primary press"
+              style="max-width: 240px; height: 52px; font-size: 16px;">Add starter phrases</button>
           </section>
         </div>
       </section>
@@ -640,10 +801,18 @@
           </header>
 
           <!-- Upload Dropzone -->
-          <div class="braille-dropzone-card press" id="braille-dropzone" role="button" tabindex="0" aria-label="Drop Braille image here or browse">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8338EC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-            <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Drop an image of Braille or browse</h2>
-            <p style="margin: 6px 0 0; color: var(--text-2); font-size: 16px;" id="dropzone-text">Supports JPEG, PNG, WEBP with embossed or printed cells</p>
+          <div class="braille-dropzone-card press" id="braille-dropzone" role="button" tabindex="0"
+            aria-label="Drop Braille image here or browse">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8338EC" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <path d="M21 15l-5-5L5 21" />
+            </svg>
+            <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Drop an image of
+              Braille or browse</h2>
+            <p style="margin: 6px 0 0; color: var(--text-2); font-size: 16px;" id="dropzone-text">Supports JPEG, PNG,
+              WEBP with embossed or printed cells</p>
             <form id="braille-upload-form" class="sr-only">
               <input type="file" id="braille-file-input" accept="image/*">
             </form>
@@ -652,8 +821,10 @@
           <div class="braille-grid-layout">
             <!-- Left: Interactive 6-Dot Cell Explorer -->
             <div class="braille-interactive-card">
-              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Interactive Braille Cell</h2>
-              <p style="margin: 0; color: var(--text-2); font-size: 15px;">Press dots to inspect and verify character mappings.</p>
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Interactive
+                Braille Cell</h2>
+              <p style="margin: 0; color: var(--text-2); font-size: 15px;">Press dots to inspect and verify character
+                mappings.</p>
               <div class="braille-grid-demo" style="margin: 16px 0;" role="group" aria-label="Interactive Braille dots">
                 <button type="button" class="dotb" data-braille-dot="1">1</button>
                 <button type="button" class="dotb" data-braille-dot="2">2</button>
@@ -662,32 +833,44 @@
                 <button type="button" class="dotb" data-braille-dot="5">5</button>
                 <button type="button" class="dotb" data-braille-dot="6">6</button>
               </div>
-              <div style="font-size: 18px; font-weight: 700; color: var(--violet);" id="braille-interactive-char">Character: —</div>
+              <div style="font-size: 18px; font-weight: 700; color: var(--violet);" id="braille-interactive-char">
+                Character: —</div>
             </div>
 
             <!-- Right: Translated Text Output -->
             <div class="braille-result-card">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Translated Document</h2>
+                <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Translated
+                  Document</h2>
                 <span class="care-badge online" id="braille-stats-badge">Ready</span>
               </div>
-              <div class="braille-output-box" id="braille-text-output" aria-live="polite">Upload or drop an image above to translate optical Braille.</div>
+              <div class="braille-output-box" id="braille-text-output" aria-live="polite">Upload or drop an image above
+                to translate optical Braille.</div>
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" id="speak-braille-btn" class="btn-welcome-primary press" style="height: 48px; font-size: 16px; padding: 0 20px;">Speak aloud</button>
-                <button type="button" id="copy-braille-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Copy text</button>
-                <button type="button" id="download-braille-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Download</button>
+                <button type="button" id="speak-braille-btn" class="btn-welcome-primary press"
+                  style="height: 48px; font-size: 16px; padding: 0 20px;">Speak aloud</button>
+                <button type="button" id="copy-braille-btn" class="btn-outline-dark press"
+                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Copy
+                  text</button>
+                <button type="button" id="download-braille-btn" class="btn-outline-dark press"
+                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Download</button>
               </div>
             </div>
           </div>
 
           <!-- Hidden compatibility elements for braille page -->
           <div id="slide-braille" style="display: none;"></div>
-          <div id="braille-preview-wrapper" style="display: none;"><img id="braille-preview-img" alt="Braille scan preview"></div>
+          <div id="braille-preview-wrapper" style="display: none;"><img id="braille-preview-img"
+              alt="Braille scan preview"></div>
           <button type="button" id="check-iqa-btn" class="sr-only"></button>
           <button type="button" id="translate-braille-btn" class="sr-only"></button>
           <div id="braille-results-section" class="sr-only"></div>
           <div id="braille-engine-note" class="sr-only"></div>
-          <div id="braille-coverage-container" class="sr-only"><div id="braille-coverage-label"></div><div id="braille-coverage-bar"></div><div id="braille-coverage-details"></div></div>
+          <div id="braille-coverage-container" class="sr-only">
+            <div id="braille-coverage-label"></div>
+            <div id="braille-coverage-bar"></div>
+            <div id="braille-coverage-details"></div>
+          </div>
           <div id="braille-ascii-banner" class="sr-only"></div>
           <div id="braille-iqa-banner" class="sr-only"></div>
         </div>
@@ -712,7 +895,8 @@
             <!-- Left: Speech to Text Live Captions -->
             <div class="voice-captions-card" id="slide-stt">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Live Captions</h2>
+                <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Live
+                  Captions</h2>
                 <span class="care-badge online" id="stt-status-pill">Ready to Listen</span>
               </div>
               <div class="voice-caption-box" id="stt-live-caption-box" aria-live="polite">
@@ -723,18 +907,31 @@
               <div style="display: flex; justify-content: center; padding: 12px 0;">
                 <div class="mic-rings-wrap" id="stt-mic-rings-wrap">
                   <i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i>
-                  <button type="button" id="stt-toggle-btn" class="btn-mic-main press" aria-label="Toggle speech to text recording">
-                    <svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="stt-mic-icon"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+                  <button type="button" id="stt-toggle-btn" class="btn-mic-main press"
+                    aria-label="Toggle speech to text recording">
+                    <svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="stt-mic-icon">
+                      <rect x="9" y="3" width="6" height="11" rx="3" />
+                      <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+                    </svg>
                   </button>
                 </div>
               </div>
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" id="stt-copy-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Copy captions</button>
-                <button type="button" id="stt-clear-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Clear</button>
-                <button type="button" id="stt-send-to-tts-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Send to speak</button>
+                <button type="button" id="stt-copy-btn" class="btn-outline-dark press"
+                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Copy
+                  captions</button>
+                <button type="button" id="stt-clear-btn" class="btn-outline-dark press"
+                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Clear</button>
+                <button type="button" id="stt-send-to-tts-btn" class="btn-outline-dark press"
+                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Send to
+                  speak</button>
               </div>
               <div class="sr-only">
-                <select id="stt-lang-select"><option value="en-US">English</option><option value="bn-BD">Bengali</option></select>
+                <select id="stt-lang-select">
+                  <option value="en-US">English</option>
+                  <option value="bn-BD">Bengali</option>
+                </select>
                 <span id="stt-mic-hint"></span>
                 <button type="button" id="stt-font-toggle"></button>
                 <span id="stt-font-label"></span>
@@ -745,20 +942,26 @@
             <!-- Right: Text to Speech Read Aloud -->
             <div class="voice-tts-card" id="slide-tts">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Read Aloud</h2>
+                <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Read Aloud
+                </h2>
                 <div style="display: flex; gap: 6px;">
-                  <select id="tts-lang-select" class="lang-segmented" style="border: none; padding: 4px 8px; font-size: 14px; font-weight: 700; color: var(--ink);">
+                  <select id="tts-lang-select" class="lang-segmented"
+                    style="border: none; padding: 4px 8px; font-size: 14px; font-weight: 700; color: var(--ink);">
                     <option value="en">English (US)</option>
                     <option value="bn">বাংলা (Bengali)</option>
                   </select>
                 </div>
               </div>
               <label for="tts-input-text" class="sr-only">Text to speak aloud</label>
-              <textarea id="tts-input-text" class="tts-textarea" placeholder="Type or paste any text to speak aloud in natural voice..."></textarea>
+              <textarea id="tts-input-text" class="tts-textarea"
+                placeholder="Type or paste any text to speak aloud in natural voice..."></textarea>
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" id="tts-speak-btn" class="btn-welcome-primary press" style="height: 48px; font-size: 16px; padding: 0 24px;">Speak text</button>
-                <button type="button" id="tts-stop-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Stop</button>
-                <button type="button" id="tts-clear-btn" class="btn-outline-dark press" style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Clear</button>
+                <button type="button" id="tts-speak-btn" class="btn-welcome-primary press"
+                  style="height: 48px; font-size: 16px; padding: 0 24px;">Speak text</button>
+                <button type="button" id="tts-stop-btn" class="btn-outline-dark press"
+                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Stop</button>
+                <button type="button" id="tts-clear-btn" class="btn-outline-dark press"
+                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Clear</button>
               </div>
               <span id="tts-char-count" class="sr-only">0 characters</span>
             </div>
@@ -780,46 +983,62 @@
               <p class="phrases-sub">Accessible Healthcare Symptom Triage & Clinical Review Portal</p>
             </div>
             <div style="display: flex; gap: 8px;">
-              <button type="button" id="quick-demo-pill-btn" class="btn-welcome-primary press" style="height: 44px; padding: 0 16px; font-size: 14px;">Demo Fixtures</button>
+              <button type="button" id="quick-demo-pill-btn" class="btn-welcome-primary press"
+                style="height: 44px; padding: 0 16px; font-size: 14px;">Demo Fixtures</button>
               <div class="care-portal-tabs">
-                <button type="button" class="care-tab-btn active" id="care-tab-intake-btn" data-care-sub="intake">Patient Intake</button>
-                <button type="button" class="care-tab-btn" id="care-tab-clinician-btn" data-care-sub="clinician">Clinician Portal</button>
+                <button type="button" class="care-tab-btn active" id="care-tab-intake-btn"
+                  data-care-sub="intake">Patient Intake</button>
+                <button type="button" class="care-tab-btn" id="care-tab-clinician-btn"
+                  data-care-sub="clinician">Clinician Portal</button>
               </div>
             </div>
           </header>
 
           <!-- Sub-View A: Patient Intake -->
           <div id="slide-care-intake" class="care-card">
-            <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Accessible Healthcare Symptom Intake</h2>
+            <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Accessible
+              Healthcare Symptom Intake</h2>
             <div style="display: flex; flex-direction: column; gap: 14px;">
               <div>
-                <label for="care-chief-complaint" style="display: block; font-weight: 700; margin-bottom: 6px;">Chief Complaint</label>
-                <input type="text" id="care-chief-complaint" class="care-input" placeholder="What medical issue or symptom are you experiencing?">
+                <label for="care-chief-complaint" style="display: block; font-weight: 700; margin-bottom: 6px;">Chief
+                  Complaint</label>
+                <input type="text" id="care-chief-complaint" class="care-input"
+                  placeholder="What medical issue or symptom are you experiencing?">
                 <input type="hidden" id="care-patient-complaint">
               </div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div>
-                  <label for="care-onset-duration" style="display: block; font-weight: 700; margin-bottom: 6px;">Onset & Duration</label>
-                  <input type="text" id="care-onset-duration" class="care-input" placeholder="e.g. 2 hours ago, sudden pressure">
+                  <label for="care-onset-duration" style="display: block; font-weight: 700; margin-bottom: 6px;">Onset &
+                    Duration</label>
+                  <input type="text" id="care-onset-duration" class="care-input"
+                    placeholder="e.g. 2 hours ago, sudden pressure">
                 </div>
                 <div>
-                  <label for="care-medical-context" style="display: block; font-weight: 700; margin-bottom: 6px;">Pre-existing Conditions</label>
-                  <input type="text" id="care-medical-context" class="care-input" placeholder="e.g. Hypertension, Asthma">
+                  <label for="care-medical-context"
+                    style="display: block; font-weight: 700; margin-bottom: 6px;">Pre-existing Conditions</label>
+                  <input type="text" id="care-medical-context" class="care-input"
+                    placeholder="e.g. Hypertension, Asthma">
                 </div>
               </div>
               <div>
-                <label for="care-symptom-desc" style="display: block; font-weight: 700; margin-bottom: 6px;">Additional Details</label>
-                <textarea id="care-symptom-desc" class="care-input" style="min-height: 80px;" placeholder="Describe radiation, severity, or triggers..."></textarea>
+                <label for="care-symptom-desc" style="display: block; font-weight: 700; margin-bottom: 6px;">Additional
+                  Details</label>
+                <textarea id="care-symptom-desc" class="care-input" style="min-height: 80px;"
+                  placeholder="Describe radiation, severity, or triggers..."></textarea>
               </div>
               <div style="display: flex; align-items: center; gap: 10px; margin: 6px 0;">
                 <input type="checkbox" id="care-consent-check" style="width: 20px; height: 20px;">
                 <input type="checkbox" id="care-consent-checkbox" class="sr-only">
-                <label for="care-consent-check" style="font-weight: 600; font-size: 15px; color: var(--text-2);">I consent to clinical AI assisted triage review and symptom analysis.</label>
+                <label for="care-consent-check" style="font-weight: 600; font-size: 15px; color: var(--text-2);">I
+                  consent to clinical AI assisted triage review and symptom analysis.</label>
               </div>
               <div style="display: flex; gap: 12px;">
-                <button type="button" id="care-submit-intake-btn" class="btn-welcome-primary press" style="height: 52px; font-size: 17px; padding: 0 28px;">Analyze & Submit Intake</button>
+                <button type="button" id="care-submit-intake-btn" class="btn-welcome-primary press"
+                  style="height: 52px; font-size: 17px; padding: 0 28px;">Analyze & Submit Intake</button>
                 <button type="button" id="care-submit-btn" class="sr-only">Submit Alias</button>
-                <button type="button" id="btn-care-demo-reset" class="btn-outline-dark press" style="height: 52px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Reset Demo</button>
+                <button type="button" id="btn-care-demo-reset" class="btn-outline-dark press"
+                  style="height: 52px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Reset
+                  Demo</button>
                 <button type="button" id="care-reset-btn" class="sr-only">Reset Alias</button>
               </div>
               <div id="care-intake-result" style="margin-top: 14px;"></div>
@@ -849,7 +1068,8 @@
           <!-- Sub-View B: Clinician Portal -->
           <div id="slide-clinician-portal" class="care-card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Clinician Triage Review Queue</h2>
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Clinician
+                Triage Review Queue</h2>
               <div style="display: flex; gap: 14px; font-size: 14px; font-weight: 700;">
                 <span>Total Intakes: <strong id="stat-total-intakes">0</strong></span>
                 <span>Approved Evidence: <strong id="stat-approved-sources">0</strong></span>
@@ -869,28 +1089,40 @@
                   </tr>
                 </thead>
                 <tbody id="clinician-queue-tbody">
-                  <tr><td colspan="6" style="text-align: center; color: var(--text-2); padding: 24px;">Loading clinician queue records...</td></tr>
+                  <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-2); padding: 24px;">Loading clinician
+                      queue records...</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
 
             <!-- Case Inspector Drawer -->
-            <div id="clinician-case-inspector" class="care-card" style="margin-top: 20px; background: var(--surface-2); display: none;">
-              <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;">Case Inspection: <span id="inspect-case-id">—</span></h3>
+            <div id="clinician-case-inspector" class="care-card"
+              style="margin-top: 20px; background: var(--surface-2); display: none;">
+              <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;">Case
+                Inspection: <span id="inspect-case-id">—</span></h3>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px;">
                 <div><strong>Complaint:</strong> <span id="inspect-complaint">—</span></div>
                 <div><strong>Modality:</strong> <span id="inspect-modality">—</span></div>
-                <div><strong>Urgency:</strong> <span id="inspect-ai-urgency" class="care-urgency-badge routine">ROUTINE</span></div>
+                <div><strong>Urgency:</strong> <span id="inspect-ai-urgency"
+                    class="care-urgency-badge routine">ROUTINE</span></div>
                 <div><strong>Protocol:</strong> <span id="inspect-ai-rule">—</span></div>
               </div>
               <div style="margin-top: 10px;"><strong>Symptoms:</strong> <span id="inspect-symptoms">—</span></div>
-              <div style="margin-top: 10px;"><strong>AI Explanation:</strong> <p id="inspect-ai-explanation" style="margin: 4px 0 0; color: var(--text-2);"></p></div>
-              <div style="margin-top: 10px;"><strong>Citations & Evidence:</strong> <ul id="inspect-citations-list" style="margin: 4px 0 0; padding-left: 20px;"></ul></div>
-              
+              <div style="margin-top: 10px;"><strong>AI Explanation:</strong>
+                <p id="inspect-ai-explanation" style="margin: 4px 0 0; color: var(--text-2);"></p>
+              </div>
+              <div style="margin-top: 10px;"><strong>Citations & Evidence:</strong>
+                <ul id="inspect-citations-list" style="margin: 4px 0 0; padding-left: 20px;"></ul>
+              </div>
+
               <!-- Evidence Search -->
               <div style="display: flex; gap: 10px; margin-top: 14px;">
-                <input type="text" id="clinician-evidence-search-input" class="care-input" placeholder="Search medical evidence & guidelines...">
-                <button type="button" id="btn-clinician-evidence-search" class="btn-welcome-secondary press" style="color: var(--ink); border-color: var(--line-2); height: 48px;">Search</button>
+                <input type="text" id="clinician-evidence-search-input" class="care-input"
+                  placeholder="Search medical evidence & guidelines...">
+                <button type="button" id="btn-clinician-evidence-search" class="btn-welcome-secondary press"
+                  style="color: var(--ink); border-color: var(--line-2); height: 48px;">Search</button>
               </div>
               <div id="clinician-evidence-results" style="margin-top: 8px;"></div>
 
@@ -903,16 +1135,20 @@
                   <option value="telehealth">Schedule Telehealth Consultation</option>
                   <option value="discharge">Discharge with Home Care Advice</option>
                 </select>
-                <label for="clinician-override-select" style="font-weight: 700;">Triage Urgency Override (Optional)</label>
+                <label for="clinician-override-select" style="font-weight: 700;">Triage Urgency Override
+                  (Optional)</label>
                 <select id="clinician-override-select" class="care-input">
                   <option value="">No Override (Accept AI Classification)</option>
                   <option value="EMERGENT">Override to EMERGENT</option>
                   <option value="URGENT">Override to URGENT</option>
                   <option value="ROUTINE">Override to ROUTINE</option>
                 </select>
-                <input type="text" id="clinician-override-reason" class="care-input" placeholder="Reason for urgency override...">
-                <textarea id="clinician-notes-textarea" class="care-input" placeholder="Clinician clinical notes and follow-up guidance..."></textarea>
-                <button type="button" id="btn-complete-clinician-review" class="btn-welcome-primary press" style="height: 48px; max-width: 240px;">Finalize Triage</button>
+                <input type="text" id="clinician-override-reason" class="care-input"
+                  placeholder="Reason for urgency override...">
+                <textarea id="clinician-notes-textarea" class="care-input"
+                  placeholder="Clinician clinical notes and follow-up guidance..."></textarea>
+                <button type="button" id="btn-complete-clinician-review" class="btn-welcome-primary press"
+                  style="height: 48px; max-width: 240px;">Finalize Triage</button>
               </div>
               <span id="inspect-raw" class="sr-only"></span>
             </div>
@@ -935,18 +1171,22 @@
           <div style="display: flex; flex-direction: column; gap: 20px;">
             <!-- Accessibility Card -->
             <div class="care-card">
-              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Accessibility & Motion</h2>
-              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line);">
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Accessibility
+                & Motion</h2>
+              <div
+                style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line);">
                 <div>
                   <div style="font-weight: 700; font-size: 16px;">Reduce motion</div>
-                  <div style="color: var(--text-2); font-size: 14px;">Disable animations, scanning beams, and transitions across all screens.</div>
+                  <div style="color: var(--text-2); font-size: 14px;">Disable animations, scanning beams, and
+                    transitions across all screens.</div>
                 </div>
                 <input type="checkbox" id="setting-reduce-motion" style="width: 24px; height: 24px; cursor: pointer;">
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
                 <div>
                   <div style="font-weight: 700; font-size: 16px;">Interface Language</div>
-                  <div style="color: var(--text-2); font-size: 14px;">Choose English or বাংলা as the primary application language.</div>
+                  <div style="color: var(--text-2); font-size: 14px;">Choose English or বাংলা as the primary application
+                    language.</div>
                 </div>
                 <select id="setting-lang-select" class="care-input" style="max-width: 160px;">
                   <option value="en">English</option>
@@ -957,13 +1197,17 @@
 
             <!-- Account Card -->
             <div class="care-card">
-              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Account & Session</h2>
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Account &
+                Session</h2>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                   <div style="font-weight: 700; font-size: 16px;" id="settings-user-name">Guest User</div>
-                  <div style="color: var(--text-2); font-size: 14px;" id="settings-user-email">Offline local storage mode</div>
+                  <div style="color: var(--text-2); font-size: 14px;" id="settings-user-email">Offline local storage
+                    mode</div>
                 </div>
-                <button type="button" id="btn-settings-auth" class="btn-welcome-secondary press" style="color: var(--ink); border-color: var(--line-2); height: 44px;" onclick="window.TransifyApp.openAuthSheet('login')">Sign In</button>
+                <button type="button" id="btn-settings-auth" class="btn-welcome-secondary press"
+                  style="color: var(--ink); border-color: var(--line-2); height: 44px;"
+                  onclick="window.TransifyApp.openAuthSheet('login')">Sign In</button>
               </div>
             </div>
           </div>
@@ -976,15 +1220,19 @@
   <!-- ==========================================================================
        AUTHENTICATION SHEET MODAL (Login & Sign Up)
        ========================================================================== -->
-  <div class="auth-sheet-container" id="auth-sheet-container" role="dialog" aria-modal="true" aria-label="Sign In or Sign Up">
+  <div class="auth-sheet-container" id="auth-sheet-container" role="dialog" aria-modal="true"
+    aria-label="Sign In or Sign Up">
     <div class="auth-sheet-backdrop" id="auth-sheet-backdrop" onclick="window.TransifyApp.closeAuthSheet()"></div>
     <div class="auth-sheet-card" id="auth-sheet-card">
       <div class="auth-card-header">
         <div>
           <h2 class="auth-card-title" id="auth-heading-title">Welcome Back!</h2>
-          <p style="margin: 4px 0 0; color: var(--text-2); font-size: 14px;" id="auth-heading-subtitle">Sign in to your Transify account</p>
+          <p style="margin: 4px 0 0; color: var(--text-2); font-size: 14px;" id="auth-heading-subtitle">Sign in to your
+            Transify account</p>
         </div>
-        <button type="button" class="btn-outline-dark press" style="border: none; font-size: 20px; font-weight: 700; color: var(--text-2);" onclick="window.TransifyApp.closeAuthSheet()" aria-label="Close form">×</button>
+        <button type="button" class="btn-outline-dark press"
+          style="border: none; font-size: 20px; font-weight: 700; color: var(--text-2);"
+          onclick="window.TransifyApp.closeAuthSheet()" aria-label="Close form">×</button>
       </div>
 
       <div class="auth-tabs-row" role="tablist">
@@ -992,7 +1240,8 @@
         <button type="button" class="auth-tab-btn" id="tab-signup" role="tab" aria-selected="false">Sign Up</button>
       </div>
 
-      <div id="auth-alert" style="display: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600;" role="alert"></div>
+      <div id="auth-alert" style="display: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600;"
+        role="alert"></div>
 
       <form id="auth-form" onsubmit="event.preventDefault(); window.TransifyApp.handleDirectLogin();">
         <div class="auth-input-group">
@@ -1002,16 +1251,20 @@
           <input type="email" id="input-email" class="auth-text-input" placeholder="Email address" required>
           <div style="position: relative;">
             <input type="password" id="input-password" class="auth-text-input" placeholder="Password" required>
-            <button type="button" id="eye-icon" onclick="var p = document.getElementById('input-password'); p.type = (p.type === 'password' ? 'text' : 'password'); this.textContent = (p.type === 'password' ? 'Show' : 'Hide');" style="position: absolute; right: 12px; top: 14px; background: none; border: none; color: var(--text-2); font-size: 14px; font-weight: 600; cursor: pointer;">Show</button>
+            <button type="button" id="eye-icon"
+              onclick="var p = document.getElementById('input-password'); p.type = (p.type === 'password' ? 'text' : 'password'); this.textContent = (p.type === 'password' ? 'Show' : 'Hide');"
+              style="position: absolute; right: 12px; top: 14px; background: none; border: none; color: var(--text-2); font-size: 14px; font-weight: 600; cursor: pointer;">Show</button>
           </div>
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin: 12px 0;">
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-2); cursor: pointer;">
+          <label
+            style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-2); cursor: pointer;">
             <input type="checkbox" id="remember-me" checked>
             <span id="remember-label-text">Remember me</span>
           </label>
-          <a href="#" id="forgot-password-link" style="font-size: 14px; color: var(--violet); font-weight: 600;" onclick="event.preventDefault(); alert('Password reset link sent to demo email.');">Forgot password?</a>
+          <a href="#" id="forgot-password-link" style="font-size: 14px; color: var(--violet); font-weight: 600;"
+            onclick="event.preventDefault(); alert('Password reset link sent to demo email.');">Forgot password?</a>
         </div>
 
         <button type="submit" class="auth-submit-btn press" id="auth-submit-btn" style="width: 100%;">
@@ -1020,7 +1273,8 @@
 
         <div style="text-align: center; margin-top: 14px; font-size: 14px; color: var(--text-2);">
           <span id="switch-prompt-text">Don't have an account?</span>
-          <a href="#" id="switch-prompt-link" style="color: var(--violet); font-weight: 700; margin-left: 4px;" onclick="event.preventDefault(); document.getElementById('tab-signup').click();">Create one</a>
+          <a href="#" id="switch-prompt-link" style="color: var(--violet); font-weight: 700; margin-left: 4px;"
+            onclick="event.preventDefault(); document.getElementById('tab-signup').click();">Create one</a>
         </div>
       </form>
     </div>
@@ -1039,7 +1293,9 @@
     <span id="profile-email-text"></span>
   </div>
   <div id="transify-splash-screen" style="display: none;">
-    <div id="splash-progressbar"><div id="splash-progress-fill"></div></div>
+    <div id="splash-progressbar">
+      <div id="splash-progress-fill"></div>
+    </div>
     <span id="splash-percent-text"></span>
   </div>
   <div id="transify-auth-screen" style="display: none;"></div>
@@ -1048,4 +1304,5 @@
   <script src="/static/app.js?v=20261120_pixel_exact_v2"></script>
   <script src="/static/care.js?v=20261120_care_v2"></script>
 </body>
+
 </html>
