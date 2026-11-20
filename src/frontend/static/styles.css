@@ -97,10 +97,30 @@ html, body, .app-shell, .content-frame, .page-view {
   -ms-overflow-style: none !important;
 }
 
-*::-webkit-scrollbar {
+::-webkit-scrollbar,
+*::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+div::-webkit-scrollbar,
+section::-webkit-scrollbar,
+aside::-webkit-scrollbar,
+main::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+  display: none !important;
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  display: none !important;
+  background: transparent !important;
 }
 
 button, input, textarea, select {
@@ -909,7 +929,7 @@ h1, h2, h3, .display {
 
 /* Recent Aside */
 .home-aside {
-  flex: 0 0 clamp(240px, 20vw, 300px);
+  flex: 0 0 clamp(280px, 24vw, 340px);
   min-width: 0;
   height: 100vh;
   height: 100dvh;
@@ -920,7 +940,9 @@ h1, h2, h3, .display {
   flex-direction: column;
   gap: 10px;
   overflow-y: auto;
-  scrollbar-width: none;
+  overflow-x: hidden;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
 .recent-h2 {
@@ -931,13 +953,20 @@ h1, h2, h3, .display {
   letter-spacing: -.02em;
 }
 
-.rec {
+.rec,
+a.rec,
+.rec.press {
   display: block;
-  padding: 14px 16px;
+  padding: 12px 16px;
   border: 1.5px solid var(--line);
   border-radius: 12px;
   background: var(--surface-2);
   transition: background .2s, border-color .2s;
+  white-space: normal !important;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .rec:hover {
@@ -946,16 +975,21 @@ h1, h2, h3, .display {
 }
 
 .rec-meta {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-2);
+  white-space: normal !important;
 }
 
 .rec-text {
-  margin-top: 2px;
-  font-size: 18px;
+  margin-top: 3px;
+  font-size: 16px;
+  line-height: 1.35;
   font-weight: 700;
   color: var(--ink);
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .privacy-card {
