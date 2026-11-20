@@ -1,326 +1,66 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light" data-font-size="medium">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <title>Transify — Assistive Communication Dashboard</title>
-  <meta name="description" content="Transify Assistive Dashboard: Centralized portal to monitor AI model telemetry, translation history, saved phrases, and accessibility preferences.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Transify — Assistive Control Dashboard</title>
+  <meta name="description" content="View historical translation logs, system health diagnostics, and accuracy metrics.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/static/styles.css?v=20261120_redesign_v2">
   <link rel="canonical" href="https://transify.app/dashboard">
-  <link rel="manifest" href="/static/manifest.json">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
-  <link rel="apple-touch-icon" href="/static/icon-192.png">
-
-  <!-- Open Graph & Social Preview Tags -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Transify — Assistive Communication Dashboard">
-  <meta property="og:description" content="Transify Assistive Dashboard: Centralized portal to monitor AI model telemetry, translation history, saved phrases, and accessibility preferences.">
-  <meta property="og:image" content="https://transify.app/static/banner-braille.jpg">
-  <meta property="og:url" content="https://transify.app/dashboard">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Transify — Assistive Communication Dashboard">
-  <meta name="twitter:description" content="Transify Assistive Dashboard: Centralized portal to monitor AI model telemetry, translation history, saved phrases, and accessibility preferences.">
-  <meta name="twitter:image" content="https://transify.app/static/banner-braille.jpg">
-  <link rel="stylesheet" href="/static/styles.css?v=20261116_fullbleed_v7">
-  <script>
-    (function() {
-      try {
-        var theme = localStorage.getItem('transify_theme');
-        if (theme) document.documentElement.setAttribute('data-theme', theme);
-        var fontSize = localStorage.getItem('transify_font_size');
-        if (fontSize) document.documentElement.setAttribute('data-font-size', fontSize);
-      } catch(e) {}
-    })();
-  </script>
 </head>
-<body>
+<body style="background:var(--paper); color:var(--ink); min-height:100vh; display:flex; flex-direction:column;">
 
   <!-- Accessible Skip Link -->
-  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <a href="#dashboard-main-container" class="skip-link">Skip to dashboard</a>
 
-  <!-- Screen Reader Announcements -->
+  <!-- Polite Live Region -->
   <div id="sr-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- App Launch Splash / Loading Screen -->
-  <div id="transify-splash-screen" class="transify-splash-overlay" role="dialog" aria-modal="true" aria-label="Loading Transify Application">
-    <div class="splash-content-container">
-      <img src="/static/splash-bg.jpg" alt="Transify Accessible AI Platform" class="splash-background-artwork">
-      <div class="splash-progress-section">
-        <div class="splash-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="splash-progressbar" aria-label="Loading Application">
-          <div id="splash-progress-fill" class="splash-progress-fill"></div>
-        </div>
-        <div class="splash-status-text">
-          <span>Loading<span class="loading-dots">...</span></span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Header -->
-  <header class="site-header" role="banner">
-    <div class="nav-container">
-      <div style="display: flex; align-items: center; gap: 20px;">
-        <a href="/" class="brand-link" aria-label="Transify Home">
-          <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 34px; width: auto; object-fit: contain;">
-          <span class="brand-badge">Dashboard</span>
-        </a>
-        <nav class="desktop-nav-menu" aria-label="Primary Navigation">
-          <a href="/" class="desktop-nav-link"><span>🏠</span><span>Home</span></a>
-          <a href="/sign" class="desktop-nav-link"><span>✋</span><span>Hand-Sign</span></a>
-          <a href="/braille" class="desktop-nav-link"><span>⠃</span><span>Braille OCR</span></a>
-          <a href="/?slide=stt" class="desktop-nav-link"><span>🎙️</span><span>Speech</span></a>
-          <a href="/?slide=phraseboard" class="desktop-nav-link"><span>💬</span><span>My Phrases</span></a>
-          <a href="/dashboard" class="desktop-nav-link active"><span>📊</span><span>Dashboard</span></a>
-        </nav>
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <button type="button" class="frame-icon-btn" id="dark-mode-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode" onclick="window.TransifyApp.toggleDarkMode()" style="width: 34px; height: 34px; border-radius: 50%; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;">
-          🌙
-        </button>
-        <button type="button" class="frame-icon-btn" id="font-size-toggle-btn" aria-label="Adjust font size" title="Adjust text size" onclick="window.TransifyApp.cycleFontSize()" style="width: 34px; height: 34px; border-radius: 50%; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: 800;">
-          A
-        </button>
-        <a href="/login" class="frame-avatar-btn" role="img" aria-label="User Profile" title="User Profile">
-          <span role="img" aria-label="User Avatar">👩‍🦰</span>
-        </a>
-      </div>
+  <!-- Top Navigation Header -->
+  <header class="slide-header" style="position:static; background:var(--ink); color:#fff;">
+    <div style="display:flex; align-items:center; gap:0.75rem;">
+      <a href="/" class="btn btn-outline-ink" style="min-height:36px; padding:0.25rem 0.75rem; font-size:var(--text-xs); text-decoration:none;" aria-label="Back to Home">← Home</a>
+      <h1 class="slide-header-title" style="font-size:var(--text-base); color:#fff;">Assistive Control Dashboard</h1>
     </div>
   </header>
 
-  <!-- Main Content -->
-  <main id="main-content" class="main-content" role="main">
-    <div id="dashboard-container" style="display: contents;">
-
     <!-- Accessible Breadcrumbs -->
-    <nav aria-label="Breadcrumb" class="transify-breadcrumbs">
-      <ol itemscope itemtype="https://schema.org/BreadcrumbList">
-        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-          <a itemprop="item" href="/"><span itemprop="name">Home</span></a>
-          <meta itemprop="position" content="1" />
-        </li>
-        <li aria-hidden="true">/</li>
-        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
-          <span itemprop="name">Assistive Dashboard</span>
-          <meta itemprop="position" content="2" />
-        </li>
-      </ol>
-    </nav>
-
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-4);">
+  <nav aria-label="Breadcrumb" class="transify-breadcrumbs" style="padding: 8px 16px; font-size: 13px;">
+    <ol itemscope itemtype="https://schema.org/BreadcrumbList" style="display:flex; list-style:none; gap:8px; margin:0; padding:0;">
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="/" style="color:var(--violet); text-decoration:none;"><span itemprop="name">Home</span></a>
+        <meta itemprop="position" content="1" />
+      </li>
+      <li aria-hidden="true" style="color:var(--line);">/</li>
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
+        <span itemprop="name">Dashboard</span>
+        <meta itemprop="position" content="2" />
+      </li>
+    </ol>
+  </nav>
+  <main id="dashboard-main-container" style="flex:1; max-width:840px; margin:0 auto; width:100%; padding:1.5rem 1.25rem 6.5rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
       <div>
-        <h1 style="font-size: var(--text-3xl); font-weight: 800;">Assistive Control Dashboard</h1>
-        <p style="color: var(--text-secondary);">Real-time status of AI recognition models, translation history, and system health.</p>
+        <h2 style="font-size:var(--text-xl); font-weight:800;">Recent Translation Logs</h2>
+        <p style="font-size:var(--text-sm); color:var(--text-2);">Local offline privacy-first history</p>
       </div>
-      <div id="system-status-badge" class="badge badge-info" style="font-size: var(--text-sm); padding: var(--space-2) var(--space-4);">
-        ● Checking System Status...
+      <div style="display:flex; gap:0.5rem;">
+        <button type="button" id="clear-history-btn" class="btn btn-outline-ink" style="color:var(--danger); border-color:var(--line); font-size:var(--text-xs); min-height:36px; padding:0.25rem 0.75rem;">Clear History</button>
       </div>
     </div>
 
-    <!-- AI Models Health Grid -->
-    <section aria-labelledby="models-status-heading">
-      <h2 id="models-status-heading" class="sr-only">AI Models Status</h2>
-      <div class="grid-3">
-        
-        <!-- Sign Model Card -->
-        <div class="card">
-          <div class="card-header">
-            <span style="font-size: 1.8rem;">🤟</span>
-            <span class="badge badge-info">Module 01</span>
-          </div>
-          <h3 class="card-title">Sign Language (ASL) Recognition</h3>
-          <div id="sign-model-metric" style="font-size: var(--text-sm); line-height: 1.8; margin-bottom: var(--space-4);">
-            Loading model telemetry...
-          </div>
-          <a href="/sign" class="btn btn-primary btn-sm" style="margin-top: auto;">Launch Live Sign →</a>
-        </div>
-
-        <!-- Braille Model Card -->
-        <div class="card">
-          <div class="card-header">
-            <span style="font-size: 1.8rem;">⠃</span>
-            <span class="badge badge-info">Module 02</span>
-          </div>
-          <h3 class="card-title">Braille OCR</h3>
-          <div id="braille-model-metric" style="font-size: var(--text-sm); line-height: 1.8; margin-bottom: var(--space-4);">
-            Loading model telemetry...
-          </div>
-          <a href="/braille" class="btn btn-primary btn-sm" style="background-color: var(--brand-secondary); margin-top: auto;">Launch Braille OCR →</a>
-        </div>
-
-        <!-- System & Persistence Card -->
-        <div class="card">
-          <div class="card-header">
-            <span style="font-size: 1.8rem;">💾</span>
-            <span class="badge badge-success">Local Privacy</span>
-          </div>
-          <h3 class="card-title">Persistence & Audio</h3>
-          <div style="font-size: var(--text-sm); line-height: 1.8; margin-bottom: var(--space-4);">
-            <strong>Database:</strong> SQLite Local Storage<br>
-            <strong>Audio TTS:</strong> Web Speech + PCM Fallback<br>
-            <strong>Privacy:</strong> Zero External Cloud Ingestion<br>
-            <strong>Status:</strong> <span class="badge badge-success">Connected</span>
-          </div>
-          <a href="/docs" target="_blank" class="btn btn-secondary btn-sm" style="margin-top: auto;">Interactive API Docs ↗</a>
-        </div>
-
+    <!-- History Records List Container -->
+    <div id="history-records-list" style="display:flex; flex-direction:column; gap:0.75rem;">
+      <div style="background:var(--surface); border:1.5px solid var(--line); border-radius:var(--radius-card); padding:2rem; text-align:center; color:var(--text-2);">
+        Loading historical records...
       </div>
-    </section>
-
-    <!-- Compact Feature Readiness Panel -->
-    <section id="readiness-panel" class="readiness-panel card" style="margin-top: var(--space-8);" aria-labelledby="readiness-heading">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-        <div>
-          <h2 id="readiness-heading" style="font-size: var(--text-lg); font-weight: 800; margin: 0; color: var(--text-primary);">
-            ⚡ Device &amp; AI Feature Readiness
-          </h2>
-          <span style="font-size: var(--text-xs); color: var(--text-secondary);">
-            Non-alarming passive checks • Zero permission prompts triggered
-          </span>
-        </div>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="window.TransifyApp.checkReadiness(true)" style="font-size: 11px; padding: 4px 10px;">
-          🔄 Recheck Device
-        </button>
-      </div>
-
-      <div class="readiness-grid">
-        <div class="readiness-item" id="ready-camera">
-          <div class="readiness-item-header">
-            <span style="font-size: 1.3rem;">📷</span>
-            <span class="readiness-status-badge badge badge-info" id="ready-camera-badge">Checking</span>
-          </div>
-          <div class="readiness-item-title">Live Camera &amp; Vision</div>
-          <div class="readiness-item-desc" id="ready-camera-desc">Detecting camera support...</div>
-        </div>
-
-        <div class="readiness-item" id="ready-mic">
-          <div class="readiness-item-header">
-            <span style="font-size: 1.3rem;">🎙️</span>
-            <span class="readiness-status-badge badge badge-info" id="ready-mic-badge">Checking</span>
-          </div>
-          <div class="readiness-item-title">Speech-to-Text (STT)</div>
-          <div class="readiness-item-desc" id="ready-mic-desc">Detecting audio recognizer...</div>
-        </div>
-
-        <div class="readiness-item" id="ready-tts">
-          <div class="readiness-item-header">
-            <span style="font-size: 1.3rem;">🔊</span>
-            <span class="readiness-status-badge badge badge-info" id="ready-tts-badge">Checking</span>
-          </div>
-          <div class="readiness-item-title">Speech Synthesis (TTS)</div>
-          <div class="readiness-item-desc" id="ready-tts-desc">Detecting speech synthesis...</div>
-        </div>
-
-        <div class="readiness-item" id="ready-storage">
-          <div class="readiness-item-header">
-            <span style="font-size: 1.3rem;">💾</span>
-            <span class="readiness-status-badge badge badge-info" id="ready-storage-badge">Checking</span>
-          </div>
-          <div class="readiness-item-title">Private Local Storage</div>
-          <div class="readiness-item-desc" id="ready-storage-desc">Detecting offline storage...</div>
-        </div>
-
-        <div class="readiness-item" id="ready-backend">
-          <div class="readiness-item-header">
-            <span style="font-size: 1.3rem;">⚡</span>
-            <span class="readiness-status-badge badge badge-info" id="ready-backend-badge">Checking</span>
-          </div>
-          <div class="readiness-item-title">AI Backend Subsystems</div>
-          <div class="readiness-item-desc" id="ready-backend-desc">Connecting to healthcheck...</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Recent Activity & Translation History -->
-    <section style="margin-top: var(--space-8);" aria-labelledby="history-heading">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-        <h2 id="history-heading" style="font-size: var(--text-2xl); font-weight: 700;">Recent Translation Activity</h2>
-        <div style="display: flex; gap: var(--space-2);">
-          <button id="refresh-history-btn" class="btn btn-secondary btn-sm" onclick="DashboardPage.loadHistory()">🔄 Refresh</button>
-          <button id="clear-history-btn" class="btn btn-secondary btn-sm" style="color: var(--status-danger);">🗑️ Clear Log</button>
-        </div>
-      </div>
-
-      <!-- History Search and Filter Toolbar -->
-      <div class="history-filter-toolbar">
-        <div style="flex: 2; min-width: 200px;">
-          <input type="search" id="history-search-input" class="history-search-input" placeholder="🔍 Search recognized or translated text..." aria-label="Search translation history">
-        </div>
-        <div style="flex: 1; min-width: 140px;">
-          <select id="history-modality-select" class="history-filter-select" aria-label="Filter by modality">
-            <option value="all">All Modules</option>
-            <option value="sign">✋ Sign Language</option>
-            <option value="braille">⠃ Braille OCR</option>
-            <option value="stt">🎙️ Speech Captions</option>
-            <option value="tts">🔊 Text-to-Speech</option>
-          </select>
-        </div>
-        <div style="flex: 1; min-width: 120px;">
-          <select id="history-date-select" class="history-filter-select" aria-label="Filter by date range">
-            <option value="all">All Time</option>
-            <option value="today">Today</option>
-            <option value="week">Past 7 Days</option>
-          </select>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--text-primary); cursor: pointer; white-space: nowrap;">
-            <input type="checkbox" id="history-fav-filter" style="width: 16px; height: 16px; accent-color: #f59e0b;">
-            <span>⭐ Favorites</span>
-          </label>
-          <button type="button" id="history-clear-filters-btn" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 6px 10px;">
-            Clear Filters
-          </button>
-        </div>
-      </div>
-
-      <div id="history-records-list">
-        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
-          Loading translation history...
-        </div>
-      </div>
-    </section>
-
-    <!-- Keyboard & Accessibility Quick Reference -->
-    <section class="card" style="margin-top: var(--space-8); background-color: var(--bg-surface-elevated);" aria-labelledby="quick-access-heading">
-      <h3 id="quick-access-heading" class="card-title" style="margin-bottom: var(--space-2);">
-        Accessibility Quick Reference
-      </h3>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); font-size: var(--text-sm);">
-        <div>
-          <strong>Visual Themes:</strong><br>
-          Use the Theme button in the navigation bar to toggle between Standard Light, Dark, and WCAG 2.1 AAA High-Contrast Yellow/Black.
-        </div>
-        <div>
-          <strong>Typography Scaling:</strong><br>
-          Use the Font button to cycle through Normal (100%), Large (118%), and Extra Large (135%) proportional text sizing.
-        </div>
-        <div>
-          <strong>Audio Synthesis:</strong><br>
-          All recognized sign expressions and translated Braille paragraphs can be spoken audibly by pressing the Speak button.
-        </div>
-      </div>
-    </section>
     </div>
-
   </main>
 
-  <!-- Site Footer -->
-  <footer class="site-footer" role="contentinfo">
-    <ul class="footer-links">
-      <li><a href="/" class="footer-link">Home</a></li>
-      <li><a href="/dashboard" class="footer-link">Dashboard</a></li>
-      <li><a href="/sign" class="footer-link">Live Sign</a></li>
-      <li><a href="/braille" class="footer-link">Braille OCR</a></li>
-      <li><a href="/privacy" class="footer-link">Privacy</a></li>
-      <li><a href="/terms" class="footer-link">Terms</a></li>
-      <li><a href="/refund" class="footer-link">Refund</a></li>
-      <li><a href="/cookies" class="footer-link">Cookies</a></li>
-      <li><a href="/docs" class="footer-link" target="_blank">API Docs</a></li>
-    </ul>
-    <p>Transify Assistive Platform — Breaking Communication Barriers.</p>
-  </footer>
-
-  <!-- Fixed Mobile Bottom Navigation Bar -->
-  <nav class="transify-bottom-nav" aria-label="Mobile Navigation">
+  <!-- Bottom Navigation Bar -->
+  <nav class="transify-bottom-nav" aria-label="Main Navigation">
     <a href="/" class="bottom-nav-item" data-nav="home">
       <span class="nav-icon">🏠</span>
       <span class="nav-label">Home</span>
@@ -333,20 +73,20 @@
       <span class="nav-icon">⠃</span>
       <span class="nav-label">Braille</span>
     </a>
-    <a href="/?slide=stt" class="bottom-nav-item" data-nav="speech">
+    <a href="/#voice" class="bottom-nav-item" data-nav="voice">
       <span class="nav-icon">🎙️</span>
-      <span class="nav-label">Speech</span>
-    </a>
-    <a href="/?slide=phraseboard" class="bottom-nav-item" data-nav="phrases">
-      <span class="nav-icon">💬</span>
-      <span class="nav-label">Phrases</span>
-    </a>
-    <a href="/dashboard" class="bottom-nav-item active" data-nav="dashboard">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">Status</span>
+      <span class="nav-label">Voice</span>
     </a>
   </nav>
 
-  <script src="/static/app.js"></script>
+  <!-- Client Application Script -->
+  <script src="/static/app.js?v=20261120_redesign_v2"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.TransifyDashboard && typeof window.TransifyDashboard.init === 'function') {
+        window.TransifyDashboard.init();
+      }
+    });
+  </script>
 </body>
 </html>

@@ -385,6 +385,15 @@
       if (e && typeof e.preventDefault === 'function') e.preventDefault();
       if (this._isSubmitting) return;
 
+      // Defensive mode sync: if the reset form fields are visible, enforce reset mode
+      // regardless of activeMode state (guards against any DOMContentLoaded race conditions)
+      var forgotFieldsEl = document.getElementById('auth-forgot-fields');
+      if (forgotFieldsEl && forgotFieldsEl.style.display !== 'none' && forgotFieldsEl.style.display !== '') {
+        if (this.activeMode !== 'reset' && this.activeMode !== 'forgot') {
+          this.activeMode = 'reset';
+        }
+      }
+
       var emailInput = document.getElementById('input-email');
       var pwdInput = document.getElementById('input-password');
       var nameInput = document.getElementById('input-fullname');

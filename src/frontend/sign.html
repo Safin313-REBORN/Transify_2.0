@@ -1,419 +1,151 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light" data-font-size="medium">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <title>Transify — Live Sign Language Translator (BdSL & ASL)</title>
-  <meta name="description" content="Translate live Bengali Sign Language (BdSL 10-Class Temporal) and American Sign Language (ASL/HaGRID) gestures into accessible spoken text in real time.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Transify — Live ASL & HaGRID Hand Gesture Translator</title>
+  <meta name="description" content="Translate live Bengali Sign Language (BdSL) and American Sign Language (ASL/HaGRID) gestures into accessible text in real time.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/static/styles.css?v=20261120_redesign_v2">
   <link rel="canonical" href="https://transify.app/sign">
-  <link rel="manifest" href="/static/manifest.json">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
-  <link rel="apple-touch-icon" href="/static/icon-192.png">
-
-  <!-- Open Graph & Twitter Social Tags -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Transify — Live Sign Language Translator (BdSL & ASL)">
-  <meta property="og:description" content="Translate live Bengali Sign Language (BdSL 10-Class Temporal) and American Sign Language (ASL/HaGRID) gestures into accessible spoken text in real time.">
-  <meta property="og:image" content="https://transify.app/static/banner-braille.jpg">
-  <meta property="og:url" content="https://transify.app/sign">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Transify — Live Sign Language Translator (BdSL & ASL)">
-  <meta name="twitter:description" content="Translate live Bengali Sign Language (BdSL 10-Class Temporal) and American Sign Language (ASL/HaGRID) gestures into accessible spoken text in real time.">
-  <meta name="twitter:image" content="https://transify.app/static/banner-braille.jpg">
-  <meta name="theme-color" content="#8338ec">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="/static/styles.css?v=20261116_allfix_v5">
-  <script>
-    (function() {
-      try {
-        var t = localStorage.getItem('transify_theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', t);
-        var f = localStorage.getItem('transify_font_size') || 'medium';
-        document.documentElement.setAttribute('data-font-size', f);
-      } catch(e) {}
-    })();
-  </script>
-  <style>
-    html, body {
-      max-width: 100%;
-      overflow-x: hidden;
-    }
-    body {
-      animation: slideInFromLeft 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes slideInFromLeft {
-      0% { transform: translateX(-100%); opacity: 0; }
-      100% { transform: translateX(0); opacity: 1; }
-    }
-  </style>
 </head>
-<body>
+<body style="background:var(--ink); color:#fff; min-height:100vh; display:flex; flex-direction:column;">
 
   <!-- Accessible Skip Link -->
-  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <a href="#sign-main-container" class="skip-link">Skip to translator</a>
 
-  <!-- Live Screen Reader Announcements -->
+  <!-- Polite Live Region -->
   <div id="sr-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- App Launch Splash / Loading Screen -->
-  <div id="transify-splash-screen" class="transify-splash-overlay" role="dialog" aria-modal="true" aria-label="Loading Transify Application">
-    <div class="splash-content-container">
-      <img src="/static/splash-bg.jpg" alt="Transify Accessible AI Platform" class="splash-background-artwork">
-      <div class="splash-progress-section">
-        <div class="splash-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="splash-progressbar" aria-label="Loading Application">
-          <div id="splash-progress-fill" class="splash-progress-fill"></div>
-        </div>
-        <div class="splash-status-text">
-          <span>Loading<span class="loading-dots">...</span></span>
-        </div>
-      </div>
+  <!-- Top Navigation Header -->
+  <header class="slide-header" style="position:static;">
+    <div style="display:flex; align-items:center; gap:0.75rem;">
+      <a href="/" class="btn btn-outline-ink" style="min-height:36px; padding:0.25rem 0.75rem; font-size:var(--text-xs); text-decoration:none;" aria-label="Back to Home">← Home</a>
+      <h1 class="slide-header-title" style="font-size:var(--text-base);">Live ASL & HaGRID Hand Gesture Translator</h1>
     </div>
-  </div>
 
-  <!-- Header -->
-  <header class="site-header" role="banner">
-    <div class="nav-container">
-      <div style="display: flex; align-items: center; gap: 20px;">
-        <a href="/" class="brand-link" aria-label="Transify Home">
-          <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 34px; width: auto; object-fit: contain;">
-          <span class="brand-badge">Sign AI</span>
-        </a>
-        <nav class="desktop-nav-menu" aria-label="Primary Navigation">
-          <a href="/" class="desktop-nav-link"><span>🏠</span><span>Home</span></a>
-          <a href="/sign" class="desktop-nav-link active"><span>✋</span><span>Hand-Sign</span></a>
-          <a href="/braille" class="desktop-nav-link"><span>⠃</span><span>Braille OCR</span></a>
-          <a href="/?slide=stt" class="desktop-nav-link"><span>🎙️</span><span>Speech</span></a>
-          <a href="/?slide=phraseboard" class="desktop-nav-link"><span>💬</span><span>My Phrases</span></a>
-          <a href="/dashboard" class="desktop-nav-link"><span>📊</span><span>Dashboard</span></a>
-        </nav>
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <button type="button" class="frame-icon-btn" id="dark-mode-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode" onclick="window.TransifyApp.toggleDarkMode()" style="width: 34px; height: 34px; border-radius: 50%; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px;">
-          🌙
-        </button>
-        <button type="button" class="frame-icon-btn" id="font-size-toggle-btn" aria-label="Adjust font size" title="Adjust text size" onclick="window.TransifyApp.cycleFontSize()" style="width: 34px; height: 34px; border-radius: 50%; background: var(--bg-surface); border: 1.5px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: 800;">
-          A
-        </button>
-        <a href="/login" class="frame-avatar-btn" role="img" aria-label="User Profile" title="User Profile">
-          <span role="img" aria-label="User Avatar">👩‍🦰</span>
-        </a>
-      </div>
+    <!-- Language Mode Switcher (BdSL / ASL) -->
+    <div style="display:inline-flex; background:rgba(255,255,255,0.1); border-radius:var(--radius-pill); padding:2px;">
+      <button type="button" id="lang-bdsl-btn" class="btn btn-signal" style="min-height:32px; padding:0.2rem 0.6rem; font-size:var(--text-xs);">BdSL</button>
+      <button type="button" id="lang-asl-btn" class="btn btn-outline-ink" style="min-height:32px; padding:0.2rem 0.6rem; font-size:var(--text-xs); border:none;">ASL</button>
     </div>
   </header>
 
-  <!-- Main Content -->
-  <main id="main-content" class="main-content" role="main">
-
     <!-- Accessible Breadcrumbs -->
-    <nav aria-label="Breadcrumb" class="transify-breadcrumbs">
-      <ol itemscope itemtype="https://schema.org/BreadcrumbList">
-        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-          <a itemprop="item" href="/"><span itemprop="name">Home</span></a>
-          <meta itemprop="position" content="1" />
-        </li>
-        <li aria-hidden="true">/</li>
-        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
-          <span itemprop="name">Live Sign Language Translator</span>
-          <meta itemprop="position" content="2" />
-        </li>
-      </ol>
-    </nav>
+  <nav aria-label="Breadcrumb" class="transify-breadcrumbs" style="padding: 8px 16px; font-size: 13px;">
+    <ol itemscope itemtype="https://schema.org/BreadcrumbList" style="display:flex; list-style:none; gap:8px; margin:0; padding:0;">
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="/" style="color:var(--violet); text-decoration:none;"><span itemprop="name">Home</span></a>
+        <meta itemprop="position" content="1" />
+      </li>
+      <li aria-hidden="true" style="color:var(--line);">/</li>
+      <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" aria-current="page">
+        <span itemprop="name">Sign Translator</span>
+        <meta itemprop="position" content="2" />
+      </li>
+    </ol>
+  </nav>
+  <main id="sign-main-container" style="flex:1; max-width:760px; margin:0 auto; width:100%; padding:1rem 1.25rem 6.5rem;">
+    
+    <!-- Camera Viewport Stage -->
+    <div class="sign-camera-stage photo-frame">
+      <video id="sign-video" class="webcam-video camera-mirror" autoplay playsinline muted></video>
+      <canvas id="sign-canvas" class="webcam-canvas camera-mirror"></canvas>
 
-    <div style="margin-bottom: var(--space-4);">
-      <a href="/" style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm); font-weight: 700; color: var(--text-secondary); text-decoration: none; padding: 6px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: var(--space-2);">
-        <span style="font-size: 1.1rem;">←</span>
-        <span>Back to Home</span>
-      </a>
-    </div>
-
-    <div style="margin-bottom: var(--space-6);">
-      <div class="badge badge-info" style="margin-bottom: var(--space-2);">Module 01: Computer Vision & MediaPipe Landmarks</div>
-      <h1 style="font-size: var(--text-3xl); font-weight: 800;">Live ASL & HaGRID Hand Gesture Translator</h1>
-      <p style="color: var(--text-secondary); max-width: 800px;">
-        Translates real-time Bangladesh Sign Language (10 verified production expressions), ASL manual alphabet (A–Z), and HaGRID gestures into English text and spoken audio. Features calibrated confidence evaluation, temporal consensus debounce, and ambiguity resolution with candidate selection.
-      </p>
-    </div>
-
-    <!-- 2-Column Responsive Workspace (Camera on left, Live Predictions on right) -->
-    <div class="workspace-2col">
-      <!-- Left Column: Camera Stage & Controls -->
-      <div>
-        <!-- Pre-Permission Notice & Camera Info Card -->
-        <div class="permission-notice-card" style="margin-bottom: var(--space-4);">
-          <div style="display: flex; gap: 10px; align-items: flex-start;">
-            <span style="font-size: 20px;">📷</span>
-            <div style="flex: 1;">
-              <div style="font-weight: 700; font-size: 13.5px; color: var(--text-primary); margin-bottom: 2px;">
-                Camera Privacy &amp; Real-Time Tracking Notice
-              </div>
-              <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
-                Transify tracks 21 hand skeletal landmarks locally in memory. No video or photos are ever saved, stored, or transmitted to any server. You can stop or revoke camera access at any time.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="webcam-container" aria-label="Webcam feed and landmark tracking area">
-          <video id="sign-video" class="webcam-video camera-mirror" autoplay playsinline muted></video>
-          <canvas id="sign-canvas" class="webcam-canvas camera-mirror"></canvas>
-
-          <div id="camera-placeholder" class="camera-placeholder">
-            <span style="font-size: 3rem;">📹</span>
-            <p style="font-size: var(--text-lg); font-weight: 600;">Camera is currently inactive</p>
-            <p style="max-width: 460px; font-size: var(--text-sm);">
-              Click <strong>Start Camera</strong> below to enable live video gesture recognition for ASL and HaGRID gestures, or click <strong>Try Sample Demo</strong> to test immediately without camera hardware.
-            </p>
-          </div>
-        </div>
-
-        <!-- Controls Bar -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-4); flex-wrap: wrap; gap: var(--space-3);">
-          <div style="display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap;">
-            <button id="toggle-camera-btn" class="btn btn-primary">📹 Start Camera</button>
-            <button id="try-sign-sample-btn" type="button" class="btn btn-secondary" onclick="window.SignPage.simulatePrediction('thank_you')">🎬 Try Sample Demo</button>
-            <button id="reset-sign-btn" class="btn btn-secondary">🔄 Reset Tracker</button>
-            <button id="speak-pred-btn" class="btn btn-secondary">🔊 Speak Sign</button>
-            <div id="camera-status-badge" class="camera-status-pill" style="display: none;" title="Active Camera Resolution & Stream Status">
-              <span class="camera-status-dot"></span>
-              <span id="camera-resolution-text">HD Camera · 1280 × 720</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick Gesture Demonstration Samples (Permission-Free) -->
-        <div style="margin-top: var(--space-3); padding: 10px 14px; background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); border-radius: 12px;">
-          <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
-            Quick Interactive Samples (No camera required):
-          </div>
-          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="window.SignPage.simulatePrediction('thank_you')" style="font-size: 11.5px; padding: 4px 10px;">🙏 Thank You (ধন্যবাদ)</button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="window.SignPage.simulatePrediction('hello')" style="font-size: 11.5px; padding: 4px 10px;">👋 Hello (হ্যালো)</button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="window.SignPage.simulatePrediction('help')" style="font-size: 11.5px; padding: 4px 10px;">🆘 Help (সাহায্য)</button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="window.SignPage.simulatePrediction('yes')" style="font-size: 11.5px; padding: 4px 10px;">👍 Yes (হাঁ)</button>
-          </div>
-        </div>
-
-        <!-- Mode Switcher Tabs for Hand Signal Panel -->
-        <div style="display: flex; gap: 8px; margin-top: var(--space-4); margin-bottom: var(--space-2); flex-wrap: wrap; align-items: center;">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Mode:</span>
-          <button id="mode-expressions-btn" type="button" class="btn btn-primary btn-sm">🖐️ Live Expressions</button>
-          <button id="mode-fingerspell-btn" type="button" class="btn btn-secondary btn-sm">✋ A–Z Alphabet Speller</button>
-          <button id="mode-sentence-btn" type="button" class="btn btn-secondary btn-sm">📚 Continuous Sentence</button>
-        </div>
+      <!-- Yellow ROI Corner Brackets -->
+      <div class="roi-brackets-overlay" aria-hidden="true">
+        <span class="roi-corner roi-tl"></span>
+        <span class="roi-corner roi-tr"></span>
+        <span class="roi-corner roi-bl"></span>
+        <span class="roi-corner roi-br"></span>
       </div>
 
-      <!-- Right Column: Live Prediction Banner, Speller & Sentence Builder -->
-      <div>
-        <!-- Real-Time Prediction Banner (Mode 1) -->
-        <section id="sign-prediction-banner" class="prediction-banner" aria-live="assertive" aria-atomic="true" style="margin-top: 0;">
-          <div>
-            <div style="font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">
-              Detected Expression
-            </div>
-            <div id="pred-label-text" class="pred-primary">Waiting for gesture...</div>
-            <div id="pred-gloss-text" class="pred-gloss">Position your hands in camera view or click a sample below</div>
-            <div id="pred-status-note" class="pred-desc">Debounce consensus ready (3-frame verification)</div>
-            <div id="sign-engine-note" style="display: none; font-size: 11px; margin-top: 4px; padding: 2px 6px; border-radius: 4px; width: fit-content;"></div>
-            <div style="display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap;">
-              <button id="pred-send-conv-btn" type="button" class="btn btn-secondary btn-sm" onclick="window.SignPage.sendPredictionToConversation()" title="Send current sign to Conversation Mode staging area">
-                💬 Send to Conversation Mode
-              </button>
-            </div>
-          </div>
+      <!-- Live Dynamic Resolution Badge -->
+      <div id="camera-status-badge" class="camera-status-pill">
+        <span id="camera-resolution-text">● Ready</span>
+      </div>
 
-          <div style="text-align: right;">
-            <span id="pred-confidence-badge" class="badge badge-info" style="font-size: var(--text-sm);">Ready</span>
-            <div style="margin-top: var(--space-2); width: 140px;">
-              <div style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 2px;">Debounce Buffer</div>
-              <div class="progress-container">
-                <div id="debounce-progress-fill" class="progress-fill" style="width: 0%;"></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Fingerspelling Panel (Mode 2) -->
-        <section id="fingerspelling-panel" class="card" style="display: none; margin-top: var(--space-4);" aria-labelledby="speller-heading">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: var(--space-2);">
-            <div>
-              <h2 id="speller-heading" class="card-title" style="margin-bottom: 2px;">✋ A–Z Manual Alphabet Word Speller</h2>
-              <span style="font-size: var(--text-xs); color: var(--text-secondary);">Spell individual names, medicine brands, or custom words letter-by-letter.</span>
-            </div>
-            <div id="fingerspell-live-badge">
-              <span class="badge badge-info">Active Letter: <strong id="current-live-letter">—</strong></span>
-            </div>
-          </div>
-
-          <!-- Spelled Word Bar -->
-          <div style="background: rgba(255,255,255,0.03); border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4); min-height: 80px; display: flex; flex-direction: column; justify-content: center;">
-            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 4px;">Spelled Word in Progress:</div>
-            <div id="spelled-word-display" style="font-size: var(--text-3xl); font-weight: 800; font-family: var(--font-mono); color: var(--brand-primary); letter-spacing: 2px;">(Waiting for letters...)</div>
-            <div id="spelled-sentence-display" style="font-size: var(--text-sm); color: var(--text-secondary); margin-top: 4px;">Committed words: <span id="committed-words-text">none</span></div>
-          </div>
-
-          <!-- Speller Controls -->
-          <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
-            <button id="spell-space-btn" class="btn btn-secondary btn-sm">␣ Space (New Word)</button>
-            <button id="spell-backspace-btn" class="btn btn-secondary btn-sm">⌫ Backspace</button>
-            <button id="spell-speak-btn" class="btn btn-primary btn-sm">🔊 Speak Word</button>
-            <button id="spell-send-to-sentence-btn" class="btn btn-info btn-sm">➕ Add to Sentence Builder</button>
-            <button id="spell-clear-btn" class="btn btn-danger btn-sm">🗑️ Clear Speller</button>
-          </div>
-
-          <!-- 26-Letter Virtual Alphabet Grid -->
-          <div style="margin-top: var(--space-3);">
-            <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: var(--space-2);">
-              Quick Virtual Manual Alphabet (Click to spell):
-            </div>
-            <div id="alphabet-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 6px;"></div>
-          </div>
-        </section>
-
-        <!-- AI Sentence Builder Panel (Mode 3) -->
-        <section id="sentence-builder-panel" class="card" style="display: none; margin-top: var(--space-4);" aria-labelledby="builder-heading">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: var(--space-2);">
-            <div>
-              <h2 id="builder-heading" class="card-title" style="margin-bottom: 2px;">💬 Continuous AI Sentence Builder</h2>
-              <span style="font-size: var(--text-xs); color: var(--text-secondary);">Transforms multiple sign gestures into fluent, natural spoken sentences.</span>
-            </div>
-            <div id="sentence-engine-badge">
-              <span class="badge badge-info">AI Smoother Ready</span>
-            </div>
-          </div>
-
-          <!-- Token Accumulator Chips -->
-          <div style="margin-bottom: var(--space-3);">
-            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 6px;">Accumulated Sign Tokens:</div>
-            <div id="sentence-token-chips" style="min-height: 48px; padding: var(--space-2); background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-              <span style="color: var(--text-muted); font-size: var(--text-xs);">Perform gestures or click words below to build your thought...</span>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
-            <button id="smooth-sentence-btn" class="btn btn-primary btn-sm">✨ Synthesize Natural Sentence</button>
-            <button id="speak-sentence-btn" class="btn btn-secondary btn-sm">🔊 Speak Full Sentence</button>
-            <button id="copy-sentence-btn" class="btn btn-secondary btn-sm">📋 Copy Text</button>
-            <button id="send-sentence-to-conv-btn" type="button" class="btn btn-info btn-sm" onclick="window.SignPage.sendToConversationMode()" title="Send synthesized sentence to Conversation Mode">💬 Send to Conversation Mode</button>
-            <button id="clear-sentence-btn" class="btn btn-danger btn-sm">🗑️ Clear Tokens</button>
-          </div>
-
-          <!-- Smoothed Sentence Output -->
-          <div style="padding: var(--space-3); background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: var(--radius-md);">
-            <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-success); margin-bottom: 4px;">Spoken English Output:</div>
-            <div id="smooth-sentence-text" style="font-size: var(--text-lg); font-weight: 700; color: var(--text-primary);">(Waiting to synthesize sentence...)</div>
-          </div>
-        </section>
+      <!-- Stage Camera Actions -->
+      <div style="position:absolute; bottom:1rem; left:1rem; right:1rem; display:flex; justify-content:space-between; z-index:10;">
+        <button type="button" id="toggle-camera-btn" class="btn btn-signal">Start Camera</button>
+        <button type="button" id="reset-sign-btn" class="btn btn-outline-ink" style="background:rgba(20,17,31,0.7);">Reset</button>
+        <button type="button" id="speak-pred-btn" class="btn btn-outline-ink" style="background:rgba(20,17,31,0.7);">Speak</button>
       </div>
     </div>
 
-    <!-- ASL & HaGRID Gesture Sample Buttons -->
-    <section style="margin-top: var(--space-8);" aria-labelledby="vocab-heading">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
-        <h2 id="vocab-heading" style="font-size: var(--text-xl); font-weight: 700;">
-          Verified Expressive Vocabulary & Sample Tester
-        </h2>
-        <span class="badge badge-info">Click to evaluate real gesture data</span>
+    <!-- Results Panel (Paper Surface, 20px Top Radius) -->
+    <div class="sign-results-sheet" style="border-radius:var(--radius-card); margin-top:1rem;">
+      
+      <!-- Segmented Mode Tabs -->
+      <div class="mode-segmented-row" role="tablist">
+        <button type="button" id="mode-expressions-btn" class="mode-tab-btn active" role="tab" aria-selected="true">Words</button>
+        <button type="button" id="mode-fingerspell-btn" class="mode-tab-btn" role="tab" aria-selected="false">Letters (A-Z)</button>
+        <button type="button" id="mode-sentence-btn" class="mode-tab-btn" role="tab" aria-selected="false">Sentence</button>
       </div>
-      <p style="font-size: var(--text-sm); color: var(--text-secondary); margin-bottom: var(--space-4);">
-        Click any button to feed authentic landmark sequences into the trained dual-model recognition pipeline:
-      </p>
 
-      <div id="sign-vocabulary-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-3);">
-        <!-- Dynamically populated by app.js -->
-        <p style="color: var(--text-muted);">Loading vocabulary...</p>
+      <!-- 3-Segment Consensus Progress Meter -->
+      <div class="debounce-progress-container">
+        <div class="progress-step-label">Detection Consensus</div>
+        <div class="progress-meter-track">
+          <div id="debounce-progress-fill" class="progress-meter-fill"></div>
+        </div>
       </div>
-    </section>
 
-    <!-- Expanded Communicative Domains Section -->
-    <section class="card" style="margin-top: var(--space-8); background-color: var(--bg-surface-elevated);" aria-labelledby="domains-heading">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: var(--space-2);">
+      <!-- Big Recognized Word Hero & Circular Confidence -->
+      <div class="word-prediction-hero">
         <div>
-          <h2 id="domains-heading" class="card-title" style="margin-bottom: 2px;">
-            🌐 Expanded Communicative Domains for Speech-Impaired Living
-          </h2>
-          <span style="font-size: var(--text-xs); color: var(--text-secondary);">
-            Structured vocabulary categories designed for real-world independence and daily life communication.
-          </span>
+          <span style="font-size:var(--text-xs); color:var(--text-2); font-weight:700; text-transform:uppercase;">Predicted Sign</span>
+          <div id="pred-label-text" class="pred-word-text">Ready</div>
         </div>
-        <span class="badge badge-success">4 Domains • 24 Key Phrases</span>
+        <div class="confidence-ring-wrap">
+          <svg class="confidence-ring-svg" viewBox="0 0 36 36">
+            <path class="confidence-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path id="confidence-ring-path" class="confidence-ring-val" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          </svg>
+          <span id="pred-confidence-badge" class="confidence-text-label">--% sure</span>
+        </div>
       </div>
-      <div id="sign-domains-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4); margin-top: var(--space-4);">
-        <p style="color: var(--text-muted);">Loading communicative domains...</p>
-      </div>
-    </section>
 
-    <!-- ASL & HaGRID Sign Execution Reference Guide -->
-    <section class="card" style="margin-top: var(--space-8); background-color: var(--bg-surface-elevated);" aria-labelledby="guide-heading">
-      <h3 id="guide-heading" class="card-title" style="margin-bottom: var(--space-3);">
-        ASL & HaGRID Hand Gesture Execution Guide
-      </h3>
-      <div style="font-size: var(--text-sm); color: var(--text-secondary); display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4);">
-        <div>
-          <strong>CALL (HaGRID):</strong> Thumb and pinky extended to ear and mouth mimicking a telephone.
+      <!-- Sentence Builder Strip -->
+      <div class="sentence-strip-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+          <span style="font-size:var(--text-xs); font-weight:700; color:var(--text-2); text-transform:uppercase;">Assembled Sentence</span>
+          <div style="display:flex; gap:0.4rem;">
+            <button type="button" id="smooth-sentence-btn" class="btn btn-signal" style="min-height:32px; padding:0.2rem 0.6rem; font-size:var(--text-xs);">✨ Smooth</button>
+            <button type="button" id="speak-sentence-btn" class="btn btn-outline-ink" style="min-height:32px; padding:0.2rem 0.6rem; font-size:var(--text-xs); color:var(--ink); border-color:var(--line);">Speak</button>
+            <button type="button" id="copy-sentence-btn" class="btn btn-outline-ink" style="min-height:32px; padding:0.2rem 0.6rem; font-size:var(--text-xs); color:var(--ink); border-color:var(--line);">Copy</button>
+            <button type="button" id="clear-sentence-btn" class="btn btn-outline-ink" style="min-height:32px; padding:0.2rem 0.6rem; font-size:var(--text-xs); color:var(--danger); border-color:var(--line);">Clear</button>
+          </div>
         </div>
-        <div>
-          <strong>LIKE (HaGRID):</strong> Thumbs up gesture indicating approval or positive confirmation.
+        <div id="sentence-token-chips" class="token-chips-wrap">
+          <span class="token-caret"></span>
         </div>
-        <div>
-          <strong>DISLIKE (HaGRID):</strong> Thumbs down gesture indicating disapproval or negation.
-        </div>
-        <div>
-          <strong>OK (HaGRID):</strong> Thumb and index tip contact forming loop with other three fingers extended.
-        </div>
-        <div>
-          <strong>STOP (HaGRID):</strong> Open palm held vertically facing camera with fingers pointing upward.
-        </div>
-        <div>
-          <strong>PEACE (HaGRID):</strong> Index and middle fingers extended upward in a 'V' shape.
-        </div>
-        <div>
-          <strong>FIST (HaGRID):</strong> Closed clenched fist signifying power or holding.
-        </div>
-        <div>
-          <strong>PALM (HaGRID):</strong> Open flat palm facing the camera.
-        </div>
-        <div>
-          <strong>HELLO (ASL):</strong> Flat hand moving gently outward from temple in a salute motion.
-        </div>
-        <div>
-          <strong>I_NEED_HELP (ASL):</strong> Closed fist with thumb up resting on flat palm lifting upward.
-        </div>
-        <div>
-          <strong>WATER (ASL):</strong> Three fingers ('W' shape) tapping chin twice.
-        </div>
-        <div>
-          <strong>FOOD (ASL):</strong> Flattened fingertips brought to mouth twice.
-        </div>
+        <div id="smooth-sentence-text" style="font-size:var(--text-sm); color:var(--text-2); font-style:italic;"></div>
       </div>
-    </section>
 
+      <!-- Fingerspelling Panel Reference Elements -->
+      <div id="fingerspelling-panel" style="display:none; margin-top:1rem;">
+        <div id="current-live-letter" style="font-size:var(--text-lg); font-weight:700;"></div>
+        <div id="spelled-word-display" style="font-size:var(--text-lg);"></div>
+        <div id="alphabet-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; margin-top:0.5rem;"></div>
+        <button type="button" id="spell-backspace-btn" style="display:none;"></button>
+        <button type="button" id="spell-space-btn" style="display:none;"></button>
+        <button type="button" id="spell-clear-btn" style="display:none;"></button>
+        <button type="button" id="spell-speak-btn" style="display:none;"></button>
+        <button type="button" id="spell-send-to-sentence-btn" style="display:none;"></button>
+      </div>
+
+    </div>
   </main>
 
-  <!-- Site Footer -->
-  <footer class="site-footer" role="contentinfo">
-    <ul class="footer-links">
-      <li><a href="/" class="footer-link">Home</a></li>
-      <li><a href="/sign" class="footer-link">Hand Signal</a></li>
-      <li><a href="/braille" class="footer-link">Braille</a></li>
-      <li><a href="/privacy" class="footer-link">Privacy</a></li>
-      <li><a href="/terms" class="footer-link">Terms</a></li>
-      <li><a href="/refund" class="footer-link">Refund</a></li>
-      <li><a href="/cookies" class="footer-link">Cookies</a></li>
-      <li><a href="/docs" class="footer-link" target="_blank">API Docs</a></li>
-    </ul>
-    <p>Transify Assistive Platform — Live BdSL, ASL &amp; HaGRID Gesture Recognition Subsystem.</p>
-  </footer>
-
-  <!-- Fixed Mobile Bottom Navigation Bar (< 768px viewports) -->
-  <nav class="transify-bottom-nav" aria-label="Mobile Navigation">
+  <!-- Bottom Navigation Bar -->
+  <nav class="transify-bottom-nav" aria-label="Main Navigation">
     <a href="/" class="bottom-nav-item" data-nav="home">
       <span class="nav-icon">🏠</span>
       <span class="nav-label">Home</span>
     </a>
-    <a href="/sign" class="bottom-nav-item active" data-nav="sign">
+    <a href="/sign" class="bottom-nav-item active" data-nav="sign" aria-current="page">
       <span class="nav-icon">✋</span>
       <span class="nav-label">Sign</span>
     </a>
@@ -421,20 +153,20 @@
       <span class="nav-icon">⠃</span>
       <span class="nav-label">Braille</span>
     </a>
-    <a href="/?slide=stt" class="bottom-nav-item" data-nav="speech">
+    <a href="/#voice" class="bottom-nav-item" data-nav="voice">
       <span class="nav-icon">🎙️</span>
-      <span class="nav-label">Speech</span>
-    </a>
-    <a href="/?slide=phraseboard" class="bottom-nav-item" data-nav="phrases">
-      <span class="nav-icon">💬</span>
-      <span class="nav-label">Phrases</span>
-    </a>
-    <a href="/dashboard" class="bottom-nav-item" data-nav="dashboard">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">Status</span>
+      <span class="nav-label">Voice</span>
     </a>
   </nav>
 
-  <script src="/static/app.js?v=20261116_allfix_v6"></script>
+  <!-- Client Application Script -->
+  <script src="/static/app.js?v=20261120_redesign_v2"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.SignPage && typeof window.SignPage.init === 'function') {
+        window.SignPage.init();
+      }
+    });
+  </script>
 </body>
 </html>
