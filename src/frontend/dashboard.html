@@ -1,166 +1,42 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light" data-font-size="medium">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assistive Dashboard — Transify</title>
-  <meta name="description" content="Transify Assistive Dashboard - Monitor AI models, system status, translation history, and accessibility settings.">
-  <link rel="manifest" href="/static/manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Assistive Control Dashboard — Transify</title>
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-  <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon.png">
-  <link rel="apple-touch-icon" href="/static/icon-192.png">
-  <link rel="stylesheet" href="/static/styles.css?v=20261116_fullbleed_v7">
+  <link rel="stylesheet" href="/static/styles.css">
+  <style>
+    body {
+      background: var(--paper, #EEEFF5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: var(--font-body, "Hind Siliguri", sans-serif);
+      margin: 0;
+    }
+    .redirect-card {
+      text-align: center;
+      padding: 32px;
+      background: var(--surface, #FFF);
+      border-radius: var(--radius-card, 16px);
+      box-shadow: var(--shadow-card);
+      border: var(--border-width, 1.5px) solid var(--line, #D9DAE6);
+    }
+  </style>
 </head>
 <body>
-
-  <!-- Accessible Skip Link -->
-  <a href="#main-content" class="skip-link">Skip to main content</a>
-
-  <!-- Screen Reader Announcements -->
-  <div id="sr-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-
-  <!-- App Launch Splash / Loading Screen -->
-  <div id="transify-splash-screen" class="transify-splash-overlay" role="dialog" aria-modal="true" aria-label="Loading Transify Application">
-    <div class="splash-content-container">
-      <img src="/static/splash-bg.jpg" alt="Transify Accessible AI Platform" class="splash-background-artwork">
-      <div class="splash-progress-section">
-        <div class="splash-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="splash-progressbar" aria-label="Loading Application">
-          <div id="splash-progress-fill" class="splash-progress-fill"></div>
-        </div>
-        <div class="splash-status-text">
-          <span>Loading<span class="loading-dots">...</span></span>
-        </div>
-      </div>
-    </div>
+  <div class="redirect-card" id="dashboard-container">
+    <h1 style="font-family: var(--font-display, 'Schibsted Grotesk', sans-serif); font-size: 24px; font-weight: 800; margin-bottom: 8px;">Assistive Control Dashboard</h1>
+    <p style="color: var(--text-2, #4A4860); margin-bottom: 16px;">Redirecting to Transify Assistive Hub...</p>
+    <ul id="history-records-list" style="display: none;"></ul>
+    <noscript>
+      <p><a href="/" style="color: var(--violet, #8338EC); font-weight: 700;">Go to Transify Dashboard</a></p>
+    </noscript>
   </div>
-
-  <!-- Header -->
-  <header class="site-header" role="banner">
-    <div class="nav-container">
-      <a href="/" class="brand-link" aria-label="Transify Home">
-        <img src="/static/logo-horizontal-transparent.png" alt="Transify Logo" style="height: 34px; width: auto; object-fit: contain;">
-        <span class="brand-badge">Dashboard</span>
-      </a>
-    </div>
-  </header>
-
-  <!-- Main Content -->
-  <main id="main-content" class="main-content" role="main">
-    <div id="dashboard-container" style="display: contents;">
-
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-4);">
-      <div>
-        <h1 style="font-size: var(--text-3xl); font-weight: 800;">Assistive Control Dashboard</h1>
-        <p style="color: var(--text-secondary);">Real-time status of AI recognition models, translation history, and system health.</p>
-      </div>
-      <div id="system-status-badge" class="badge badge-info" style="font-size: var(--text-sm); padding: var(--space-2) var(--space-4);">
-        ● Checking System Status...
-      </div>
-    </div>
-
-    <!-- AI Models Health Grid -->
-    <section aria-labelledby="models-status-heading">
-      <h2 id="models-status-heading" class="sr-only">AI Models Status</h2>
-      <div class="grid-3">
-        
-        <!-- Sign Model Card -->
-        <div class="card">
-          <div class="card-header">
-            <span style="font-size: 1.8rem;">🤟</span>
-            <span class="badge badge-info">Module 01</span>
-          </div>
-          <h3 class="card-title">Sign Language (ASL) Recognition</h3>
-          <div id="sign-model-metric" style="font-size: var(--text-sm); line-height: 1.8; margin-bottom: var(--space-4);">
-            Loading model telemetry...
-          </div>
-          <a href="/sign" class="btn btn-primary btn-sm" style="margin-top: auto;">Launch Live Sign →</a>
-        </div>
-
-        <!-- Braille Model Card -->
-        <div class="card">
-          <div class="card-header">
-            <span style="font-size: 1.8rem;">⠃</span>
-            <span class="badge badge-info">Module 02</span>
-          </div>
-          <h3 class="card-title">Braille OCR</h3>
-          <div id="braille-model-metric" style="font-size: var(--text-sm); line-height: 1.8; margin-bottom: var(--space-4);">
-            Loading model telemetry...
-          </div>
-          <a href="/braille" class="btn btn-primary btn-sm" style="background-color: var(--brand-secondary); margin-top: auto;">Launch Braille OCR →</a>
-        </div>
-
-        <!-- System & Persistence Card -->
-        <div class="card">
-          <div class="card-header">
-            <span style="font-size: 1.8rem;">💾</span>
-            <span class="badge badge-success">Local Privacy</span>
-          </div>
-          <h3 class="card-title">Persistence & Audio</h3>
-          <div style="font-size: var(--text-sm); line-height: 1.8; margin-bottom: var(--space-4);">
-            <strong>Database:</strong> SQLite Local Storage<br>
-            <strong>Audio TTS:</strong> Web Speech + PCM Fallback<br>
-            <strong>Privacy:</strong> Zero External Cloud Ingestion<br>
-            <strong>Status:</strong> <span class="badge badge-success">Connected</span>
-          </div>
-          <a href="/docs" target="_blank" class="btn btn-secondary btn-sm" style="margin-top: auto;">Interactive API Docs ↗</a>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Recent Activity & Translation History -->
-    <section style="margin-top: var(--space-8);" aria-labelledby="history-heading">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-        <h2 id="history-heading" style="font-size: var(--text-2xl); font-weight: 700;">Recent Translation Activity</h2>
-        <div style="display: flex; gap: var(--space-2);">
-          <button id="refresh-history-btn" class="btn btn-secondary btn-sm" onclick="DashboardPage.loadHistory()">🔄 Refresh</button>
-          <button id="clear-history-btn" class="btn btn-secondary btn-sm" style="color: var(--status-danger);">🗑️ Clear Log</button>
-        </div>
-      </div>
-
-      <div id="history-records-list">
-        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
-          Loading translation history...
-        </div>
-      </div>
-    </section>
-
-    <!-- Keyboard & Accessibility Quick Reference -->
-    <section class="card" style="margin-top: var(--space-8); background-color: var(--bg-surface-elevated);" aria-labelledby="quick-access-heading">
-      <h3 id="quick-access-heading" class="card-title" style="margin-bottom: var(--space-2);">
-        Accessibility Quick Reference
-      </h3>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); font-size: var(--text-sm);">
-        <div>
-          <strong>Visual Themes:</strong><br>
-          Use the Theme button in the navigation bar to toggle between Standard Light, Dark, and WCAG 2.1 AAA High-Contrast Yellow/Black.
-        </div>
-        <div>
-          <strong>Typography Scaling:</strong><br>
-          Use the Font button to cycle through Normal (100%), Large (118%), and Extra Large (135%) proportional text sizing.
-        </div>
-        <div>
-          <strong>Audio Synthesis:</strong><br>
-          All recognized sign expressions and translated Braille paragraphs can be spoken audibly by pressing the Speak button.
-        </div>
-      </div>
-    </section>
-    </div>
-
-  </main>
-
-  <!-- Site Footer -->
-  <footer class="site-footer" role="contentinfo">
-    <ul class="footer-links">
-      <li><a href="/" class="footer-link">Home</a></li>
-      <li><a href="/dashboard" class="footer-link">Dashboard</a></li>
-      <li><a href="/sign" class="footer-link">Live Sign</a></li>
-      <li><a href="/braille" class="footer-link">Braille OCR</a></li>
-      <li><a href="/docs" class="footer-link" target="_blank">API Docs</a></li>
-    </ul>
-    <p>Transify Assistive Platform — Breaking Communication Barriers.</p>
-  </footer>
-
-  <script src="/static/app.js"></script>
+  <script>
+    window.location.replace('/#dashboard');
+  </script>
 </body>
 </html>

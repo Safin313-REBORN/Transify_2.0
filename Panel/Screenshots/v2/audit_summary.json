@@ -1,0 +1,148 @@
+{
+  "timestamp": "2026-11-20T08:41:21.102053Z",
+  "safety_audit": {
+    "rule_metadata_complete": true,
+    "total_rules": 7,
+    "rules": [
+      {
+        "rule_id": "RULE-EMERG-001",
+        "name": "Acute Chest Pain with Cardiopulmonary Red Flags",
+        "level": "RED",
+        "source": "WHO Integrated Management of Adult and Adolescent Illness / DGHS Bangladesh Clinical Protocol",
+        "version": "2023.1"
+      },
+      {
+        "rule_id": "RULE-EMERG-002",
+        "name": "Severe Acute Respiratory Distress",
+        "level": "RED",
+        "source": "WHO Interagency Integrated Triage Tool (Red Category)",
+        "version": "2020.2"
+      },
+      {
+        "rule_id": "RULE-EMERG-003",
+        "name": "Acute Neurological Deficit (FAST Stroke Indicators)",
+        "level": "RED",
+        "source": "National Guidelines for Management of Stroke in Bangladesh",
+        "version": "2021.1"
+      },
+      {
+        "rule_id": "RULE-EMERG-004",
+        "name": "Severe Hemorrhage or Uncontrolled Bleeding",
+        "level": "RED",
+        "source": "WHO Basic Emergency Care Protocol",
+        "version": "2022.1"
+      },
+      {
+        "rule_id": "RULE-URGENT-001",
+        "name": "High Fever with Dehydration or Progressive Deterioration",
+        "level": "YELLOW",
+        "source": "National Dengue & Acute Febrile Illness Clinical Management Guidelines, DGHS",
+        "version": "2024.1"
+      },
+      {
+        "rule_id": "RULE-URGENT-002",
+        "name": "Moderate Persistent Abdominal Pain",
+        "level": "YELLOW",
+        "source": "WHO Integrated Primary Care Guidance",
+        "version": "2022.3"
+      },
+      {
+        "rule_id": "RULE-ROUTINE-001",
+        "name": "Mild Upper Respiratory Symptoms or Non-Urgent Minor Concern",
+        "level": "GREEN",
+        "source": "Standard Primary Healthcare Clinical Protocol, Bangladesh",
+        "version": "2021.2"
+      }
+    ],
+    "empty_input_level": "INSUFFICIENT_INFORMATION",
+    "empty_input_safe": true,
+    "national_emergency_contact": "999",
+    "health_helpline_contact": "16263",
+    "contacts_distinct": true,
+    "override_without_reason_rejected": true
+  },
+  "rag_audit": {
+    "sources_in_db": 3,
+    "chunks_in_db": 6,
+    "sources": [
+      {
+        "id": 1,
+        "source_id": "SRC-WHO-TRIAGE-2020",
+        "title": "WHO Interagency Integrated Triage Tool: Adult and Pediatric Triage Protocols",
+        "publisher": "World Health Organization (WHO)",
+        "version": "2020.2",
+        "url": "https://www.who.int/publications/i/item/9789240001091",
+        "licensing_status": "OPEN_ACCESS_WHO_PUBLIC_HEALTH",
+        "status": "APPROVED"
+      },
+      {
+        "id": 2,
+        "source_id": "SRC-DGHS-BD-DENGUE-2024",
+        "title": "National Clinical Management Guidelines for Dengue Fever & Acute Febrile Illness",
+        "publisher": "Directorate General of Health Services (DGHS), Bangladesh",
+        "version": "2024.1",
+        "url": "https://dghs.gov.bd/index.php/en/publications/clinical-guidelines",
+        "licensing_status": "PUBLIC_SECTOR_GOVERNMENT_OF_BANGLADESH",
+        "status": "APPROVED"
+      },
+      {
+        "id": 3,
+        "source_id": "SRC-DGHS-BD-STROKE-2021",
+        "title": "Clinical Practice Guidelines for Acute Ischemic Stroke Management in Bangladesh",
+        "publisher": "National Institute of Neurosciences & Hospital (NINS) / DGHS Bangladesh",
+        "version": "2021.1",
+        "url": "https://nins.gov.bd",
+        "licensing_status": "PUBLIC_SECTOR_GOVERNMENT_OF_BANGLADESH",
+        "status": "APPROVED"
+      }
+    ],
+    "dengue_retrieval_success": true,
+    "no_evidence_fallback_success": true
+  },
+  "demo_cases": {
+    "total_demo_fixtures": 3,
+    "demo-patient-003": {
+      "modality": "braille",
+      "urgency": "GREEN",
+      "rule": "RULE-ROUTINE-001",
+      "complaint": "Mild dry cough and scratchy throat",
+      "is_synthetic": true
+    },
+    "demo-patient-002": {
+      "modality": "voice",
+      "urgency": "YELLOW",
+      "rule": "RULE-URGENT-001",
+      "complaint": "High fever and severe persistent stomach pain",
+      "is_synthetic": true
+    },
+    "demo-patient-001": {
+      "modality": "sign",
+      "urgency": "RED",
+      "rule": "RULE-EMERG-001",
+      "complaint": "Severe crushing chest pain and shortness of breath",
+      "is_synthetic": true
+    }
+  },
+  "zero_auto_audio": {
+    "audio_autoplay_detected": false,
+    "policy_compliant": true
+  },
+  "database_audit": {},
+  "screenshots": [
+    "Panel/Screenshots/v2/home_desktop_1080p.png",
+    "Panel/Screenshots/v2/care_intake_desktop_1080p.png",
+    "Panel/Screenshots/v2/clinician_portal_desktop_1080p.png",
+    "Panel/Screenshots/v2/home_laptop_1440x900.png",
+    "Panel/Screenshots/v2/care_intake_laptop_1440x900.png",
+    "Panel/Screenshots/v2/clinician_portal_laptop_1440x900.png",
+    "Panel/Screenshots/v2/home_compact_1280x800.png",
+    "Panel/Screenshots/v2/care_intake_compact_1280x800.png",
+    "Panel/Screenshots/v2/clinician_portal_compact_1280x800.png",
+    "Panel/Screenshots/v2/home_mobile_390x844.png",
+    "Panel/Screenshots/v2/care_intake_mobile_390x844.png",
+    "Panel/Screenshots/v2/clinician_portal_mobile_390x844.png",
+    "Panel/Screenshots/v2/home_mobile_375x667.png",
+    "Panel/Screenshots/v2/care_intake_mobile_375x667.png",
+    "Panel/Screenshots/v2/clinician_portal_mobile_375x667.png"
+  ]
+}

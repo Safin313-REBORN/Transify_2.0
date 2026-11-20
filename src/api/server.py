@@ -41,6 +41,7 @@ from src.database.db import (
     get_preferences,
     update_preference
 )
+from src.api.care_routes import router as care_router
 
 # Initialize FastAPI App
 app = FastAPI(
@@ -48,6 +49,9 @@ app = FastAPI(
     description="Accessible Sign Language Recognition and Braille-to-Text Translation Gateway",
     version="1.0.0"
 )
+
+# Mount Transify Care router
+app.include_router(care_router)
 
 # Enable CORS for cross-origin browser clients
 app.add_middleware(
