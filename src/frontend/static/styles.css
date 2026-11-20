@@ -1988,6 +1988,18 @@ body.planner-canvas {
   color: var(--ok-text);
 }
 
+.triage-result-card.urgency-review-required {
+  background: #EEF2FF;
+  border-color: #4F46E5;
+  color: #312E81;
+}
+
+.triage-result-card.urgency-insufficient {
+  background: #F1F5F9;
+  border-color: #64748B;
+  color: #1E293B;
+}
+
 .triage-header-row {
   display: flex;
   align-items: center;
@@ -2020,6 +2032,16 @@ body.planner-canvas {
 
 .urgency-green .triage-level-pill {
   background: var(--ok);
+  color: #FFFFFF;
+}
+
+.urgency-review-required .triage-level-pill {
+  background: #4F46E5;
+  color: #FFFFFF;
+}
+
+.urgency-insufficient .triage-level-pill {
+  background: #64748B;
   color: #FFFFFF;
 }
 

@@ -1,8 +1,14 @@
 """
-Transify Care Clinical RAG (Retrieval-Augmented Generation) & Evidence Engine.
-Provides modular, provenance-grounded clinical knowledge retrieval from approved
-public health guidelines (WHO Interagency Triage, Bangladesh DGHS Protocols).
-Includes strict citation fidelity and no-evidence fallback safeguards.
+Transify Care Clinical Evidence Lookup Prototype (Keyword-Based).
+Provides modular, keyword-indexed clinical knowledge passage retrieval from public health reference
+guidelines (WHO Interagency Integrated Triage Tool adaptation, Bangladesh DGHS Dengue Management Guidelines).
+
+CRITICAL NOTICE:
+- This component is a preliminary keyword-based lookup prototype, NOT an autonomous semantic vector RAG
+  or generative LLM answer generator.
+- All guideline passages are cataloged as 'PENDING_REVIEW' until formally validated by an institutional medical review board.
+- Passages must not be claimed as fully approved or clinical-grade without certified physician sign-off.
+- The WHO IITT protocol is facility-based; its remote triage intake adaptation is an unvalidated prototype.
 """
 
 import hashlib
@@ -14,20 +20,20 @@ from src.care.db_care import get_connection, log_care_audit
 DEFAULT_CLINICAL_SOURCES = [
     {
         "source_id": "SRC-WHO-TRIAGE-2020",
-        "title": "WHO Interagency Integrated Triage Tool: Adult and Pediatric Triage Protocols",
+        "title": "WHO Interagency Integrated Triage Tool: Adult and Pediatric Triage Protocols (Facility Adaptation Prototype)",
         "publisher": "World Health Organization (WHO)",
         "url": "https://www.who.int/publications/i/item/9789240001091",
-        "publication_date": "2020-04-15",
-        "version": "2020.2",
-        "document_type": "CLINICAL_TRIAGE_GUIDELINE",
+        "publication_date": "2020",
+        "version": "2020 (Prototype Adaptation)",
+        "document_type": "CLINICAL_TRIAGE_GUIDELINE_PROTOTYPE",
         "licensing_status": "OPEN_ACCESS_WHO_PUBLIC_HEALTH",
-        "status": "APPROVED",
-        "reviewer": "Transify Care Medical Safety Board",
+        "status": "PENDING_REVIEW",
+        "reviewer": "Pending Formal Review by Qualified Healthcare Authority",
         "chunks": [
             {
                 "section_heading": "Red Category: Immediate Resuscitation & Emergency Criteria",
                 "keywords": ["chest pain", "shortness of breath", "unresponsive", "cyanosis", "severe hemorrhage", "stridor"],
-                "content": "Patients presenting with obstructed airway, severe respiratory distress (respiratory rate < 10 or > 30 /min, central cyanosis), uncontrolled massive external hemorrhage, or acute chest pain with radiation or hemodynamic instability require immediate emergency department resuscitation (Red category). Transport or escalation must not be delayed for routine clerical intake."
+                "content": "Patients presenting with obstructed airway, severe respiratory distress (respiratory rate < 10 or > 30 /min, central cyanosis), uncontrolled massive external hemorrhage, or acute chest pain with radiation or hemodynamic instability require immediate emergency department resuscitation (Red category). Transport or escalation must not be delayed for routine clerical intake. (Facility protocol adaptation; requires emergency physician confirmation)."
             },
             {
                 "section_heading": "Yellow Category: Urgent Professional Review",
@@ -37,21 +43,21 @@ DEFAULT_CLINICAL_SOURCES = [
             {
                 "section_heading": "Green Category: Routine Ambulatory / Delay Tolerable",
                 "keywords": ["mild cough", "minor rash", "sore throat", "chronic stable symptom", "runny nose"],
-                "content": "Patients with normal vital signs, mild symptoms of short duration, minor localized rashes without systemic fever, or chronic stable conditions may safely await scheduled outpatient assessment or primary care teleconsultation (Green category)."
+                "content": "Patients with normal vital signs, mild symptoms of short duration, minor localized rashes without systemic fever, or chronic stable conditions may safely await scheduled outpatient assessment or primary care teleconsultation (Green category). (Note: Vital signs were not measured by this tool; if shortness of breath develops, seek immediate care)."
             }
         ]
     },
     {
-        "source_id": "SRC-DGHS-BD-DENGUE-2024",
-        "title": "National Clinical Management Guidelines for Dengue Fever & Acute Febrile Illness",
-        "publisher": "Directorate General of Health Services (DGHS), Bangladesh",
+        "source_id": "SRC-DGHS-BD-DENGUE-5TH-ED",
+        "title": "National Guidelines for Clinical Management of Dengue Syndrome in Bangladesh (5th Edition)",
+        "publisher": "Disease Control Unit, Directorate General of Health Services (DGHS), Ministry of Health & Family Welfare, Government of Bangladesh",
         "url": "https://dghs.gov.bd/index.php/en/publications/clinical-guidelines",
-        "publication_date": "2024-05-10",
-        "version": "2024.1",
-        "document_type": "NATIONAL_CLINICAL_PROTOCOL",
+        "publication_date": "2023",
+        "version": "5th Edition (2023)",
+        "document_type": "NATIONAL_CLINICAL_PROTOCOL_PROTOTYPE",
         "licensing_status": "PUBLIC_SECTOR_GOVERNMENT_OF_BANGLADESH",
-        "status": "APPROVED",
-        "reviewer": "National Clinical Review Committee, Bangladesh",
+        "status": "PENDING_REVIEW",
+        "reviewer": "Pending Formal Review by Qualified Healthcare Authority",
         "chunks": [
             {
                 "section_heading": "Dengue Warning Signs for Urgent Inpatient Referral",
@@ -70,12 +76,12 @@ DEFAULT_CLINICAL_SOURCES = [
         "title": "Clinical Practice Guidelines for Acute Ischemic Stroke Management in Bangladesh",
         "publisher": "National Institute of Neurosciences & Hospital (NINS) / DGHS Bangladesh",
         "url": "https://nins.gov.bd",
-        "publication_date": "2021-08-20",
-        "version": "2021.1",
-        "document_type": "SPECIALTY_CLINICAL_GUIDELINE",
+        "publication_date": "2021",
+        "version": "2021",
+        "document_type": "SPECIALTY_CLINICAL_GUIDELINE_PROTOTYPE",
         "licensing_status": "PUBLIC_SECTOR_GOVERNMENT_OF_BANGLADESH",
-        "status": "APPROVED",
-        "reviewer": "NINS Stroke Working Group",
+        "status": "PENDING_REVIEW",
+        "reviewer": "Pending Formal Review by Qualified Healthcare Authority",
         "chunks": [
             {
                 "section_heading": "FAST Protocol for Acute Neurological Deficits",
@@ -87,20 +93,29 @@ DEFAULT_CLINICAL_SOURCES = [
 ]
 
 
-def seed_clinical_sources_if_empty():
-    """Seeds the clinical source catalog and chunk index with approved public guidelines."""
+def seed_clinical_sources_if_empty(force_reseed: bool = False):
+    """
+    Seeds the clinical source catalog and chunk index with reference guidelines.
+    All entries are flagged as 'PENDING_REVIEW' to reflect prototype status.
+    """
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) as count FROM care_clinical_sources;")
-    row = cursor.fetchone()
-    if row and row["count"] > 0:
-        conn.close()
-        return
+
+    if not force_reseed:
+        cursor.execute("SELECT COUNT(*) as count FROM care_clinical_sources;")
+        row = cursor.fetchone()
+        if row and row["count"] > 0:
+            conn.close()
+            return
+
+    # Clear and re-populate
+    cursor.execute("DELETE FROM care_clinical_chunks;")
+    cursor.execute("DELETE FROM care_clinical_sources;")
 
     for src in DEFAULT_CLINICAL_SOURCES:
         checksum = hashlib.sha256(json.dumps(src, sort_keys=True).encode("utf-8")).hexdigest()
         cursor.execute("""
-        INSERT OR IGNORE INTO care_clinical_sources (
+        INSERT INTO care_clinical_sources (
             source_id, title, publisher, url, publication_date, version,
             document_type, licensing_status, checksum, status, reviewer, chunks_count, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'));
@@ -125,8 +140,8 @@ def seed_clinical_sources_if_empty():
 
 def search_clinical_evidence(query: str, limit: int = 3) -> Dict[str, Any]:
     """
-    Performs hybrid semantic/keyword retrieval over the approved clinical corpus.
-    Returns matched evidence passages with verified provenance or a structured no-evidence fallback.
+    Performs keyword passage lookup over cataloged clinical guideline references.
+    Returns matched evidence passages with explicit provenance and prototype verification status.
     """
     seed_clinical_sources_if_empty()
     conn = get_connection()
@@ -136,18 +151,19 @@ def search_clinical_evidence(query: str, limit: int = 3) -> Dict[str, Any]:
     if not tokens:
         conn.close()
         return {
+            "component": "Clinical Evidence Lookup Prototype (Keyword-Based)",
             "evidence_found": False,
             "citations": [],
-            "message": "Insufficient query terms provided to retrieve clinical evidence."
+            "message": "Insufficient query terms provided to retrieve clinical evidence passages."
         }
 
-    # Query chunks joined with source metadata
+    # Query chunks joined with source metadata (matching PENDING_REVIEW or APPROVED)
     cursor.execute("""
     SELECT c.id, c.source_id, c.section_heading, c.content, c.keywords,
-           s.title as source_title, s.publisher, s.url, s.version, s.status
+           s.title as source_title, s.publisher, s.url, s.version, s.status, s.reviewer
     FROM care_clinical_chunks c
     JOIN care_clinical_sources s ON c.source_id = s.source_id
-    WHERE s.status = 'APPROVED';
+    WHERE s.status IN ('APPROVED', 'PENDING_REVIEW', 'UNVERIFIED');
     """)
     all_chunks = cursor.fetchall()
     conn.close()
@@ -179,6 +195,8 @@ def search_clinical_evidence(query: str, limit: int = 3) -> Dict[str, Any]:
                 "publisher": row["publisher"],
                 "url": row["url"],
                 "version": row["version"],
+                "verification_status": row["status"],
+                "reviewer": row["reviewer"],
                 "section_heading": row["section_heading"],
                 "excerpt": row["content"],
                 "matched_terms": list(set(matched_tokens))
@@ -189,13 +207,15 @@ def search_clinical_evidence(query: str, limit: int = 3) -> Dict[str, Any]:
 
     if not top_results:
         return {
+            "component": "Clinical Evidence Lookup Prototype (Keyword-Based)",
             "evidence_found": False,
             "citations": [],
-            "message": "Sufficient evidence was not found in the approved clinical guideline library for the reported symptoms. Clinician evaluation is required."
+            "message": "Sufficient evidence passages were not found in reference clinical guidelines for the reported symptoms. Clinician evaluation is required."
         }
 
     return {
+        "component": "Clinical Evidence Lookup Prototype (Keyword-Based)",
         "evidence_found": True,
         "citations": top_results,
-        "message": f"Retrieved {len(top_results)} verified clinical guideline passages."
+        "message": f"Retrieved {len(top_results)} reference guideline passage(s) via keyword lookup prototype. Requires human clinician verification."
     }

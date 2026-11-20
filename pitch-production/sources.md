@@ -7,40 +7,43 @@
 ## 1. Primary Empirical Evidence & Epidemiological Context
 
 1. **Healthcare Accessibility for Persons with Disabilities in Bangladesh**:
-   - **Citation**: Hosain, G. M. M., Atkinson, D., & Underwood, P. (2022). *Healthcare seeking behavior and access barriers among persons with disabilities in rural and urban Bangladesh: A cross-sectional facility and community-based assessment*. **BMC Health Services Research**, 22(1), 853.
+   - **Citation**: Nawshin Torsha, A., Rahman, M., Hossain, M. S., & Ahmed, S. (2022). Disability-friendly healthcare at public health facilities in Bangladesh: a mixed-method study to explore the existing situation. *BMC Health Services Research*, 22, Article 1178.
    - **DOI**: [10.1186/s12913-022-08538-6](https://doi.org/10.1186/s12913-022-08538-6)
-   - **Key Finding Used**: 59.1% of patients with disabilities across 150 primary and secondary healthcare facilities reported significant communication barriers and inability of attending medical staff to comprehend their expressed symptoms.
-   - **Sample**: 300 disabled patients across 16 administrative districts in Bangladesh.
+   - **Key Finding Used**: 59.1% of survey respondents dissatisfied with access to healthcare information and communication at public healthcare facilities.
+   - **Context**: Explores existing physical, communication, and procedural accessibility gaps across health facilities in Bangladesh.
 
 2. **Global Disability & Health Equity**:
    - **Citation**: World Health Organization. (2022). *Global report on health equity for persons with disabilities*. World Health Organization. Geneva, Switzerland. ISBN: 978-92-4-006360-0.
-   - **Key Finding Used**: Over 1.3 billion individuals (16% of global population) experience significant disability, facing up to 3-fold higher mortality risk due to inaccessible primary triage and delayed emergency intervention.
+   - **Key Finding Used**: Over 1.3 billion individuals (16% of global population) experience significant disability, facing higher mortality risks and systematic barriers in primary healthcare triage.
 
 ---
 
-## 2. Seeded Clinical Guidelines (Clinical RAG Engine)
+## 2. Seeded Clinical Guidelines (Clinical Evidence Lookup Prototype)
 
-The Transify Care Clinical RAG Knowledge Base (`src/care/clinical_rag.py`) is indexed from official, authoritative public health protocols. All excerpts are strictly attributed with publisher, version, and official publication URLs:
+The Transify Care Clinical Evidence Lookup module (`src/care/clinical_rag.py`) operates as a keyword-based retrieval prototype over seeded excerpts. Sources are cataloged with status `PENDING_REVIEW` pending formal validation by qualified healthcare authorities:
 
-1. **WHO Integrated Primary Care & Emergency Triage Protocol**:
+1. **WHO Integrated Primary Care & Emergency Triage Protocol (Prototype Remote Adaptation)**:
    - **Title**: Integrated Management of Adolescent and Adult Illness (IMAI): Emergency and First-Line Primary Care Triage Protocols
    - **Publisher**: World Health Organization (WHO), Department of Maternal, Newborn, Child and Adolescent Health
    - **Edition/Version**: 2020.2 Guidelines
-   - **Scope**: Deterministic detection of red-flag symptoms: sudden crushing substernal chest pressure, hemiparesis, sudden respiratory failure, anaphylaxis, and acute altered consciousness.
+   - **Scope**: Facility-based primary triage protocol adapted as a triage research prototype. Deterministic detection of red-flag symptoms: sudden crushing substernal chest pressure, hemiparesis, sudden respiratory failure, anaphylaxis, and acute altered consciousness.
+   - **Review Status**: PENDING_REVIEW (Remote triage adaptation requires local clinical validation before real-world deployment)
    - **URL**: [https://www.who.int/publications/i/item/9789241548847](https://www.who.int/publications/i/item/9789241548847)
 
 2. **DGHS Bangladesh National Dengue Clinical Management Protocol**:
-   - **Title**: National Guidelines for Clinical Management of Dengue Syndrome in Bangladesh (5th Edition)
+   - **Title**: National Guidelines for Clinical Management of Dengue Syndrome in Bangladesh (5th Edition, 2023)
    - **Publisher**: Directorate General of Health Services (DGHS), Ministry of Health and Family Welfare, Government of the People's Republic of Bangladesh
-   - **Edition/Version**: 2024.1 National Protocol
-   - **Scope**: Warning signs for severe febrile illness: high fever (103°F+) accompanied by persistent vomiting (>24 hours), inability to tolerate oral fluids, severe abdominal tenderness, and mucosal bleeding. Mandates immediate same-day physical evaluation and hematocrit monitoring.
+   - **Edition/Version**: 5th Edition (2023)
+   - **Scope**: Warning signs for severe febrile illness: high fever (103°F+) accompanied by persistent vomiting (>24 hours), inability to tolerate oral fluids, severe abdominal tenderness, and mucosal bleeding. Advises physical evaluation and hematocrit monitoring.
+   - **Review Status**: PENDING_REVIEW
    - **URL**: [https://dghs.gov.bd/index.php/en/dengue-guidelines](https://dghs.gov.bd/index.php/en/dengue-guidelines)
 
 3. **NINS Acute Stroke Emergency Protocol**:
    - **Title**: National Clinical Protocol for Acute Ischemic Stroke and Hemorrhagic Triage
    - **Publisher**: National Institute of Neurosciences & Hospital (NINS), Dhaka, Bangladesh
    - **Edition/Version**: 2021.1 Clinical Guidance
-   - **Scope**: Immediate emergency recognition of sudden focal neurological deficits: facial droop, unilateral arm/leg weakness, slurred speech, and acute ataxia within the 4.5-hour thrombolysis window.
+   - **Scope**: Emergency recognition of sudden focal neurological deficits: facial droop, unilateral arm/leg weakness, slurred speech, and acute ataxia within the 4.5-hour thrombolysis window.
+   - **Review Status**: PENDING_REVIEW
    - **URL**: [https://nins.gov.bd/clinical-guidelines](https://nins.gov.bd/clinical-guidelines)
 
 ---

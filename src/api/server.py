@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 # Load environment configuration (.env)
 load_dotenv()
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, status
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, Request, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
@@ -39,7 +39,17 @@ from src.database.db import (
     clear_history,
     record_feedback,
     get_preferences,
-    update_preference
+    update_preference,
+    create_user,
+    authenticate_user,
+    create_session,
+    get_user_by_session,
+    revoke_session,
+    get_user_by_email,
+    is_production,
+    is_login_rate_limited,
+    record_failed_login,
+    clear_failed_logins
 )
 from src.api.care_routes import router as care_router
 
@@ -115,6 +125,20 @@ class FeedbackRequest(BaseModel):
     comments: Optional[str] = Field(None, description="Optional qualitative feedback")
 
 
+class RegisterRequest(BaseModel):
+    name: str = Field(..., min_length=2, description="User full name")
+    email: str = Field(..., description="User email address")
+    password: str = Field(..., min_length=15, description="Account password (min 15 chars)")
+    role: Optional[str] = Field(default="user", description="Account role: user, patient, clinician")
+    consent_terms: bool = Field(..., description="Consent to Terms & Privacy")
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(..., description="User email address")
+    password: str = Field(..., description="Account password")
+    remember_me: Optional[bool] = Field(default=False, description="Persist session for 30 days")
+
+
 class MCPSignResolveRequest(BaseModel):
     candidate_label: str = Field(..., description="Top candidate label from custom model")
     confidence: float = Field(..., description="Raw model confidence score (typically < 0.98)")
@@ -141,6 +165,124 @@ def health_check():
             "tts": "ready"
         }
     }
+
+
+# --- Authentication & Session Endpoints ---
+
+@app.post("/api/auth/register", tags=["Authentication"])
+def register_user(req: RegisterRequest, response: Response, request: Request):
+    """Registers a new user account with secure password hashing and issues a session cookie."""
+    client_ip = request.client.host if request.client else "unknown"
+    if is_login_rate_limited(f"ip:{client_ip}") or (req.email and is_login_rate_limited(f"email:{req.email.lower()}")):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many registration attempts. Please wait before trying again."
+        )
+
+    try:
+        user = create_user(
+            name=req.name,
+            email=req.email,
+            password=req.password,
+            role=req.role or "user",
+            consent_terms=req.consent_terms
+        )
+    except ValueError as ex:
+        raise HTTPException(status_code=400, detail=str(ex))
+
+    token = create_session(user["id"], duration_days=30)
+    response.set_cookie(
+        key="transify_session",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        secure=is_production(),
+        path="/"
+    )
+
+    return {
+        "status": "success",
+        "message": "User registered successfully.",
+        "user": {
+            "id": user["id"],
+            "name": user["name"],
+            "email": user["email"],
+            "role": user["role"]
+        }
+    }
+
+
+@app.post("/api/auth/login", tags=["Authentication"])
+def login_user(req: LoginRequest, response: Response, request: Request):
+    """Authenticates user credentials and issues an HttpOnly session cookie."""
+    client_ip = request.client.host if request.client else "unknown"
+    if is_login_rate_limited(f"ip:{client_ip}") or (req.email and is_login_rate_limited(f"email:{req.email.lower()}")):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many failed login attempts. Please wait before trying again."
+        )
+
+    user = authenticate_user(req.email, req.password)
+    if not user:
+        record_failed_login(f"ip:{client_ip}")
+        if req.email:
+            record_failed_login(f"email:{req.email.lower()}")
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+    clear_failed_logins(f"ip:{client_ip}")
+    clear_failed_logins(f"email:{req.email.lower()}")
+
+    duration = 30 if req.remember_me else 1
+    token = create_session(user["id"], duration_days=duration)
+    response.set_cookie(
+        key="transify_session",
+        value=token,
+        httponly=True,
+        samesite="lax",
+        secure=is_production(),
+        path="/"
+    )
+
+    return {
+        "status": "success",
+        "message": "Login successful.",
+        "user": {
+            "id": user["id"],
+            "name": user["name"],
+            "email": user["email"],
+            "role": user["role"]
+        }
+    }
+
+
+@app.get("/api/auth/me", tags=["Authentication"])
+def get_auth_me(request: Request):
+    """Returns the profile of the currently authenticated session or unauthenticated state."""
+    token = request.cookies.get("transify_session")
+    if not token:
+        auth_hdr = request.headers.get("Authorization") or request.headers.get("authorization")
+        if auth_hdr and auth_hdr.lower().startswith("bearer "):
+            token = auth_hdr.split(" ", 1)[1].strip()
+
+    if not token:
+        return {"authenticated": False, "user": None}
+
+    user = get_user_by_session(token)
+    if not user:
+        return {"authenticated": False, "user": None}
+
+    return {"authenticated": True, "user": user}
+
+
+@app.post("/api/auth/logout", tags=["Authentication"])
+def logout_user(response: Response, request: Request):
+    """Revokes the active session and clears the session cookie."""
+    token = request.cookies.get("transify_session")
+    if token:
+        revoke_session(token)
+    response.delete_cookie(key="transify_session", path="/")
+    return {"status": "success", "message": "Logged out successfully."}
+
 
 
 @app.get("/api/models/status", tags=["System"])

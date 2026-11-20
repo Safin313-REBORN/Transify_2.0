@@ -1,11 +1,29 @@
 /**
  * Transify Care — Client Application Controller
- * Manages Accessible Healthcare Intake Wizard, Clinical Triage,
- * Clinical RAG Citations, Clinician Queue, and Offline Sync.
+ * Manages Accessible Healthcare Intake Wizard, Deterministic Triage Display,
+ * Clinical Evidence Retrieval Prototype, Clinician Queue, and Offline Draft Capture.
+ *
+ * Security & Safety Principles:
+ * 1. Safe DOM Rendering: Zero unsafe innerHTML interpolation of user-supplied or external strings.
+ * 2. Truthful Offline Capabilities: Plaintext localStorage is explicitly treated as unencrypted prototype storage.
+ * 3. Never display successful clinical triage while offline: "Draft saved locally — no clinical assessment performed while offline."
+ * 4. Distinct safe visual presentations: RED, YELLOW, GREEN, REVIEW_REQUIRED, INSUFFICIENT_INFORMATION.
+ * 5. Server-derived patient and clinician identities; no client-controlled impersonation.
  */
 
 (function(window, document) {
   'use strict';
+
+  function escapeText(str) {
+    if (str === null || str === undefined) return '';
+    return String(str);
+  }
+
+  function clearElement(el) {
+    while (el && el.firstChild) {
+      el.removeChild(el.firstChild);
+    }
+  }
 
   const TransifyCare = {
     currentStep: 1,
@@ -121,13 +139,20 @@
       const count = drafts.length;
 
       badges.forEach(function(badge) {
+        clearElement(badge);
+        const dot = document.createElement('span');
+        dot.className = 'care-offline-dot';
+        badge.appendChild(dot);
+
+        const textSpan = document.createElement('span');
         if (navigator.onLine) {
           badge.className = 'care-offline-badge online';
-          badge.innerHTML = '<span class="care-offline-dot"></span><span>Online</span>' + (count > 0 ? ` (${count} drafts pending sync)` : '');
+          textSpan.textContent = count > 0 ? `Online (${count} drafts pending sync)` : 'Online';
         } else {
           badge.className = 'care-offline-badge offline';
-          badge.innerHTML = `<span class="care-offline-dot"></span><span>Offline Mode (${count} cached)</span>`;
+          textSpan.textContent = `Offline Mode (${count} local drafts)`;
         }
+        badge.appendChild(textSpan);
       });
     },
 
@@ -147,7 +172,7 @@
         localStorage.setItem('transify_care_drafts', JSON.stringify(drafts));
         this.updateOfflineBadge();
       } catch (e) {
-        console.error('Failed to cache draft locally', e);
+        console.error('Failed to save draft locally', e);
       }
     },
 
@@ -160,13 +185,20 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          client_id: 'client-browser-' + (localStorage.getItem('transify_auth_token') || 'anon'),
+          client_id: 'browser-client-' + window.location.host,
           drafts: drafts
         })
       })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          console.warn('[Care Sync] Offline draft synchronization deferred: user authentication required.');
+          return null;
+        }
+        if (!res.ok) throw new Error('Offline sync rejected by server.');
+        return res.json();
+      })
       .then(data => {
-        if (data.success) {
+        if (data && data.success) {
           localStorage.removeItem('transify_care_drafts');
           self.updateOfflineBadge();
           self.loadClinicianQueue();
@@ -274,8 +306,8 @@
       const allergies = document.getElementById('care-allergies-meds')?.value || '';
       const rawInput = document.getElementById('care-raw-input')?.value || '';
 
+      // Patient identity is derived strictly by server session; no client-controlled ID is sent
       const payload = {
-        patient_id: 'patient-' + (localStorage.getItem('transify_auth_user') ? 'auth' : 'guest-' + Math.floor(Math.random() * 900 + 100)),
         input_modality: modality,
         raw_input: rawInput,
         confirmed_text: confirmed,
@@ -311,7 +343,10 @@
         body: JSON.stringify(payload)
       })
       .then(res => {
-        if (!res.ok) throw new Error('Submission failed');
+        if (res.status === 401) {
+          throw new Error('Authentication required. Please sign in to submit a healthcare intake.');
+        }
+        if (!res.ok) throw new Error('Submission failed: ' + res.statusText);
         return res.json();
       })
       .then(data => {
@@ -330,7 +365,12 @@
           submitBtn.disabled = false;
           submitBtn.textContent = 'Submit Healthcare Intake';
         }
-        alert('Network error submitting intake. Saving locally for offline sync.');
+        if (err.message && err.message.includes('Authentication required')) {
+          alert(err.message);
+          window.location.href = '/login';
+          return;
+        }
+        alert('Network or server error submitting intake. Saving locally for offline sync.');
         self.saveDraftLocally(payload);
         self.displayOfflineTriageResult(payload);
         self.goToStep(5);
@@ -341,91 +381,208 @@
       const container = document.getElementById('triage-assessment-output');
       if (!container) return;
 
-      const level = data.urgency_level || 'GREEN';
-      const isRed = level === 'RED';
-      const isYellow = level === 'YELLOW';
-      const cssClass = isRed ? 'urgency-red' : (isYellow ? 'urgency-yellow' : 'urgency-green');
+      clearElement(container);
 
-      let emergencyHtml = '';
-      if (isRed && data.emergency_escalation) {
-        emergencyHtml = `
-          <div class="triage-emergency-callout">
-            <div style="font-weight: 800; color: var(--danger); font-size: var(--text-base);">
-              ⚠️ EMERGENCY ESCALATION REQUIRED
-            </div>
-            <p style="font-size: var(--text-xs); color: var(--text-primary); margin: 4px 0;">
-              ${data.emergency_escalation.action}
-            </p>
-            <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
-              <a href="tel:999" class="emergency-phone-btn">
-                📞 Call National Emergency (999)
-              </a>
-              <a href="tel:16263" class="emergency-phone-btn" style="background: var(--ink);">
-                📞 Call Health Helpline (16263)
-              </a>
-            </div>
-          </div>
-        `;
+      const level = data.urgency_level || 'REVIEW_REQUIRED';
+      let cssClass = 'urgency-review-required';
+      let pillText = `URGENCY: ${level}`;
+
+      if (level === 'RED') {
+        cssClass = 'urgency-red';
+        pillText = 'URGENCY: RED (EMERGENCY)';
+      } else if (level === 'YELLOW') {
+        cssClass = 'urgency-yellow';
+        pillText = 'URGENCY: YELLOW (URGENT)';
+      } else if (level === 'GREEN') {
+        cssClass = 'urgency-green';
+        pillText = 'URGENCY: GREEN (ROUTINE)';
+      } else if (level === 'INSUFFICIENT_INFORMATION') {
+        cssClass = 'urgency-insufficient';
+        pillText = 'INSUFFICIENT INFORMATION';
+      } else {
+        cssClass = 'urgency-review-required';
+        pillText = 'CLINICAL REVIEW REQUIRED';
       }
 
-      let citationsHtml = '';
+      const card = document.createElement('div');
+      card.className = `triage-result-card ${cssClass}`;
+
+      // Header row
+      const headerRow = document.createElement('div');
+      headerRow.className = 'triage-header-row';
+
+      const leftDiv = document.createElement('div');
+      const pill = document.createElement('span');
+      pill.className = 'triage-level-pill';
+      pill.textContent = pillText;
+      leftDiv.appendChild(pill);
+
+      const intakeNum = document.createElement('span');
+      intakeNum.style.fontSize = 'var(--text-xs)';
+      intakeNum.style.color = 'var(--text-muted)';
+      intakeNum.style.marginLeft = '8px';
+      intakeNum.textContent = `Intake #${data.intake_id || 'PENDING'}`;
+      leftDiv.appendChild(intakeNum);
+      headerRow.appendChild(leftDiv);
+
+      const ruleSpan = document.createElement('span');
+      ruleSpan.style.fontSize = 'var(--text-xs)';
+      ruleSpan.style.fontWeight = '700';
+      ruleSpan.textContent = `Rule: ${data.rule_id || 'GENERAL'}`;
+      headerRow.appendChild(ruleSpan);
+
+      card.appendChild(headerRow);
+
+      // Explanation
+      const explP = document.createElement('p');
+      explP.id = 'care-triage-explanation-text';
+      explP.style.fontSize = 'var(--text-sm)';
+      explP.style.fontWeight = '600';
+      explP.style.lineHeight = '1.5';
+      explP.style.margin = '8px 0';
+      explP.textContent = data.triage_explanation || 'Assessment completed and queued for clinician review.';
+      card.appendChild(explP);
+
+      // Emergency escalation callout
+      if (level === 'RED' && data.emergency_escalation) {
+        const emergDiv = document.createElement('div');
+        emergDiv.className = 'triage-emergency-callout';
+
+        const emergTitle = document.createElement('div');
+        emergTitle.style.fontWeight = '800';
+        emergTitle.style.color = 'var(--danger)';
+        emergTitle.style.fontSize = 'var(--text-base)';
+        emergTitle.textContent = '⚠️ EMERGENCY ESCALATION REQUIRED';
+        emergDiv.appendChild(emergTitle);
+
+        const emergAction = document.createElement('p');
+        emergAction.style.fontSize = 'var(--text-xs)';
+        emergAction.style.color = 'var(--text-primary)';
+        emergAction.style.margin = '4px 0';
+        emergAction.textContent = data.emergency_escalation.action;
+        emergDiv.appendChild(emergAction);
+
+        const btnRow = document.createElement('div');
+        btnRow.style.display = 'flex';
+        btnRow.style.gap = '8px';
+        btnRow.style.marginTop = '8px';
+        btnRow.style.flexWrap = 'wrap';
+
+        const tel999 = document.createElement('a');
+        tel999.href = 'tel:999';
+        tel999.className = 'emergency-phone-btn';
+        tel999.textContent = '📞 Call National Emergency (999)';
+        btnRow.appendChild(tel999);
+
+        const tel16263 = document.createElement('a');
+        tel16263.href = 'tel:16263';
+        tel16263.className = 'emergency-phone-btn';
+        tel16263.style.background = 'var(--ink)';
+        tel16263.textContent = '📞 Call Health Helpline (16263)';
+        btnRow.appendChild(tel16263);
+
+        emergDiv.appendChild(btnRow);
+        card.appendChild(emergDiv);
+      }
+
+      // Evidence citations
       if (data.evidence_citations && data.evidence_citations.length > 0) {
-        citationsHtml = `
-          <div class="clinical-evidence-box">
-            <h4 style="font-family: var(--font-display); font-size: var(--text-xs); font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
-              Evidence-Grounded Clinical Guidelines (RAG)
-            </h4>
-            ${data.evidence_citations.map(c => `
-              <div class="evidence-source-item">
-                <div class="evidence-source-title">${c.source_title} (${c.publisher})</div>
-                <div class="evidence-source-excerpt">"${c.excerpt}"</div>
-                ${c.url ? `<a href="${c.url}" target="_blank" rel="noopener noreferrer" class="evidence-source-link">View Official Guideline Protocol ↗</a>` : ''}
-              </div>
-            `).join('')}
-          </div>
-        `;
+        const citeBox = document.createElement('div');
+        citeBox.className = 'clinical-evidence-box';
+
+        const citeH4 = document.createElement('h4');
+        citeH4.style.fontFamily = 'var(--font-display)';
+        citeH4.style.fontSize = 'var(--text-xs)';
+        citeH4.style.fontWeight = '800';
+        citeH4.style.textTransform = 'uppercase';
+        citeH4.style.color = 'var(--text-muted)';
+        citeH4.style.letterSpacing = '0.05em';
+        citeH4.textContent = 'Reference Clinical Evidence Guidelines (Prototype Lookup)';
+        citeBox.appendChild(citeH4);
+
+        data.evidence_citations.forEach(c => {
+          const item = document.createElement('div');
+          item.className = 'evidence-source-item';
+
+          const title = document.createElement('div');
+          title.className = 'evidence-source-title';
+          title.textContent = `${c.source_title} (${c.publisher})`;
+          item.appendChild(title);
+
+          const excerpt = document.createElement('div');
+          excerpt.className = 'evidence-source-excerpt';
+          excerpt.textContent = `"${c.excerpt}"`;
+          item.appendChild(excerpt);
+
+          if (c.url && (c.url.startsWith('http://') || c.url.startsWith('https://'))) {
+            const link = document.createElement('a');
+            link.href = c.url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.className = 'evidence-source-link';
+            link.textContent = 'View Official Guideline Protocol ↗';
+            item.appendChild(link);
+          }
+
+          citeBox.appendChild(item);
+        });
+
+        card.appendChild(citeBox);
       }
 
-      container.innerHTML = `
-        <div class="triage-result-card ${cssClass}">
-          <div class="triage-header-row">
-            <div>
-              <span class="triage-level-pill">Urgency Level: ${level}</span>
-              <span style="font-size: var(--text-xs); color: var(--text-muted); margin-left: 8px;">Intake #${data.intake_id || 'PENDING'}</span>
-            </div>
-            <span style="font-size: var(--text-xs); font-weight: 700;">Deterministic Rule: ${data.rule_id || 'GENERAL'}</span>
-          </div>
-          <p style="font-size: var(--text-sm); font-weight: 600; line-height: 1.5; margin: 8px 0;" id="care-triage-explanation-text">
-            ${data.triage_explanation || 'Assessment completed and queued for clinician review.'}
-          </p>
-          ${emergencyHtml}
-          ${citationsHtml}
-        </div>
-      `;
+      container.appendChild(card);
     },
 
     displayOfflineTriageResult: function(draft) {
       const container = document.getElementById('triage-assessment-output');
       if (!container) return;
 
-      container.innerHTML = `
-        <div class="triage-result-card urgency-yellow">
-          <div class="triage-header-row">
-            <span class="triage-level-pill">OFFLINE CACHED DRAFT</span>
-            <span style="font-size: var(--text-xs); color: var(--text-muted);">Saved Locally</span>
-          </div>
-          <p style="font-size: var(--text-sm); font-weight: 600; line-height: 1.5; margin: 8px 0;">
-            Your health intake has been encrypted and saved securely to this device. As soon as your internet connection restores, Transify Care will automatically synchronize it with the clinician queue.
-          </p>
-          <div style="font-size: var(--text-xs); color: var(--text-2);">
-            Chief Concern: <strong>${draft.chief_complaint}</strong> (${draft.input_modality.toUpperCase()})
-          </div>
-        </div>
-      `;
+      clearElement(container);
+
+      const card = document.createElement('div');
+      card.className = 'triage-result-card urgency-insufficient';
+
+      const header = document.createElement('div');
+      header.className = 'triage-header-row';
+
+      const pill = document.createElement('span');
+      pill.className = 'triage-level-pill';
+      pill.textContent = 'OFFLINE DRAFT — UNASSESSED';
+      header.appendChild(pill);
+
+      const label = document.createElement('span');
+      label.style.fontSize = 'var(--text-xs)';
+      label.style.color = 'var(--text-muted)';
+      label.textContent = 'Saved Locally';
+      header.appendChild(label);
+      card.appendChild(header);
+
+      const msg = document.createElement('p');
+      msg.style.fontSize = 'var(--text-sm)';
+      msg.style.fontWeight = '600';
+      msg.style.lineHeight = '1.5';
+      msg.style.margin = '8px 0';
+      msg.textContent = 'Draft saved locally — no clinical assessment performed while offline.';
+      card.appendChild(msg);
+
+      const subMsg = document.createElement('p');
+      subMsg.style.fontSize = 'var(--text-xs)';
+      subMsg.style.color = 'var(--text-muted)';
+      subMsg.style.margin = '4px 0';
+      subMsg.textContent = 'Notice: Transify Care requires an active, authenticated connection to perform deterministic triage and retrieve evidence. Do not store sensitive personal health records unencrypted on shared devices.';
+      card.appendChild(subMsg);
+
+      const concern = document.createElement('div');
+      concern.style.fontSize = 'var(--text-xs)';
+      concern.style.color = 'var(--text-2)';
+      concern.textContent = `Chief Concern: ${draft.chief_complaint} (${draft.input_modality.toUpperCase()})`;
+      card.appendChild(concern);
+
+      container.appendChild(card);
     },
 
     speakTriageAssessment: function() {
-      // Strict Zero Auto-Audio: Only runs when the user explicitly taps "Listen to Assessment"
+      // Strict Zero Auto-Audio: Only runs when user explicitly taps "Listen to Assessment"
       const text = document.getElementById('care-triage-explanation-text')?.textContent;
       if (!text) {
         alert('No assessment text available to synthesize.');
@@ -457,40 +614,119 @@
       if (!tbody) return;
 
       let url = '/api/care/intakes?limit=50';
-      if (filterStatus) url += `&status=${filterStatus}`;
+      if (filterStatus) url += `&status=${encodeURIComponent(filterStatus)}`;
 
       fetch(url)
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          clearElement(tbody);
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 6;
+          td.style.textAlign = 'center';
+          td.style.padding = '16px';
+          td.style.color = 'var(--text-muted)';
+          td.textContent = 'Please sign in to view the clinical review queue.';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+          return null;
+        }
+        if (!res.ok) throw new Error('Failed to load queue.');
+        return res.json();
+      })
       .then(data => {
+        if (!data) return;
+        clearElement(tbody);
         const records = data.records || [];
         if (records.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">No intakes currently pending review.</td></tr>`;
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 6;
+          td.style.textAlign = 'center';
+          td.style.padding = '24px';
+          td.style.color = 'var(--text-muted)';
+          td.textContent = 'No intakes currently in queue.';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
           return;
         }
 
-        tbody.innerHTML = records.map(r => {
-          const badgeClass = r.urgency_level === 'RED' ? 'urgency-red' : (r.urgency_level === 'YELLOW' ? 'urgency-yellow' : 'urgency-green');
-          return `
-            <tr onclick="TransifyCare.openCaseReview(${r.id})">
-              <td style="font-weight: 700;">#${r.id}</td>
-              <td>${r.patient_id}</td>
-              <td><span class="phrase-chip" style="font-size: 11px;">${r.input_modality.toUpperCase()}</span></td>
-              <td style="font-weight: 600;">${r.chief_complaint}</td>
-              <td><span class="triage-level-pill ${badgeClass}" style="font-size: 11px; padding: 2px 8px;">${r.urgency_level}</span></td>
-              <td><button type="button" class="phrase-chip" style="background: var(--violet); color: #FFF;">Review</button></td>
-            </tr>
-          `;
-        }).join('');
+        records.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          tr.addEventListener('click', () => TransifyCare.openCaseReview(r.id));
+
+          const tdId = document.createElement('td');
+          tdId.style.fontWeight = '700';
+          tdId.textContent = `#${r.id}`;
+          tr.appendChild(tdId);
+
+          const tdPatient = document.createElement('td');
+          tdPatient.textContent = r.patient_id;
+          tr.appendChild(tdPatient);
+
+          const tdMod = document.createElement('td');
+          const modSpan = document.createElement('span');
+          modSpan.className = 'phrase-chip';
+          modSpan.style.fontSize = '11px';
+          modSpan.textContent = (r.input_modality || '').toUpperCase();
+          tdMod.appendChild(modSpan);
+          tr.appendChild(tdMod);
+
+          const tdComp = document.createElement('td');
+          tdComp.style.fontWeight = '600';
+          tdComp.textContent = r.chief_complaint;
+          tr.appendChild(tdComp);
+
+          const tdUrgency = document.createElement('td');
+          const pill = document.createElement('span');
+          const badgeClass = r.urgency_level === 'RED' ? 'urgency-red' : (r.urgency_level === 'YELLOW' ? 'urgency-yellow' : (r.urgency_level === 'GREEN' ? 'urgency-green' : 'urgency-review-required'));
+          pill.className = `triage-level-pill ${badgeClass}`;
+          pill.style.fontSize = '11px';
+          pill.style.padding = '2px 8px';
+          pill.textContent = r.urgency_level;
+          tdUrgency.appendChild(pill);
+          tr.appendChild(tdUrgency);
+
+          const tdAct = document.createElement('td');
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'phrase-chip';
+          btn.style.background = 'var(--violet)';
+          btn.style.color = '#FFF';
+          btn.textContent = 'Review';
+          tdAct.appendChild(btn);
+          tr.appendChild(tdAct);
+
+          tbody.appendChild(tr);
+        });
       })
       .catch(err => {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">Failed to load clinician queue.</td></tr>`;
+        clearElement(tbody);
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 6;
+        td.style.textAlign = 'center';
+        td.style.color = 'var(--danger)';
+        td.textContent = 'Failed to load clinician queue.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
       });
     },
 
     openCaseReview: function(intakeId) {
       const self = this;
       fetch(`/api/care/intake/${intakeId}`)
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          throw new Error('Authentication required to view case details.');
+        }
+        if (res.status === 403) {
+          throw new Error('Access denied: You are not authorized to inspect this intake record.');
+        }
+        if (!res.ok) throw new Error('Failed to load case record.');
+        return res.json();
+      })
       .then(intake => {
         self.activeIntakeId = intake.id;
         const inspector = document.getElementById('clinician-case-inspector');
@@ -500,7 +736,7 @@
         inspector.scrollIntoView({ behavior: 'smooth' });
 
         document.getElementById('inspect-case-id').textContent = `#${intake.id} — ${intake.patient_id}`;
-        document.getElementById('inspect-modality').textContent = intake.input_modality.toUpperCase();
+        document.getElementById('inspect-modality').textContent = (intake.input_modality || '').toUpperCase();
         document.getElementById('inspect-complaint').textContent = intake.chief_complaint;
         document.getElementById('inspect-symptoms').textContent = intake.symptom_description;
         document.getElementById('inspect-raw').textContent = intake.raw_input || 'N/A';
@@ -508,22 +744,39 @@
         document.getElementById('inspect-ai-rule').textContent = intake.triage_rule_id || 'Standard Protocol';
         document.getElementById('inspect-ai-explanation').textContent = intake.triage_explanation;
 
-        // Populate citations
+        // Populate citations safely
         const citContainer = document.getElementById('inspect-citations-list');
         if (citContainer) {
+          clearElement(citContainer);
           const cites = intake.evidence_citations || [];
           if (cites.length) {
-            citContainer.innerHTML = cites.map(c => `
-              <div style="font-size: 11px; border-left: 2px solid var(--violet); padding-left: 8px; margin-top: 4px;">
-                <strong>${c.source_title}</strong>: "${c.excerpt}"
-              </div>
-            `).join('');
+            cites.forEach(c => {
+              const div = document.createElement('div');
+              div.style.fontSize = '11px';
+              div.style.borderLeft = '2px solid var(--violet)';
+              div.style.paddingLeft = '8px';
+              div.style.marginTop = '4px';
+
+              const strong = document.createElement('strong');
+              strong.textContent = `${c.source_title || 'Guideline'}: `;
+              div.appendChild(strong);
+
+              const quote = document.createElement('span');
+              quote.textContent = `"${c.excerpt || ''}"`;
+              div.appendChild(quote);
+
+              citContainer.appendChild(div);
+            });
           } else {
-            citContainer.innerHTML = '<span style="font-size: 11px; color: var(--text-muted);">No direct citation retrieved.</span>';
+            const noCite = document.createElement('span');
+            noCite.style.fontSize = '11px';
+            noCite.style.color = 'var(--text-muted)';
+            noCite.textContent = 'No direct citation retrieved.';
+            citContainer.appendChild(noCite);
           }
         }
       })
-      .catch(err => alert('Failed to open case details: ' + err.message));
+      .catch(err => alert(err.message));
     },
 
     submitClinicianReview: function() {
@@ -543,9 +796,8 @@
         return;
       }
 
+      // Clinician ID and name are derived strictly by the server session
       const payload = {
-        clinician_id: 'dr-current-session',
-        clinician_name: 'Dr. Reviewing Clinician',
         action: action,
         urgency_override: urgencyOverride,
         override_reason: reason || '',
@@ -559,7 +811,13 @@
         body: JSON.stringify(payload)
       })
       .then(res => {
-        if (!res.ok) throw new Error('Review failed');
+        if (res.status === 401) {
+          throw new Error('Authentication required. Please sign in as a clinician.');
+        }
+        if (res.status === 403) {
+          throw new Error('Clinician role required. Only verified clinicians can record clinical reviews.');
+        }
+        if (!res.ok) throw new Error('Review submission failed.');
         return res.json();
       })
       .then(data => {
@@ -575,38 +833,83 @@
       const container = document.getElementById('clinician-evidence-results');
       if (!container) return;
 
-      container.innerHTML = '<p style="font-size: 12px; color: var(--text-muted);">Searching approved protocols...</p>';
+      clearElement(container);
+      const loading = document.createElement('p');
+      loading.style.fontSize = '12px';
+      loading.style.color = 'var(--text-muted)';
+      loading.textContent = 'Searching cataloged guideline passages...';
+      container.appendChild(loading);
 
       fetch(`/api/care/evidence/search?q=${encodeURIComponent(query)}`)
       .then(res => res.json())
       .then(data => {
+        clearElement(container);
         const cites = data.citations || [];
         if (!cites.length) {
-          container.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">${data.message || 'No direct clinical guidelines found.'}</p>`;
+          const noResults = document.createElement('p');
+          noResults.style.fontSize = '12px';
+          noResults.style.color = 'var(--text-muted)';
+          noResults.textContent = data.message || 'No direct clinical guidelines found.';
+          container.appendChild(noResults);
           return;
         }
 
-        container.innerHTML = cites.map(c => `
-          <div style="border-left: 3px solid var(--violet); padding-left: 10px; margin-bottom: 12px;">
-            <div style="font-weight: 700; font-size: 12px;">${c.source_title} (${c.publisher})</div>
-            <div style="font-size: 12px; color: var(--text-2); margin: 2px 0;">"${c.excerpt}"</div>
-            ${c.url ? `<a href="${c.url}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: var(--violet); text-decoration: underline;">Open Guideline Protocol ↗</a>` : ''}
-          </div>
-        `).join('');
+        cites.forEach(c => {
+          const card = document.createElement('div');
+          card.style.borderLeft = '3px solid var(--violet)';
+          card.style.paddingLeft = '10px';
+          card.style.marginBottom = '12px';
+
+          const title = document.createElement('div');
+          title.style.fontWeight = '700';
+          title.style.fontSize = '12px';
+          title.textContent = `${c.source_title} (${c.publisher})`;
+          card.appendChild(title);
+
+          const excerpt = document.createElement('div');
+          excerpt.style.fontSize = '12px';
+          excerpt.style.color = 'var(--text-2)';
+          excerpt.style.margin = '2px 0';
+          excerpt.textContent = `"${c.excerpt}"`;
+          card.appendChild(excerpt);
+
+          if (c.url && (c.url.startsWith('http://') || c.url.startsWith('https://'))) {
+            const link = document.createElement('a');
+            link.href = c.url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.style.fontSize = '11px';
+            link.style.color = 'var(--violet)';
+            link.style.textDecoration = 'underline';
+            link.textContent = 'Open Guideline Protocol ↗';
+            card.appendChild(link);
+          }
+
+          container.appendChild(card);
+        });
       })
       .catch(err => {
-        container.innerHTML = '<p style="font-size: 12px; color: var(--danger);">Failed to query clinical evidence library.</p>';
+        clearElement(container);
+        const errP = document.createElement('p');
+        errP.style.fontSize = '12px';
+        errP.style.color = 'var(--danger)';
+        errP.textContent = 'Failed to query clinical evidence prototype.';
+        container.appendChild(errP);
       });
     },
 
     loadDashboardStats: function() {
       fetch('/api/care/dashboard/stats')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) return null;
+        return res.json();
+      })
       .then(stats => {
+        if (!stats) return;
         const totalEl = document.getElementById('stat-total-intakes');
         const sourcesEl = document.getElementById('stat-approved-sources');
         if (totalEl) totalEl.textContent = stats.total_intakes || '0';
-        if (sourcesEl) sourcesEl.textContent = stats.approved_clinical_sources || '3';
+        if (sourcesEl) sourcesEl.textContent = stats.clinical_sources_cataloged || '3';
       })
       .catch(e => console.log('Stats fetch optional', e));
     },
@@ -619,7 +922,7 @@
       .then(res => res.json())
       .then(data => {
         if (btn) btn.textContent = 'Reset 180s Demo Cases';
-        alert('Transify Care Demo Fixtures Initialized:\n• RED: Sign Language Acute Chest Pain\n• YELLOW: Voice STT High Fever / Dengue Warning\n• GREEN: Braille OCR Mild Cough');
+        alert('Transify Care Demonstration Fixtures Initialized:\n• RED: Sign Language Acute Chest Pain (Synthetic Case)\n• YELLOW: Voice STT High Fever / Dengue Warning (Synthetic Case)\n• GREEN: Braille OCR Mild Cough (Synthetic Case)\n\nAll demo cases are synthetic and isolated from real patient data.');
         this.loadClinicianQueue();
         this.loadDashboardStats();
         if (typeof callback === 'function') callback();

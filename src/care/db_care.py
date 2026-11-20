@@ -110,8 +110,35 @@ def init_care_db():
         actor_role TEXT NOT NULL,
         target_id TEXT,
         details TEXT,
+        prev_hash TEXT,
+        entry_hash TEXT,
         created_at TEXT NOT NULL
     );
+    """)
+
+    # Safe migration for existing care_audit_logs tables
+    cursor.execute("PRAGMA table_info(care_audit_logs);")
+    audit_cols = [r["name"] for r in cursor.fetchall()]
+    if "prev_hash" not in audit_cols:
+        cursor.execute("ALTER TABLE care_audit_logs ADD COLUMN prev_hash TEXT;")
+    if "entry_hash" not in audit_cols:
+        cursor.execute("ALTER TABLE care_audit_logs ADD COLUMN entry_hash TEXT;")
+
+    # Append-only enforcement via SQLite triggers
+    cursor.execute("""
+    CREATE TRIGGER IF NOT EXISTS prevent_care_audit_logs_update
+    BEFORE UPDATE ON care_audit_logs
+    BEGIN
+        SELECT RAISE(ABORT, 'care_audit_logs is append-only: UPDATE disallowed');
+    END;
+    """)
+
+    cursor.execute("""
+    CREATE TRIGGER IF NOT EXISTS prevent_care_audit_logs_delete
+    BEFORE DELETE ON care_audit_logs
+    BEGIN
+        SELECT RAISE(ABORT, 'care_audit_logs is append-only: DELETE disallowed');
+    END;
     """)
 
     conn.commit()
@@ -119,13 +146,28 @@ def init_care_db():
 
 
 def log_care_audit(event_type: str, actor_id: str, actor_role: str, target_id: Optional[str] = None, details: Optional[Dict[str, Any]] = None):
+    """
+    Appends an entry to the auditable event log.
+    Enforces tamper-evident cryptographic chaining (SHA-256) linked to the previous entry hash.
+    Direct SQL UPDATE and DELETE operations are rejected by SQLite database triggers.
+    Threat model note: protects against application-level modifications; host administrator with direct raw disk access could modify the SQLite file.
+    """
     conn = get_connection()
     cursor = conn.cursor()
     now_iso = datetime.now(timezone.utc).isoformat()
+
+    cursor.execute("SELECT entry_hash FROM care_audit_logs ORDER BY id DESC LIMIT 1;")
+    prev_row = cursor.fetchone()
+    prev_hash = prev_row["entry_hash"] if prev_row and prev_row["entry_hash"] else "GENESIS_AUDIT_HASH_BLOCK_0"
+
+    details_str = json.dumps(details or {}, sort_keys=True)
+    entry_payload = f"{prev_hash}:{event_type}:{actor_id}:{actor_role}:{target_id or ''}:{details_str}:{now_iso}"
+    entry_hash = hashlib.sha256(entry_payload.encode("utf-8")).hexdigest()
+
     cursor.execute("""
-    INSERT INTO care_audit_logs (event_type, actor_id, actor_role, target_id, details, created_at)
-    VALUES (?, ?, ?, ?, ?, ?);
-    """, (event_type, actor_id, actor_role, target_id, json.dumps(details or {}), now_iso))
+    INSERT INTO care_audit_logs (event_type, actor_id, actor_role, target_id, details, prev_hash, entry_hash, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+    """, (event_type, actor_id, actor_role, target_id, details_str, prev_hash, entry_hash, now_iso))
     conn.commit()
     conn.close()
 
