@@ -23,11 +23,12 @@ Healthcare intake requires the highest ethical standard of patient autonomy. Tra
 2. **No Public Clinician Self-Registration**:
    - Public account registration (`POST /api/auth/register`) strictly assigns the server-defined role `'user'`.
    - Client-supplied `role` fields (e.g. attempting to register as `'clinician'`, `'admin'`, or `'dev_clinician'`) are explicitly discarded. Privileged roles require server-side administrative promotion.
-3. **Access Isolation**:
+3. **Access Isolation & Clinician Dashboard Protection**:
    - Patients can only retrieve their own intakes (`GET /api/care/intakes`, `GET /api/care/intake/{id}`).
    - Unauthorized cross-user access attempts are rejected with HTTP 403 (`Forbidden`).
+   - Dashboard operational statistics (`GET /api/care/dashboard/stats`) are restricted to verified clinician accounts (`require_clinician`). Patients receive HTTP 403 Forbidden.
 4. **Data Minimization & Aggregation**:
-   - Dashboard statistics (`/api/care/dashboard/stats`) expose only aggregate counters without leaking identifiable patient records or clinical summaries.
+   - Dashboard statistics expose only aggregate counters without leaking identifiable patient records, complaints, or clinical summaries.
    - Evidence search (`GET` and `POST /api/care/evidence/search`) requires authenticated access. The POST route accepts queries in the JSON body to prevent personal health terms from being recorded in HTTP server access logs.
 
 ---
@@ -38,9 +39,10 @@ Healthcare intake requires the highest ethical standard of patient autonomy. Tra
    - Browser `localStorage` draft serialization is strictly documented as an **unassessed offline draft capture prototype**.
    - The platform **does NOT** describe plaintext `localStorage` as encrypted.
    - No clinical triage results or urgency classifications are rendered while offline: the UI explicitly displays *"Draft saved locally — no clinical assessment performed while offline."*
-2. **Protection of Real Health Information**:
-   - Unencrypted browser storage is restricted exclusively to synthetic demo fixtures.
-   - Local offline draft caching of real personal health information is strictly disabled.
+2. **Explicit Application-Controlled Demo Fixture Isolation**:
+   - Unencrypted browser storage is restricted exclusively to application-controlled synthetic demonstration fixtures (`synthetic-demo-patient-001`, `synthetic-demo-patient-002`, `synthetic-demo-patient-003`).
+   - Synthetic classification is strictly verified against known fixture identities and explicit demo-session state; arbitrary user-entered substring matches (e.g. "demo", "synthetic") and globally writable JavaScript window flags are never accepted as proof of synthetic data.
+   - Local offline draft caching of real personal health information is strictly disabled. Real patient drafts never enter plaintext `localStorage`.
    - Offline drafts can only be synchronized to the backend with an authenticated user session and explicit consent.
 
 ---
@@ -49,17 +51,25 @@ Healthcare intake requires the highest ethical standard of patient autonomy. Tra
 
 1. **Patient Workspace**:
    - Can submit intakes, view own preliminary triage results, and use assistive communication tools.
-   - Strictly forbidden from accessing clinician queues, review endpoints, or other patients' records.
+   - Strictly forbidden from accessing clinician queues, review endpoints, dashboard stats, or other patients' records.
 2. **Clinician Workspace**:
    - Requires verified clinician credentials (`role == 'clinician'` or `role == 'admin'`).
    - Clinician review submissions require valid authenticated sessions; urgency overrides require a mandatory medical justification.
-3. **Fail-Closed Development Clinician Mode**:
-   - In development environments without live hospital SSO, development clinician mode defaults to **disabled**.
-   - Requires explicit local opt-in via `TRANSIFY_DEV_CLINICIAN_ENABLED=true`.
-   - In production environments, synthetic clinician mode is permanently disabled regardless of configuration flags.
-4. **Demo Reset Guard**:
-   - `POST /api/care/demo/reset` is strictly disabled in production (HTTP 403).
-   - In non-production, it resets only synthetic demo fixtures (`demo-patient-%`, `synthetic-demo-patient-%`) and never modifies or deletes real patient records (`user-%`).
+3. **Synthetic Clinician Role Isolation (role='dev_clinician')**:
+   - Synthetic development accounts strictly use `role="dev_clinician"`, never `role="clinician"`.
+   - Normal clinician/admin authorization dependencies never automatically include `dev_clinician`.
+   - A `dev_clinician` role may access clinician functionality ONLY if:
+     * `is_production()` is False;
+     * `TRANSIFY_DEV_CLINICIAN_ENABLED` is explicitly true;
+     * the session belongs to the designated synthetic development account (`dev-synthetic-clinician@transify.local`).
+   - In production environments, authentication and session validation strictly reject synthetic development clinician accounts, even if an account exists in the database.
+   - Credentials are delivered solely via HttpOnly session cookies without returning reusable session tokens in JSON response bodies.
+   - Unique local-only credentials are generated cryptographically instead of hardcoded shared passwords.
+   - Development clinician accounts cannot be created publicly or promoted to genuine clinician roles.
+4. **Fail-Safe Demo Reset Guard**:
+   - `POST /api/care/demo/reset` requires explicit demo-mode authorization (`TRANSIFY_DEMO_MODE_ENABLED` or `X-Transify-Demo-Auth`) in addition to a verified non-production environment.
+   - Rejects production access (HTTP 403) and unconfigured remote environments.
+   - Resets strictly only the documented synthetic demo fixtures (`synthetic-demo-patient-001`, `synthetic-demo-patient-002`, `synthetic-demo-patient-003`) and never modifies or deletes real patient records.
 
 ---
 

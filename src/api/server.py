@@ -183,6 +183,12 @@ def register_user(req: RegisterRequest, response: Response, request: Request):
         # CRITICAL P0-1: Public registration must never accept a client-supplied privileged account role.
         # All new public registrations strictly receive the server-defined normal role 'user'.
         # Privileged roles (clinician, admin, dev_clinician) require trusted server-side administrative assignment.
+        if req.email and req.email.strip().lower() == "dev-synthetic-clinician@transify.local":
+            raise HTTPException(
+                status_code=400,
+                detail="Registration of synthetic development clinician accounts is not allowed."
+            )
+
         user = create_user(
             name=req.name,
             email=req.email,

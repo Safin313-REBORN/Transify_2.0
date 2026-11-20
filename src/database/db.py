@@ -71,6 +71,19 @@ def is_dev_clinician_enabled() -> bool:
     return val in ("true", "1", "yes")
 
 
+def is_demo_mode_enabled() -> bool:
+    """
+    Returns True ONLY in non-production environments when demo mode
+    is explicitly opted-in via TRANSIFY_DEMO_MODE_ENABLED=true/1/yes or TRANSIFY_DEV_CLINICIAN_ENABLED=true/1/yes.
+    Defaults to False (fail-closed disabled).
+    In production environments, ALWAYS returns False regardless of any flags or conflicting values.
+    """
+    if is_production():
+        return False
+    val = (os.getenv("TRANSIFY_DEMO_MODE_ENABLED") or os.getenv("TRANSIFY_DEV_CLINICIAN_ENABLED") or "false").strip().lower()
+    return val in ("true", "1", "yes")
+
+
 def get_connection() -> sqlite3.Connection:
     """Creates and returns a connection to the SQLite database with WAL mode and busy timeout."""
     os.makedirs(DB_DIR, exist_ok=True)
@@ -365,7 +378,13 @@ def create_user(name: str, email: str, password: str, role: str = "user", consen
         raise ValueError("Consent to Terms of Service and Privacy Policy is required to create an account.")
 
     role = (role or "user").strip().lower()
-    if role not in ("user", "clinician", "admin", "dev_clinician"):
+    if email == "dev-synthetic-clinician@transify.local":
+        # The dedicated synthetic development account is strictly pinned to dev_clinician
+        role = "dev_clinician"
+    elif role == "dev_clinician":
+        # Only the dedicated synthetic email can hold dev_clinician
+        role = "user"
+    elif role not in ("user", "clinician", "admin"):
         role = "user"
 
     conn = get_connection()
@@ -420,9 +439,18 @@ def authenticate_user(email: str, password: str) -> Optional[Dict[str, Any]]:
         conn.close()
         return None
 
-    if row["role"] == "disabled" or (row["email"].lower() == "demo@transify.ai" and is_production()):
+    role_lower = (row["role"] or "").lower()
+    email_lower = row["email"].lower()
+
+    if role_lower == "disabled" or (email_lower == "demo@transify.ai" and is_production()):
         conn.close()
         return None
+
+    # Production authentication must reject synthetic development clinician accounts, even if an account exists in the database
+    if role_lower == "dev_clinician" or email_lower == "dev-synthetic-clinician@transify.local":
+        if is_production():
+            conn.close()
+            return None
 
     if not verify_password(password, row["password_hash"], row["salt"]):
         conn.close()
@@ -538,6 +566,15 @@ def get_user_by_session(raw_token: str) -> Optional[Dict[str, Any]]:
         conn.commit()
         conn.close()
         return None
+
+    role_lower = (row["role"] or "").lower()
+    email_lower = (row["email"] or "").lower()
+    if role_lower == "dev_clinician" or email_lower == "dev-synthetic-clinician@transify.local":
+        if is_production():
+            cursor.execute("DELETE FROM user_sessions WHERE session_token = ?;", (token_hash,))
+            conn.commit()
+            conn.close()
+            return None
 
     conn.close()
     return {

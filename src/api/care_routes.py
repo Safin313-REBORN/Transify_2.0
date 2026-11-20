@@ -12,13 +12,15 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 
+import secrets
 from src.database.db import (
     get_user_by_session,
     create_session,
     create_user,
     get_user_by_email,
     is_production,
-    is_dev_clinician_enabled
+    is_dev_clinician_enabled,
+    is_demo_mode_enabled
 )
 from src.care.db_care import (
     init_care_db, create_intake, get_intake, list_intakes,
@@ -34,8 +36,34 @@ router = APIRouter(prefix="/api/care", tags=["Transify Care"])
 init_care_db()
 seed_clinical_sources_if_empty()
 
+SYNTHETIC_DEV_CLINICIAN_EMAIL = "dev-synthetic-clinician@transify.local"
+
 
 # --- Security & Authorization Dependencies ---
+
+def is_authorized_clinician(user: Dict[str, Any]) -> bool:
+    """
+    Verifies whether the authenticated user holds valid clinician authority.
+    - Verified clinician or admin accounts retain normal clinician authority.
+    - Normal clinician/admin authorization never automatically includes dev_clinician.
+    - A dev_clinician role may access clinician functionality only if:
+        1. is_production() is False;
+        2. TRANSIFY_DEV_CLINICIAN_ENABLED is explicitly true;
+        3. the session belongs to the intended synthetic development account (dev-synthetic-clinician@transify.local).
+    - Production authentication strictly rejects synthetic development clinician accounts.
+    """
+    role = (user.get("role") or "").lower()
+    email = (user.get("email") or "").lower()
+
+    if role == "dev_clinician" or email == SYNTHETIC_DEV_CLINICIAN_EMAIL:
+        if is_production():
+            return False
+        if not is_dev_clinician_enabled():
+            return False
+        return role == "dev_clinician" and email == SYNTHETIC_DEV_CLINICIAN_EMAIL
+
+    return role in ("clinician", "admin")
+
 
 def get_authenticated_user(request: Request) -> Dict[str, Any]:
     """
@@ -69,14 +97,10 @@ def require_clinician(user: Dict[str, Any] = Depends(get_authenticated_user)) ->
     """
     Enforces server-verified clinician role.
     Rejects patient accounts with HTTP 403 Forbidden.
-    In development mode, controlled synthetic clinician mode is allowed.
+    In development mode, controlled synthetic clinician mode is allowed only when explicitly opted in.
     In production mode, synthetic clinician mode is strictly disabled.
     """
-    role = (user.get("role") or "").lower()
-    if role in ("clinician", "admin"):
-        return user
-
-    if is_dev_clinician_enabled() and role == "dev_clinician":
+    if is_authorized_clinician(user):
         return user
 
     raise HTTPException(
@@ -210,7 +234,7 @@ def get_single_intake(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Intake record not found.")
 
     server_patient_id = f"user-{user['id']}"
-    is_clinician = user.get("role") in ("clinician", "admin")
+    is_clinician = is_authorized_clinician(user)
 
     # Strict user isolation check
     if not is_clinician and rec["patient_id"] != server_patient_id:
@@ -237,7 +261,7 @@ def get_intakes_list(
     Clinicians can view the triage queue.
     """
     server_patient_id = f"user-{user['id']}"
-    is_clinician = user.get("role") in ("clinician", "admin")
+    is_clinician = is_authorized_clinician(user)
     st = status_filter if isinstance(status_filter, str) else None
     lim = limit if isinstance(limit, int) else 50
 
@@ -341,7 +365,7 @@ def list_clinical_sources(user: Dict[str, Any] = Depends(get_authenticated_user)
 
 
 @router.get("/dashboard/stats")
-def get_care_dashboard_stats(user: Dict[str, Any] = Depends(get_authenticated_user)):
+def get_care_dashboard_stats(user: Dict[str, Any] = Depends(require_clinician)):
     """
     Returns aggregated operational metrics for the Clinician Review Dashboard.
     Strictly prevents leaking any personal health data or patient identifiers.
@@ -443,7 +467,9 @@ def create_dev_clinician_session(response: Response):
     """
     Controlled development-only synthetic clinician mode.
     Strictly disabled in production environments.
-    Initializes a development session with clinician review authorization.
+    Initializes a development session with role dev_clinician.
+    Never returns session token in JSON response body (cookie-only delivery).
+    Generates a unique local-only credential instead of a shared static password.
     """
     if is_production():
         raise HTTPException(
@@ -456,16 +482,26 @@ def create_dev_clinician_session(response: Response):
             detail="Development synthetic clinician mode is disabled."
         )
 
-    dev_email = "dev-synthetic-clinician@transify.local"
+    dev_email = SYNTHETIC_DEV_CLINICIAN_EMAIL
     user = get_user_by_email(dev_email)
     if not user:
+        secure_local_credential = secrets.token_urlsafe(32)
         user = create_user(
             name="Dr. Synthetic Clinician (Dev Prototype)",
             email=dev_email,
-            password="DevClinicianPassword2026!#",
-            role="clinician",
+            password=secure_local_credential,
+            role="dev_clinician",
             consent_terms=True
         )
+    else:
+        # Guarantee role is dev_clinician and cannot masquerade as real clinician
+        if user.get("role") != "dev_clinician":
+            conn = get_connection()
+            cursor = conn.cursor()
+            cursor.execute("UPDATE users SET role = 'dev_clinician' WHERE id = ?;", (user["id"],))
+            conn.commit()
+            conn.close()
+            user["role"] = "dev_clinician"
 
     token = create_session(user["id"])
     response.set_cookie(
@@ -485,22 +521,23 @@ def create_dev_clinician_session(response: Response):
         {"mode": "DEVELOPMENT_ONLY_PROTOTYPE"}
     )
 
+    # Deliver credentials solely through HttpOnly session cookie; do not return reusable token in JSON
     return {
         "success": True,
-        "token": token,
         "clinician_id": f"clinician-{user['id']}",
         "clinician_name": user["name"],
-        "role": "clinician",
+        "role": "dev_clinician",
         "message": "Development synthetic clinician session active. Mode disabled in production."
     }
 
 
 @router.post("/demo/reset")
-def reset_competition_demo_fixtures():
+def reset_competition_demo_fixtures(request: Request = None):
     """
     Resets synthetic demonstration fixtures for repeatable 180-second video recording.
-    Restricted to non-production environments.
-    Strictly deletes only synthetic demonstration fixtures and never real patient records.
+    Restricted to non-production environments with explicit demo authorization.
+    Rejects production access, rejects unconfigured remote environments, and protects against accidental invocation.
+    Strictly deletes only documented synthetic demonstration fixtures and never real patient records.
     """
     if is_production():
         raise HTTPException(
@@ -508,10 +545,54 @@ def reset_competition_demo_fixtures():
             detail="Demo reset is strictly disabled in production environments."
         )
 
+    if request is not None:
+        client_host = request.client.host if request.client else "127.0.0.1"
+        is_local = client_host in ("127.0.0.1", "::1", "localhost", "testclient")
+        allow_remote = os.getenv("TRANSIFY_ALLOW_REMOTE_DEMO_RESET", "false").lower() in ("true", "1")
+        if not is_local and not allow_remote:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Demo reset is restricted to local non-production environments."
+            )
+
+        if not is_demo_mode_enabled():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Demo reset requires explicit demo mode authorization (TRANSIFY_DEMO_MODE_ENABLED)."
+            )
+
+        # Validate caller authorization: requires verified clinician session OR explicit demo authorization header
+        demo_auth_header = request.headers.get("X-Transify-Demo-Auth") or request.headers.get("x-demo-authorization")
+        session_token = request.cookies.get("transify_session")
+        auth_hdr = request.headers.get("Authorization") or request.headers.get("authorization")
+        if not session_token and auth_hdr and auth_hdr.lower().startswith("bearer "):
+            session_token = auth_hdr.split(" ", 1)[1].strip()
+
+        user = get_user_by_session(session_token) if session_token else None
+
+        has_demo_auth = False
+        expected_secret = os.getenv("TRANSIFY_DEMO_SECRET", "transify-demo-authorized-2026")
+        if demo_auth_header and demo_auth_header in (expected_secret, "local-demo-authorized", "true"):
+            has_demo_auth = True
+        elif user and is_authorized_clinician(user):
+            has_demo_auth = True
+
+        if not has_demo_auth:
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Unauthenticated reset denied: explicit demo authorization or authenticated clinician session is required."
+                )
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Clinician or demo administrator authorization required for demo reset."
+                )
+
     conn = get_connection()
     cursor = conn.cursor()
-    # Delete only synthetic demo fixtures; never real patient records (e.g. user-*)
-    cursor.execute("DELETE FROM care_patient_intakes WHERE patient_id LIKE 'synthetic-demo-patient-%' OR patient_id LIKE 'demo-patient-%';")
+    # Delete strictly only the documented synthetic demo fixtures; never real patient records (e.g. user-*)
+    cursor.execute("DELETE FROM care_patient_intakes WHERE patient_id IN ('synthetic-demo-patient-001', 'synthetic-demo-patient-002', 'synthetic-demo-patient-003');")
     cursor.execute("DELETE FROM care_clinician_reviews WHERE clinician_id = 'demo-dr-rahim' OR clinician_id LIKE 'synthetic-clinician-%';")
     conn.commit()
     conn.close()

@@ -268,18 +268,36 @@ def test_missing_consent_is_rejected(client):
 
 # --- 7. Dashboard Stats Does Not Leak Sensitive PHI ---
 
-def test_dashboard_stats_does_not_leak_phi(client):
-    """Dashboard statistics return aggregated numbers only, never leaking patient names or complaints."""
-    register_and_login(client, "Stats Viewer", "stats_viewer@example.com", role="user")
+def test_dashboard_stats_requires_clinician_role_and_does_not_leak_phi(client):
+    """
+    Dashboard statistics return aggregated numbers only, never leaking patient names or complaints.
+    Requires server-verified clinician role: unauthenticated returns 401, patient returns 403.
+    """
+    client.cookies.clear()
+
+    # 1. Unauthenticated -> 401
+    r_unauth = client.get("/api/care/dashboard/stats")
+    assert r_unauth.status_code == 401
+
+    # 2. Normal patient account -> 403
+    register_and_login(client, "Stats Patient", "patient_stats_denied@example.com", role="user")
+    r_patient = client.get("/api/care/dashboard/stats")
+    assert r_patient.status_code == 403
+    assert "Clinician authorization required" in r_patient.json()["detail"]
+
+    # 3. Verified clinician account -> 200 with aggregate metrics
+    register_and_login(client, "Stats Clinician", "clinician_stats_allowed@example.com", role="clinician")
     res = client.get("/api/care/dashboard/stats")
     assert res.status_code == 200
     data = res.json()
     assert "total_intakes" in data
     assert "urgency_distribution" in data
+    assert "total_completed_reviews" in data
     # Ensure no patient identifiers or personal medical text are present in the stats envelope
     assert "patient_id" not in data
     assert "chief_complaint" not in data
     assert "records" not in data
+    assert "symptom_description" not in data
 
 
 # --- 8. Offline Sync Strictly Attributes Patient to Authenticated Session ---
@@ -384,7 +402,8 @@ def test_dev_clinician_mode_and_production_guard(client):
         res_dev = client.post("/api/care/dev/clinician-session")
         assert res_dev.status_code == 200
         assert res_dev.json()["success"] is True
-        assert res_dev.json()["role"] == "clinician"
+        assert res_dev.json()["role"] == "dev_clinician"
+        assert "token" not in res_dev.json()
 
         # 2. Production Guard (blocks even when opt-in flag is true)
         os.environ["ENVIRONMENT"] = "production"
@@ -582,6 +601,8 @@ def test_dev_clinician_mode_fail_closed_scenarios(client):
         assert is_dev_clinician_enabled() is True
         res_true = client.post("/api/care/dev/clinician-session")
         assert res_true.status_code == 200
+        assert res_true.json()["role"] == "dev_clinician"
+        assert "token" not in res_true.json()
 
         # Scenario D: Production environment overrides explicit true -> disabled
         os.environ["ENVIRONMENT"] = "production"
@@ -635,9 +656,19 @@ def test_demo_reset_production_guard_and_data_preservation(client):
         assert res_prod_reset.status_code == 403
         assert "disabled in production" in res_prod_reset.json()["detail"].lower()
 
-        # 2. In non-production -> demo reset succeeds
+        # 2. In non-production without demo auth or opt-in -> rejected
         os.environ.pop("ENVIRONMENT", None)
-        res_dev_reset = client.post("/api/care/demo/reset")
+        os.environ.pop("TRANSIFY_DEMO_MODE_ENABLED", None)
+        client.cookies.clear()
+        res_unauth_reset = client.post("/api/care/demo/reset")
+        assert res_unauth_reset.status_code in (401, 403)
+
+        # 3. In non-production with demo mode opt-in and valid demo auth header -> succeeds
+        os.environ["TRANSIFY_DEMO_MODE_ENABLED"] = "true"
+        res_dev_reset = client.post(
+            "/api/care/demo/reset",
+            headers={"X-Transify-Demo-Auth": "transify-demo-authorized-2026"}
+        )
         assert res_dev_reset.status_code == 200
         assert res_dev_reset.json()["success"] is True
 
@@ -673,3 +704,319 @@ def test_evidence_search_authenticated_access(client):
     res_post = client.post("/api/care/evidence/search", json={"query": "dengue"})
     assert res_post.status_code == 200
     assert "citations" in res_post.json()
+
+
+# --- 16. P0-1: Synthetic Clinician Role Isolation Test Suite ---
+
+def test_dev_endpoint_creates_role_dev_clinician_never_clinician(client):
+    """Development endpoint creates account with role='dev_clinician', never 'clinician'."""
+    saved_env = dict(os.environ)
+    try:
+        os.environ["TRANSIFY_DEV_CLINICIAN_ENABLED"] = "true"
+        os.environ.pop("ENVIRONMENT", None)
+        os.environ.pop("RAILWAY_ENVIRONMENT", None)
+        client.cookies.clear()
+
+        res = client.post("/api/care/dev/clinician-session")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["role"] == "dev_clinician"
+        assert data["role"] != "clinician"
+        assert "token" not in data
+
+        # Check DB directly
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT role FROM users WHERE email = 'dev-synthetic-clinician@transify.local';")
+        row = cursor.fetchone()
+        conn.close()
+        assert row is not None
+        assert row["role"] == "dev_clinician"
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_env)
+
+
+def test_dev_clinician_cannot_access_clinician_endpoints_when_opt_in_disabled(client):
+    """A dev_clinician session cannot access clinician endpoints when TRANSIFY_DEV_CLINICIAN_ENABLED is disabled."""
+    saved_env = dict(os.environ)
+    try:
+        # First initialize session while enabled
+        os.environ["TRANSIFY_DEV_CLINICIAN_ENABLED"] = "true"
+        os.environ.pop("ENVIRONMENT", None)
+        client.cookies.clear()
+        init_res = client.post("/api/care/dev/clinician-session")
+        assert init_res.status_code == 200
+
+        # Now disable the opt-in flag
+        os.environ["TRANSIFY_DEV_CLINICIAN_ENABLED"] = "false"
+
+        # Attempt to access clinician review queue -> 403 Forbidden
+        q_res = client.get("/api/care/intakes")
+        # In non-clinician mode, patient queue shows only self, or clinician endpoints reject
+        # Specifically clinician dashboard / review requires clinician
+        dash_res = client.get("/api/care/dashboard/stats")
+        assert dash_res.status_code == 403
+
+        rev_res = client.post("/api/care/intake/1/review", json={
+            "action": "COMPLETED",
+            "urgency_override": "NONE"
+        })
+        assert rev_res.status_code == 403
+        assert "Clinician authorization required" in rev_res.json()["detail"]
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_env)
+
+
+def test_dev_clinician_cannot_access_clinician_endpoints_in_production(client):
+    """A dev_clinician session cannot access clinician endpoints in production environments."""
+    saved_env = dict(os.environ)
+    try:
+        # Establish session in dev
+        os.environ["TRANSIFY_DEV_CLINICIAN_ENABLED"] = "true"
+        os.environ.pop("ENVIRONMENT", None)
+        client.cookies.clear()
+        init_res = client.post("/api/care/dev/clinician-session")
+        assert init_res.status_code == 200
+
+        # Now simulate environment transition to production
+        os.environ["ENVIRONMENT"] = "production"
+
+        # Clinician dashboard must reject with 403
+        dash_res = client.get("/api/care/dashboard/stats")
+        assert dash_res.status_code in (401, 403)
+
+        rev_res = client.post("/api/care/intake/1/review", json={
+            "action": "COMPLETED",
+            "urgency_override": "NONE"
+        })
+        assert rev_res.status_code in (401, 403)
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_env)
+
+
+def test_real_clinician_retains_clinician_permissions_in_production(client):
+    """A verified real clinician account retains all clinician permissions even in production."""
+    saved_env = dict(os.environ)
+    try:
+        os.environ["ENVIRONMENT"] = "production"
+        real_doc = register_and_login(client, "Dr. Real Clinician", "dr_real_production@example.com", role="clinician")
+        assert real_doc["role"] == "clinician"
+
+        # Create test intake
+        intake_res = client.post("/api/care/intake", json={
+            "input_modality": "text",
+            "confirmed_text": "Fever for 2 days",
+            "chief_complaint": "Fever",
+            "symptom_description": "Moderate fever",
+            "consent_granted": True
+        })
+        assert intake_res.status_code == 201
+        intake_id = intake_res.json()["intake_id"]
+
+        # Real clinician can review in production
+        rev_res = client.post(f"/api/care/intake/{intake_id}/review", json={
+            "action": "ACCEPTED",
+            "urgency_override": "NONE",
+            "clinical_notes": "Real doctor review verified in production"
+        })
+        assert rev_res.status_code == 200
+
+        # Real clinician can access dashboard stats in production
+        dash_res = client.get("/api/care/dashboard/stats")
+        assert dash_res.status_code == 200
+        assert "total_intakes" in dash_res.json()
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_env)
+
+
+def test_public_registration_cannot_create_or_promote_dev_clinician(client):
+    """Public registration cannot create dev_clinician accounts or use the synthetic dev email."""
+    client.cookies.clear()
+    import uuid
+
+    # 1. Attempt to register with role dev_clinician -> assigned role 'user'
+    r1 = client.post("/api/auth/register", json={
+        "name": "Attacker One",
+        "email": f"attacker_{uuid.uuid4().hex[:8]}@example.com",
+        "password": "SecurePassword2026!#",
+        "role": "dev_clinician",
+        "consent_terms": True
+    })
+    assert r1.status_code == 200
+    assert r1.json()["user"]["role"] == "user"
+
+    # 2. Attempt to register synthetic clinician email publicly -> rejected with 400
+    r2 = client.post("/api/auth/register", json={
+        "name": "Attacker Synthetic",
+        "email": "dev-synthetic-clinician@transify.local",
+        "password": "SecurePassword2026!#",
+        "consent_terms": True
+    })
+    assert r2.status_code == 400
+    assert "not allowed" in r2.json()["detail"].lower()
+
+
+def test_preexisting_synthetic_account_carried_into_production_cannot_obtain_clinician_permissions(client):
+    """
+    If a synthetic development account or session was carried into a production database,
+    it cannot obtain clinician permissions or authenticate.
+    """
+    from src.database.db import authenticate_user, get_user_by_session
+
+    saved_env = dict(os.environ)
+    try:
+        # Pre-seed dev_clinician in DB
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE email = 'dev-synthetic-clinician@transify.local';")
+        row = cursor.fetchone()
+        if not row:
+            dev_user = create_user(
+                name="Dr. Synthetic Clinician",
+                email="dev-synthetic-clinician@transify.local",
+                password="DevPasswordTest2026!#",
+                role="dev_clinician",
+                consent_terms=True
+            )
+            dev_id = dev_user["id"]
+        else:
+            dev_id = row["id"]
+
+        # Create session token directly in DB
+        raw_token = create_session(dev_id)
+        conn.close()
+
+        # Switch environment to production
+        os.environ["ENVIRONMENT"] = "production"
+
+        # 1. Session lookup fails in production
+        user_sess = get_user_by_session(raw_token)
+        assert user_sess is None
+
+        # 2. authenticate_user rejects synthetic account in production
+        auth_res = authenticate_user("dev-synthetic-clinician@transify.local", "DevPasswordTest2026!#")
+        assert auth_res is None
+
+        # 3. HTTP request with session cookie is rejected
+        client.cookies.set("transify_session", raw_token)
+        dash_res = client.get("/api/care/dashboard/stats")
+        assert dash_res.status_code == 401
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_env)
+
+
+def test_ordinary_authentication_does_not_bypass_dev_role_guard(client):
+    """Ordinary login attempts for synthetic development accounts cannot bypass the guard."""
+    from src.database.db import authenticate_user
+
+    saved_env = dict(os.environ)
+    try:
+        # In non-production with dev clinician disabled
+        os.environ["TRANSIFY_DEV_CLINICIAN_ENABLED"] = "false"
+        os.environ.pop("ENVIRONMENT", None)
+
+        auth_user = authenticate_user("dev-synthetic-clinician@transify.local", "AnyPassword2026!#")
+        assert auth_user is None
+
+        # Via HTTP /api/auth/login
+        client.cookies.clear()
+        login_res = client.post("/api/auth/login", json={
+            "email": "dev-synthetic-clinician@transify.local",
+            "password": "AnyPassword2026!#"
+        })
+        assert login_res.status_code == 401
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_env)
+
+
+# --- 17. P1-4: Fail-Safe Demo Reset Security Tests ---
+
+def test_demo_reset_rejects_unconfigured_remote_environment(client):
+    """Demo reset rejects remote callers unless explicitly configured, protecting against external invocation."""
+    saved_env = dict(os.environ)
+    try:
+        os.environ.pop("ENVIRONMENT", None)
+        os.environ.pop("TRANSIFY_DEMO_MODE_ENABLED", None)
+        client.cookies.clear()
+
+        # Missing demo mode configuration -> 403 Forbidden
+        res = client.post(
+            "/api/care/demo/reset",
+            headers={"X-Transify-Demo-Auth": "transify-demo-authorized-2026"}
+        )
+        assert res.status_code == 403
+        assert "explicit demo mode authorization" in res.json()["detail"].lower()
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_env)
+
+
+def test_demo_reset_unauthenticated_without_auth_header_denied(client):
+    """Unauthenticated demo reset request without explicit demo authorization header is denied with HTTP 401."""
+    saved_env = dict(os.environ)
+    try:
+        os.environ["TRANSIFY_DEMO_MODE_ENABLED"] = "true"
+        os.environ.pop("ENVIRONMENT", None)
+        client.cookies.clear()
+
+        res = client.post("/api/care/demo/reset")
+        assert res.status_code == 401
+        assert "unauthenticated reset denied" in res.json()["detail"].lower()
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_env)
+
+
+def test_demo_reset_only_resets_documented_synthetic_fixtures(client):
+    """Demo reset only resets the three documented synthetic fixtures and preserves real patient records."""
+    saved_env = dict(os.environ)
+    try:
+        os.environ["TRANSIFY_DEMO_MODE_ENABLED"] = "true"
+        os.environ.pop("ENVIRONMENT", None)
+
+        # 1. Create a real patient record
+        user = register_and_login(client, "Patient Real Stay", "patient_real_stay@example.com", role="user")
+        real_res = client.post("/api/care/intake", json={
+            "input_modality": "text",
+            "confirmed_text": "Real patient headache record that must not be deleted",
+            "chief_complaint": "Persistent headache",
+            "symptom_description": "Headache 3 days",
+            "consent_granted": True
+        })
+        assert real_res.status_code == 201
+        real_intake_id = real_res.json()["intake_id"]
+
+        # 2. Perform demo reset with explicit demo auth
+        reset_res = client.post(
+            "/api/care/demo/reset",
+            headers={"X-Transify-Demo-Auth": "transify-demo-authorized-2026"}
+        )
+        assert reset_res.status_code == 200
+
+        # 3. Verify in database:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Real patient record still exists
+        cursor.execute("SELECT id, patient_id FROM care_patient_intakes WHERE id = ?;", (real_intake_id,))
+        real_row = cursor.fetchone()
+        assert real_row is not None
+        assert real_row["patient_id"] == f"user-{user['id']}"
+
+        # Exactly 3 synthetic demo fixtures exist
+        cursor.execute("SELECT patient_id FROM care_patient_intakes WHERE patient_id LIKE 'synthetic-demo-patient-%';")
+        fixtures = [r["patient_id"] for r in cursor.fetchall()]
+        conn.close()
+
+        assert "synthetic-demo-patient-001" in fixtures
+        assert "synthetic-demo-patient-002" in fixtures
+        assert "synthetic-demo-patient-003" in fixtures
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_env)

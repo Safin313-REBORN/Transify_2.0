@@ -25,11 +25,27 @@
     }
   }
 
+  const TRUSTED_DEMO_FIXTURES = {
+    'synthetic-demo-patient-001': {
+      modality: 'sign',
+      chief_complaint: '[SYNTHETIC DEMO] Severe crushing chest pain and shortness of breath'
+    },
+    'synthetic-demo-patient-002': {
+      modality: 'voice',
+      chief_complaint: '[SYNTHETIC DEMO] High fever and severe persistent stomach pain'
+    },
+    'synthetic-demo-patient-003': {
+      modality: 'braille',
+      chief_complaint: '[SYNTHETIC DEMO] Mild dry cough and scratchy throat'
+    }
+  };
+
   const TransifyCare = {
     currentStep: 1,
     selectedModality: 'text',
     activeIntakeId: null,
     isOffline: !navigator.onLine,
+    _demoSessionActive: false,
 
     init: function() {
       this.bindEvents();
@@ -165,15 +181,52 @@
       }
     },
 
+    startDemoSession: function() {
+      this._demoSessionActive = true;
+    },
+
+    endDemoSession: function() {
+      this._demoSessionActive = false;
+    },
+
+    getTrustedDemoFixture: function(fixtureId) {
+      if (!TRUSTED_DEMO_FIXTURES[fixtureId]) return null;
+      const f = TRUSTED_DEMO_FIXTURES[fixtureId];
+      return {
+        fixture_id: fixtureId,
+        patient_id: fixtureId,
+        input_modality: f.modality,
+        chief_complaint: f.chief_complaint,
+        confirmed_text: f.chief_complaint,
+        symptom_description: f.chief_complaint,
+        severity: fixtureId === 'synthetic-demo-patient-001' ? 9 : (fixtureId === 'synthetic-demo-patient-002' ? 7 : 2),
+        trajectory: fixtureId === 'synthetic-demo-patient-003' ? 'stable' : 'worsening',
+        onset_duration: fixtureId === 'synthetic-demo-patient-001' ? '45 minutes' : (fixtureId === 'synthetic-demo-patient-002' ? '3 days' : '2 days'),
+        consent_granted: true,
+        is_trusted_fixture: true
+      };
+    },
+
     isSyntheticDemoDraft: function(draft) {
-      if (!draft) return false;
-      const cc = (draft.chief_complaint || '').toLowerCase();
-      const raw = (draft.raw_input || '').toLowerCase();
-      const pid = (draft.patient_id || '').toLowerCase();
-      return cc.includes('synthetic') || cc.includes('demo') ||
-             raw.includes('synthetic') || raw.includes('demo') ||
-             pid.startsWith('demo-') || pid.startsWith('synthetic-') ||
-             window.TRANSIFY_SYNTHETIC_DEMO_MODE === true;
+      if (!draft || typeof draft !== 'object') return false;
+      // Fail closed: Never rely on patient-entered text substrings ("demo", "synthetic")
+      // Never rely on globally writable JavaScript flags (e.g. window.TRANSIFY_SYNTHETIC_DEMO_MODE)
+      // Must match a dedicated application-controlled demo fixture identity
+      const fixtureId = draft.fixture_id || draft.demo_fixture_id || draft.patient_id;
+      if (!fixtureId || !TRUSTED_DEMO_FIXTURES[fixtureId]) {
+        return false;
+      }
+      const trusted = TRUSTED_DEMO_FIXTURES[fixtureId];
+      // Verify modality matches the documented fixture
+      if (draft.input_modality && draft.input_modality !== trusted.modality) {
+        return false;
+      }
+      // Verify chief complaint matches the documented synthetic fixture definition
+      if (draft.chief_complaint && draft.chief_complaint !== trusted.chief_complaint) {
+        return false;
+      }
+      // Must be an application-trusted fixture or explicit application demo session
+      return draft.is_trusted_fixture === true || this._demoSessionActive === true;
     },
 
     saveDraftLocally: function(draft) {
@@ -966,14 +1019,27 @@
     resetDemoFixtures: function(callback) {
       const btn = document.getElementById('btn-care-demo-reset');
       if (btn) btn.textContent = 'Resetting Fixtures...';
+      const self = this;
 
-      fetch('/api/care/demo/reset', { method: 'POST' })
-      .then(res => res.json())
+      fetch('/api/care/demo/reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Transify-Demo-Auth': 'transify-demo-authorized-2026'
+        }
+      })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Demo reset rejected (HTTP ${res.status})`);
+        }
+        return res.json();
+      })
       .then(data => {
         if (btn) btn.textContent = 'Reset 180s Demo Cases';
+        self._demoSessionActive = true;
         alert('Transify Care Demonstration Fixtures Initialized:\n• RED: Sign Language Acute Chest Pain (Synthetic Case)\n• YELLOW: Voice STT High Fever / Dengue Warning (Synthetic Case)\n• GREEN: Braille OCR Mild Cough (Synthetic Case)\n\nAll demo cases are synthetic and isolated from real patient data.');
-        this.loadClinicianQueue();
-        this.loadDashboardStats();
+        self.loadClinicianQueue();
+        self.loadDashboardStats();
         if (typeof callback === 'function') callback();
       })
       .catch(err => {
