@@ -24,7 +24,7 @@
   <script src="/static/i18n.js"></script>
 
   <!-- Design System CSS -->
-  <link rel="stylesheet" href="/static/styles.css?v=20261120_ambient_v3">
+  <link rel="stylesheet" href="/static/styles.css?v=20261120_topic_cards_v1">
 
   <script>
     // Bulletproof routing & auth initialization
@@ -392,6 +392,12 @@
           <div class="home-bento">
             <!-- Tile 1: Sign Translator -->
             <a href="#sign" class="tile t1 press" aria-label="Open sign translator" id="btn-open-hand-signal">
+              <div class="tile-bg-image-wrap" style="opacity: 0.35;">
+                <picture>
+                  <source srcset="/static/photos/sign-bg-wide.webp" type="image/webp">
+                  <img src="/static/photos/sign-bg-wide.jpg" alt="" class="tile-bg-img" loading="lazy">
+                </picture>
+              </div>
               <div class="ph"
                 style="background: radial-gradient(52% 52% at 62% 38%,#B8896A 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#45382F 0%,#1A1621 75%);">
               </div>
@@ -447,8 +453,14 @@
 
             <!-- Tile 2: Braille Scanner -->
             <a href="#braille" class="tile t2 press" aria-label="Open Braille scanner" id="btn-open-braille">
+              <div class="tile-bg-image-wrap">
+                <picture>
+                  <source srcset="/static/photos/braille-bg-wide.webp" type="image/webp">
+                  <img src="/static/photos/braille-bg-wide.jpg" alt="Embossed Braille page" class="tile-bg-img" loading="lazy">
+                </picture>
+              </div>
               <div class="ph"
-                style="background: radial-gradient(70% 55% at 50% 30%,#C9B79B 0%,rgba(201,183,155,0) 65%),linear-gradient(170deg,#5A4D40 0%,#1D1A22 80%);">
+                style="background: radial-gradient(70% 55% at 50% 30%,rgba(201,183,155,0.3) 0%,rgba(201,183,155,0) 65%),linear-gradient(170deg,rgba(90,77,64,0.55) 0%,rgba(29,26,34,0.92) 80%);">
               </div>
               <svg class="grain" width="100%" height="100%" aria-hidden="true">
                 <rect width="100%" height="100%" filter="url(#g)" />
@@ -465,14 +477,27 @@
 
             <!-- Tile 3: Voice Hub -->
             <a href="#stt" class="tile t3 press" aria-label="Open voice hub" id="btn-open-stt">
+              <div class="tile-bg-image-wrap">
+                <picture>
+                  <source srcset="/static/photos/voice-bg-wide.webp" type="image/webp">
+                  <img src="/static/photos/voice-bg-wide.jpg" alt="Voice speech and live captions" class="tile-bg-img" loading="lazy">
+                </picture>
+              </div>
               <div class="ph"
-                style="background: radial-gradient(60% 55% at 40% 28%,#9FB4C4 0%,rgba(159,180,196,0) 65%),linear-gradient(170deg,#2E3F4E 0%,#17151F 80%);">
+                style="background: radial-gradient(60% 55% at 40% 28%,rgba(159,180,196,0.3) 0%,rgba(159,180,196,0) 65%),linear-gradient(170deg,rgba(46,63,78,0.55) 0%,rgba(23,21,31,0.92) 80%);">
               </div>
               <svg class="grain" width="100%" height="100%" aria-hidden="true">
                 <rect width="100%" height="100%" filter="url(#g)" />
               </svg>
               <div class="scrim-bottom"></div>
               <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17L17 7M8 7h9v9" />
+                </svg></span>
+              <span class="cap"><b style="font-size: 28px; line-height: 1.05;">Voice hub</b><span
+                  style="display: block; margin-top: 4px; font-size: 16px; color: #E0DEEE;">Live captions and read
+                  aloud</span></span>
+            </a>
                   stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M7 17L17 7M8 7h9v9" />
                 </svg></span>
