@@ -24,7 +24,7 @@
   <script src="/static/i18n.js"></script>
 
   <!-- Design System CSS -->
-  <link rel="stylesheet" href="/static/styles.css?v=20261120_illustration_hand_v1">
+  <link rel="stylesheet" href="/static/styles.css?v=20261120_care_fullwidth_v1">
 
   <script>
     // Bulletproof routing & auth initialization
@@ -238,8 +238,9 @@
               <div aria-live="polite" class="demo-sign-tag">
                 <span id="welcome-sign-typed">Hello</span>
                 <span class="caret"></span>
-                <span class="live-confidence-pill"><span class="live-confidence-dot"></span><span style="font-family: var(--font-ui); font-size: 15px; font-weight: 600; color: #9DEBC8; white-space: nowrap;">98.7%
-                  sure</span></span>
+                <span class="live-confidence-pill"><span class="live-confidence-dot"></span><span
+                    style="font-family: var(--font-ui); font-size: 15px; font-weight: 600; color: #9DEBC8; white-space: nowrap;">98.7%
+                    sure</span></span>
               </div>
             </div>
 
@@ -425,8 +426,8 @@
                 <div class="tile-hand-box">
                   <picture>
                     <source srcset="/static/photos/illustration-sign-hand.webp" type="image/webp">
-                    <img src="/static/photos/illustration-sign-hand.jpg" alt="Illustrated sign hand" class="tile-real-hand-img" width="180"
-                      height="180">
+                    <img src="/static/photos/illustration-sign-hand.jpg" alt="Illustrated sign hand"
+                      class="tile-real-hand-img" width="180" height="180">
                   </picture>
                   <svg viewBox="0 0 100 100" class="tile-hand-tracking-svg" aria-hidden="true">
                     <rect x="4" y="4" width="92" height="92" rx="10" stroke="#FFCB05" stroke-width="2.2"
@@ -471,7 +472,8 @@
               <div class="tile-bg-image-wrap">
                 <picture>
                   <source srcset="/static/photos/braille-bg-wide.webp" type="image/webp">
-                  <img src="/static/photos/braille-bg-wide.jpg" alt="Embossed Braille page" class="tile-bg-img" loading="lazy">
+                  <img src="/static/photos/braille-bg-wide.jpg" alt="Embossed Braille page" class="tile-bg-img"
+                    loading="lazy">
                 </picture>
               </div>
               <div class="ph"
@@ -495,7 +497,8 @@
               <div class="tile-bg-image-wrap">
                 <picture>
                   <source srcset="/static/photos/voice-bg-wide.webp" type="image/webp">
-                  <img src="/static/photos/voice-bg-wide.jpg" alt="Voice speech and live captions" class="tile-bg-img" loading="lazy">
+                  <img src="/static/photos/voice-bg-wide.jpg" alt="Voice speech and live captions" class="tile-bg-img"
+                    loading="lazy">
                 </picture>
               </div>
               <div class="ph"
@@ -513,28 +516,31 @@
                   style="display: block; margin-top: 4px; font-size: 16px; color: #E0DEEE;">Live captions and read
                   aloud</span></span>
             </a>
+          </div>
 
-            <!-- Tile 4: Transify Care & AI Assistant Feature Card -->
-            <div class="home-care-tile">
-              <div class="care-info">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <span class="care-badge online">Healthcare Intake</span>
-                  <span class="care-badge">Offline-First</span>
-                  <span class="care-badge" style="background: rgba(131,56,236,0.15); color: var(--violet); border: 1px solid rgba(131,56,236,0.3);">🤖 AI Trained</span>
-                </div>
-                <div class="care-title" style="margin-top: 6px;">Transify Care &amp; AI Assistant</div>
-                <div class="care-desc">Accessible clinical symptom triage, WHO/Merck guidelines &amp; AI consultation.</div>
+          <!-- Transify Care & AI Assistant Feature Card (Full Width) -->
+          <div class="home-care-tile">
+            <div class="care-info">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="care-badge online">Healthcare Intake</span>
+                <span class="care-badge">Offline-First</span>
+                <span class="care-badge"
+                  style="background: rgba(131,56,236,0.15); color: var(--violet); border: 1px solid rgba(131,56,236,0.3);">🤖
+                  AI Trained</span>
               </div>
-              <div class="care-actions">
-                <a href="#chat" class="btn-welcome-primary press" id="btn-open-ai-chat"
-                  style="height: 48px; padding: 0 20px; font-size: 16px; background: var(--violet); color: #fff;">
-                  🤖 AI Chatbot
-                </a>
-                <a href="#care-intake" class="btn-welcome-secondary press" id="btn-open-care-intake"
-                  style="height: 48px; padding: 0 18px; font-size: 16px;">Symptom Intake</a>
-                <a href="#clinician" class="btn-welcome-secondary press" id="btn-open-clinician-portal"
-                  style="height: 48px; padding: 0 18px; font-size: 16px;">Clinician Portal</a>
+              <div class="care-title" style="margin-top: 6px;">Transify Care &amp; AI Assistant</div>
+              <div class="care-desc">Accessible clinical symptom triage, WHO/Merck guidelines &amp; AI consultation.
               </div>
+            </div>
+            <div class="care-actions">
+              <a href="#chat" class="btn-welcome-primary press" id="btn-open-ai-chat"
+                style="height: 44px; padding: 0 18px; font-size: 15px; background: var(--violet); color: #fff;">
+                🤖 AI Chatbot
+              </a>
+              <a href="#care-intake" class="btn-welcome-secondary press" id="btn-open-care-intake"
+                style="height: 44px; padding: 0 16px; font-size: 15px;">Symptom Intake</a>
+              <a href="#clinician" class="btn-welcome-secondary press" id="btn-open-clinician-portal"
+                style="height: 44px; padding: 0 16px; font-size: 15px;">Clinician Portal</a>
             </div>
           </div>
         </main>
@@ -712,7 +718,8 @@
             <div class="spell-actions-row">
               <button type="button" id="spell-space-btn" class="btn-spell-action press">Space</button>
               <button type="button" id="spell-backspace-btn" class="btn-spell-action press">⌫ Back</button>
-              <button type="button" id="spell-send-to-sentence-btn" class="btn-spell-action primary press">Add Word</button>
+              <button type="button" id="spell-send-to-sentence-btn" class="btn-spell-action primary press">Add
+                Word</button>
               <button type="button" id="spell-clear-btn" class="btn-spell-action danger press">Clear</button>
             </div>
             <span id="current-live-letter" class="sr-only"></span>
@@ -1043,30 +1050,38 @@
               Healthcare Symptom Intake</h2>
 
             <!-- CareAnywhere Multimodal Toolbar -->
-            <div class="careanywhere-toolbar" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; margin-bottom: 4px;">
-              <label for="care-photo-input" class="btn-outline-dark press" style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px;">
+            <div class="careanywhere-toolbar"
+              style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; margin-bottom: 4px;">
+              <label for="care-photo-input" class="btn-outline-dark press"
+                style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px;">
                 <span>📷 Scan Lesion / Eye</span>
                 <input type="file" id="care-photo-input" accept="image/*" class="sr-only">
               </label>
-              <button type="button" id="btn-care-voice-dialect" class="btn-outline-dark press" style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+              <button type="button" id="btn-care-voice-dialect" class="btn-outline-dark press"
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
                 🎤 Voice Dialect
               </button>
-              <button type="button" id="btn-care-outbreak-alert" class="btn-outline-dark press" style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: #E65100; border-color: #FFE082; background: #FFF8E1;">
+              <button type="button" id="btn-care-outbreak-alert" class="btn-outline-dark press"
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: #E65100; border-color: #FFE082; background: #FFF8E1;">
                 📍 Outbreak Alert (Dhaka)
               </button>
-              <button type="button" id="btn-care-nearby-facilities" class="btn-outline-dark press" style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+              <button type="button" id="btn-care-nearby-facilities" class="btn-outline-dark press"
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
                 🏥 Nearest Clinics (OSM)
               </button>
             </div>
 
             <!-- Image Inspection Preview Drawer -->
-            <div id="care-vision-preview-card" style="display: none; padding: 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line-2); margin-bottom: 6px;">
+            <div id="care-vision-preview-card"
+              style="display: none; padding: 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line-2); margin-bottom: 6px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-weight: 700; font-size: 14px;">Attached Lesion/Eye Image</span>
-                <button type="button" id="btn-care-remove-photo" style="background: none; border: none; color: #D32F2F; font-size: 13px; font-weight: 700; cursor: pointer;">Remove</button>
+                <button type="button" id="btn-care-remove-photo"
+                  style="background: none; border: none; color: #D32F2F; font-size: 13px; font-weight: 700; cursor: pointer;">Remove</button>
               </div>
               <div style="display: flex; gap: 14px; margin-top: 8px; align-items: center;">
-                <img id="care-vision-thumb" src="" alt="Lesion photo preview" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line);">
+                <img id="care-vision-thumb" src="" alt="Lesion photo preview"
+                  style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line);">
                 <div id="care-vision-findings-box" style="flex: 1; font-size: 13px; color: var(--text-2);">
                   Analyzing image features...
                 </div>
@@ -1074,21 +1089,29 @@
             </div>
 
             <!-- Outbreak Advisory Modal / Drawer -->
-            <div id="care-outbreak-modal" style="display: none; padding: 14px; border-radius: 10px; background: #FFF8E1; border: 1.5px solid #FFD54F; color: #5D4037; margin-bottom: 8px;">
+            <div id="care-outbreak-modal"
+              style="display: none; padding: 14px; border-radius: 10px; background: #FFF8E1; border: 1.5px solid #FFD54F; color: #5D4037; margin-bottom: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong id="outbreak-modal-title" style="font-size: 15px;">Dhaka Division: Dengue Epidemic Alert</strong>
-                <button type="button" id="btn-close-outbreak-modal" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #5D4037;">×</button>
+                <strong id="outbreak-modal-title" style="font-size: 15px;">Dhaka Division: Dengue Epidemic
+                  Alert</strong>
+                <button type="button" id="btn-close-outbreak-modal"
+                  style="background: none; border: none; font-size: 16px; cursor: pointer; color: #5D4037;">×</button>
               </div>
-              <p id="outbreak-modal-desc" style="margin: 6px 0 0; font-size: 13px; line-height: 1.4;">Active vector surge detected. WHO / DGHS Protocol: Maintain high fluid intake (ORS). Strict avoidance of Aspirin / NSAIDs due to hemorrhage hazard.</p>
+              <p id="outbreak-modal-desc" style="margin: 6px 0 0; font-size: 13px; line-height: 1.4;">Active vector
+                surge detected. WHO / DGHS Protocol: Maintain high fluid intake (ORS). Strict avoidance of Aspirin /
+                NSAIDs due to hemorrhage hazard.</p>
             </div>
 
             <!-- Facilities Locator Modal / Drawer -->
-            <div id="care-facilities-modal" style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid var(--line-2); margin-bottom: 8px;">
+            <div id="care-facilities-modal"
+              style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid var(--line-2); margin-bottom: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <strong style="font-size: 15px;">Nearby Health Facilities (OpenStreetMap Health)</strong>
-                <button type="button" id="btn-close-facilities-modal" style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
+                <button type="button" id="btn-close-facilities-modal"
+                  style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
               </div>
-              <div id="care-facilities-list" style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+              <div id="care-facilities-list"
+                style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
                 Loading nearby emergency centers...
               </div>
             </div>
@@ -1213,7 +1236,9 @@
               </div>
               <div id="inspect-vision-box" style="margin-top: 10px; display: none;">
                 <strong>Attached Computer Vision Analysis:</strong>
-                <div id="inspect-vision-details" style="margin-top: 4px; padding: 10px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); font-size: 13px;"></div>
+                <div id="inspect-vision-details"
+                  style="margin-top: 4px; padding: 10px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); font-size: 13px;">
+                </div>
               </div>
               <div id="inspect-mesh-box" style="margin-top: 10px; display: none;">
                 <strong>Standardized MeSH Descriptors:</strong>
@@ -1221,7 +1246,8 @@
               </div>
               <div id="inspect-outbreak-box" style="margin-top: 10px; display: none;">
                 <strong>Epidemiological Outbreak Context:</strong>
-                <div id="inspect-outbreak-details" style="margin-top: 4px; font-size: 13px; color: var(--text-2);"></div>
+                <div id="inspect-outbreak-details" style="margin-top: 4px; font-size: 13px; color: var(--text-2);">
+                </div>
               </div>
 
               <!-- Evidence Search -->
@@ -1280,17 +1306,20 @@
                     <span class="chat-badge" id="chat-model-badge">Neural Assist v2.4</span>
                     <span class="chat-badge trained-badge" id="chat-accuracy-badge">99.4% Trained</span>
                   </div>
-                  <p class="chat-sub">Clinical symptom triage (WHO/Merck) &amp; Accessible Communication (Sign, Braille, Voice)</p>
+                  <p class="chat-sub">Clinical symptom triage (WHO/Merck) &amp; Accessible Communication (Sign, Braille,
+                    Voice)</p>
                 </div>
               </div>
               <div class="chat-header-actions">
-                <button type="button" id="btn-open-training-modal" class="btn-chat-header-action training press" title="View training metrics and fine-tune AI">
+                <button type="button" id="btn-open-training-modal" class="btn-chat-header-action training press"
+                  title="View training metrics and fine-tune AI">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                   </svg>
                   <span>Train AI Model</span>
                 </button>
-                <button type="button" id="btn-clear-chat" class="btn-chat-header-action press" title="Clear conversation history">
+                <button type="button" id="btn-clear-chat" class="btn-chat-header-action press"
+                  title="Clear conversation history">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="3 6 5 6 21 6"></polyline>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -1306,12 +1335,17 @@
                 <div class="chat-msg-avatar">🤖</div>
                 <div class="chat-msg-content">
                   <div class="chat-msg-bubble">
-                    <p>👋 <strong>Hello! I am Transify AI</strong>, your accessible healthcare and communication assistant.</p>
-                    <p>I am trained on verified <strong>WHO &amp; Merck Clinical Guidelines</strong> and accessibility protocols:</p>
+                    <p>👋 <strong>Hello! I am Transify AI</strong>, your accessible healthcare and communication
+                      assistant.</p>
+                    <p>I am trained on verified <strong>WHO &amp; Merck Clinical Guidelines</strong> and accessibility
+                      protocols:</p>
                     <ul>
-                      <li>🏥 <strong>Clinical Symptom Analysis</strong>: Fever, dehydration, burns, first-aid, emergency checks.</li>
-                      <li>✋ <strong>Sign Language Help</strong>: ASL &amp; BdSL hand shapes, fingerspelling, camera guidance.</li>
-                      <li>⠃ <strong>Braille Literacy</strong>: Grade 1 &amp; 2 contracted Braille rules and photo tips.</li>
+                      <li>🏥 <strong>Clinical Symptom Analysis</strong>: Fever, dehydration, burns, first-aid, emergency
+                        checks.</li>
+                      <li>✋ <strong>Sign Language Help</strong>: ASL &amp; BdSL hand shapes, fingerspelling, camera
+                        guidance.</li>
+                      <li>⠃ <strong>Braille Literacy</strong>: Grade 1 &amp; 2 contracted Braille rules and photo tips.
+                      </li>
                       <li>🎙️ <strong>Assistive Voice</strong>: Speech captioning, TTS vocalization, and settings.</li>
                     </ul>
                     <p>Ask a question below or choose a quick topic to start:</p>
@@ -1323,25 +1357,33 @@
 
             <!-- Quick Suggestions Bar -->
             <div class="chat-suggestions-bar" id="chat-suggestions-bar">
-              <button type="button" class="chat-suggestion-chip press" data-prompt="I have a high fever and headache, what should I do?">🌡️ High fever &amp; headache</button>
-              <button type="button" class="chat-suggestion-chip press" data-prompt="How do I use the Sign Translator with camera?">✋ How to use Sign Translator</button>
-              <button type="button" class="chat-suggestion-chip press" data-prompt="Explain Grade 1 vs Grade 2 contracted Braille">⠃ Grade 1 vs 2 Braille</button>
-              <button type="button" class="chat-suggestion-chip press" data-prompt="How does CareAnywhere offline triage work?">🏥 Offline Triage &amp; Sync</button>
-              <button type="button" class="chat-suggestion-chip press" data-prompt="আমার জ্বর হয়েছে কি করব">🇧🇩 বাংলায় পরামর্শ (Fever in Bengali)</button>
+              <button type="button" class="chat-suggestion-chip press"
+                data-prompt="I have a high fever and headache, what should I do?">🌡️ High fever &amp; headache</button>
+              <button type="button" class="chat-suggestion-chip press"
+                data-prompt="How do I use the Sign Translator with camera?">✋ How to use Sign Translator</button>
+              <button type="button" class="chat-suggestion-chip press"
+                data-prompt="Explain Grade 1 vs Grade 2 contracted Braille">⠃ Grade 1 vs 2 Braille</button>
+              <button type="button" class="chat-suggestion-chip press"
+                data-prompt="How does CareAnywhere offline triage work?">🏥 Offline Triage &amp; Sync</button>
+              <button type="button" class="chat-suggestion-chip press" data-prompt="আমার জ্বর হয়েছে কি করব">🇧🇩
+                বাংলায় পরামর্শ (Fever in Bengali)</button>
             </div>
 
             <!-- Input Bar -->
             <form id="chat-input-form" class="chat-input-form">
               <div class="chat-input-wrapper">
-                <input type="text" id="chat-input-field" class="chat-input" placeholder="Ask about health triage, signs, Braille, or accessibility..." autocomplete="off">
-                <button type="button" id="chat-mic-btn" class="chat-mic-btn press" aria-label="Dictate message with voice" title="Voice dictation">
+                <input type="text" id="chat-input-field" class="chat-input"
+                  placeholder="Ask about health triage, signs, Braille, or accessibility..." autocomplete="off">
+                <button type="button" id="chat-mic-btn" class="chat-mic-btn press"
+                  aria-label="Dictate message with voice" title="Voice dictation">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                     <rect x="9" y="3" width="6" height="11" rx="3" />
                     <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
                   </svg>
                 </button>
                 <button type="submit" id="chat-send-btn" class="chat-send-btn press" aria-label="Send message">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <line x1="22" y1="2" x2="11" y2="13"></line>
                     <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                   </svg>
@@ -1359,7 +1401,8 @@
                 <h2 class="chat-modal-title">⚡ AI Training Hub &amp; Fine-Tuning</h2>
                 <p class="chat-modal-sub">Iteratively train and fine-tune Transify's local neural semantic model.</p>
               </div>
-              <button type="button" id="btn-close-training-modal" class="chat-modal-close press" aria-label="Close modal">×</button>
+              <button type="button" id="btn-close-training-modal" class="chat-modal-close press"
+                aria-label="Close modal">×</button>
             </header>
 
             <div class="chat-modal-body">
@@ -1390,7 +1433,8 @@
               <!-- Interactive Training Trigger -->
               <div class="training-section-card">
                 <h3 class="training-sec-title">Run Neural Gradient Training</h3>
-                <p class="training-sec-desc">Train model weights across training epochs to re-optimize intent embeddings and clinical RAG retrieval.</p>
+                <p class="training-sec-desc">Train model weights across training epochs to re-optimize intent embeddings
+                  and clinical RAG retrieval.</p>
                 <div class="training-controls-row">
                   <label class="train-param-label">
                     <span>Epochs:</span>
@@ -1431,10 +1475,12 @@
                 <p class="training-sec-desc">Add a custom training sample to the model's knowledge corpus.</p>
                 <div class="custom-train-form">
                   <div class="form-row">
-                    <input type="text" id="custom-train-pattern" class="chat-input" placeholder="User Inquiry (e.g. 'What is the protocol for severe dehydration?')">
+                    <input type="text" id="custom-train-pattern" class="chat-input"
+                      placeholder="User Inquiry (e.g. 'What is the protocol for severe dehydration?')">
                   </div>
                   <div class="form-row">
-                    <textarea id="custom-train-response" class="chat-input" style="height: 70px; resize: none;" placeholder="Verified Guidance / Clinical Response..."></textarea>
+                    <textarea id="custom-train-response" class="chat-input" style="height: 70px; resize: none;"
+                      placeholder="Verified Guidance / Clinical Response..."></textarea>
                   </div>
                   <div class="form-row" style="display: flex; gap: 10px; align-items: center;">
                     <select id="custom-train-domain" class="train-select" style="flex: 1;">
@@ -1476,9 +1522,11 @@
             <div class="settings-card">
               <div class="settings-card-header">
                 <div class="settings-card-icon-wrap theme-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5"/>
-                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5" />
+                    <path
+                      d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
                   </svg>
                 </div>
                 <div>
@@ -1489,7 +1537,8 @@
 
               <div class="theme-picker-grid">
                 <!-- Theme Option 1: Light -->
-                <button type="button" class="theme-card-btn active" data-theme="light" id="theme-btn-light" aria-pressed="true">
+                <button type="button" class="theme-card-btn active" data-theme="light" id="theme-btn-light"
+                  aria-pressed="true">
                   <div class="theme-preview theme-prev-light">
                     <div class="theme-dot" style="background: #8338EC;"></div>
                     <div class="theme-bar" style="background: #14111F;"></div>
@@ -1509,7 +1558,8 @@
                 </button>
 
                 <!-- Theme Option 3: High Contrast -->
-                <button type="button" class="theme-card-btn" data-theme="high-contrast" id="theme-btn-contrast" aria-pressed="false">
+                <button type="button" class="theme-card-btn" data-theme="high-contrast" id="theme-btn-contrast"
+                  aria-pressed="false">
                   <div class="theme-preview theme-prev-contrast">
                     <div class="theme-dot" style="background: #FFCB05;"></div>
                     <div class="theme-bar" style="background: #FFCB05;"></div>
@@ -1519,7 +1569,8 @@
                 </button>
 
                 <!-- Theme Option 4: System -->
-                <button type="button" class="theme-card-btn" data-theme="system" id="theme-btn-system" aria-pressed="false">
+                <button type="button" class="theme-card-btn" data-theme="system" id="theme-btn-system"
+                  aria-pressed="false">
                   <div class="theme-preview theme-prev-system">
                     <div class="theme-dot" style="background: #0F9D74;"></div>
                     <div class="theme-bar" style="background: #72708A;"></div>
@@ -1534,10 +1585,11 @@
             <div class="settings-card">
               <div class="settings-card-header">
                 <div class="settings-card-icon-wrap a11y-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <circle cx="12" cy="8" r="2"/>
-                    <path d="M12 10v6M9 13h6M10 20l2-4 2 4"/>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="12" cy="8" r="2" />
+                    <path d="M12 10v6M9 13h6M10 20l2-4 2 4" />
                   </svg>
                 </div>
                 <div>
@@ -1553,7 +1605,8 @@
                     <div class="settings-item-title">Typography Scaling</div>
                     <div class="settings-item-desc">Adjust UI text size for enhanced legibility</div>
                   </div>
-                  <div role="group" aria-label="Typography scaling" class="segmented-control" id="settings-fontsize-group">
+                  <div role="group" aria-label="Typography scaling" class="segmented-control"
+                    id="settings-fontsize-group">
                     <button type="button" class="segmented-btn press active" data-scale="normal">100%</button>
                     <button type="button" class="segmented-btn press" data-scale="large">115%</button>
                     <button type="button" class="segmented-btn press" data-scale="xlarge">130%</button>
@@ -1564,7 +1617,8 @@
                 <div class="settings-row">
                   <div class="settings-label-col">
                     <div class="settings-item-title">Reduce Motion</div>
-                    <div class="settings-item-desc">Disable background ambient orbs, scanning beams, and transitions</div>
+                    <div class="settings-item-desc">Disable background ambient orbs, scanning beams, and transitions
+                    </div>
                   </div>
                   <label class="toggle-switch" for="setting-reduce-motion">
                     <input type="checkbox" id="setting-reduce-motion" aria-label="Reduce motion across all screens">
@@ -1590,9 +1644,10 @@
             <div class="settings-card">
               <div class="settings-card-header">
                 <div class="settings-card-icon-wrap audio-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
                   </svg>
                 </div>
                 <div>
@@ -1621,15 +1676,17 @@
                     <div class="settings-item-desc">Playback pace for Say-Aloud, Braille scanner, and sign speech</div>
                   </div>
                   <div class="settings-action-cluster">
-                    <div role="group" aria-label="Speech pace" class="segmented-control" id="settings-speech-rate-group">
+                    <div role="group" aria-label="Speech pace" class="segmented-control"
+                      id="settings-speech-rate-group">
                       <button type="button" class="segmented-btn press" data-rate="0.8">0.8x</button>
                       <button type="button" class="segmented-btn press active" data-rate="1.0">1.0x</button>
                       <button type="button" class="segmented-btn press" data-rate="1.2">1.2x</button>
                     </div>
                     <button type="button" class="btn-voice-preview press" id="btn-settings-test-voice">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
                       </svg>
                       <span>Test Speech</span>
                     </button>
@@ -1640,10 +1697,12 @@
                 <div class="settings-row">
                   <div class="settings-label-col">
                     <div class="settings-item-title">Recognition Audio Cues</div>
-                    <div class="settings-item-desc">Play soft confirmation chime upon successful sign or Braille detection</div>
+                    <div class="settings-item-desc">Play soft confirmation chime upon successful sign or Braille
+                      detection</div>
                   </div>
                   <label class="toggle-switch" for="setting-audio-chimes">
-                    <input type="checkbox" id="setting-audio-chimes" checked aria-label="Play audio confirmation chimes">
+                    <input type="checkbox" id="setting-audio-chimes" checked
+                      aria-label="Play audio confirmation chimes">
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
@@ -1654,10 +1713,11 @@
             <div class="settings-card">
               <div class="settings-card-header">
                 <div class="settings-card-icon-wrap ai-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2a10 10 0 1 0 10 10H12V2z"/>
-                    <path d="M12 2a10 10 0 0 1 10 10h-10V2z"/>
-                    <path d="M12 12 2.1 12a10 10 0 0 0 9.9 9.9V12z"/>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
+                    <path d="M12 2a10 10 0 0 1 10 10h-10V2z" />
+                    <path d="M12 12 2.1 12a10 10 0 0 0 9.9 9.9V12z" />
                   </svg>
                 </div>
                 <div>
@@ -1673,7 +1733,8 @@
                     <div class="settings-item-title">Default Sign Language</div>
                     <div class="settings-item-desc">Primary sign lexicon for camera recognition pipeline</div>
                   </div>
-                  <div role="group" aria-label="Default Sign Language" class="segmented-control" id="settings-sign-lang-group">
+                  <div role="group" aria-label="Default Sign Language" class="segmented-control"
+                    id="settings-sign-lang-group">
                     <button type="button" class="segmented-btn press" data-sign="bdsl">BdSL (Bengali)</button>
                     <button type="button" class="segmented-btn press active" data-sign="asl">ASL (American)</button>
                   </div>
@@ -1685,9 +1746,12 @@
                     <div class="settings-item-title">Braille Standard</div>
                     <div class="settings-item-desc">Transcription mode for 6-dot cell OCR scanning</div>
                   </div>
-                  <div role="group" aria-label="Braille Standard" class="segmented-control" id="settings-braille-standard-group">
-                    <button type="button" class="segmented-btn press active" data-braille="grade1">Grade 1 (Letter by letter)</button>
-                    <button type="button" class="segmented-btn press" data-braille="grade2">Grade 2 (Contracted)</button>
+                  <div role="group" aria-label="Braille Standard" class="segmented-control"
+                    id="settings-braille-standard-group">
+                    <button type="button" class="segmented-btn press active" data-braille="grade1">Grade 1 (Letter by
+                      letter)</button>
+                    <button type="button" class="segmented-btn press" data-braille="grade2">Grade 2
+                      (Contracted)</button>
                   </div>
                 </div>
 
@@ -1697,7 +1761,8 @@
                     <div class="settings-item-title">Confidence Gate</div>
                     <div class="settings-item-desc">Minimum landmark confidence required before speaking words</div>
                   </div>
-                  <select id="setting-confidence-gate" class="settings-select" aria-label="Vision Model Confidence Gate">
+                  <select id="setting-confidence-gate" class="settings-select"
+                    aria-label="Vision Model Confidence Gate">
                     <option value="95">Strict (95% Sure)</option>
                     <option value="85" selected>Balanced (85% Sure)</option>
                     <option value="70">Sensitive (70% Sure)</option>
@@ -1710,9 +1775,10 @@
             <div class="settings-card">
               <div class="settings-card-header">
                 <div class="settings-card-icon-wrap user-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
                   </svg>
                 </div>
                 <div>
@@ -1744,8 +1810,9 @@
             <div class="settings-card">
               <div class="settings-card-header">
                 <div class="settings-card-icon-wrap shield-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   </svg>
                 </div>
                 <div>
@@ -1756,21 +1823,24 @@
 
               <div class="settings-privacy-banner">
                 <div class="privacy-banner-title">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
                   <span>100% On-Device Processing Guaranteed</span>
                 </div>
                 <p class="privacy-banner-text">
-                  Camera video streams, hand landmark coordinates, and microphone audio are evaluated exclusively on local device silicon. Biometrics are never transmitted to cloud servers.
+                  Camera video streams, hand landmark coordinates, and microphone audio are evaluated exclusively on
+                  local device silicon. Biometrics are never transmitted to cloud servers.
                 </p>
               </div>
 
               <div class="settings-storage-row">
                 <div class="storage-info">
                   <div class="storage-title">Local Activity & Phrase Cache</div>
-                  <div class="storage-desc" id="settings-storage-size">14.2 MB cached (Models, guidelines & phrase history)</div>
+                  <div class="storage-desc" id="settings-storage-size">14.2 MB cached (Models, guidelines & phrase
+                    history)</div>
                 </div>
                 <button type="button" class="btn-clear-history-settings press" id="btn-settings-clear-history">
                   Clear Activity History
@@ -1859,7 +1929,8 @@
   <!-- ======================================================================
        PROFILE & ACCESSIBILITY SETTINGS MODAL (#frame-avatar-btn)
        ====================================================================== -->
-  <div id="profile-modal-overlay" class="profile-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title" style="display: none;">
+  <div id="profile-modal-overlay" class="profile-modal-overlay" role="dialog" aria-modal="true"
+    aria-labelledby="profile-dialog-title" style="display: none;">
     <div class="profile-modal-backdrop" id="profile-modal-backdrop"></div>
     <div class="profile-modal-card">
       <header class="profile-modal-header">
@@ -1874,7 +1945,8 @@
           </div>
         </div>
         <button type="button" class="btn-close-modal press" id="btn-close-profile-modal" aria-label="Close settings">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -1890,7 +1962,8 @@
               <div class="profile-name" id="profile-name-text">Guest User</div>
               <div class="profile-email" id="profile-email-text">Offline Edge Session</div>
             </div>
-            <button type="button" class="btn-profile-auth press" id="btn-profile-auth-action" onclick="window.TransifyApp.handleProfileAuthAction()">
+            <button type="button" class="btn-profile-auth press" id="btn-profile-auth-action"
+              onclick="window.TransifyApp.handleProfileAuthAction()">
               Sign In
             </button>
           </div>
@@ -1910,8 +1983,10 @@
                 <button type="button" class="btn-speed press active" data-speed="1.0">1.0x</button>
                 <button type="button" class="btn-speed press" data-speed="1.2">1.2x</button>
               </div>
-              <button type="button" class="btn-test-speech press" id="btn-test-speech-voice" aria-label="Play test audio">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <button type="button" class="btn-test-speech press" id="btn-test-speech-voice"
+                aria-label="Play test audio">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
                   <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
                 </svg>
@@ -1924,7 +1999,7 @@
         <!-- Section 3: Visual Accessibility Toggles -->
         <div class="profile-section-card">
           <h3 class="profile-section-heading">Visual Accessibility</h3>
-          
+
           <div class="setting-row">
             <div class="setting-label-col">
               <span class="setting-title">High Contrast Mode</span>
@@ -1963,7 +2038,8 @@
         <div class="profile-section-card">
           <h3 class="profile-section-heading">Privacy & Activity Vault</h3>
           <div class="privacy-guarantee-note">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
             <span>On-Device Edge Storage: Camera frames and audio never leave your device.</span>
@@ -1981,7 +2057,8 @@
   <!-- Floating AI Chatbot Quick Trigger -->
   <a href="#chat" class="floating-chat-btn press" id="floating-chat-btn" aria-label="Open AI Chatbot">
     <div class="floating-chat-icon">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2"
+        stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" />
         <path d="M4 11a8 8 0 0 1 16 0c0 3.2-1.5 5.5-3.5 7.2L17 21l-3.5-1.5A7.9 7.9 0 0 1 4 11z" />
         <circle cx="9" cy="11" r="1.2" fill="#ffffff" />
@@ -2001,7 +2078,7 @@
   <div id="transify-auth-screen" style="display: none;"></div>
 
   <!-- Client Application Scripts -->
-  <script src="/static/app.js?v=20261120_illustration_hand_v1"></script>
+  <script src="/static/app.js?v=20261120_care_fullwidth_v1"></script>
   <script src="/static/care.js?v=20261120_careanywhere"></script>
 </body>
 

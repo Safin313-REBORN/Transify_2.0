@@ -1171,15 +1171,17 @@ h3,
   letter-spacing: -.025em;
 }
 
-/* Transify Care Hero Banner on Home */
+/* Transify Care Hero Banner on Home (Full Width) */
 .home-care-tile {
-  grid-column: 1 / -1;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
   position: relative;
   overflow: hidden;
   border-radius: 16px;
   background: #171420;
   color: #fff;
-  padding: 24px 28px;
+  padding: 16px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1191,23 +1193,27 @@ h3,
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .home-care-tile .care-title {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 24px;
+  font-size: 22px;
   letter-spacing: -.02em;
 }
 
 .home-care-tile .care-desc {
-  font-size: 16px;
+  font-size: 15px;
   color: #D4D2E4;
 }
 
 .home-care-tile .care-actions {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 /* Recent Aside */
