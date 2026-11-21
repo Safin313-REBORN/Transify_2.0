@@ -82,7 +82,7 @@
 <body>
 
   <!-- Global Transify Kinetic Page Loader (Uiverse.io by Praashoo7) -->
-  <div id="transify-page-loader" class="page-loader-overlay" aria-live="polite" aria-label="Loading content">
+  <div id="transify-page-loader" class="page-loader-overlay" aria-live="polite" aria-label="Loading content" style="display: none;">
     <div class="loader-content">
       <div class="main">
         <div class="loaders">
@@ -2773,15 +2773,24 @@
                       <div class="settings-item-title">Confidence Gate Precision</div>
                       <div class="settings-item-desc">Minimum landmark confidence required before speaking words</div>
                     </div>
-                    <div class="radio-container horizontal" style="--total-radio: 3;" id="setting-confidence-radio-group" role="radiogroup" aria-label="Vision Model Confidence Gate">
+                    <div class="radio-container" style="--total-radio: 3;" id="setting-confidence-radio-group" role="radiogroup" aria-label="Vision Model Confidence Gate">
                       <input type="radio" id="confidence-gate-95" name="setting_confidence_radio" value="95">
-                      <label for="confidence-gate-95">Strict (95%)</label>
+                      <label for="confidence-gate-95" class="radio-option-card">
+                        <span class="radio-opt-title">Strict (95% Accuracy)</span>
+                        <span class="radio-opt-desc">High precision landmark gate for critical signs and symptoms</span>
+                      </label>
 
                       <input type="radio" id="confidence-gate-85" name="setting_confidence_radio" value="85" checked>
-                      <label for="confidence-gate-85">Balanced (85%)</label>
+                      <label for="confidence-gate-85" class="radio-option-card">
+                        <span class="radio-opt-title">Balanced (85% Accuracy)</span>
+                        <span class="radio-opt-desc">Recommended default for smooth real-time conversation</span>
+                      </label>
 
                       <input type="radio" id="confidence-gate-70" name="setting_confidence_radio" value="70">
-                      <label for="confidence-gate-70">Sensitive (70%)</label>
+                      <label for="confidence-gate-70" class="radio-option-card">
+                        <span class="radio-opt-title">Sensitive (70% Accuracy)</span>
+                        <span class="radio-opt-desc">Rapid capture in dim lighting and fast-paced gestures</span>
+                      </label>
 
                       <div class="glider-container" aria-hidden="true">
                         <div class="glider"></div>

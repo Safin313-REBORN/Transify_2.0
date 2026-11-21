@@ -4284,6 +4284,35 @@ const EditorialController = {
       researcher: 'AI Researcher'
     };
 
+    const syncLiveProfile = (showToastNotice = false, customNotice = '') => {
+      const nameVal = (profName ? profName.value : '') || 'Guest User';
+      const roleVal = profRole ? profRole.value : 'accessibility_user';
+      const commVal = profComm ? profComm.value : 'multimodal';
+      const dialectVal = profDialect ? profDialect.value : 'en-US';
+      const bioVal = profBio ? profBio.value : '';
+
+      const profObj = { name: nameVal, role: roleVal, comm: commVal, dialect: dialectVal, bio: bioVal };
+      try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) {}
+
+      const initials = nameVal.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2) || 'TR';
+      if (profAvatar) profAvatar.textContent = initials;
+      if (profHeading) profHeading.textContent = nameVal;
+      if (profBadgeRole) profBadgeRole.textContent = roleLabels[roleVal] || 'Accessibility User';
+
+      const setAv = document.getElementById('settings-avatar-initials');
+      if (setAv) setAv.textContent = initials;
+      const frameAv = document.getElementById('frame-avatar-btn');
+      if (frameAv) frameAv.textContent = initials;
+      const setName = document.getElementById('settings-user-name');
+      if (setName && (setName.textContent === 'Guest User' || !localStorage.getItem('transify_auth_user'))) {
+        setName.textContent = nameVal;
+      }
+
+      if (showToastNotice && window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast(customNotice || 'Profile changes saved successfully', 'success');
+      }
+    };
+
     const savedProfStr = localStorage.getItem('transify_user_profile');
     if (savedProfStr) {
       try {
@@ -4306,34 +4335,33 @@ const EditorialController = {
       } catch (_) {}
     }
 
+    // Live reactivity for profile controls
+    if (profRole) {
+      profRole.addEventListener('change', () => {
+        syncLiveProfile(true, `Role set to ${roleLabels[profRole.value] || profRole.value}`);
+      });
+    }
+    if (profComm) {
+      profComm.addEventListener('change', () => {
+        const commText = profComm.options[profComm.selectedIndex]?.text?.split('(')[0]?.trim() || profComm.value;
+        syncLiveProfile(true, `Modality set to ${commText}`);
+      });
+    }
+    if (profDialect) {
+      profDialect.addEventListener('change', () => {
+        const dText = profDialect.options[profDialect.selectedIndex]?.text?.split('(')[0]?.trim() || profDialect.value;
+        syncLiveProfile(true, `Dialect set to ${dText}`);
+      });
+    }
+    if (profName) {
+      profName.addEventListener('input', () => {
+        syncLiveProfile(false);
+      });
+    }
+
     if (saveProfBtn) {
       saveProfBtn.addEventListener('click', () => {
-        const nameVal = (profName ? profName.value : '') || 'Guest User';
-        const roleVal = profRole ? profRole.value : 'accessibility_user';
-        const commVal = profComm ? profComm.value : 'multimodal';
-        const dialectVal = profDialect ? profDialect.value : 'en-US';
-        const bioVal = profBio ? profBio.value : '';
-
-        const profObj = { name: nameVal, role: roleVal, comm: commVal, dialect: dialectVal, bio: bioVal };
-        try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) {}
-
-        const initials = nameVal.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2) || 'TR';
-        if (profAvatar) profAvatar.textContent = initials;
-        if (profHeading) profHeading.textContent = nameVal;
-        if (profBadgeRole) profBadgeRole.textContent = roleLabels[roleVal] || 'Accessibility User';
-
-        const setAv = document.getElementById('settings-avatar-initials');
-        if (setAv) setAv.textContent = initials;
-        const frameAv = document.getElementById('frame-avatar-btn');
-        if (frameAv) frameAv.textContent = initials;
-        const setName = document.getElementById('settings-user-name');
-        if (setName && (setName.textContent === 'Guest User' || !localStorage.getItem('transify_auth_user'))) {
-          setName.textContent = nameVal;
-        }
-
-        if (window.TransifyApp && window.TransifyApp.showToast) {
-          window.TransifyApp.showToast('Profile changes saved successfully', 'success');
-        }
+        syncLiveProfile(true, 'Profile changes saved successfully');
       });
     }
 
@@ -4544,13 +4572,29 @@ const EditorialController = {
       });
     }
 
-    // 7. Test Voice Button
+    // 7. Test Voice Button & Audio Cues
     const testVoiceBtn = document.getElementById('btn-settings-test-voice');
     if (testVoiceBtn) {
       testVoiceBtn.addEventListener('click', () => {
         const phrase = 'Welcome to Transify. Assistive voice synthesis is verified and operating.';
         if (window.TransifyApp && window.TransifyApp.speak) {
           window.TransifyApp.speak(phrase, { rate: window.TransifyApp.speechRate || 1.0 });
+        }
+      });
+    }
+
+    const audioChimesToggle = document.getElementById('setting-audio-chimes');
+    if (audioChimesToggle) {
+      const isChimesActive = localStorage.getItem('transify_audio_chimes') !== 'false';
+      audioChimesToggle.checked = isChimesActive;
+      if (window.TransifyApp) window.TransifyApp.audioChimes = isChimesActive;
+
+      audioChimesToggle.addEventListener('change', (e) => {
+        const val = e.target.checked;
+        if (window.TransifyApp) window.TransifyApp.audioChimes = val;
+        try { localStorage.setItem('transify_audio_chimes', val ? 'true' : 'false'); } catch (e) { }
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast(val ? 'Recognition Audio Chimes Enabled' : 'Audio Chimes Muted', 'info');
         }
       });
     }
@@ -4603,11 +4647,12 @@ const EditorialController = {
     if (confGate) {
       confGate.value = savedConf;
       confGate.addEventListener('change', (e) => {
-        try { localStorage.setItem('transify_confidence_gate', e.target.value); } catch (e) { }
-        const radio = document.querySelector(`input[name="setting_confidence_radio"][value="${e.target.value}"]`);
+        const val = e.target.value;
+        try { localStorage.setItem('transify_confidence_gate', val); } catch (e) { }
+        const radio = document.querySelector(`input[name="setting_confidence_radio"][value="${val}"]`);
         if (radio) radio.checked = true;
         if (window.TransifyApp && window.TransifyApp.showToast) {
-          window.TransifyApp.showToast(`Vision confidence threshold: ${e.target.value}%`, 'info');
+          window.TransifyApp.showToast(`Vision confidence threshold: ${val}%`, 'info');
         }
       });
     }
@@ -4619,6 +4664,20 @@ const EditorialController = {
         if (confGate) {
           confGate.value = e.target.value;
           confGate.dispatchEvent(new Event('change'));
+        }
+      });
+    });
+
+    // Make whole label row in .radio-container immediately selectable
+    document.querySelectorAll('.radio-container label').forEach(lbl => {
+      lbl.addEventListener('click', (e) => {
+        const targetId = lbl.getAttribute('for');
+        if (targetId) {
+          const radio = document.getElementById(targetId);
+          if (radio && !radio.checked) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change'));
+          }
         }
       });
     });
@@ -4654,14 +4713,55 @@ const EditorialController = {
           localStorage.removeItem('transify_font_scale');
           localStorage.removeItem('transify_focus_rings');
           localStorage.removeItem('transify_reduce_motion');
+          localStorage.removeItem('transify_reduced_motion');
           localStorage.removeItem('transify_speech_rate');
+          localStorage.removeItem('transify_default_sign_lang');
+          localStorage.removeItem('transify_braille_standard');
+          localStorage.removeItem('transify_confidence_gate');
+          localStorage.removeItem('transify_audio_chimes');
+          localStorage.removeItem('transify_lang');
         } catch (e) { }
+
+        // Reset UI Toggles
         if (reduceMotionCheck) reduceMotionCheck.checked = false;
         if (focusRingToggle) focusRingToggle.checked = false;
+        if (audioChimesToggle) audioChimesToggle.checked = true;
         document.documentElement.removeAttribute('data-motion');
         document.body.classList.remove('enhanced-focus');
+
+        // Reset Speech Rate segmented buttons
+        if (speechRateGroup) {
+          speechRateGroup.querySelectorAll('.segmented-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.rate === '1.0');
+          });
+          if (window.TransifyApp) window.TransifyApp.speechRate = 1.0;
+        }
+
+        // Reset Sign Language segmented buttons
+        if (signLangGroup) {
+          signLangGroup.querySelectorAll('.segmented-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.sign === 'asl');
+          });
+        }
+
+        // Reset Braille Standard segmented buttons
+        if (brailleGroup) {
+          brailleGroup.querySelectorAll('.segmented-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.braille === 'grade1');
+          });
+        }
+
+        // Reset Confidence Gate
+        const defConfRadio = document.getElementById('confidence-gate-85');
+        if (defConfRadio) defConfRadio.checked = true;
+        if (confGate) confGate.value = '85';
+
+        // Reset Interface Language
+        if (langSelect) langSelect.value = 'en';
+        if (typeof applyLocale === 'function') applyLocale('en');
+
         if (window.TransifyApp && window.TransifyApp.showToast) {
-          window.TransifyApp.showToast('All settings reset to default', 'info');
+          window.TransifyApp.showToast('All settings reset to defaults', 'info');
         }
       });
     }
