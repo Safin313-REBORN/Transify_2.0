@@ -316,9 +316,9 @@
     if (welcomeSub) welcomeSub.textContent = dict.cover_subtitle;
     const welcomeLangBtn = document.getElementById('welcome-lang-btn');
     if (welcomeLangBtn) welcomeLangBtn.textContent = dict.welcome_lang_btn;
-    const welcomeAccountBtn = document.getElementById('btn-welcome-account');
+    const welcomeAccountBtn = document.getElementById('btn-open-register') || document.getElementById('btn-welcome-account');
     if (welcomeAccountBtn) welcomeAccountBtn.textContent = dict.btn_create_account;
-    const welcomeSigninBtn = document.getElementById('btn-welcome-signin');
+    const welcomeSigninBtn = document.getElementById('btn-open-login') || document.getElementById('btn-welcome-signin');
     if (welcomeSigninBtn) welcomeSigninBtn.textContent = dict.btn_login;
     const welcomeGuestBtn = document.getElementById('btn-demo-guest');
     if (welcomeGuestBtn) welcomeGuestBtn.textContent = dict.btn_skip_guest;

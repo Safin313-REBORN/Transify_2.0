@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-11-20T08:41:21.102053Z",
+  "timestamp": "2026-11-21T14:52:18.021421Z",
   "safety_audit": {
     "rule_metadata_complete": true,
-    "total_rules": 7,
+    "total_rules": 11,
     "rules": [
       {
         "rule_id": "RULE-EMERG-001",
@@ -15,7 +15,7 @@
         "rule_id": "RULE-EMERG-002",
         "name": "Severe Acute Respiratory Distress",
         "level": "RED",
-        "source": "WHO Interagency Integrated Triage Tool (Red Category)",
+        "source": "WHO Interagency Integrated Triage Tool (Red Category Adaptation Prototype)",
         "version": "2020.2"
       },
       {
@@ -36,8 +36,8 @@
         "rule_id": "RULE-URGENT-001",
         "name": "High Fever with Dehydration or Progressive Deterioration",
         "level": "YELLOW",
-        "source": "National Dengue & Acute Febrile Illness Clinical Management Guidelines, DGHS",
-        "version": "2024.1"
+        "source": "National Guidelines for Clinical Management of Dengue Syndrome, DGHS Bangladesh",
+        "version": "5th Edition (2023)"
       },
       {
         "rule_id": "RULE-URGENT-002",
@@ -45,6 +45,34 @@
         "level": "YELLOW",
         "source": "WHO Integrated Primary Care Guidance",
         "version": "2022.3"
+      },
+      {
+        "rule_id": "RULE-EMERG-DERM-001",
+        "name": "Severe Full-Thickness Thermal/Chemical Burn or Necrotizing Skin Lesion",
+        "level": "RED",
+        "source": "Merck Manual of Diagnosis and Therapy (Professional Edition) / WHO Burn Management",
+        "version": "2024.1"
+      },
+      {
+        "rule_id": "RULE-EMERG-OPHTH-001",
+        "name": "Acute Sudden Vision Loss or Penetrating Ocular Trauma",
+        "level": "RED",
+        "source": "Merck Manual of Diagnosis and Therapy / National Institute of Ophthalmology Protocol",
+        "version": "2024.1"
+      },
+      {
+        "rule_id": "RULE-URGENT-DERM-001",
+        "name": "Spreading Cutaneous Erythema, Suspect Cellulitis or Atypical Lesion",
+        "level": "YELLOW",
+        "source": "Merck Manual of Diagnosis and Therapy (Professional Edition)",
+        "version": "2024.1"
+      },
+      {
+        "rule_id": "RULE-URGENT-OPHTH-001",
+        "name": "Acute Red Eye with Severe Pain or Corneal Infiltrate",
+        "level": "YELLOW",
+        "source": "Merck Manual of Diagnosis and Therapy (Ophthalmic Protocols)",
+        "version": "2024.1"
       },
       {
         "rule_id": "RULE-ROUTINE-001",
@@ -62,37 +90,87 @@
     "override_without_reason_rejected": true
   },
   "rag_audit": {
-    "sources_in_db": 3,
-    "chunks_in_db": 6,
+    "sources_in_db": 8,
+    "chunks_in_db": 12,
     "sources": [
       {
-        "id": 1,
+        "id": 674,
         "source_id": "SRC-WHO-TRIAGE-2020",
-        "title": "WHO Interagency Integrated Triage Tool: Adult and Pediatric Triage Protocols",
+        "title": "WHO Interagency Integrated Triage Tool: Adult and Pediatric Triage Protocols (Facility Adaptation Prototype)",
         "publisher": "World Health Organization (WHO)",
-        "version": "2020.2",
+        "version": "2020 (Prototype Adaptation)",
         "url": "https://www.who.int/publications/i/item/9789240001091",
         "licensing_status": "OPEN_ACCESS_WHO_PUBLIC_HEALTH",
-        "status": "APPROVED"
+        "status": "PENDING_REVIEW"
       },
       {
-        "id": 2,
-        "source_id": "SRC-DGHS-BD-DENGUE-2024",
-        "title": "National Clinical Management Guidelines for Dengue Fever & Acute Febrile Illness",
-        "publisher": "Directorate General of Health Services (DGHS), Bangladesh",
-        "version": "2024.1",
+        "id": 675,
+        "source_id": "SRC-DGHS-BD-DENGUE-5TH-ED",
+        "title": "National Guidelines for Clinical Management of Dengue Syndrome in Bangladesh (5th Edition)",
+        "publisher": "Disease Control Unit, Directorate General of Health Services (DGHS), Ministry of Health & Family Welfare, Government of Bangladesh",
+        "version": "5th Edition (2023)",
         "url": "https://dghs.gov.bd/index.php/en/publications/clinical-guidelines",
         "licensing_status": "PUBLIC_SECTOR_GOVERNMENT_OF_BANGLADESH",
-        "status": "APPROVED"
+        "status": "PENDING_REVIEW"
       },
       {
-        "id": 3,
+        "id": 676,
         "source_id": "SRC-DGHS-BD-STROKE-2021",
         "title": "Clinical Practice Guidelines for Acute Ischemic Stroke Management in Bangladesh",
         "publisher": "National Institute of Neurosciences & Hospital (NINS) / DGHS Bangladesh",
-        "version": "2021.1",
+        "version": "2021",
         "url": "https://nins.gov.bd",
         "licensing_status": "PUBLIC_SECTOR_GOVERNMENT_OF_BANGLADESH",
+        "status": "PENDING_REVIEW"
+      },
+      {
+        "id": 677,
+        "source_id": "SRC-MERCK-MANUALS-2024",
+        "title": "Merck Manual of Diagnosis and Therapy (Professional Edition) - Clinical Decision Support",
+        "publisher": "Merck Sharp & Dohme Corp. / Merck & Co.",
+        "version": "2024.1",
+        "url": "https://www.merckmanuals.com/professional",
+        "licensing_status": "PROFESSIONAL_REFERENCE_OPEN_ACCESS",
+        "status": "APPROVED"
+      },
+      {
+        "id": 678,
+        "source_id": "SRC-MIMIC-IV-CRITICAL-2023",
+        "title": "MIMIC-IV Clinical Reasoning & Vital Signs Reference Standard",
+        "publisher": "MIT Laboratory for Computational Physiology / PhysioNet",
+        "version": "v2.2",
+        "url": "https://physionet.org/content/mimiciv/",
+        "licensing_status": "RESEARCH_DATA_USE_AGREEMENT",
+        "status": "APPROVED"
+      },
+      {
+        "id": 679,
+        "source_id": "SRC-NLM-MESH-2024",
+        "title": "U.S. National Library of Medicine Medical Subject Headings (MeSH) Controlled Vocabulary",
+        "publisher": "National Institutes of Health (NIH) / U.S. NLM",
+        "version": "2024",
+        "url": "https://www.nlm.nih.gov/mesh/meshhome.html",
+        "licensing_status": "PUBLIC_DOMAIN_NLM",
+        "status": "APPROVED"
+      },
+      {
+        "id": 680,
+        "source_id": "SRC-WHO-GHO-EPIDEMIC-2024",
+        "title": "WHO Global Health Observatory Disease Prevalence & Regional Outbreak Surveillance Protocol",
+        "publisher": "World Health Organization (WHO) Global Health Observatory",
+        "version": "2024.1",
+        "url": "https://www.who.int/data/gho",
+        "licensing_status": "OPEN_ACCESS_WHO",
+        "status": "APPROVED"
+      },
+      {
+        "id": 681,
+        "source_id": "SRC-HMD-MORTALITY-2024",
+        "title": "Human Mortality Database (HMD) International Actuarial Life Tables & Long-Term Health Trends",
+        "publisher": "University of California, Berkeley & Max Planck Institute for Demographic Research",
+        "version": "2024.1",
+        "url": "https://www.mortality.org",
+        "licensing_status": "OPEN_ACCESS_RESEARCH_DATA",
         "status": "APPROVED"
       }
     ],
@@ -101,26 +179,26 @@
   },
   "demo_cases": {
     "total_demo_fixtures": 3,
-    "demo-patient-003": {
+    "synthetic-demo-patient-003": {
       "modality": "braille",
       "urgency": "GREEN",
       "rule": "RULE-ROUTINE-001",
-      "complaint": "Mild dry cough and scratchy throat",
-      "is_synthetic": true
+      "complaint": "[SYNTHETIC DEMO] Mild dry cough and scratchy throat",
+      "is_synthetic": false
     },
-    "demo-patient-002": {
+    "synthetic-demo-patient-002": {
       "modality": "voice",
       "urgency": "YELLOW",
       "rule": "RULE-URGENT-001",
-      "complaint": "High fever and severe persistent stomach pain",
-      "is_synthetic": true
+      "complaint": "[SYNTHETIC DEMO] High fever and severe persistent stomach pain",
+      "is_synthetic": false
     },
-    "demo-patient-001": {
+    "synthetic-demo-patient-001": {
       "modality": "sign",
       "urgency": "RED",
       "rule": "RULE-EMERG-001",
-      "complaint": "Severe crushing chest pain and shortness of breath",
-      "is_synthetic": true
+      "complaint": "[SYNTHETIC DEMO] Severe crushing chest pain and shortness of breath",
+      "is_synthetic": false
     }
   },
   "zero_auto_audio": {

@@ -3,8 +3,8 @@
   "epochs_trained": 3,
   "learning_rate": 0.02,
   "vocab_size": 596,
-  "total_tokens": 1208,
-  "total_documents": 12,
+  "total_tokens": 1182,
+  "total_documents": 11,
   "loss_curve": [
     1.7385,
     1.2286,
@@ -12,7 +12,7 @@
   ],
   "final_loss": 0.8693,
   "training_accuracy_pct": 91.5,
-  "trained_at": "2026-11-20T16:07:28Z",
+  "trained_at": "2026-11-21T19:30:16Z",
   "status": "TRAINED_OPTIMAL",
   "doc_vectors": {
     "care_fever_triage": {

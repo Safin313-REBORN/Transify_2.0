@@ -82,26 +82,33 @@ def run_targeted_verifications():
 
     # 1.4 Clinician Override Justification Enforcement
     # Create test intake
-    test_intake = submit_patient_intake(PatientIntakeCreate(
-        patient_id="audit-test-patient-001",
-        input_modality="sign",
-        confirmed_text="Crushing chest pain radiating to left arm",
-        chief_complaint="Crushing chest pain",
-        symptom_description="Crushing substernal pain",
-        severity=9,
-        trajectory="worsening",
-        consent_granted=True
-    ))
+    test_intake = submit_patient_intake(
+        PatientIntakeCreate(
+            patient_id="audit-test-patient-001",
+            input_modality="sign",
+            confirmed_text="Crushing chest pain radiating to left arm",
+            chief_complaint="Crushing chest pain",
+            symptom_description="Crushing substernal pain",
+            severity=9,
+            trajectory="worsening",
+            consent_granted=True
+        ),
+        user={"id": "audit-test-patient-001", "role": "user"}
+    )
     intake_id = test_intake["intake_id"]
     override_rejected = False
     try:
-        review_patient_intake(intake_id, ClinicianReviewSubmit(
-            clinician_id="dr-audit",
-            clinician_name="Dr. Clinical Auditor",
-            action="OVERRIDDEN",
-            urgency_override="GREEN",
-            override_reason=""  # Intentionally empty to test safety gate
-        ))
+        review_patient_intake(
+            intake_id,
+            ClinicianReviewSubmit(
+                clinician_id="dr-audit",
+                clinician_name="Dr. Clinical Auditor",
+                action="OVERRIDDEN",
+                urgency_override="GREEN",
+                override_reason=""  # Intentionally empty to test safety gate
+            ),
+            user={"id": "dr-audit", "role": "clinician", "name": "Dr. Clinical Auditor"}
+        )
     except HTTPException as e:
         if e.status_code == 400:
             override_rejected = True
@@ -145,7 +152,7 @@ def run_targeted_verifications():
     print("3. CAREANYWHERE THREE SYNTHETIC DEMO CASES VERIFICATION")
     print("==================================================================")
     reset_resp = reset_competition_demo_fixtures()
-    intakes_resp = get_intakes_list(limit=10)
+    intakes_resp = get_intakes_list(limit=10, user={"id": "dr-audit", "role": "clinician", "name": "Dr. Clinical Auditor"})
     demo_cases = [r for r in intakes_resp["records"] if "demo-patient" in r["patient_id"]]
     audit_results["demo_cases"]["total_demo_fixtures"] = len(demo_cases)
     
@@ -182,7 +189,33 @@ def run_targeted_verifications():
     print("\n==================================================================")
     print("5. MULTI-RESOLUTION UI SCREENSHOT AUDIT VIA PLAYWRIGHT")
     print("==================================================================")
+    import socket
+    import threading
+    import time
     from playwright.sync_api import sync_playwright
+
+    def get_server_url():
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.connect(("127.0.0.1", 8000))
+            s.close()
+            return "http://localhost:8000"
+        except Exception:
+            pass
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(('127.0.0.1', 0))
+        port = s.getsockname()[1]
+        s.close()
+        import uvicorn
+        from src.api.server import app
+        config = uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning")
+        server = uvicorn.Server(config)
+        t = threading.Thread(target=server.run, daemon=True)
+        t.start()
+        time.sleep(1.2)
+        return f"http://127.0.0.1:{port}"
+
+    base_url = get_server_url()
 
     os.makedirs("Panel/Screenshots/v2", exist_ok=True)
     resolutions = [
@@ -205,7 +238,7 @@ def run_targeted_verifications():
             page = context.new_page()
 
             # 1. Landing Page
-            page.goto("http://localhost:8000/#")
+            page.goto(f"{base_url}/#")
             page.wait_for_timeout(600)
             # Dismiss auth overlay if visible
             page.evaluate("() => { if (window.TransifyApp && window.TransifyApp.handleDemoLogin) window.TransifyApp.handleDemoLogin(); }")

@@ -50,6 +50,27 @@
       window.closeAuthSheet();
       if (window.routeTo) window.routeTo('home');
     };
+    window.openSlide = function (slideId) {
+      if (slideId === 'slide-care-intake') {
+        if (window.routeTo) window.routeTo('care-intake');
+        var tab = document.getElementById('care-tab-intake-btn');
+        if (tab) tab.click();
+      } else if (slideId === 'slide-clinician-portal') {
+        if (window.routeTo) window.routeTo('clinician');
+        var tab = document.getElementById('care-tab-clinician-btn');
+        if (tab) tab.click();
+      } else if (slideId === 'slide-care-chronic') {
+        if (window.routeTo) window.routeTo('care');
+        var tab = document.getElementById('care-tab-chronic-btn');
+        if (tab) tab.click();
+      } else if (slideId === 'slide-hand-signal') {
+        if (window.routeTo) window.routeTo('sign');
+      } else if (slideId === 'slide-braille') {
+        if (window.routeTo) window.routeTo('braille');
+      } else if (slideId === 'slide-stt' || slideId === 'slide-tts') {
+        if (window.routeTo) window.routeTo(slideId.replace('slide-', ''));
+      }
+    };
     var TransifyApp = window.TransifyApp = window.TransifyApp || {};
     TransifyApp.openAuthSheet = window.openAuthSheet;
     TransifyApp.closeAuthSheet = window.closeAuthSheet;
@@ -59,6 +80,58 @@
 </head>
 
 <body>
+
+  <!-- Global Transify Kinetic Page Loader (Uiverse.io by Praashoo7) -->
+  <div id="transify-page-loader" class="page-loader-overlay" aria-live="polite" aria-label="Loading content">
+    <div class="loader-content">
+      <div class="main">
+        <div class="loaders">
+          <div class="loader"></div>
+          <div class="loader"></div>
+          <div class="loader"></div>
+          <div class="loader"></div>
+          <div class="loader"></div>
+          <div class="loader"></div>
+          <div class="loader"></div>
+          <div class="loader"></div>
+          <div class="loader"></div>
+        </div>
+        <div class="loadersB">
+          <div class="loaderA">
+            <div class="ball0"></div>
+          </div>
+          <div class="loaderA">
+            <div class="ball1"></div>
+          </div>
+          <div class="loaderA">
+            <div class="ball2"></div>
+          </div>
+          <div class="loaderA">
+            <div class="ball3"></div>
+          </div>
+          <div class="loaderA">
+            <div class="ball4"></div>
+          </div>
+          <div class="loaderA">
+            <div class="ball5"></div>
+          </div>
+          <div class="loaderA">
+            <div class="ball6"></div>
+          </div>
+          <div class="loaderA">
+            <div class="ball7"></div>
+          </div>
+          <div class="loaderA">
+            <div class="ball8"></div>
+          </div>
+          <div class="loaderA">
+            <div class="ball9"></div>
+          </div>
+        </div>
+      </div>
+      <div class="page-loader-text" id="page-loader-text">Loading Transify...</div>
+    </div>
+  </div>
 
   <!-- Accessible Skip Link (WCAG 2.4.1) -->
   <a href="#main" class="skip-link">Skip to main content</a>
@@ -140,7 +213,17 @@
         <span>Phrases</span>
       </button>
 
-      <!-- 6. AI Chatbot -->
+      <!-- 6. Care & ChronicCare AI -->
+      <button type="button" class="rail-item" id="rail-btn-care" data-route="care" aria-label="Care">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+          <path d="M12 5v6M9 8h6" />
+        </svg>
+        <span>Care</span>
+      </button>
+
+      <!-- 7. AI Chatbot -->
       <button type="button" class="rail-item" id="rail-btn-chat" data-route="chat" aria-label="AI Chatbot">
         <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -163,6 +246,18 @@
         </svg>
         <span>Settings</span>
       </button>
+
+      <!-- 8. Contact -->
+      <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener noreferrer"
+        class="rail-item contact-item" id="rail-btn-contact" aria-label="Contact Developer on GitHub"
+        title="Contact on GitHub">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+        </svg>
+        <span>Contact</span>
+      </a>
     </nav>
 
     <!-- Content Frame -->
@@ -343,7 +438,7 @@
 
             <!-- CTA Buttons -->
             <div class="welcome-cta-row">
-              <button type="button" class="btn-welcome-primary press" id="btn-open-register"
+              <button type="button" class="btn-uiverse press" id="btn-open-register"
                 onclick="window.TransifyApp.openAuthSheet('signup')">Create account</button>
               <button type="button" class="btn-welcome-secondary press" id="btn-open-login"
                 onclick="window.TransifyApp.openAuthSheet('login')">Log in</button>
@@ -375,6 +470,14 @@
               </div>
               <button type="button" class="avatar-badge press" id="frame-avatar-btn"
                 aria-label="Open settings and profile">TR</button>
+              <!-- Uiverse Hamburger Navbar Button (From Uiverse.io by Cevorob) -->
+              <label class="burger" for="nav-burger-toggle" aria-label="Toggle navigation menu" id="app-nav-burger"
+                title="Open navigation menu" tabindex="0">
+                <input type="checkbox" id="nav-burger-toggle" aria-expanded="false" aria-controls="app-nav-drawer">
+                <span></span>
+                <span></span>
+                <span></span>
+              </label>
             </div>
           </header>
 
@@ -537,6 +640,10 @@
                 style="height: 44px; padding: 0 18px; font-size: 15px; background: var(--violet); color: #fff;">
                 🤖 AI Chatbot
               </a>
+              <a href="#care-chronic" class="btn-welcome-primary press" id="btn-open-care-chronic"
+                style="height: 44px; padding: 0 16px; font-size: 15px; background: #8338EC; color: #fff;">
+                ⌚ ChronicCare AI
+              </a>
               <a href="#care-intake" class="btn-welcome-secondary press" id="btn-open-care-intake"
                 style="height: 44px; padding: 0 16px; font-size: 15px;">Symptom Intake</a>
               <a href="#clinician" class="btn-welcome-secondary press" id="btn-open-clinician-portal"
@@ -563,11 +670,23 @@
             </a>
           </div>
           <!-- Truthful Privacy Card (§12) -->
-          <div class="privacy-card">
-            <div class="privacy-card-title">Stays on your device</div>
-            <p class="privacy-card-body">Signs, Braille and speech are processed to communicate seamlessly. Camera video
+          <div class="privacy-card card-uiverse">
+            <div class="go-corner" aria-hidden="true"><span class="go-arrow">→</span></div>
+            <div class="privacy-card-title card-title">Stays on your device</div>
+            <p class="privacy-card-body small-desc">Signs, Braille and speech are processed to communicate seamlessly.
+              Camera video
               is never stored.</p>
           </div>
+
+          <!-- Contact Developer Card (Uiverse Expanding Card with GitHub Link) -->
+          <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener noreferrer"
+            class="card card-uiverse contact-card" id="home-contact-card" aria-label="Contact Developer on GitHub">
+            <div class="go-corner" aria-hidden="true"><span class="go-arrow">→</span></div>
+            <div class="card-title" style="font-size: 18px; margin-bottom: 4px;">Contact &amp; GitHub</div>
+            <p class="small-desc" style="font-size: 14px; margin: 0; line-height: 1.45;">
+              Connect with Safin on GitHub (@Safin313-REBORN) for feedback, issues, or contributions.
+            </p>
+          </a>
         </aside>
       </section>
 
@@ -607,6 +726,10 @@
               </div>
             </div>
             <div class="sign-header-right">
+              <button type="button" id="toggle-roi-focus-btn" class="btn-focus-mode press"
+                aria-label="Toggle camera focus mode">🎯 Center Focus</button>
+              <button type="button" id="btn-toggle-cam-fullscreen" class="btn-fullscreen-cam press"
+                aria-label="Toggle camera fullscreen">⛶ Fullscreen</button>
               <button type="button" id="stop-camera-btn" class="btn-stop-cam press" style="display: none;">Stop
                 camera</button>
               <div role="group" aria-label="Sign language" class="lang-segmented">
@@ -620,6 +743,12 @@
           <div class="roi-box" id="sign-roi-box">
             <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br br"></i>
             <div class="beam" id="sign-scan-beam"></div>
+          </div>
+
+          <!-- Fullscreen Floating Prediction HUD -->
+          <div class="fullscreen-pred-hud" id="fullscreen-pred-hud" style="display: none;">
+            <div class="hud-badge" id="hud-word-badge">—</div>
+            <div class="hud-conf" id="hud-conf-badge">0%</div>
           </div>
 
           <!-- Camera-Off Initial Overlay -->
@@ -1040,6 +1169,8 @@
                   data-care-sub="intake">Patient Intake</button>
                 <button type="button" class="care-tab-btn" id="care-tab-clinician-btn"
                   data-care-sub="clinician">Clinician Portal</button>
+                <button type="button" class="care-tab-btn" id="care-tab-chronic-btn"
+                  data-care-sub="chronic">ChronicCare AI</button>
               </div>
             </div>
           </header>
@@ -1068,6 +1199,30 @@
               <button type="button" id="btn-care-nearby-facilities" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
                 🏥 Nearest Clinics (OSM)
+              </button>
+              <button type="button" id="btn-care-ada-diff" class="btn-outline-dark press"
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+                🎯 Differential (Ada)
+              </button>
+              <button type="button" id="btn-care-k-health" class="btn-outline-dark press"
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+                📊 People Like Me (K Health)
+              </button>
+              <button type="button" id="btn-care-healthy-io" class="btn-outline-dark press"
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+                🧪 Urine &amp; Wound (Healthy.io)
+              </button>
+              <button type="button" id="btn-care-mimic-hmd" class="btn-outline-dark press"
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+                📈 Shock &amp; Risk (MIMIC/HMD)
+              </button>
+              <button type="button" id="btn-care-zipline" class="btn-outline-dark press"
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+                🚁 Drone Supply (Zipline)
+              </button>
+              <button type="button" id="btn-care-who-gho" class="btn-outline-dark press"
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+                🌍 Infrastructure (WHO GHO)
               </button>
             </div>
 
@@ -1116,6 +1271,109 @@
               </div>
             </div>
 
+            <!-- Ada Health Probabilistic Differential Modal -->
+            <div id="care-ada-modal"
+              style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid var(--violet); margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 15px; color: var(--violet);">🎯 Ada Health-Inspired Probabilistic
+                  Differential</strong>
+                <button type="button" id="btn-close-ada-modal"
+                  style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
+              </div>
+              <div id="care-ada-content" style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
+                Enter a chief complaint or symptoms to evaluate Bayesian probability distributions.
+              </div>
+            </div>
+
+            <!-- K Health "People Like Me" Modal -->
+            <div id="care-khealth-modal"
+              style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid #0F9D74; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 15px; color: #0F9D74;">📊 K Health 'People Like Me' Comparative
+                  Encounters</strong>
+                <button type="button" id="btn-close-khealth-modal"
+                  style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
+              </div>
+              <div id="care-khealth-content" style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
+                Matches against 2.5M+ real-world physician encounter records to show clinical distributions.
+              </div>
+            </div>
+
+            <!-- Healthy.io Urinalysis & Wound Care Modal -->
+            <div id="care-healthy-modal"
+              style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid #0284C7; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 15px; color: #0284C7;">🧪 Healthy.io Smartphone Urinalysis &amp; Wound
+                  Staging</strong>
+                <button type="button" id="btn-close-healthy-modal"
+                  style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button type="button" id="btn-run-urinalysis-demo" class="btn-outline-dark press"
+                  style="font-size: 12px; padding: 6px 12px; border-radius: 6px;">Test 5-Pad Dipstick</button>
+                <button type="button" id="btn-run-wound-demo" class="btn-outline-dark press"
+                  style="font-size: 12px; padding: 6px 12px; border-radius: 6px;">Analyze Wound/Ulcer</button>
+              </div>
+              <div id="care-healthy-content" style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
+                Select a diagnostic mode above or attach a camera image.
+              </div>
+            </div>
+
+            <!-- MIMIC-IV Shock Index & HMD Mortality Risk Modal -->
+            <div id="care-mimic-hmd-modal"
+              style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid #EA580C; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 15px; color: #EA580C;">📈 MIMIC-IV Shock Index &amp; HMD Actuarial Hazard
+                  Model</strong>
+                <button type="button" id="btn-close-mimic-hmd-modal"
+                  style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
+              </div>
+              <div id="care-mimic-hmd-content" style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
+                Calculates Shock Index (HR/SBP), SIRS criteria, and actuarial baseline mortality probabilities.
+              </div>
+            </div>
+
+            <!-- Zipline Medical Drone Logistics Modal -->
+            <div id="care-zipline-modal"
+              style="display: none; padding: 14px; border-radius: 10px; background: #EEF2FF; border: 1.5px solid #4F46E5; color: #1E1B4B; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 15px; color: #4F46E5;">🚁 Zipline Autonomous Medical Drone Logistics</strong>
+                <button type="button" id="btn-close-zipline-modal"
+                  style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn-zipline-req press" data-supply="antivenom"
+                  style="font-size: 12px; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #4F46E5; cursor: pointer;">🐍
+                  Anti-venom</button>
+                <button type="button" class="btn-zipline-req press" data-supply="blood_o_neg"
+                  style="font-size: 12px; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #4F46E5; cursor: pointer;">🩸
+                  O-Neg Blood</button>
+                <button type="button" class="btn-zipline-req press" data-supply="rabies_immunoglobulin"
+                  style="font-size: 12px; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #4F46E5; cursor: pointer;">💉
+                  Rabies Vaccine</button>
+                <button type="button" class="btn-zipline-req press" data-supply="ors_packets"
+                  style="font-size: 12px; padding: 6px 10px; border-radius: 6px; background: #fff; border: 1px solid #4F46E5; cursor: pointer;">💧
+                  Bulk ORS</button>
+              </div>
+              <div id="care-zipline-content" style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
+                Select emergency medical supply to coordinate autonomous cold-chain aerial dispatch.
+              </div>
+            </div>
+
+            <!-- WHO GHO Healthcare Infrastructure Modal -->
+            <div id="care-who-gho-modal"
+              style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid #2563EB; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 15px; color: #2563EB;">🌍 WHO Global Health Observatory Infrastructure
+                  Profile</strong>
+                <button type="button" id="btn-close-who-gho-modal"
+                  style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
+              </div>
+              <div id="care-who-gho-content" style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
+                Loading regional workforce density and DALY disease burden rankings...
+              </div>
+            </div>
+
             <div style="display: flex; flex-direction: column; gap: 14px;">
               <div>
                 <label for="care-chief-complaint" style="display: block; font-weight: 700; margin-bottom: 6px;">Chief
@@ -1136,6 +1394,25 @@
                     style="display: block; font-weight: 700; margin-bottom: 6px;">Pre-existing Conditions</label>
                   <input type="text" id="care-medical-context" class="care-input"
                     placeholder="e.g. Hypertension, Asthma">
+                </div>
+              </div>
+              <div>
+                <label style="display: block; font-weight: 700; margin-bottom: 6px;">Symptom Progression &amp;
+                  Trajectory</label>
+                <div class="radio-container horizontal" style="--total-radio: 3;" id="care-trajectory-group"
+                  role="radiogroup" aria-label="Symptom Progression Trajectory">
+                  <input type="radio" id="care-traj-stable" name="care_symptom_trajectory" value="stable" checked>
+                  <label for="care-traj-stable">🟢 Stable (Unchanged)</label>
+
+                  <input type="radio" id="care-traj-worsening" name="care_symptom_trajectory" value="worsening">
+                  <label for="care-traj-worsening">🟡 Worsening (Escalating)</label>
+
+                  <input type="radio" id="care-traj-deteriorating" name="care_symptom_trajectory" value="deteriorating">
+                  <label for="care-traj-deteriorating">🔴 Acute Deterioration</label>
+
+                  <div class="glider-container" aria-hidden="true">
+                    <div class="glider"></div>
+                  </div>
                 </div>
               </div>
               <div>
@@ -1268,10 +1545,31 @@
                   <option value="telehealth">Schedule Telehealth Consultation</option>
                   <option value="discharge">Discharge with Home Care Advice</option>
                 </select>
-                <label for="clinician-override-select" style="font-weight: 700;">Triage Urgency Override
-                  (Optional)</label>
-                <select id="clinician-override-select" class="care-input">
-                  <option value="">No Override (Accept AI Classification)</option>
+                <label for="clinician-override-select"
+                  style="font-weight: 700; font-size: 14px; margin-top: 6px;">Triage Urgency Override (Optional Protocol
+                  Choice)</label>
+                <div class="radio-container" style="--total-radio: 4;" id="clinician-override-radio-group"
+                  role="radiogroup" aria-label="Triage Urgency Protocol Choice">
+                  <input type="radio" id="clinician-override-opt-none" name="clinician_urgency_choice" value="" checked>
+                  <label for="clinician-override-opt-none">Standard Protocol (Accept AI Classification)</label>
+
+                  <input type="radio" id="clinician-override-opt-emergent" name="clinician_urgency_choice"
+                    value="EMERGENT">
+                  <label for="clinician-override-opt-emergent">🔴 Override to EMERGENT (Immediate Life-Safety)</label>
+
+                  <input type="radio" id="clinician-override-opt-urgent" name="clinician_urgency_choice" value="URGENT">
+                  <label for="clinician-override-opt-urgent">🟡 Override to URGENT (Priority Evaluation)</label>
+
+                  <input type="radio" id="clinician-override-opt-routine" name="clinician_urgency_choice"
+                    value="ROUTINE">
+                  <label for="clinician-override-opt-routine">🟢 Override to ROUTINE (Standard Care Pathway)</label>
+
+                  <div class="glider-container" aria-hidden="true">
+                    <div class="glider"></div>
+                  </div>
+                </div>
+                <select id="clinician-override-select" class="care-input sr-only" aria-hidden="true">
+                  <option value="" selected>No Override (Accept AI Classification)</option>
                   <option value="EMERGENT">Override to EMERGENT</option>
                   <option value="URGENT">Override to URGENT</option>
                   <option value="ROUTINE">Override to ROUTINE</option>
@@ -1284,6 +1582,425 @@
                   style="height: 48px; max-width: 240px;">Finalize Triage</button>
               </div>
               <span id="inspect-raw" class="sr-only"></span>
+            </div>
+          </div>
+
+          <!-- Sub-View C: ChronicCare AI -->
+          <div id="slide-care-chronic" class="care-card" style="display: none; flex-direction: column; gap: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                  <h2 style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 800;">ChronicCare AI</h2>
+                  <span class="care-badge online">Remote Monitoring Active</span>
+                  <span class="care-badge" style="background: rgba(131,56,236,0.12); color: #8338EC; border: 1px solid rgba(131,56,236,0.25);">Fitbit &amp; CGM Telemetry</span>
+                  <span class="care-badge" style="background: rgba(46,125,50,0.12); color: #2E7D32; border: 1px solid rgba(46,125,50,0.25);">Differential Privacy (ε=1.0)</span>
+                </div>
+                <p class="phrases-sub" style="margin-top: 4px;">Continuous management of chronic conditions, 24h predictive crisis forecasting, nutrition CV &amp; automated insulin, culturally tailored lab coaching, elderly voice adherence, and cross-border federated learning.</p>
+              </div>
+            </div>
+
+            <!-- ChronicCare AI Module Tabs -->
+            <div class="chronic-module-nav" style="display: flex; gap: 8px; flex-wrap: wrap; background: var(--surface-2); padding: 8px; border-radius: 12px; border: 1px solid var(--line);">
+              <button type="button" class="chronic-nav-btn active btn-uiverse" data-target="chronic-sec-telemetry" style="font-size: 13px; height: 38px; padding: 0 14px;">⌚ Wearables &amp; 24h Crisis</button>
+              <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-nutrition" style="font-size: 13px; height: 38px; padding: 0 14px;">🥗 Nutrition CV &amp; Insulin</button>
+              <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-labcoach" style="font-size: 13px; height: 38px; padding: 0 14px;">📋 Culturally Tailored Lab Coaching</button>
+              <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-elderly" style="font-size: 13px; height: 38px; padding: 0 14px;">🎙️ Elderly Voice &amp; Cognition</button>
+              <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-polypharmacy" style="font-size: 13px; height: 38px; padding: 0 14px;">💊 OpenFDA Drug Interactions</button>
+              <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-federated" style="font-size: 13px; height: 38px; padding: 0 14px;">🌐 Federated Learning</button>
+            </div>
+
+            <!-- SECTION 1: Wearables & 24-Hour Crisis Forecasting -->
+            <div id="chronic-sec-telemetry" class="chronic-section" style="display: flex; flex-direction: column; gap: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 800;">Wearable Telemetry Stream &amp; 24h Crisis Forecaster</h3>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" id="btn-chronic-sim-normal" class="btn-outline-dark press" style="font-size: 12px; padding: 6px 12px; height: 32px;">Load Normal Fitbit</button>
+                  <button type="button" id="btn-chronic-sim-htn" class="btn-outline-dark press" style="font-size: 12px; padding: 6px 12px; height: 32px; color: #D32F2F; border-color: #FFCDD2; background: #FFEBEE;">Simulate Crisis (Vagal Drop)</button>
+                  <button type="button" id="btn-chronic-sim-hypo" class="btn-outline-dark press" style="font-size: 12px; padding: 6px 12px; height: 32px; color: #E65100; border-color: #FFE082; background: #FFF8E1;">Simulate Hypoglycemia</button>
+                </div>
+              </div>
+
+              <!-- Live KPI Telemetry Strip -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                <div style="background: var(--surface-2); padding: 12px; border-radius: 10px; border: 1px solid var(--line);">
+                  <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted);">Resting Heart Rate</div>
+                  <div style="font-size: 24px; font-weight: 800; color: var(--text);" id="chronic-kpi-rhr">74 bpm</div>
+                  <div style="font-size: 11px; color: var(--text-muted);" id="chronic-kpi-rhr-sub">Baseline: 68 bpm (+6)</div>
+                </div>
+                <div style="background: var(--surface-2); padding: 12px; border-radius: 10px; border: 1px solid var(--line);">
+                  <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted);">HRV RMSSD (Vagal Tone)</div>
+                  <div style="font-size: 24px; font-weight: 800; color: #8338EC;" id="chronic-kpi-hrv">34 ms</div>
+                  <div style="font-size: 11px; color: var(--text-muted);" id="chronic-kpi-hrv-sub">Norm: &gt;35 ms</div>
+                </div>
+                <div style="background: var(--surface-2); padding: 12px; border-radius: 10px; border: 1px solid var(--line);">
+                  <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted);">Sleep Fragmentation</div>
+                  <div style="font-size: 24px; font-weight: 800; color: var(--text);" id="chronic-kpi-sleep">16.4%</div>
+                  <div style="font-size: 11px; color: var(--text-muted);" id="chronic-kpi-sleep-sub">Total: 7.2 hrs (Deep: 18%)</div>
+                </div>
+                <div style="background: var(--surface-2); padding: 12px; border-radius: 10px; border: 1px solid var(--line);">
+                  <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted);">Ambulatory BP &amp; Dipping</div>
+                  <div style="font-size: 20px; font-weight: 800; color: var(--text);" id="chronic-kpi-bp">132/82 mmHg</div>
+                  <div style="font-size: 11px; color: #2E7D32;" id="chronic-kpi-bp-sub">Normal Dipper (12.2% dip)</div>
+                </div>
+                <div style="background: var(--surface-2); padding: 12px; border-radius: 10px; border: 1px solid var(--line);">
+                  <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted);">CGM Time-In-Range (TIR)</div>
+                  <div style="font-size: 24px; font-weight: 800; color: #2E7D32;" id="chronic-kpi-cgm">82%</div>
+                  <div style="font-size: 11px; color: var(--text-muted);" id="chronic-kpi-cgm-sub">Mean: 124 mg/dL | CV: 26%</div>
+                </div>
+              </div>
+
+              <button type="button" id="btn-run-crisis-forecast" class="btn-uiverse btn-welcome-primary" style="height: 48px; max-width: 340px; font-size: 14px;">⚡ Run 24h Predictive Crisis Forecast</button>
+
+              <!-- Crisis Forecast Output Card -->
+              <div id="chronic-forecast-result" style="display: none; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                  <span style="font-size: 16px; font-weight: 800;">Biofourmis &amp; MIMIC-IV 24-Hour Predictive Crisis Assessment</span>
+                  <span id="chronic-forecast-badge" class="care-badge" style="font-size: 12px; padding: 4px 10px;"></span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                  <div style="background: var(--surface-2); padding: 14px; border-radius: 10px;">
+                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">Hypertensive Crisis 24h Risk</div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                      <div style="flex: 1; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden;">
+                        <div id="chronic-forecast-progress" style="height: 100%; width: 0%; background: #2E7D32; transition: width 0.5s ease;"></div>
+                      </div>
+                      <span id="chronic-forecast-prob" style="font-weight: 800; font-size: 16px;">0%</span>
+                    </div>
+                    <div id="chronic-forecast-drivers" style="font-size: 12px; display: flex; flex-direction: column; gap: 4px;"></div>
+                  </div>
+                  <div style="background: var(--surface-2); padding: 14px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-weight: 700; font-size: 14px;">Heart Failure &amp; Hypoglycemia Alerts</div>
+                    <div id="chronic-forecast-hf" style="font-size: 13px;">Heart Failure: <strong id="chronic-forecast-hf-status">COMPENSATED_STABLE</strong></div>
+                    <div id="chronic-forecast-hypo" style="font-size: 13px;">Nocturnal Hypoglycemia: <strong id="chronic-forecast-hypo-status">Normal Trajectory</strong></div>
+                    <div id="chronic-forecast-action" style="font-size: 13px; font-weight: 600; color: #D32F2F; margin-top: 4px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 2: Nutrition CV & Automated Insulin Dosage -->
+            <div id="chronic-sec-nutrition" class="chronic-section" style="display: none; flex-direction: column; gap: 16px;">
+              <h3 style="margin: 0; font-size: 18px; font-weight: 800;">Computer Vision Nutrition Recognition &amp; Automated Insulin Guidance</h3>
+              <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Livongo &amp; Virta-inspired meal recognition with automated ICR and ISF bolus calculation, hypoglycemia lockout, and post-prandial GLUT-4 exercise recommendations.</p>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  <label for="chronic-meal-select" style="font-weight: 700; font-size: 14px;">Select Localized Meal or Upload Photo</label>
+                  <select id="chronic-meal-select" class="care-input">
+                    <option value="south_asian_roti_dal" selected>South Asian: 2 Whole Wheat Roti + Dal Tadka &amp; Spinach</option>
+                    <option value="south_asian_biryani">South Asian: Chicken Biryani with Rice &amp; Raita</option>
+                    <option value="mediterranean_salmon_quinoa">Mediterranean: Wild Salmon + Quinoa &amp; Broccoli</option>
+                    <option value="hispanic_fajita_bowl">Hispanic: Fajita Bowl + Black Beans &amp; Corn Tortillas</option>
+                    <option value="east_asian_stirfry">East Asian: Steamed Fish + Tofu &amp; Brown Rice</option>
+                    <option value="western_burger_fries">Western: Cheeseburger + French Fries</option>
+                    <option value="western_oatmeal_berries">Western: Steel-Cut Oatmeal + Blueberries &amp; Chia</option>
+                  </select>
+
+                  <label for="chronic-food-photo-input" class="btn-outline-dark press" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 38px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px;">
+                    <span>📷 Upload Custom Meal Photo</span>
+                    <input type="file" id="chronic-food-photo-input" accept="image/*" class="sr-only">
+                  </label>
+                  <div id="chronic-food-preview-box" style="display: none; align-items: center; gap: 10px;">
+                    <img id="chronic-food-preview-img" src="" alt="Custom meal" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line);">
+                    <span id="chronic-food-preview-label" style="font-size: 12px; color: var(--text-2);">Photo attached</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <div style="font-weight: 700; font-size: 14px;">Patient Glycemic Parameters</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div>
+                      <label for="chronic-glucose-current" style="font-size: 11px; font-weight: 600;">Current Blood Sugar (mg/dL)</label>
+                      <input type="number" id="chronic-glucose-current" class="care-input" value="145">
+                    </div>
+                    <div>
+                      <label for="chronic-glucose-target" style="font-size: 11px; font-weight: 600;">Target Blood Sugar (mg/dL)</label>
+                      <input type="number" id="chronic-glucose-target" class="care-input" value="100">
+                    </div>
+                    <div>
+                      <label for="chronic-insulin-icr" style="font-size: 11px; font-weight: 600;">Carb Ratio (ICR, g/unit)</label>
+                      <input type="number" id="chronic-insulin-icr" class="care-input" value="10">
+                    </div>
+                    <div>
+                      <label for="chronic-insulin-isf" style="font-size: 11px; font-weight: 600;">Sensitivity Factor (ISF, mg/dL/unit)</label>
+                      <input type="number" id="chronic-insulin-isf" class="care-input" value="50">
+                    </div>
+                  </div>
+                  <div>
+                    <label for="chronic-insulin-iob" style="font-size: 11px; font-weight: 600;">Active Insulin on Board (IOB, units)</label>
+                    <input type="number" id="chronic-insulin-iob" class="care-input" value="0.0" step="0.5">
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" id="btn-calc-insulin" class="btn-uiverse btn-welcome-primary" style="height: 48px; max-width: 320px; font-size: 14px;">💉 Analyze Meal &amp; Compute Insulin Dose</button>
+
+              <!-- Nutrition & Insulin Output -->
+              <div id="chronic-insulin-result" style="display: none; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                  <div style="background: var(--surface-2); padding: 14px; border-radius: 10px;">
+                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">Nutritional &amp; Glycemic Breakdown</div>
+                    <div style="font-size: 15px; font-weight: 800; color: var(--text);" id="chronic-dish-title">Roti with Dal</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; font-size: 12px;">
+                      <div>Net Carbohydrates: <strong id="chronic-nutr-carbs">44g</strong></div>
+                      <div>Dietary Fiber: <strong id="chronic-nutr-fiber">9.5g</strong></div>
+                      <div>Protein: <strong id="chronic-nutr-protein">16g</strong></div>
+                      <div>Calories: <strong id="chronic-nutr-calories">360 kcal</strong></div>
+                      <div>Glycemic Index: <strong id="chronic-nutr-gi">48 (Low)</strong></div>
+                      <div>Glycemic Load: <strong id="chronic-nutr-gl">21 (Medium)</strong></div>
+                    </div>
+                  </div>
+
+                  <div style="background: var(--surface-2); padding: 14px; border-radius: 10px;">
+                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">Safe Insulin Dosage Recommendation</div>
+                    <div style="font-size: 28px; font-weight: 800; color: #8338EC;" id="chronic-insulin-total">5.3 units</div>
+                    <div style="font-size: 12px; margin-top: 4px;">
+                      <span>Meal Bolus: <strong id="chronic-insulin-meal">4.4u</strong> | Correction Bolus: <strong id="chronic-insulin-corr">0.9u</strong></span>
+                    </div>
+                    <div id="chronic-insulin-warnings" style="margin-top: 8px; font-size: 12px; color: #D32F2F; font-weight: 600;"></div>
+                    <div id="chronic-insulin-lifestyle" style="margin-top: 8px; font-size: 11px; color: var(--text-muted); font-style: italic;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 3: Culturally Tailored Lab Coaching -->
+            <div id="chronic-sec-labcoach" class="chronic-section" style="display: none; flex-direction: column; gap: 16px;">
+              <h3 style="margin: 0; font-size: 18px; font-weight: 800;">Culturally Tailored Laboratory Translation &amp; Lifestyle Coaching</h3>
+              <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Translates complex chronic panels (HbA1c, Lipids, eGFR, Creatinine) into plain language and provides authentic dietary staple substitutions (South Asian, Mediterranean, Hispanic, East Asian, Western).</p>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <div style="font-weight: 700; font-size: 14px;">Laboratory Panel Inputs</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div>
+                      <label for="chronic-lab-a1c" style="font-size: 11px; font-weight: 600;">HbA1c (%)</label>
+                      <input type="number" id="chronic-lab-a1c" class="care-input" value="8.2" step="0.1">
+                    </div>
+                    <div>
+                      <label for="chronic-lab-fbg" style="font-size: 11px; font-weight: 600;">Fasting Glucose (mg/dL)</label>
+                      <input type="number" id="chronic-lab-fbg" class="care-input" value="162">
+                    </div>
+                    <div>
+                      <label for="chronic-lab-ldl" style="font-size: 11px; font-weight: 600;">LDL Cholesterol (mg/dL)</label>
+                      <input type="number" id="chronic-lab-ldl" class="care-input" value="138">
+                    </div>
+                    <div>
+                      <label for="chronic-lab-tg" style="font-size: 11px; font-weight: 600;">Triglycerides (mg/dL)</label>
+                      <input type="number" id="chronic-lab-tg" class="care-input" value="195">
+                    </div>
+                    <div>
+                      <label for="chronic-lab-egfr" style="font-size: 11px; font-weight: 600;">eGFR (mL/min/1.73m²)</label>
+                      <input type="number" id="chronic-lab-egfr" class="care-input" value="65">
+                    </div>
+                    <div>
+                      <label for="chronic-lab-uacr" style="font-size: 11px; font-weight: 600;">UACR (mg/g albumin)</label>
+                      <input type="number" id="chronic-lab-uacr" class="care-input" value="48">
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  <label for="chronic-culture-select" style="font-weight: 700; font-size: 14px;">Patient Cultural Framework &amp; Diet</label>
+                  <select id="chronic-culture-select" class="care-input">
+                    <option value="south_asian" selected>South Asian (Indian / Bangladeshi / Pakistani)</option>
+                    <option value="mediterranean">Mediterranean (Southern Europe / Levant)</option>
+                    <option value="hispanic">Hispanic &amp; Latin American</option>
+                    <option value="east_asian">East Asian (Chinese / Japanese / Korean)</option>
+                    <option value="western">Western / General Standard</option>
+                  </select>
+                  <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Preserves cultural identity while tailoring substitutions for carbohydrates, healthy fats, and superfoods.</p>
+                </div>
+              </div>
+
+              <button type="button" id="btn-translate-lab" class="btn-uiverse btn-welcome-primary" style="height: 48px; max-width: 340px; font-size: 14px;">📋 Translate Lab Results &amp; Generate Diet Plan</button>
+
+              <!-- Lab Translation Results -->
+              <div id="chronic-lab-result" style="display: none; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);">
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                  <div style="background: var(--surface-2); padding: 12px; border-radius: 10px;">
+                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Plain-Language Clinical Interpretation</div>
+                    <div id="chronic-lab-summary-text" style="font-size: 13px; line-height: 1.5;"></div>
+                  </div>
+
+                  <div style="background: var(--surface-2); padding: 12px; border-radius: 10px;">
+                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px;">Culturally Attuned Dietary Staple Substitutions</div>
+                    <div id="chronic-lab-swaps-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                  </div>
+
+                  <div style="background: var(--surface-2); padding: 12px; border-radius: 10px;">
+                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Superfoods &amp; Physical Activity Prescription</div>
+                    <div id="chronic-lab-superfoods" style="font-size: 13px; color: #2E7D32; font-weight: 600; margin-bottom: 6px;"></div>
+                    <div id="chronic-lab-exercise" style="font-size: 12px; color: var(--text-2);"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 4: Voice-Based Elderly Adherence & Cognitive Biomarkers -->
+            <div id="chronic-sec-elderly" class="chronic-section" style="display: none; flex-direction: column; gap: 16px;">
+              <h3 style="margin: 0; font-size: 18px; font-weight: 800;">Elderly Voice Agent: Medication Adherence &amp; Cognitive Biomarkers</h3>
+              <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Monitors daily chronic adherence (PDC calculation) and detects subtle early cognitive decline through acoustic speech analysis (WPM, pause latency, hesitation) aligned with MoCA.</p>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                <div style="background: var(--surface-2); padding: 12px; border-radius: 10px;">
+                  <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px;">Chronic Medication Regimen (30-Day Check-in)</div>
+                  <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                      <input type="checkbox" id="chronic-med-1" checked> <span>Metformin 500mg BID (Taken)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                      <input type="checkbox" id="chronic-med-2" checked> <span>Lisinopril 10mg QAM (Taken)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                      <input type="checkbox" id="chronic-med-3"> <span>Atorvastatin 20mg QHS (Missed)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                      <input type="checkbox" id="chronic-med-4" checked> <span>Amlodipine 5mg QAM (Taken)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <label for="chronic-elderly-transcript" style="font-weight: 700; font-size: 14px;">Elderly Voice Check-In Transcript</label>
+                  <textarea id="chronic-elderly-transcript" class="care-input" style="height: 80px;" placeholder="Spoken patient check-in...">Good morning... I took my white blood pressure tablet after breakfast, yes, I think so... then I went to the garden.</textarea>
+                  <div style="display: flex; gap: 8px;">
+                    <button type="button" id="btn-chronic-sim-hesitation" class="btn-outline-dark press" style="font-size: 11px; padding: 4px 8px; height: 30px;">Load Hesitation Sample</button>
+                    <button type="button" id="btn-chronic-sim-fluent" class="btn-outline-dark press" style="font-size: 11px; padding: 4px 8px; height: 30px;">Load Fluent Sample</button>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" id="btn-analyze-elderly-voice" class="btn-uiverse btn-welcome-primary" style="height: 48px; max-width: 340px; font-size: 14px;">🎙️ Analyze Adherence &amp; Vocal Biomarkers</button>
+
+              <!-- Elderly Adherence & Cognition Output -->
+              <div id="chronic-elderly-result" style="display: none; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                  <div style="background: var(--surface-2); padding: 14px; border-radius: 10px;">
+                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">Medication Adherence (PDC)</div>
+                    <div style="font-size: 28px; font-weight: 800; color: #2E7D32;" id="chronic-elderly-pdc">75.0%</div>
+                    <div id="chronic-elderly-pdc-tier" style="font-size: 13px; font-weight: 700; margin-top: 4px;">SUB_OPTIMAL_WARNING</div>
+                    <div id="chronic-elderly-pdc-msg" style="font-size: 12px; color: var(--text-2); margin-top: 4px;"></div>
+                  </div>
+
+                  <div style="background: var(--surface-2); padding: 14px; border-radius: 10px;">
+                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">Acoustic Cognitive Speech Biomarkers</div>
+                    <div style="display: flex; align-items: baseline; gap: 8px;">
+                      <span style="font-size: 24px; font-weight: 800; color: #8338EC;" id="chronic-elderly-cog-status">Normal</span>
+                      <span id="chronic-elderly-cog-score" style="font-size: 13px; color: var(--text-muted);">Index: 12/100</span>
+                    </div>
+                    <div style="font-size: 12px; margin-top: 6px;">
+                      <span>Rate: <strong id="chronic-elderly-wpm">132 WPM</strong> | Pause: <strong id="chronic-elderly-pause">0.45s</strong> | Jitter: <strong id="chronic-elderly-jitter">1.0%</strong></span>
+                    </div>
+                    <div id="chronic-elderly-cog-guidance" style="font-size: 12px; color: var(--text-2); margin-top: 8px; font-style: italic;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 5: OpenFDA Polypharmacy Safety Checker -->
+            <div id="chronic-sec-polypharmacy" class="chronic-section" style="display: none; flex-direction: column; gap: 16px;">
+              <h3 style="margin: 0; font-size: 18px; font-weight: 800;">OpenFDA Polypharmacy &amp; Drug-Drug Interaction Safety Engine</h3>
+              <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Cross-checks multi-morbidity drug cocktails against the FDA Adverse Event Reporting System (FAERS) for contraindications, rhabdomyolysis, hyperkalemia, and internal bleed hazards.</p>
+
+              <div style="background: var(--surface-2); padding: 14px; border-radius: 10px;">
+                <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px;">Select Patient Prescription Regimen</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="chronic-polypharmacy-chips">
+                  <label class="btn-outline-dark" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; border-radius: 20px; cursor: pointer;">
+                    <input type="checkbox" value="Lisinopril" checked> Lisinopril (ACEI)
+                  </label>
+                  <label class="btn-outline-dark" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; border-radius: 20px; cursor: pointer;">
+                    <input type="checkbox" value="Spironolactone" checked> Spironolactone (K+ SpSpare)
+                  </label>
+                  <label class="btn-outline-dark" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; border-radius: 20px; cursor: pointer;">
+                    <input type="checkbox" value="Atorvastatin"> Atorvastatin (Statin)
+                  </label>
+                  <label class="btn-outline-dark" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; border-radius: 20px; cursor: pointer;">
+                    <input type="checkbox" value="Clarithromycin"> Clarithromycin (Macrolide)
+                  </label>
+                  <label class="btn-outline-dark" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; border-radius: 20px; cursor: pointer;">
+                    <input type="checkbox" value="Metformin" checked> Metformin (Biguanide)
+                  </label>
+                  <label class="btn-outline-dark" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; border-radius: 20px; cursor: pointer;">
+                    <input type="checkbox" value="Warfarin"> Warfarin (Anticoagulant)
+                  </label>
+                  <label class="btn-outline-dark" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; border-radius: 20px; cursor: pointer;">
+                    <input type="checkbox" value="Ibuprofen"> Ibuprofen (NSAID)
+                  </label>
+                </div>
+              </div>
+
+              <button type="button" id="btn-check-polypharmacy" class="btn-uiverse btn-welcome-primary" style="height: 48px; max-width: 340px; font-size: 14px;">💊 Cross-Check OpenFDA Drug Interactions</button>
+
+              <!-- Polypharmacy Results -->
+              <div id="chronic-polypharmacy-result" style="display: none; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <span style="font-weight: 800; font-size: 16px;">Polypharmacy Interaction Results</span>
+                  <span id="chronic-polypharmacy-badge" class="care-badge" style="padding: 4px 10px;"></span>
+                </div>
+                <div id="chronic-polypharmacy-cards" style="display: flex; flex-direction: column; gap: 10px;"></div>
+              </div>
+            </div>
+
+            <!-- SECTION 6: Cross-Border Federated Learning Framework -->
+            <div id="chronic-sec-federated" class="chronic-section" style="display: none; flex-direction: column; gap: 16px;">
+              <h3 style="margin: 0; font-size: 18px; font-weight: 800;">Cross-Border Federated Learning Framework (FedAvg &amp; DP)</h3>
+              <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Collaborative multi-hospital training for chronic morbidity prediction across international borders without centralizing or transmitting raw patient Protected Health Information (PHI).</p>
+
+              <!-- Participating Nodes Grid -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                <div style="background: var(--surface-2); padding: 12px; border-radius: 10px; border: 1px solid var(--line);">
+                  <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Node 1 (USA)</div>
+                  <div style="font-weight: 800; font-size: 14px;">Urban Academic Medical Center</div>
+                  <div style="font-size: 12px; color: var(--text-2); margin-top: 4px;">Cohort: 5,200 records (Encrypted)</div>
+                </div>
+                <div style="background: var(--surface-2); padding: 12px; border-radius: 10px; border: 1px solid var(--line);">
+                  <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Node 2 (Bangladesh)</div>
+                  <div style="font-weight: 800; font-size: 14px;">Sylhet Rural Critical Access</div>
+                  <div style="font-size: 12px; color: var(--text-2); margin-top: 4px;">Cohort: 1,850 records (Encrypted)</div>
+                </div>
+                <div style="background: var(--surface-2); padding: 12px; border-radius: 10px; border: 1px solid var(--line);">
+                  <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Node 3 (United Kingdom)</div>
+                  <div style="font-weight: 800; font-size: 14px;">UK Biobank Partner NHS Trust</div>
+                  <div style="font-size: 12px; color: var(--text-2); margin-top: 4px;">Cohort: 4,100 records (Encrypted)</div>
+                </div>
+                <div style="background: var(--surface-2); padding: 12px; border-radius: 10px; border: 1px solid var(--line);">
+                  <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Node 4 (Kenya)</div>
+                  <div style="font-weight: 800; font-size: 14px;">East Africa Community Health</div>
+                  <div style="font-size: 12px; color: var(--text-2); margin-top: 4px;">Cohort: 2,400 records (Encrypted)</div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+                <label for="chronic-fed-epsilon" style="font-size: 13px; font-weight: 700;">Differential Privacy Budget (ε):</label>
+                <input type="range" id="chronic-fed-epsilon" min="0.2" max="2.0" step="0.2" value="1.0" style="width: 140px;">
+                <span id="chronic-fed-epsilon-val" style="font-weight: 800; font-size: 14px;">ε = 1.0</span>
+              </div>
+
+              <button type="button" id="btn-run-federated-round" class="btn-uiverse btn-welcome-primary" style="height: 48px; max-width: 340px; font-size: 14px;">🌐 Execute Federated Training Round (FedAvg)</button>
+
+              <!-- Federated Results -->
+              <div id="chronic-fed-result" style="display: none; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                  <span style="font-weight: 800; font-size: 16px;">Global Model Aggregation Metrics</span>
+                  <span class="care-badge online">Zero Raw PHI Egress Guaranteed</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px;">
+                  <div style="background: var(--surface-2); padding: 10px; border-radius: 8px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Global Model AUC-ROC</div>
+                    <div style="font-size: 22px; font-weight: 800; color: #2E7D32;" id="chronic-fed-auc">0.912</div>
+                  </div>
+                  <div style="background: var(--surface-2); padding: 10px; border-radius: 8px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Cross-Border Patients</div>
+                    <div style="font-size: 22px; font-weight: 800; color: var(--text);" id="chronic-fed-patients">13,550</div>
+                  </div>
+                  <div style="background: var(--surface-2); padding: 10px; border-radius: 8px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Privacy Guarantee</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #8338EC;" id="chronic-fed-dp">(ε = 1.0, δ = 10^-5)</div>
+                  </div>
+                </div>
+                <div id="chronic-fed-summary-text" style="font-size: 13px; color: var(--text-2); line-height: 1.5;"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1756,12 +2473,27 @@
                 </div>
 
                 <!-- Row: Detection Sensitivity -->
-                <div class="settings-row">
+                <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 10px;">
                   <div class="settings-label-col">
-                    <div class="settings-item-title">Confidence Gate</div>
+                    <div class="settings-item-title">Confidence Gate Precision</div>
                     <div class="settings-item-desc">Minimum landmark confidence required before speaking words</div>
                   </div>
-                  <select id="setting-confidence-gate" class="settings-select"
+                  <div class="radio-container horizontal" style="--total-radio: 3;" id="setting-confidence-radio-group"
+                    role="radiogroup" aria-label="Vision Model Confidence Gate">
+                    <input type="radio" id="confidence-gate-95" name="setting_confidence_radio" value="95">
+                    <label for="confidence-gate-95">Strict (95%)</label>
+
+                    <input type="radio" id="confidence-gate-85" name="setting_confidence_radio" value="85" checked>
+                    <label for="confidence-gate-85">Balanced (85%)</label>
+
+                    <input type="radio" id="confidence-gate-70" name="setting_confidence_radio" value="70">
+                    <label for="confidence-gate-70">Sensitive (70%)</label>
+
+                    <div class="glider-container" aria-hidden="true">
+                      <div class="glider"></div>
+                    </div>
+                  </div>
+                  <select id="setting-confidence-gate" class="settings-select sr-only"
                     aria-label="Vision Model Confidence Gate">
                     <option value="95">Strict (95% Sure)</option>
                     <option value="85" selected>Balanced (85% Sure)</option>
@@ -1847,6 +2579,18 @@
                 </button>
               </div>
             </div>
+
+            <!-- Card 7: Contact Developer & GitHub Repository -->
+            <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener noreferrer"
+              class="card card-uiverse contact-card" id="settings-contact-card"
+              aria-label="Contact Developer on GitHub">
+              <div class="go-corner" aria-hidden="true"><span class="go-arrow">→</span></div>
+              <div class="card-title">Contact &amp; GitHub</div>
+              <p class="small-desc">
+                Connect with Safin on GitHub (<strong>@Safin313-REBORN</strong>). Access source code, report issues, and
+                collaborate on assistive AI models.
+              </p>
+            </a>
           </div>
         </div>
       </section>
@@ -1854,6 +2598,68 @@
 
     </div><!-- /.content-frame -->
   </div><!-- /.app-shell -->
+
+  <!-- ==========================================================================
+       SLIDE-OUT NAVIGATION DRAWER (Toggled by Uiverse Hamburger Button)
+       ========================================================================== -->
+  <div id="nav-drawer-backdrop" class="nav-drawer-backdrop" aria-hidden="true"></div>
+  <aside id="app-nav-drawer" class="nav-drawer" aria-label="Quick Navigation Menu">
+    <div class="nav-drawer-header">
+      <div class="nav-drawer-brand">
+        <div class="rail-logo" style="display: grid; grid-template-columns: repeat(2, 7px); gap: 4px;"
+          aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <span class="nav-drawer-title">Transify Menu</span>
+      </div>
+      <button type="button" class="nav-drawer-close press" id="nav-drawer-close-btn"
+        aria-label="Close navigation menu">✕</button>
+    </div>
+
+    <nav class="nav-drawer-links" aria-label="Drawer Navigation">
+      <a href="#home" class="nav-drawer-item press" data-route="home">
+        <span class="nav-drawer-icon">🏠</span>
+        <span>Home Dashboard</span>
+      </a>
+      <a href="#sign" class="nav-drawer-item press" data-route="sign">
+        <span class="nav-drawer-icon">🤟</span>
+        <span>Sign Language Translator</span>
+      </a>
+      <a href="#braille" class="nav-drawer-item press" data-route="braille">
+        <span class="nav-drawer-icon">⠃</span>
+        <span>Braille Scanner</span>
+      </a>
+      <a href="#stt" class="nav-drawer-item press" data-route="stt">
+        <span class="nav-drawer-icon">🎙️</span>
+        <span>Voice Hub &amp; Captions</span>
+      </a>
+      <a href="#phrases" class="nav-drawer-item press" data-route="phrases">
+        <span class="nav-drawer-icon">💬</span>
+        <span>Quick Phrases</span>
+      </a>
+      <a href="#chat" class="nav-drawer-item press" data-route="chat">
+        <span class="nav-drawer-icon">🤖</span>
+        <span>AI Assistant &amp; Training</span>
+      </a>
+      <a href="#care-intake" class="nav-drawer-item press" data-route="care-intake">
+        <span class="nav-drawer-icon">🩺</span>
+        <span>Transify Care Triage</span>
+      </a>
+      <a href="#care-chronic" class="nav-drawer-item press" data-route="care-chronic">
+        <span class="nav-drawer-icon">⌚</span>
+        <span>ChronicCare AI</span>
+      </a>
+      <a href="#settings" class="nav-drawer-item press" data-route="settings">
+        <span class="nav-drawer-icon">⚙️</span>
+        <span>Settings &amp; Preferences</span>
+      </a>
+      <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener noreferrer"
+        class="nav-drawer-item press nav-drawer-contact">
+        <span class="nav-drawer-icon">🐙</span>
+        <span>Contact &amp; GitHub (@Safin313-REBORN)</span>
+      </a>
+    </nav>
+  </aside>
 
   <!-- ==========================================================================
        AUTHENTICATION SHEET MODAL (Login & Sign Up)

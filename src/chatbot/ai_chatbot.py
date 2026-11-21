@@ -263,15 +263,18 @@ class TransifyAIChatbot:
         total_tokens = 0
         
         # Merge built-in corpus with custom samples if any
-        all_samples = list(self.knowledge_base)
+        all_samples_map = {doc["id"]: doc for doc in self.knowledge_base}
         if os.path.exists(self.custom_samples_file):
             try:
                 with open(self.custom_samples_file, "r", encoding="utf-8") as f:
                     custom = json.load(f)
                     if isinstance(custom, list):
-                        all_samples.extend(custom)
+                        for doc in custom:
+                            if isinstance(doc, dict) and "id" in doc:
+                                all_samples_map[doc["id"]] = doc
             except Exception:
                 pass
+        all_samples = list(all_samples_map.values())
 
         for doc in all_samples:
             doc_id = doc["id"]
@@ -334,10 +337,24 @@ class TransifyAIChatbot:
             if os.path.exists(self.custom_samples_file):
                 try:
                     with open(self.custom_samples_file, "r", encoding="utf-8") as f:
-                        existing_custom = json.load(f)
+                        loaded = json.load(f)
+                        if isinstance(loaded, list):
+                            existing_custom = loaded
                 except Exception:
                     existing_custom = []
-            existing_custom.extend(custom_samples)
+            
+            # Deduplicate by id so repeated training calls update existing samples rather than accumulating duplicates
+            existing_map = {}
+            for item in existing_custom:
+                if isinstance(item, dict) and "id" in item:
+                    existing_map[item["id"]] = item
+            for sample in custom_samples:
+                if isinstance(sample, dict) and "id" in sample:
+                    existing_map[sample["id"]] = sample
+                else:
+                    existing_map[id(sample)] = sample
+            
+            existing_custom = list(existing_map.values())
             with open(self.custom_samples_file, "w", encoding="utf-8") as f:
                 json.dump(existing_custom, f, indent=2)
 

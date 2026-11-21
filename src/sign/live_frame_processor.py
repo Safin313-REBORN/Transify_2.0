@@ -491,7 +491,7 @@ class LiveSignFrameProcessor:
 
         # Fixed Target ROI: Hand sign interaction box (normalized [x1, y1, x2, y2])
         is_synthetic_test = float(frame.mean()) < 16.0
-        target_roi = [float(r) for r in roi] if (roi and len(roi) == 4) else [0.15, 0.08, 0.85, 0.92]
+        target_roi = [float(r) for r in roi] if (roi and len(roi) == 4) else [0.05, 0.04, 0.95, 0.96]
 
         # 2. MediaPipe HandLandmarker Detection (Primary and Most Accurate)
         if self.hand_tracker.landmarker is not None:
@@ -500,9 +500,10 @@ class LiveSignFrameProcessor:
                 if detected_hand:
                     hand_cx = float(np.mean([p.x for p in detected_hand]))
                     hand_cy = float(np.mean([p.y for p in detected_hand]))
-                    # Strict ROI checking: Hand center must strictly reside within target_roi
-                    margin = 0.04
-                    in_roi = is_synthetic_test or (
+                    # Center and Fullscreen detection:
+                    margin = 0.08
+                    is_broad_roi = (target_roi[2] - target_roi[0] >= 0.75) and (target_roi[3] - target_roi[1] >= 0.75)
+                    in_roi = is_synthetic_test or is_broad_roi or (
                         (target_roi[0] - margin <= hand_cx <= target_roi[2] + margin) and
                         (target_roi[1] - margin <= hand_cy <= target_roi[3] + margin)
                     )

@@ -391,3 +391,35 @@ def test_browser_patient_cannot_access_clinician_endpoints(test_server, browser_
     req_context = browser_context.request
     res = req_context.get(f"{test_server}/api/care/dashboard/stats")
     assert res.status == 401
+
+
+def test_browser_options_contrast_and_visibility_across_themes(page):
+    """
+    Verifies that option elements (<select option> dropdowns, .radio-container labels, and theme buttons)
+    maintain sharp z-index stacking and readable contrast across Light, Dark, and High-Contrast themes.
+    """
+    page.evaluate("window.routeTo('settings')")
+    page.wait_for_selector("#view-settings.active")
+
+    # 1. Light Theme
+    page.evaluate("window.applyThemeGlobal('light')")
+    light_label_z = page.eval_on_selector(".radio-container label", "el => window.getComputedStyle(el).zIndex")
+    assert int(light_label_z) >= 2
+    light_glider_z = page.eval_on_selector(".radio-container .glider-container", "el => window.getComputedStyle(el).zIndex")
+    assert int(light_glider_z) <= 1
+
+    light_opt_color = page.eval_on_selector("select option", "el => window.getComputedStyle(el).color")
+    assert "rgb" in light_opt_color
+
+    # 2. Dark Theme
+    page.evaluate("window.applyThemeGlobal('dark')")
+    dark_label_color = page.eval_on_selector(".radio-container label", "el => window.getComputedStyle(el).color")
+    assert dark_label_color in ["rgb(226, 224, 238)", "rgb(255, 255, 255)", "rgb(196, 181, 253)"]
+
+    dark_opt_color = page.eval_on_selector("select option", "el => window.getComputedStyle(el).color")
+    assert dark_opt_color == "rgb(255, 255, 255)"
+
+    # 3. High-Contrast Theme
+    page.evaluate("window.applyThemeGlobal('high-contrast')")
+    hc_opt_color = page.eval_on_selector("select option", "el => window.getComputedStyle(el).color")
+    assert hc_opt_color == "rgb(255, 203, 5)"

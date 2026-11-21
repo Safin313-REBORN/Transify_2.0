@@ -4,6 +4,127 @@
  * Braille image processing, history management, and screen-reader announcements.
  */
 
+// =============================================================
+// Transify Kinetic Page Loader Engine (Uiverse.io by Praashoo7)
+// =============================================================
+window.showPageLoader = function (message = 'Loading Transify...', duration = null) {
+  const el = document.getElementById('transify-page-loader');
+  const txt = document.getElementById('page-loader-text');
+  if (txt && message) txt.textContent = message;
+  if (el) {
+    el.classList.add('active');
+  }
+  if (duration && typeof duration === 'number') {
+    if (window._pageLoaderTimer) clearTimeout(window._pageLoaderTimer);
+    window._pageLoaderTimer = setTimeout(() => {
+      window.hidePageLoader();
+    }, duration);
+  }
+};
+
+window.hidePageLoader = function () {
+  if (window._pageLoaderTimer) clearTimeout(window._pageLoaderTimer);
+  const el = document.getElementById('transify-page-loader');
+  if (el) {
+    el.classList.remove('active');
+  }
+};
+
+// =============================================================
+// Transify Domino Card Loading Engine (Uiverse.io by satyamchaudharydev)
+// =============================================================
+window.createCardSpinner = function (loadingText = 'Loading...') {
+  const overlay = document.createElement('div');
+  overlay.className = 'card-loading-overlay';
+  overlay.setAttribute('aria-live', 'polite');
+  overlay.innerHTML = `
+    <div class="spinner" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="card-loading-text">${loadingText}</div>
+  `;
+  return overlay;
+};
+
+window.setCardLoading = function (cardElement, isLoading, loadingText = 'Loading...') {
+  if (!cardElement) return;
+  const existing = cardElement.querySelector('.card-loading-overlay');
+  if (isLoading) {
+    cardElement.classList.add('is-loading');
+    if (!existing) {
+      cardElement.appendChild(window.createCardSpinner(loadingText));
+    } else {
+      const textEl = existing.querySelector('.card-loading-text');
+      if (textEl) textEl.textContent = loadingText;
+    }
+  } else {
+    cardElement.classList.remove('is-loading');
+    if (existing) {
+      existing.remove();
+    }
+  }
+};
+
+// =============================================================
+// Unified Theme Application Engine (Light, Dark, High-Contrast, System)
+// =============================================================
+window.applyThemeGlobal = function (theme) {
+  const chosenTheme = theme || localStorage.getItem('transify_theme') || 'light';
+  if (window.TransifyApp) window.TransifyApp.theme = chosenTheme;
+
+  document.querySelectorAll('.theme-card-btn').forEach(btn => {
+    const isMatch = btn.dataset.theme === chosenTheme;
+    btn.classList.toggle('active', isMatch);
+    btn.setAttribute('aria-pressed', isMatch ? 'true' : 'false');
+  });
+
+  let effectiveTheme = chosenTheme;
+  if (chosenTheme === 'system') {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    effectiveTheme = prefersDark ? 'dark' : 'light';
+    if (!window._systemThemeListenerAttached && window.matchMedia) {
+      window._systemThemeListenerAttached = true;
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        if (localStorage.getItem('transify_theme') === 'system') {
+          const eff = e.matches ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', eff);
+          if (document.body) document.body.setAttribute('data-theme', eff);
+        }
+      });
+    }
+  }
+
+  document.documentElement.setAttribute('data-theme', effectiveTheme);
+  if (document.body) {
+    document.body.setAttribute('data-theme', effectiveTheme);
+  }
+
+  if (effectiveTheme === 'high-contrast' || chosenTheme === 'high-contrast') {
+    if (document.body) document.body.classList.add('high-contrast');
+    document.documentElement.setAttribute('data-theme', 'high-contrast');
+    if (document.body) document.body.setAttribute('data-theme', 'high-contrast');
+    try { localStorage.setItem('transify_high_contrast', 'true'); } catch (e) { }
+    const toggleContrast = document.getElementById('toggle-high-contrast');
+    if (toggleContrast) toggleContrast.checked = true;
+  } else {
+    if (document.body) document.body.classList.remove('high-contrast');
+    try { localStorage.setItem('transify_high_contrast', 'false'); } catch (e) { }
+    const toggleContrast = document.getElementById('toggle-high-contrast');
+    if (toggleContrast) toggleContrast.checked = false;
+  }
+
+  try {
+    localStorage.setItem('transify_theme', chosenTheme);
+  } catch (e) { }
+};
+
 // ==========================================
 // 1. Accessibility & Preferences Engine
 // ==========================================
@@ -14,12 +135,20 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   autoTTS: localStorage.getItem('transify_auto_tts') === 'true',
   speechRate: parseFloat(localStorage.getItem('transify_speech_rate') || '1.0'),
 
+  applyTheme(theme) {
+    window.applyThemeGlobal(theme);
+  },
+
   init() {
     if (this._isInitialized) return;
     this._isInitialized = true;
-    this.applyTheme('light', false);
+    const savedTheme = localStorage.getItem('transify_theme') || 'light';
+    this.applyTheme(savedTheme);
     this.applyFontSize('medium', false);
     this.initAuthGateway();
+    if (window.hidePageLoader) {
+      setTimeout(() => window.hidePageLoader(), 150);
+    }
   },
 
   initAuthGateway() {
@@ -37,14 +166,14 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     let authUser = null;
     try {
       authUser = JSON.parse(localStorage.getItem('transify_auth_user') || 'null');
-    } catch (_) {}
+    } catch (_) { }
 
     if (isAuthCompleted && !authUser) {
       authUser = { name: 'Sarah Ahmed', email: 'demo@transify.ai', provider: 'login' };
       try {
         localStorage.setItem('transify_auth_user', JSON.stringify(authUser));
         localStorage.setItem('transify_auth_token', 'jwt_' + Date.now());
-      } catch (_) {}
+      } catch (_) { }
     }
 
     if ((!authUser && !isAuthCompleted) || forceLogin) {
@@ -273,7 +402,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     try {
       localStorage.setItem('transify_auth_user', JSON.stringify(userObj));
       localStorage.setItem('transify_auth_token', 'jwt_' + Date.now());
-    } catch (_) {}
+    } catch (_) { }
 
     this.updateProfileUI(userObj);
 
@@ -449,7 +578,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
         if (histCount) histCount.textContent = '0 activity logs stored';
         try {
           await fetch('/api/history', { method: 'DELETE' });
-        } catch (_) {}
+        } catch (_) { }
         this.showToast('Activity history cleared', 'success');
       });
     }
@@ -512,7 +641,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
           authBtn.style.background = '#EF4444';
         }
         if (statusText) statusText.textContent = 'Verified User (Cloud Synced)';
-      } catch (_) {}
+      } catch (_) { }
     } else {
       if (nameText) nameText.textContent = 'Guest User';
       if (emailText) emailText.textContent = 'Offline Edge Session (Local)';
@@ -539,7 +668,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     try {
       localStorage.removeItem('transify_auth_user');
       localStorage.removeItem('transify_auth_token');
-    } catch (_) {}
+    } catch (_) { }
 
     const authOverlay = document.getElementById('transify-auth-screen');
     const splash = document.getElementById('transify-splash-screen');
@@ -600,23 +729,8 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     }, interval);
   },
 
-  applyTheme(theme, save = false) {
-    const isHC = localStorage.getItem('transify_high_contrast') === 'true' || localStorage.getItem('transify_theme') === 'high-contrast' || theme === 'high-contrast';
-    const effectiveTheme = isHC ? 'high-contrast' : (theme || localStorage.getItem('transify_theme') || 'light');
-    this.theme = effectiveTheme;
-    document.documentElement.setAttribute('data-theme', effectiveTheme);
-    if (document.body) {
-      document.body.setAttribute('data-theme', effectiveTheme);
-      if (isHC) document.body.classList.add('high-contrast');
-      else document.body.classList.remove('high-contrast');
-    }
-    if (save && theme) {
-      try { localStorage.setItem('transify_theme', theme); } catch(e) {}
-    }
-  },
-
   cycleTheme() {
-    // Theme switching disabled per user request
+    // Theme switching handled via settings Theme & Appearance panel
   },
 
   applyFontSize(size, save = false) {
@@ -648,10 +762,10 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.setAttribute('role', 'alert');
-    
+
     const icons = { info: 'ℹ️', success: '✅', warning: '⚠️', danger: '❌' };
     toast.innerHTML = `<span>${icons[type] || '🔔'}</span><span>${message}</span>`;
-    
+
     container.appendChild(toast);
     setTimeout(() => {
       toast.style.opacity = '0';
@@ -703,15 +817,15 @@ var TransifyTTS = window.TransifyTTS = {
     if (!text || text.trim() === '') return;
     const cleanText = text.trim();
     const rate = options.rate || TransifyApp.speechRate || 1.0;
-    const onStart = options.onStart || (() => {});
-    const onEnd = options.onEnd || (() => {});
+    const onStart = options.onStart || (() => { });
+    const onEnd = options.onEnd || (() => { });
 
     // Prefer native SpeechSynthesis for natural voice and zero network latency
     if ('speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
         window.speechSynthesis.resume();
-      } catch (e) {}
+      } catch (e) { }
 
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.rate = rate;
@@ -724,8 +838,8 @@ var TransifyTTS = window.TransifyTTS = {
       const voices = window.speechSynthesis.getVoices();
       if (voices && voices.length > 0) {
         const match = voices.find(v => v.lang.toLowerCase() === targetLang.toLowerCase()) ||
-                      voices.find(v => v.lang.toLowerCase().startsWith(targetLang.slice(0, 2).toLowerCase())) ||
-                      voices[0];
+          voices.find(v => v.lang.toLowerCase().startsWith(targetLang.slice(0, 2).toLowerCase())) ||
+          voices[0];
         if (match) utterance.voice = match;
       }
 
@@ -965,7 +1079,7 @@ var SignPage = window.SignPage = window.TransifySign = {
   lastConfirmedSign: '',
   lastConfirmedSpeechTime: 0,
   lastFingersCount: 0,
-  roiPosition: 'right',
+  roiPosition: 'center',
   lastFrameData: null,
   detectionState: {
     isDetected: false,
@@ -975,9 +1089,17 @@ var SignPage = window.SignPage = window.TransifySign = {
   },
 
   setRoiPosition(pos) {
-    if (['right', 'center', 'left'].includes(pos)) {
+    if (['center', 'fullscreen', 'right', 'left'].includes(pos)) {
       this.roiPosition = pos;
-      ['right', 'center', 'left'].forEach(p => {
+      const roiBox = document.getElementById('sign-roi-box');
+      if (roiBox) {
+        roiBox.classList.toggle('fullscreen-mode', pos === 'fullscreen');
+      }
+      const focusBtn = document.getElementById('toggle-roi-focus-btn');
+      if (focusBtn) {
+        focusBtn.textContent = pos === 'fullscreen' ? '⛶ Full Focus' : '🎯 Center Focus';
+      }
+      ['right', 'center', 'left', 'fullscreen'].forEach(p => {
         const btn = document.getElementById(`roi-pos-${p}`);
         if (btn) {
           if (p === pos) btn.classList.add('active');
@@ -991,19 +1113,21 @@ var SignPage = window.SignPage = window.TransifySign = {
   },
 
   getTargetRoi() {
-    if (this.roiPosition === 'left') {
+    if (this.roiPosition === 'fullscreen') {
+      return [0.0, 0.0, 1.0, 1.0];
+    } else if (this.roiPosition === 'left') {
       return [0.06, 0.08, 0.58, 0.92];
     } else if (this.roiPosition === 'right') {
       return [0.42, 0.08, 0.94, 0.92];
     }
     // Default broad centered zone: natural hand placement in front of camera
-    return [0.15, 0.08, 0.85, 0.92];
+    return [0.06, 0.04, 0.94, 0.96];
   },
 
   setLanguageMode(mode) {
     this.currentLanguageMode = 'asl';
     this.detectionState = { isDetected: false, label: '', confidence: 0, timestamp: 0 };
-    fetch('/api/sign/reset', { method: 'POST' }).catch(() => {});
+    fetch('/api/sign/reset', { method: 'POST' }).catch(() => { });
   },
 
   setDetectionFeedback(label, confidence = 0.95) {
@@ -1527,6 +1651,30 @@ var SignPage = window.SignPage = window.TransifySign = {
         this.autoSpeak = e.target.checked;
       });
     }
+
+    const focusBtn = document.getElementById('toggle-roi-focus-btn');
+    if (focusBtn) {
+      focusBtn.addEventListener('click', () => {
+        const nextPos = (this.roiPosition === 'fullscreen') ? 'center' : 'fullscreen';
+        this.setRoiPosition(nextPos);
+        TransifyApp.showToast(`Camera focus set to ${nextPos === 'fullscreen' ? 'Fullscreen' : 'Center'}`, 'info');
+      });
+    }
+
+    const fsBtn = document.getElementById('btn-toggle-cam-fullscreen');
+    if (fsBtn) {
+      fsBtn.addEventListener('click', () => {
+        const stage = document.getElementById('sign-stage-container');
+        const hud = document.getElementById('fullscreen-pred-hud');
+        if (stage) {
+          const isFs = stage.classList.toggle('stage-fullscreen');
+          fsBtn.innerHTML = isFs ? '⛶ Exit Fullscreen' : '⛶ Fullscreen';
+          fsBtn.setAttribute('aria-expanded', isFs ? 'true' : 'false');
+          if (hud) hud.style.display = isFs ? 'flex' : 'none';
+          TransifyApp.showToast(isFs ? 'Fullscreen camera enabled' : 'Returned to split view', 'info');
+        }
+      });
+    }
   },
 
   async toggleCamera() {
@@ -1617,6 +1765,13 @@ var SignPage = window.SignPage = window.TransifySign = {
     }
     const stopCamBtn = document.getElementById('stop-camera-btn');
     if (stopCamBtn) stopCamBtn.style.display = 'none';
+
+    const stage = document.getElementById('sign-stage-container');
+    if (stage) stage.classList.remove('stage-fullscreen');
+    const hud = document.getElementById('fullscreen-pred-hud');
+    if (hud) hud.style.display = 'none';
+    const fsBtn = document.getElementById('btn-toggle-cam-fullscreen');
+    if (fsBtn) fsBtn.innerHTML = '⛶ Fullscreen';
 
     const overlay = document.getElementById('camera-off-overlay');
     if (overlay) overlay.style.display = 'flex';
@@ -1984,7 +2139,7 @@ var SignPage = window.SignPage = window.TransifySign = {
             for (const s of seg.segment(rawText)) {
               letters.push(s.segment);
             }
-          } catch(e) {
+          } catch (e) {
             letters = rawText.split('');
           }
         } else {
@@ -2015,6 +2170,15 @@ var SignPage = window.SignPage = window.TransifySign = {
     if (confEl) {
       confEl.textContent = `${confVal}%`;
       confEl.className = (isRealSign && confVal >= 80) ? 'ring-pct badge-success' : 'ring-pct';
+    }
+
+    const hudWord = document.getElementById('hud-word-badge');
+    const hudConf = document.getElementById('hud-conf-badge');
+    if (hudWord) {
+      hudWord.textContent = isRealSign ? displayWord : (result.status === 'ANALYZING' ? 'Analyzing...' : '—');
+    }
+    if (hudConf) {
+      hudConf.textContent = `${confVal}% sure`;
     }
 
     const ringCircle = document.getElementById('confidence-ring-circle');
@@ -2381,9 +2545,16 @@ var BraillePage = window.BraillePage = {
     if (resultsSection) resultsSection.style.display = 'block';
     if (outputTextarea) outputTextarea.value = 'Translating... please wait.';
 
+    const brailleCard = document.querySelector('.braille-result-card');
+    if (brailleCard && window.setCardLoading) {
+      window.setCardLoading(brailleCard, true, 'Analyzing Braille Dots with AI Engine...');
+    }
+
     const formData = new FormData();
     formData.append('file', this.currentFile);
     formData.append('speak_tts', 'false');
+
+    if (window.showPageLoader) window.showPageLoader('Analyzing Braille Dots with AI Engine...');
 
     try {
       const res = await fetch('/api/braille/translate', { method: 'POST', body: formData });
@@ -2494,6 +2665,11 @@ var BraillePage = window.BraillePage = {
       TransifyApp.showToast('Error during Braille translation: ' + e.message, 'danger');
       if (outputTextarea) outputTextarea.value = 'Translation error. Check server connection.';
     } finally {
+      const brailleCard = document.querySelector('.braille-result-card');
+      if (brailleCard && window.setCardLoading) {
+        window.setCardLoading(brailleCard, false);
+      }
+      if (window.hidePageLoader) window.hidePageLoader();
       if (translateBtn) {
         translateBtn.disabled = false;
         translateBtn.innerHTML = '✨ Translate Braille Image';
@@ -2673,7 +2849,7 @@ var TransifySTT = window.TransifySTT = {
     if (this.recognition) {
       try {
         this.recognition.stop();
-      } catch (e) {}
+      } catch (e) { }
     }
     this.updateUI(false);
     TransifyApp.announce('Speech recognition stopped');
@@ -2827,7 +3003,7 @@ var TransifyTTSPage = window.TransifyTTSPage = {
       try {
         window.speechSynthesis.cancel();
         window.speechSynthesis.resume();
-      } catch (e) {}
+      } catch (e) { }
 
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.rate = this.speed || 1.0;
@@ -2836,8 +3012,8 @@ var TransifyTTSPage = window.TransifyTTSPage = {
       const voices = window.speechSynthesis.getVoices();
       if (voices && voices.length > 0) {
         const match = voices.find(v => v.lang.toLowerCase() === chosenLang.toLowerCase()) ||
-                      voices.find(v => v.lang.toLowerCase().startsWith(chosenLang.slice(0, 2).toLowerCase())) ||
-                      voices[0];
+          voices.find(v => v.lang.toLowerCase().startsWith(chosenLang.slice(0, 2).toLowerCase())) ||
+          voices[0];
         if (match) utterance.voice = match;
       }
 
@@ -2915,8 +3091,8 @@ function initTransifyAllModules() {
   window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
   window.handleDemoLogin = () => TransifyApp.handleDemoLogin();
   window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
-window.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
-TransifyApp.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
+  window.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
+  TransifyApp.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
 }
 
 if (document.readyState === 'loading') {
@@ -2926,7 +3102,7 @@ if (document.readyState === 'loading') {
 }
 
 // Expose global helper for custom duration or manual splash testing
-window.showTransifySplashScreen = function(durationMs = 3500) {
+window.showTransifySplashScreen = function (durationMs = 3500) {
   const splash = document.getElementById('transify-splash-screen');
   if (!splash) return;
   splash.style.display = 'flex';
@@ -3204,7 +3380,7 @@ var ChatbotPage = window.ChatbotPage = {
       `;
     }
     this.conversationHistory = [];
-    fetch('/api/chat/reset', { method: 'POST' }).catch(() => {});
+    fetch('/api/chat/reset', { method: 'POST' }).catch(() => { });
     if (window.TransifyApp && window.TransifyApp.showToast) {
       window.TransifyApp.showToast('Chat history cleared', 'info');
     }
@@ -3246,6 +3422,8 @@ var ChatbotPage = window.ChatbotPage = {
     if (pct) pct.textContent = '15%';
     if (statusText) statusText.textContent = `Running gradient descent across ${epochs} epochs...`;
 
+    if (window.showPageLoader) window.showPageLoader('Training Neural Knowledge Network...');
+
     try {
       if (fill) fill.style.width = '60%';
       if (pct) pct.textContent = '60%';
@@ -3274,6 +3452,7 @@ var ChatbotPage = window.ChatbotPage = {
     } catch (e) {
       if (statusText) statusText.textContent = `Training error: ${e.message}`;
     } finally {
+      if (window.hidePageLoader) window.hidePageLoader();
       if (trainBtn) trainBtn.disabled = false;
     }
   },
@@ -3468,14 +3647,75 @@ const EditorialController = {
         this.routeTo(h);
       }
     });
+
+    // Uiverse Navigation Burger Toggle & Drawer
+    const burgerToggle = document.getElementById('nav-burger-toggle');
+    const drawerBackdrop = document.getElementById('nav-drawer-backdrop');
+    const drawerCloseBtn = document.getElementById('nav-drawer-close-btn');
+
+    const closeNavDrawer = () => {
+      if (burgerToggle) {
+        burgerToggle.checked = false;
+        burgerToggle.setAttribute('aria-expanded', 'false');
+      }
+      document.body.classList.remove('nav-drawer-open');
+    };
+    this.closeNavDrawer = closeNavDrawer;
+
+    if (burgerToggle) {
+      burgerToggle.addEventListener('change', () => {
+        const isOpen = burgerToggle.checked;
+        document.body.classList.toggle('nav-drawer-open', isOpen);
+        burgerToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+    }
+
+    if (drawerBackdrop) drawerBackdrop.addEventListener('click', closeNavDrawer);
+    if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeNavDrawer);
+
+    document.querySelectorAll('.nav-drawer-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        const route = item.getAttribute('data-route');
+        if (route) {
+          e.preventDefault();
+          closeNavDrawer();
+          this.routeTo(route);
+        } else {
+          closeNavDrawer();
+        }
+      });
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.body.classList.contains('nav-drawer-open')) {
+        closeNavDrawer();
+      }
+    });
   },
 
   routeTo(rawRoute) {
+    if (this.closeNavDrawer) this.closeNavDrawer();
     let route = (rawRoute || 'home').toLowerCase();
     if (route === 'voice') route = 'stt';
     if (route === 'care') route = 'care';
     if (route === 'care-intake') route = 'care';
     if (route === 'clinician') route = 'care';
+    if (route === 'care-chronic' || route === 'chronic') route = 'care';
+
+    // Brief kinetic loader on view navigation
+    if (window.showPageLoader && route !== this.activeRoute) {
+      const titles = {
+        sign: 'Loading Sign Language Translator...',
+        braille: 'Loading Braille Image Scanner...',
+        stt: 'Loading Voice Hub & Captions...',
+        tts: 'Loading Text to Speech...',
+        care: 'Loading Transify Care...',
+        chat: 'Loading Transify AI Chatbot...',
+        phrases: 'Loading Quick Phrases...',
+        settings: 'Loading Preferences...'
+      };
+      window.showPageLoader(titles[route] || 'Loading Transify...', 220);
+    }
 
     this.activeRoute = route;
     if (history.pushState) {
@@ -3509,7 +3749,8 @@ const EditorialController = {
       tts: 'view-voice',
       care: 'view-care',
       chat: 'view-chat',
-      settings: 'view-settings'
+      settings: 'view-settings',
+      contact: 'view-settings'
     };
 
     const targetViewId = viewMap[route] || 'view-home';
@@ -3546,6 +3787,9 @@ const EditorialController = {
     if (rawRoute === 'clinician') {
       const clinicianTab = document.getElementById('care-tab-clinician-btn');
       if (clinicianTab) clinicianTab.click();
+    } else if (rawRoute === 'care-chronic' || rawRoute === 'chronic') {
+      const chronicTab = document.getElementById('care-tab-chronic-btn');
+      if (chronicTab) chronicTab.click();
     } else if (rawRoute === 'care-intake' || rawRoute === 'care') {
       const intakeTab = document.getElementById('care-tab-intake-btn');
       if (intakeTab) intakeTab.click();
@@ -3563,7 +3807,7 @@ const EditorialController = {
     if (skipBtn) {
       skipBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        try { localStorage.setItem('transify.welcomed', '1'); } catch(e) {}
+        try { localStorage.setItem('transify.welcomed', '1'); } catch (e) { }
         this.routeTo('home');
       });
     }
@@ -3700,7 +3944,7 @@ const EditorialController = {
             avEl.textContent = parts.map(p => p[0]).join('').toUpperCase().slice(0, 2);
           }
         }
-      } catch(e) {}
+      } catch (e) { }
     }
 
     // 3. Say aloud input & speak button
@@ -3794,12 +4038,12 @@ const EditorialController = {
       const stored = localStorage.getItem('transify_phrases');
       if (stored) phrases = JSON.parse(stored);
       else phrases = [...this.defaultPhrases];
-    } catch(e) {
+    } catch (e) {
       phrases = [...this.defaultPhrases];
     }
 
     const savePhrases = () => {
-      try { localStorage.setItem('transify_phrases', JSON.stringify(phrases)); } catch(e) {}
+      try { localStorage.setItem('transify_phrases', JSON.stringify(phrases)); } catch (e) { }
     };
 
     const render = () => {
@@ -3851,15 +4095,16 @@ const EditorialController = {
 
       grid.innerHTML = visible.map((p, idx) => `
         <li>
-          <button type="button" class="phrase-card press" data-idx="${idx}" aria-label="Say aloud: ${p.en}">
+          <button type="button" class="phrase-card card-uiverse press" data-idx="${idx}" aria-label="Say aloud: ${p.en}">
+            <div class="go-corner" aria-hidden="true"><span class="go-arrow">→</span></div>
             <span class="phrase-card-top ${p.cat === 'Emergency' ? 'emergency-tag' : ''}">
               <span>${p.cat}</span>
               <span class="phrase-card-icon" id="card-icon-${idx}">
                 <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A4860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>
               </span>
             </span>
-            <span class="phrase-en">${p.en}</span>
-            ${p.bn ? `<span class="phrase-bn">${p.bn}</span>` : ''}
+            <span class="phrase-en card-title">${p.en}</span>
+            ${p.bn ? `<span class="phrase-bn small-desc">${p.bn}</span>` : ''}
           </button>
         </li>
       `).join('');
@@ -4008,7 +4253,7 @@ const EditorialController = {
       btn.addEventListener('click', () => {
         const selected = btn.dataset.theme;
         this.applyTheme(selected);
-        try { localStorage.setItem('transify_theme', selected); } catch(e) {}
+        try { localStorage.setItem('transify_theme', selected); } catch (e) { }
         const label = btn.querySelector('.theme-card-label');
         if (window.TransifyApp && window.TransifyApp.showToast) {
           window.TransifyApp.showToast(`Theme switched to ${label ? label.textContent : selected}`, 'info');
@@ -4027,19 +4272,19 @@ const EditorialController = {
         const val = e.target.checked;
         if (val) {
           document.documentElement.setAttribute('data-motion', 'reduced');
-          try { 
+          try {
             localStorage.setItem('transify_reduce_motion', '1');
             localStorage.setItem('transify_reduced_motion', 'true');
-          } catch(e) {}
+          } catch (e) { }
           if (window.TransifyApp && window.TransifyApp.showToast) {
             window.TransifyApp.showToast('Reduced Motion Enabled', 'info');
           }
         } else {
           document.documentElement.removeAttribute('data-motion');
-          try { 
+          try {
             localStorage.removeItem('transify_reduce_motion');
             localStorage.setItem('transify_reduced_motion', 'false');
-          } catch(e) {}
+          } catch (e) { }
           if (window.TransifyApp && window.TransifyApp.showToast) {
             window.TransifyApp.showToast('Animations Restored', 'info');
           }
@@ -4057,7 +4302,7 @@ const EditorialController = {
         btn.addEventListener('click', () => {
           const scale = btn.dataset.scale;
           this.applyFontScale(scale);
-          try { localStorage.setItem('transify_font_scale', scale); } catch(e) {}
+          try { localStorage.setItem('transify_font_scale', scale); } catch (e) { }
           if (window.TransifyApp && window.TransifyApp.showToast) {
             window.TransifyApp.showToast(`Typography scaled to ${btn.textContent}`, 'info');
           }
@@ -4075,13 +4320,13 @@ const EditorialController = {
       focusRingToggle.addEventListener('change', (e) => {
         if (e.target.checked) {
           document.body.classList.add('enhanced-focus');
-          try { localStorage.setItem('transify_focus_rings', 'true'); } catch(e) {}
+          try { localStorage.setItem('transify_focus_rings', 'true'); } catch (e) { }
           if (window.TransifyApp && window.TransifyApp.showToast) {
             window.TransifyApp.showToast('Prominent Keyboard Focus Rings Enabled', 'success');
           }
         } else {
           document.body.classList.remove('enhanced-focus');
-          try { localStorage.setItem('transify_focus_rings', 'false'); } catch(e) {}
+          try { localStorage.setItem('transify_focus_rings', 'false'); } catch (e) { }
           if (window.TransifyApp && window.TransifyApp.showToast) {
             window.TransifyApp.showToast('Standard Focus Rings Restored', 'info');
           }
@@ -4097,7 +4342,7 @@ const EditorialController = {
 
       langSelect.addEventListener('change', (e) => {
         const lang = e.target.value;
-        try { localStorage.setItem('transify_lang', lang); } catch(e) {}
+        try { localStorage.setItem('transify_lang', lang); } catch (e) { }
         if (typeof applyLocale === 'function') applyLocale(lang);
         const enBtn = document.getElementById('home-lang-en');
         const bnBtn = document.getElementById('home-lang-bn');
@@ -4124,7 +4369,7 @@ const EditorialController = {
           b.classList.add('active');
           const rate = parseFloat(b.dataset.rate || '1.0');
           if (window.TransifyApp) window.TransifyApp.speechRate = rate;
-          try { localStorage.setItem('transify_speech_rate', rate.toString()); } catch(e) {}
+          try { localStorage.setItem('transify_speech_rate', rate.toString()); } catch (e) { }
           if (window.TransifyApp && window.TransifyApp.showToast) {
             window.TransifyApp.showToast(`Speech rate set to ${rate}x`, 'info');
           }
@@ -4153,7 +4398,7 @@ const EditorialController = {
           signLangGroup.querySelectorAll('.segmented-btn').forEach(x => x.classList.remove('active'));
           b.classList.add('active');
           const signLang = b.dataset.sign;
-          try { localStorage.setItem('transify_default_sign_lang', signLang); } catch(e) {}
+          try { localStorage.setItem('transify_default_sign_lang', signLang); } catch (e) { }
           const aslBtn = document.getElementById('lang-asl-btn');
           const bdslBtn = document.getElementById('lang-bdsl-btn');
           if (aslBtn && bdslBtn) {
@@ -4177,7 +4422,7 @@ const EditorialController = {
           brailleGroup.querySelectorAll('.segmented-btn').forEach(x => x.classList.remove('active'));
           b.classList.add('active');
           const val = b.dataset.braille;
-          try { localStorage.setItem('transify_braille_standard', val); } catch(e) {}
+          try { localStorage.setItem('transify_braille_standard', val); } catch (e) { }
           if (window.TransifyApp && window.TransifyApp.showToast) {
             window.TransifyApp.showToast(`Braille transcription: ${b.textContent}`, 'info');
           }
@@ -4185,18 +4430,31 @@ const EditorialController = {
       });
     }
 
-    // 10. Confidence Gate
+    // 10. Confidence Gate Option Chooser (.radio-container)
     const confGate = document.getElementById('setting-confidence-gate');
+    const savedConf = localStorage.getItem('transify_confidence_gate') || '85';
     if (confGate) {
-      const savedConf = localStorage.getItem('transify_confidence_gate') || '85';
       confGate.value = savedConf;
       confGate.addEventListener('change', (e) => {
-        try { localStorage.setItem('transify_confidence_gate', e.target.value); } catch(e) {}
+        try { localStorage.setItem('transify_confidence_gate', e.target.value); } catch (e) { }
+        const radio = document.querySelector(`input[name="setting_confidence_radio"][value="${e.target.value}"]`);
+        if (radio) radio.checked = true;
         if (window.TransifyApp && window.TransifyApp.showToast) {
           window.TransifyApp.showToast(`Vision confidence threshold: ${e.target.value}%`, 'info');
         }
       });
     }
+    const matchingRadio = document.querySelector(`input[name="setting_confidence_radio"][value="${savedConf}"]`);
+    if (matchingRadio) matchingRadio.checked = true;
+
+    document.querySelectorAll('input[name="setting_confidence_radio"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        if (confGate) {
+          confGate.value = e.target.value;
+          confGate.dispatchEvent(new Event('change'));
+        }
+      });
+    });
 
     // 11. Sync Account Info
     this.refreshSettingsUserUI();
@@ -4209,7 +4467,7 @@ const EditorialController = {
         if (recentList) {
           recentList.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-2); font-size: 14px; font-weight: 600;">No recent translations yet.</div>';
         }
-        try { await fetch('/api/history', { method: 'DELETE' }); } catch(e) {}
+        try { await fetch('/api/history', { method: 'DELETE' }); } catch (e) { }
         const storageDesc = document.getElementById('settings-storage-size');
         if (storageDesc) storageDesc.textContent = '0 local activity logs';
         if (window.TransifyApp && window.TransifyApp.showToast) {
@@ -4230,7 +4488,7 @@ const EditorialController = {
           localStorage.removeItem('transify_focus_rings');
           localStorage.removeItem('transify_reduce_motion');
           localStorage.removeItem('transify_speech_rate');
-        } catch(e) {}
+        } catch (e) { }
         if (reduceMotionCheck) reduceMotionCheck.checked = false;
         if (focusRingToggle) focusRingToggle.checked = false;
         document.documentElement.removeAttribute('data-motion');
@@ -4244,27 +4502,33 @@ const EditorialController = {
     // Care sub-tabs toggle
     const intakeTab = document.getElementById('care-tab-intake-btn');
     const clinicianTab = document.getElementById('care-tab-clinician-btn');
+    const chronicTab = document.getElementById('care-tab-chronic-btn');
     const intakeSlide = document.getElementById('slide-care-intake');
     const clinicianSlide = document.getElementById('slide-clinician-portal');
+    const chronicSlide = document.getElementById('slide-care-chronic');
 
-    if (intakeTab && clinicianTab && intakeSlide && clinicianSlide) {
-      intakeTab.addEventListener('click', () => {
-        intakeTab.classList.add('active');
-        clinicianTab.classList.remove('active');
-        intakeSlide.style.display = 'flex';
-        clinicianSlide.style.display = 'none';
-      });
+    function switchCareTab(activeTab, activeSlide) {
+      [intakeTab, clinicianTab, chronicTab].forEach(t => { if (t) t.classList.remove('active'); });
+      [intakeSlide, clinicianSlide, chronicSlide].forEach(s => { if (s) s.style.display = 'none'; });
+      if (activeTab) activeTab.classList.add('active');
+      if (activeSlide) activeSlide.style.display = (activeSlide === intakeSlide || activeSlide === chronicSlide) ? 'flex' : 'block';
+    }
 
+    if (intakeTab && intakeSlide) {
+      intakeTab.addEventListener('click', () => switchCareTab(intakeTab, intakeSlide));
+    }
+    if (clinicianTab && clinicianSlide) {
       clinicianTab.addEventListener('click', () => {
-        clinicianTab.classList.add('active');
-        intakeTab.classList.remove('active');
-        clinicianSlide.style.display = 'block';
-        intakeSlide.style.display = 'none';
-
+        switchCareTab(clinicianTab, clinicianSlide);
         if (window.TransifyCare && window.TransifyCare.loadClinicianQueue) {
           window.TransifyCare.loadClinicianQueue();
           window.TransifyCare.loadDashboardStats();
         }
+      });
+    }
+    if (chronicTab && chronicSlide) {
+      chronicTab.addEventListener('click', () => {
+        switchCareTab(chronicTab, chronicSlide);
       });
     }
 
@@ -4288,34 +4552,8 @@ const EditorialController = {
   },
 
   applyTheme(theme) {
-    document.querySelectorAll('.theme-card-btn').forEach(btn => {
-      const isMatch = btn.dataset.theme === theme;
-      btn.classList.toggle('active', isMatch);
-      btn.setAttribute('aria-pressed', isMatch);
-    });
-
-    if (theme === 'system') {
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const effectiveTheme = prefersDark ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', effectiveTheme);
-      document.body.setAttribute('data-theme', effectiveTheme);
-    } else {
-      document.documentElement.setAttribute('data-theme', theme);
-      document.body.setAttribute('data-theme', theme);
-    }
-
-    if (theme === 'high-contrast') {
-      document.body.classList.add('high-contrast');
-      document.documentElement.setAttribute('data-theme', 'high-contrast');
-      document.body.setAttribute('data-theme', 'high-contrast');
-      localStorage.setItem('transify_high_contrast', 'true');
-      const toggleContrast = document.getElementById('toggle-high-contrast');
-      if (toggleContrast) toggleContrast.checked = true;
-    } else {
-      document.body.classList.remove('high-contrast');
-      localStorage.setItem('transify_high_contrast', 'false');
-      const toggleContrast = document.getElementById('toggle-high-contrast');
-      if (toggleContrast) toggleContrast.checked = false;
+    if (window.applyThemeGlobal) {
+      window.applyThemeGlobal(theme);
     }
   },
 
@@ -4352,7 +4590,7 @@ const EditorialController = {
           authBtn.style.background = '#EF4444';
         }
         if (statusPill) statusPill.innerHTML = '<span class="status-dot"></span><span>Verified User (Synced)</span>';
-      } catch (_) {}
+      } catch (_) { }
     } else {
       if (nameEl) nameEl.textContent = 'Guest User';
       if (emailEl) emailEl.textContent = 'Offline local storage mode';

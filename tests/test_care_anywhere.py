@@ -34,7 +34,14 @@ from src.care.care_anywhere import (
     assess_local_outbreak_risk,
     find_nearby_health_facilities,
     compute_intake_idempotency_hash,
-    map_text_to_mesh_descriptors
+    map_text_to_mesh_descriptors,
+    evaluate_mimic_iv_reasoning,
+    assess_hmd_mortality_hazard,
+    get_who_gho_infrastructure_profile,
+    compute_ada_probabilistic_differential,
+    query_k_health_people_like_me,
+    analyze_healthy_io_vision,
+    calculate_zipline_dispatch
 )
 
 # Ensure databases initialized
@@ -363,3 +370,206 @@ def test_store_and_forward_sync_idempotency(client: TestClient):
     res2_data = resp2.json()
     assert res2_data["success"] is True
     assert res2_data["results"][0]["status"] == "ALREADY_SYNCHRONIZED"
+
+
+# ---------------------------------------------------------------------------
+# 7. MIMIC-IV Clinical Reasoning & Shock Index Tests
+# ---------------------------------------------------------------------------
+
+def test_mimic_iv_reasoning_and_shock_index(client: TestClient):
+    """Verifies MIMIC-IV clinical encounter priors, Shock Index calculation, and SIRS assessment."""
+    res = evaluate_mimic_iv_reasoning(
+        complaint="Crushing chest pain radiating to arm",
+        heart_rate=112.0,
+        systolic_bp=95.0,
+        temperature_c=38.4,
+        respiratory_rate=24.0
+    )
+    assert res["status"] == "SUCCESS"
+    assert "MIMIC-IV" in res["data_source"]
+    assert res["shock_index"]["value"] > 1.0
+    assert "CRITICAL" in res["shock_index"]["status"]
+    assert res["sirs_evaluation"]["is_sirs_positive"] is True
+
+    # Test HTTP endpoint
+    login_patient(client)
+    resp = client.post("/api/care/reasoning/mimic", json={
+        "complaint": "Severe fever and shaking chills",
+        "heart_rate": 105.0,
+        "systolic_bp": 110.0,
+        "temperature_c": 39.1
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "SUCCESS"
+    assert len(data["diagnostic_probability_breakdown"]) > 0
+
+
+# ---------------------------------------------------------------------------
+# 8. Human Mortality Database (HMD) Predictive Hazard Tests
+# ---------------------------------------------------------------------------
+
+def test_hmd_mortality_hazard_modeling(client: TestClient):
+    """Verifies HMD actuarial life tables, remaining life expectancy, and comorbidity multipliers."""
+    res = assess_hmd_mortality_hazard(
+        age=65,
+        chronic_conditions=["hypertension", "diabetes", "copd"],
+        acute_severity=8
+    )
+    assert res["status"] == "SUCCESS"
+    assert "Human Mortality Database" in res["data_source"]
+    assert res["risk_modeling"]["excess_hazard_ratio"] > 2.0
+    assert "VULNERABILITY" in res["risk_modeling"]["vulnerability_tier"]
+
+    # Test HTTP endpoint
+    login_patient(client)
+    resp = client.post("/api/care/hazard/mortality", json={
+        "age": 72,
+        "chronic_conditions": ["heart disease", "diabetes"],
+        "acute_severity": 6
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "SUCCESS"
+    assert data["demographic_profile"]["age_bracket"] == "70-79"
+
+
+# ---------------------------------------------------------------------------
+# 9. WHO Global Health Observatory (GHO) Infrastructure Tests
+# ---------------------------------------------------------------------------
+
+def test_who_gho_infrastructure_profile(client: TestClient):
+    """Verifies WHO GHO regional health workforce metrics and low-resource safety multipliers."""
+    res = get_who_gho_infrastructure_profile(district="sylhet", lat=24.89, lon=91.86)
+    assert res["status"] == "SUCCESS"
+    assert "WHO Global Health Observatory" in res["data_source"]
+    assert res["healthcare_workforce_density"]["is_critical_workforce_shortage"] is True
+    assert res["triage_safety_multiplier"] >= 1.25
+
+    # Test HTTP endpoint
+    resp = client.get("/api/care/who-gho/indicators?district=dhaka&lat=23.72&lon=90.39")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "SUCCESS"
+    assert len(data["top_disease_burdens_daly"]) > 0
+
+
+# ---------------------------------------------------------------------------
+# 10. Ada Health Probabilistic Differential Diagnosis Tests
+# ---------------------------------------------------------------------------
+
+def test_ada_probabilistic_differential(client: TestClient):
+    """Verifies Ada Health-style Bayesian condition likelihoods and ruling-out triage questions."""
+    res = compute_ada_probabilistic_differential(
+        symptoms_text="Severe pain in right lower quadrant, nausea, fever and rebound tenderness",
+        age=24,
+        duration_days=1
+    )
+    assert res["status"] == "SUCCESS"
+    assert "Appendicitis" in res["primary_differential"]["condition"]
+    assert res["primary_differential"]["probability_percentage"] >= 60
+    assert len(res["primary_differential"]["clarifying_triage_question"]) > 10
+
+    # Test HTTP endpoint
+    login_patient(client)
+    resp = client.post("/api/care/reasoning/differential", json={
+        "symptoms": "High fever, bone breaking pain, severe headache, bleeding gums",
+        "age": 28
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "SUCCESS"
+    assert any("Dengue" in d["condition"] for d in data["full_differential_list"])
+
+
+# ---------------------------------------------------------------------------
+# 11. K Health 'People Like Me' Comparative Insights Tests
+# ---------------------------------------------------------------------------
+
+def test_k_health_people_like_me(client: TestClient):
+    """Verifies K Health encounter comparisons against demographic cohort distributions."""
+    res = query_k_health_people_like_me(
+        complaint="Abdominal pain and severe watery diarrhea for 2 days",
+        age=32
+    )
+    assert res["status"] == "SUCCESS"
+    assert res["total_similar_patients_count"] > 10000
+    assert len(res["diagnoses_distribution"]) > 0
+    assert res["median_recovery_time_days"] > 0
+
+    # Test HTTP endpoint
+    login_patient(client)
+    resp = client.post("/api/care/insights/people-like-me", json={
+        "complaint": "Crushing chest discomfort when climbing stairs",
+        "age": 55
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "SUCCESS"
+    assert "Adults with acute chest" in data["matched_cohort_summary"]
+
+
+# ---------------------------------------------------------------------------
+# 12. Healthy.io Smartphone Vision: Urinalysis & Wound Staging Tests
+# ---------------------------------------------------------------------------
+
+def test_healthy_io_vision_diagnostics(client: TestClient):
+    """Verifies Healthy.io smartphone dipstick urinalysis and digital wound measurement."""
+    # Test dipstick image
+    strip_img = Image.new("RGB", (400, 100), color=(180, 100, 140))
+    res_uri = analyze_healthy_io_vision(strip_img, analysis_type="urinalysis")
+    assert res_uri["status"] == "SUCCESS"
+    assert res_uri["modality"] == "URINALYSIS_COLORIMETRY"
+    assert "findings" in res_uri
+
+    # Test wound image
+    wound_img = Image.new("RGB", (300, 300), color=(160, 60, 60))
+    res_wound = analyze_healthy_io_vision(wound_img, analysis_type="wound_care")
+    assert res_wound["status"] == "SUCCESS"
+    assert res_wound["modality"] == "WOUND_DIGITAL_MEASUREMENT"
+    assert "wound_metrics" in res_wound
+    assert res_wound["wound_metrics"]["estimated_surface_area_cm2"] > 0
+
+    # Test HTTP endpoint
+    buf = io.BytesIO()
+    strip_img.save(buf, format="JPEG")
+    b64_str = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+    login_patient(client)
+    resp = client.post("/api/care/vision/urinalysis-wound", json={
+        "image_data": b64_str,
+        "analysis_type": "urinalysis"
+    })
+    assert resp.status_code == 200
+    assert resp.json()["success"] is True
+
+
+# ---------------------------------------------------------------------------
+# 13. Zipline Autonomous Drone Logistics Tests
+# ---------------------------------------------------------------------------
+
+def test_zipline_medical_drone_dispatch(client: TestClient):
+    """Verifies Zipline autonomous flight dispatch, ETA calculation, and payload preservation."""
+    res = calculate_zipline_dispatch(
+        patient_lat=24.7500,
+        patient_lon=91.5000,
+        required_supply="antivenom",
+        urgency_level="CRITICAL"
+    )
+    assert res["status"] == "DISPATCH_CONFIRMED"
+    assert "Zipline" in res["benchmark_paradigm"]
+    assert res["logistics_metrics"]["aerial_flight_distance_km"] > 0
+    assert res["logistics_metrics"]["drone_estimated_flight_minutes"] > 0
+    assert "2°C to 8°C" in res["logistics_metrics"]["cold_chain_preservation"]
+
+    # Test HTTP endpoint
+    login_patient(client)
+    resp = client.post("/api/care/logistics/dispatch", json={
+        "latitude": 23.9500,
+        "longitude": 90.4500,
+        "required_supply": "blood_o_neg",
+        "urgency_level": "EMERGENCY_TRANSFUSION"
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "DISPATCH_CONFIRMED"
+    assert "Dhaka" in data["launch_hub"]["hub_name"]

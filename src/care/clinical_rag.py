@@ -170,6 +170,25 @@ DEFAULT_CLINICAL_SOURCES = [
                 "content": "Geospatial epidemic surveillance in high-density delta regions tracks localized vector-borne surges (Aedes aegypti breeding cycles post-monsoon), waterborne Vibrio cholerae clusters during flooding, and seasonal zoonotic pathogens (Nipah virus). Triage systems operating in endemic zones must integrate geolocation awareness to cross-reference patient fever, gastrointestinal, or respiratory symptoms with real-time district outbreak thresholds."
             }
         ]
+    },
+    {
+        "source_id": "SRC-HMD-MORTALITY-2024",
+        "title": "Human Mortality Database (HMD) International Actuarial Life Tables & Long-Term Health Trends",
+        "publisher": "University of California, Berkeley & Max Planck Institute for Demographic Research",
+        "url": "https://www.mortality.org",
+        "publication_date": "2024",
+        "version": "2024.1",
+        "document_type": "ACTUARIAL_MORTALITY_DATABASE",
+        "licensing_status": "OPEN_ACCESS_RESEARCH_DATA",
+        "status": "APPROVED",
+        "reviewer": "Transify Clinical Decision Board",
+        "chunks": [
+            {
+                "section_heading": "Actuarial Life Tables & Long-Term Mortality Hazard Stratification",
+                "keywords": ["mortality", "life expectancy", "human mortality database", "actuarial", "hazard ratio", "comorbidity", "chronic risk", "age-specific mortality", "hmd"],
+                "content": "Long-term population health trends cataloged in the Human Mortality Database (HMD) provide age- and sex-stratified annual mortality probabilities (q_x) and remaining life expectancy projections. Integrating HMD baseline mortality hazards allows clinical triage engines to calibrate risk scores for older adults and individuals with pre-existing cardiovascular or metabolic vulnerabilities. In acute symptom evaluation, patients with high HMD excess hazard multipliers receive prioritized escalation before physiological decompensation occurs."
+            }
+        ]
     }
 ]
 
