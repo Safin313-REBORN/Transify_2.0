@@ -24,7 +24,7 @@
   <script src="/static/i18n.js?v=20261120_i18n_v2"></script>
 
   <!-- Design System CSS -->
-  <link rel="stylesheet" href="/static/styles.css?v=20261120_mobile_v1">
+  <link rel="stylesheet" href="/static/styles.css?v=20261122_pro_ui_v2">
 
   <script>
     // Bulletproof routing & auth initialization
@@ -2234,162 +2234,219 @@
             </div>
           </header>
 
-          <!-- Settings Navbar Type Option Selection (Profile, Account, Appearance, Accessibility, Privacy, Contact) -->
-          <nav class="settings-navbar" role="tablist" aria-label="Settings Sections Navigation">
-            <button type="button" class="settings-nav-tab active press" data-settings-tab="profile" role="tab" id="tab-btn-profile" aria-selected="true" aria-controls="settings-pane-profile">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              <span>Profile</span>
-            </button>
+          <!-- Settings Navbar Dock (Profile, Account, Appearance, Accessibility, Privacy & Data, Contact & Support) -->
+          <div class="settings-navbar-wrap">
+            <nav class="settings-navbar" role="tablist" aria-label="Settings Navigation Dock">
+              <button type="button" class="settings-nav-tab active press" data-settings-tab="profile" role="tab" id="tab-btn-profile" aria-selected="true" aria-controls="settings-pane-profile">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Profile</span>
+              </button>
 
-            <button type="button" class="settings-nav-tab press" data-settings-tab="account" role="tab" id="tab-btn-account" aria-selected="false" aria-controls="settings-pane-account">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-              <span>Account</span>
-            </button>
+              <button type="button" class="settings-nav-tab press" data-settings-tab="account" role="tab" id="tab-btn-account" aria-selected="false" aria-controls="settings-pane-account">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span>Account</span>
+              </button>
 
-            <button type="button" class="settings-nav-tab press" data-settings-tab="appearance" role="tab" id="tab-btn-appearance" aria-selected="false" aria-controls="settings-pane-appearance">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5"/>
-                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-              </svg>
-              <span>Appearance</span>
-            </button>
+              <button type="button" class="settings-nav-tab press" data-settings-tab="appearance" role="tab" id="tab-btn-appearance" aria-selected="false" aria-controls="settings-pane-appearance">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="5"/>
+                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                </svg>
+                <span>Appearance</span>
+              </button>
 
-            <button type="button" class="settings-nav-tab press" data-settings-tab="accessibility" role="tab" id="tab-btn-accessibility" aria-selected="false" aria-controls="settings-pane-accessibility">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <circle cx="12" cy="8" r="2"/>
-                <path d="M12 10v6M9 13h6M10 20l2-4 2 4"/>
-              </svg>
-              <span>Accessibility</span>
-            </button>
+              <button type="button" class="settings-nav-tab press" data-settings-tab="accessibility" role="tab" id="tab-btn-accessibility" aria-selected="false" aria-controls="settings-pane-accessibility">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <circle cx="12" cy="8" r="2"/>
+                  <path d="M12 10v6M9 13h6M10 20l2-4 2 4"/>
+                </svg>
+                <span>Accessibility</span>
+              </button>
 
-            <button type="button" class="settings-nav-tab press" data-settings-tab="privacy" role="tab" id="tab-btn-privacy" aria-selected="false" aria-controls="settings-pane-privacy">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-              <span>Privacy &amp; Data</span>
-            </button>
+              <button type="button" class="settings-nav-tab press" data-settings-tab="privacy" role="tab" id="tab-btn-privacy" aria-selected="false" aria-controls="settings-pane-privacy">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span>Privacy &amp; Data</span>
+              </button>
 
-            <button type="button" class="settings-nav-tab press" data-settings-tab="contact" role="tab" id="tab-btn-contact" aria-selected="false" aria-controls="settings-pane-contact">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-              <span>Contact &amp; Support</span>
-            </button>
-          </nav>
+              <button type="button" class="settings-nav-tab press" data-settings-tab="contact" role="tab" id="tab-btn-contact" aria-selected="false" aria-controls="settings-pane-contact">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span>Contact &amp; Support</span>
+              </button>
+            </nav>
+          </div>
 
           <!-- ==========================================
-               PANE 1: USER PROFILE
+               PANE 1: USER PROFILE & IDENTITY
                ========================================== -->
           <div id="settings-pane-profile" class="settings-tab-pane active" role="tabpanel" aria-labelledby="tab-btn-profile">
             <div class="settings-grid">
-              <div class="settings-card">
-                <div class="settings-card-header">
-                  <div class="settings-card-icon-wrap user-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                      <circle cx="12" cy="7" r="4"/>
-                    </svg>
+              <!-- Card 1: User Profile & Persona -->
+              <div class="settings-card profile-card-hero">
+                <!-- Hero Identity Strip -->
+                <div class="profile-hero-strip">
+                  <div class="profile-avatar-wrapper">
+                    <div class="settings-avatar-badge" id="profile-avatar-display">TR</div>
+                    <span class="profile-avatar-status" title="Active On-Device Engine"></span>
                   </div>
-                  <div>
-                    <h2 class="settings-card-title">User Profile &amp; Persona</h2>
-                    <p class="settings-card-subtitle">Manage personal identification, primary role, and communication modes</p>
+                  <div class="profile-hero-meta">
+                    <div class="profile-hero-name" id="profile-display-heading">Guest User</div>
+                    <div class="profile-hero-tags">
+                      <span class="badge-silicon">● Edge Silicon Private</span>
+                      <span class="badge-role" id="profile-badge-role">Accessibility User</span>
+                    </div>
+                    <p class="profile-hero-sub">Local 256-bit token vault • Zero cloud telemetry egress</p>
                   </div>
                 </div>
 
-                <div class="settings-profile-layout" style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
-                  <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                    <div class="settings-avatar-badge" id="profile-avatar-display" style="width: 72px; height: 72px; font-size: 24px; border-radius: 50%;">TR</div>
-                    <span class="status-pill-sub" style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(131,56,236,0.1); color: var(--violet); font-weight: 700;">Client Silicon</span>
+                <!-- Form Controls Grid -->
+                <div class="profile-form-grid">
+                  <div class="form-field-group">
+                    <label for="profile-input-name" class="field-label">Full Name / Display Alias</label>
+                    <input type="text" id="profile-input-name" class="settings-input" placeholder="e.g. Safin Chowdhury" value="Guest User">
+                    <span class="field-hint">Used for personalized assistive greetings and care review</span>
                   </div>
-                  <div style="flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 14px;">
-                    <div>
-                      <label for="profile-input-name" style="font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; display: block;">Full Name / Display Alias</label>
-                      <input type="text" id="profile-input-name" class="settings-input" placeholder="e.g. Safin Chowdhury" value="Guest User">
-                    </div>
-                    <div>
-                      <label for="profile-select-role" style="font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; display: block;">Primary User Role</label>
-                      <select id="profile-select-role" class="settings-select" style="width: 100%;">
-                        <option value="accessibility_user">Accessibility User (Sign / Braille / Speech)</option>
-                        <option value="chronic_care_patient">ChronicCare Patient (Remote Monitoring)</option>
-                        <option value="healthcare_provider">Healthcare Clinician / Provider</option>
-                        <option value="caregiver">Caregiver / Family Advocate</option>
-                        <option value="researcher">Assistive AI Researcher / Developer</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
 
-                <div class="settings-list" style="margin-top: 6px;">
-                  <div class="settings-row">
-                    <div class="settings-label-col">
-                      <div class="settings-item-title">Primary Communication Mode</div>
-                      <div class="settings-item-desc">Default interaction pathway prioritized across app screens</div>
-                    </div>
-                    <select id="profile-select-comm" class="settings-select" style="max-width: 240px;">
-                      <option value="sign_first">Sign Language First (BdSL / ASL)</option>
-                      <option value="voice_first">Voice &amp; Captions First</option>
-                      <option value="braille_first">Braille &amp; Tactile First</option>
-                      <option value="text_first">Text &amp; Chatbot First</option>
-                      <option value="multimodal" selected>Multimodal (All Modalities)</option>
+                  <div class="form-field-group">
+                    <label for="profile-select-role" class="field-label">Primary User Role</label>
+                    <select id="profile-select-role" class="settings-select">
+                      <option value="accessibility_user">Accessibility User (Sign, Braille, Speech)</option>
+                      <option value="chronic_care_patient">ChronicCare Patient (Remote Telemetry)</option>
+                      <option value="healthcare_provider">Healthcare Clinician / Provider</option>
+                      <option value="caregiver">Caregiver &amp; Family Advocate</option>
+                      <option value="researcher">Assistive AI Researcher &amp; Engineer</option>
                     </select>
+                    <span class="field-hint">Tailors triage intelligence and dashboard focus</span>
                   </div>
-                  <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
-                    <div class="settings-label-col">
-                      <div class="settings-item-title">Assistive Bio &amp; Emergency Health Note</div>
-                      <div class="settings-item-desc">Surfaced during emergency clinical intake and triage assistance</div>
-                    </div>
-                    <textarea id="profile-input-bio" class="settings-textarea" rows="2" placeholder="e.g. Deaf individual communicating in ASL. Diagnosed with Type 1 Diabetes and Hypertension."></textarea>
+
+                  <div class="form-field-group">
+                    <label for="profile-select-comm" class="field-label">Primary Communication Modality</label>
+                    <select id="profile-select-comm" class="settings-select">
+                      <option value="multimodal" selected>Multimodal (All Modalities: Sign, Voice, Braille)</option>
+                      <option value="sign_first">Sign Language First (BdSL / ASL Camera Translation)</option>
+                      <option value="voice_first">Voice &amp; Captions First (Real-Time Subtitles)</option>
+                      <option value="braille_first">Braille &amp; Tactile First (6-Dot OCR Scan)</option>
+                      <option value="text_first">Text &amp; Chatbot First (Visual Consultation)</option>
+                    </select>
+                    <span class="field-hint">Default input prioritised when opening Transify</span>
+                  </div>
+
+                  <div class="form-field-group">
+                    <label for="profile-select-dialect" class="field-label">Regional Lexicon &amp; Dialect</label>
+                    <select id="profile-select-dialect" class="settings-select">
+                      <option value="en-US" selected>English (International / US Standard)</option>
+                      <option value="bn-BD">বাংলা (Bangladesh Standard / Dhaka)</option>
+                      <option value="bn-IN">বাংলা (Kolkata Standard)</option>
+                      <option value="asl">American Sign Language (ASL 2026)</option>
+                      <option value="bdsl">Bengali Sign Language (BdSL 2026)</option>
+                    </select>
+                    <span class="field-hint">Localizes speech engine and neural sign models</span>
+                  </div>
+
+                  <div class="form-field-group full-width">
+                    <label for="profile-input-bio" class="field-label">Assistive Bio &amp; Emergency Health Note</label>
+                    <textarea id="profile-input-bio" class="settings-textarea" rows="3" placeholder="e.g. Deaf individual communicating in ASL. Diagnosed with Type 1 Diabetes and Hypertension. Monitored for nocturnal dipping phenotype."></textarea>
+                    <span class="field-hint">Encrypted on device silicon. Surfaced only to triage clinicians during emergency care.</span>
                   </div>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-                  <button type="button" id="btn-save-profile" class="btn-settings-action press" style="background: var(--violet); color: #FFFFFF; border-color: var(--violet);">
-                    Save Profile Changes
+                <!-- Footer Action Bar -->
+                <div class="profile-card-footer">
+                  <div class="profile-storage-hint">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>Client-Side AES-256 Storage</span>
+                  </div>
+                  <button type="button" id="btn-save-profile" class="btn-settings-primary press">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span>Save Profile Changes</span>
                   </button>
                 </div>
               </div>
 
-              <!-- Verified Device & Privacy Capabilities -->
-              <div class="settings-card">
+              <!-- Card 2: Verified Capabilities & Hardware Console -->
+              <div class="settings-card telemetry-card-hero">
                 <div class="settings-card-header">
                   <div class="settings-card-icon-wrap a11y-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
                   </div>
                   <div>
-                    <h2 class="settings-card-title">Verified Capabilities</h2>
-                    <p class="settings-card-subtitle">Active on-device engine and privacy profile</p>
+                    <h2 class="settings-card-title">Verified Capabilities &amp; Telemetry</h2>
+                    <p class="settings-card-subtitle">Active on-device AI pipelines and cryptographic isolation</p>
                   </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-                  <div style="background: var(--surface-2); padding: 14px; border-radius: 12px; border: 1.5px solid var(--line);">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--text-2); text-transform: uppercase;">Vision Pipeline</div>
-                    <div style="font-size: 16px; font-weight: 800; color: var(--ink); margin-top: 4px;">MediaPipe 0.10.14</div>
-                    <div style="font-size: 12px; color: #10B981; font-weight: 700; margin-top: 2px;">● WebAssembly Fast Path</div>
+                <div class="capabilities-matrix">
+                  <div class="cap-tile">
+                    <div class="cap-tile-top">
+                      <span class="cap-label">Vision Pipeline</span>
+                      <span class="cap-status-pill cap-green">60 FPS</span>
+                    </div>
+                    <div class="cap-value">MediaPipe 0.10.14</div>
+                    <div class="cap-sub">WebAssembly SIMD • 21 Hand Landmarks</div>
                   </div>
-                  <div style="background: var(--surface-2); padding: 14px; border-radius: 12px; border: 1.5px solid var(--line);">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--text-2); text-transform: uppercase;">Audio Policy</div>
-                    <div style="font-size: 16px; font-weight: 800; color: var(--ink); margin-top: 4px;">Zero Auto-Audio</div>
-                    <div style="font-size: 12px; color: #8338EC; font-weight: 700; margin-top: 2px;">User-Initiated Speech</div>
+
+                  <div class="cap-tile">
+                    <div class="cap-tile-top">
+                      <span class="cap-label">Audio Safety</span>
+                      <span class="cap-status-pill cap-purple">Strict</span>
+                    </div>
+                    <div class="cap-value">Zero Auto-Audio</div>
+                    <div class="cap-sub">User-Initiated Speech • Web Speech API</div>
                   </div>
-                  <div style="background: var(--surface-2); padding: 14px; border-radius: 12px; border: 1.5px solid var(--line);">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--text-2); text-transform: uppercase;">Cloud Egress</div>
-                    <div style="font-size: 16px; font-weight: 800; color: var(--ink); margin-top: 4px;">Strictly 0 KB/s</div>
-                    <div style="font-size: 12px; color: #10B981; font-weight: 700; margin-top: 2px;">Local Silicon Sandbox</div>
+
+                  <div class="cap-tile">
+                    <div class="cap-tile-top">
+                      <span class="cap-label">Network Egress</span>
+                      <span class="cap-status-pill cap-green">0 KB/s</span>
+                    </div>
+                    <div class="cap-value">Zero Cloud PHI</div>
+                    <div class="cap-sub">Air-Gapped Silicon • Local Model Weights</div>
                   </div>
-                  <div style="background: var(--surface-2); padding: 14px; border-radius: 12px; border: 1.5px solid var(--line);">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--text-2); text-transform: uppercase;">Federated Sync</div>
-                    <div style="font-size: 16px; font-weight: 800; color: var(--ink); margin-top: 4px;">FedAvg Differential</div>
-                    <div style="font-size: 12px; color: var(--text-2); font-weight: 600; margin-top: 2px;">ε=1.0, δ=10⁻⁵</div>
+
+                  <div class="cap-tile">
+                    <div class="cap-tile-top">
+                      <span class="cap-label">Federated Round</span>
+                      <span class="cap-status-pill cap-gold">Active</span>
+                    </div>
+                    <div class="cap-value">FedAvg (ε=1.0)</div>
+                    <div class="cap-sub">Differential Privacy • 4 Hospital Nodes</div>
+                  </div>
+                </div>
+
+                <!-- Hardware Resource & Cache Quota Bar -->
+                <div class="telemetry-resource-panel">
+                  <div class="resource-row">
+                    <div class="resource-meta">
+                      <span class="resource-title">On-Device Model &amp; Activity Cache</span>
+                      <span class="resource-spec">14.2 MB / 50.0 MB utilized (28.4%)</span>
+                    </div>
+                    <div class="progress-bar-track">
+                      <div class="progress-bar-fill" style="width: 28.4%;"></div>
+                    </div>
+                  </div>
+
+                  <div class="hardware-badges-strip">
+                    <div class="hw-badge"><span class="hw-dot green"></span> WebAssembly SIMD</div>
+                    <div class="hw-badge"><span class="hw-dot green"></span> WebGL2 Accelerated</div>
+                    <div class="hw-badge"><span class="hw-dot green"></span> WebRTC Local Canvas</div>
+                    <div class="hw-badge"><span class="hw-dot purple"></span> IndexedDB Encrypted</div>
+                  </div>
+
+                  <div class="telemetry-compliance-box">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>HIPAA &amp; GDPR Article 9 Compliant: All biometric coordinates and clinical assessments evaluate exclusively on client device memory.</span>
                   </div>
                 </div>
               </div>

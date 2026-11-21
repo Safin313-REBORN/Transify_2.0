@@ -4269,17 +4269,35 @@ const EditorialController = {
     const profName = document.getElementById('profile-input-name');
     const profRole = document.getElementById('profile-select-role');
     const profComm = document.getElementById('profile-select-comm');
+    const profDialect = document.getElementById('profile-select-dialect');
     const profBio = document.getElementById('profile-input-bio');
     const profAvatar = document.getElementById('profile-avatar-display');
+    const profHeading = document.getElementById('profile-display-heading');
+    const profBadgeRole = document.getElementById('profile-badge-role');
     const saveProfBtn = document.getElementById('btn-save-profile');
+
+    const roleLabels = {
+      accessibility_user: 'Accessibility User',
+      chronic_care_patient: 'ChronicCare Patient',
+      healthcare_provider: 'Clinician / Provider',
+      caregiver: 'Caregiver Advocate',
+      researcher: 'AI Researcher'
+    };
 
     const savedProfStr = localStorage.getItem('transify_user_profile');
     if (savedProfStr) {
       try {
         const p = JSON.parse(savedProfStr);
-        if (profName && p.name) profName.value = p.name;
-        if (profRole && p.role) profRole.value = p.role;
+        if (profName && p.name) {
+          profName.value = p.name;
+          if (profHeading) profHeading.textContent = p.name;
+        }
+        if (profRole && p.role) {
+          profRole.value = p.role;
+          if (profBadgeRole) profBadgeRole.textContent = roleLabels[p.role] || 'Accessibility User';
+        }
         if (profComm && p.comm) profComm.value = p.comm;
+        if (profDialect && p.dialect) profDialect.value = p.dialect;
         if (profBio && p.bio) profBio.value = p.bio;
         if (profAvatar && p.name) {
           const initials = p.name.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
@@ -4293,13 +4311,17 @@ const EditorialController = {
         const nameVal = (profName ? profName.value : '') || 'Guest User';
         const roleVal = profRole ? profRole.value : 'accessibility_user';
         const commVal = profComm ? profComm.value : 'multimodal';
+        const dialectVal = profDialect ? profDialect.value : 'en-US';
         const bioVal = profBio ? profBio.value : '';
 
-        const profObj = { name: nameVal, role: roleVal, comm: commVal, bio: bioVal };
+        const profObj = { name: nameVal, role: roleVal, comm: commVal, dialect: dialectVal, bio: bioVal };
         try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) {}
 
         const initials = nameVal.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2) || 'TR';
         if (profAvatar) profAvatar.textContent = initials;
+        if (profHeading) profHeading.textContent = nameVal;
+        if (profBadgeRole) profBadgeRole.textContent = roleLabels[roleVal] || 'Accessibility User';
+
         const setAv = document.getElementById('settings-avatar-initials');
         if (setAv) setAv.textContent = initials;
         const frameAv = document.getElementById('frame-avatar-btn');
