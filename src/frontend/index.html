@@ -2936,14 +2936,27 @@
   <aside id="app-nav-drawer" class="nav-drawer" aria-label="Quick Navigation Menu">
     <div class="nav-drawer-header">
       <div class="nav-drawer-brand">
-        <div class="rail-logo" style="display: grid; grid-template-columns: repeat(2, 7px); gap: 4px;"
-          aria-hidden="true">
-          <i></i><i></i><i></i><i></i><i></i><i></i>
+        <div class="nav-drawer-logo-badge" aria-hidden="true">
+          <svg width="18" height="22" viewBox="0 0 18 22" fill="none">
+            <!-- Column 1 (dots 1, 2, 3) -->
+            <circle cx="4" cy="4" r="2.8" class="db-dot dot-inactive" />
+            <circle cx="4" cy="11" r="2.8" class="db-dot dot-active" />
+            <circle cx="4" cy="18" r="2.8" class="db-dot dot-active" />
+            <!-- Column 2 (dots 4, 5, 6) -->
+            <circle cx="14" cy="4" r="2.8" class="db-dot dot-inactive" />
+            <circle cx="14" cy="11" r="2.8" class="db-dot dot-active" />
+            <circle cx="14" cy="18" r="2.8" class="db-dot dot-inactive" />
+          </svg>
         </div>
         <span class="nav-drawer-title">Transify Menu</span>
       </div>
       <button type="button" class="nav-drawer-close press" id="nav-drawer-close-btn"
-        aria-label="Close navigation menu">✕</button>
+        aria-label="Close navigation menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
 
     <nav class="nav-drawer-links" aria-label="Drawer Navigation">
