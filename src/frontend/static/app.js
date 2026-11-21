@@ -4302,7 +4302,13 @@ const EditorialController = {
   setupHomeScreen() {
     // 1. Hour greeting
     const h = new Date().getHours();
-    const greet = h < 12 ? 'Good morning' : (h < 18 ? 'Good afternoon' : 'Good evening');
+    const curLang = localStorage.getItem('transify_lang') || 'en';
+    let greet = 'Good night';
+    if (curLang === 'bn') {
+      greet = (h >= 5 && h < 12) ? 'শুভ সকাল' : ((h >= 12 && h < 17) ? 'শুভ অপরাহ্ন' : ((h >= 17 && h < 22) ? 'শুভ সন্ধ্যা' : 'শুভ রাত্রি'));
+    } else {
+      greet = (h >= 5 && h < 12) ? 'Good morning' : ((h >= 12 && h < 17) ? 'Good afternoon' : ((h >= 17 && h < 22) ? 'Good evening' : 'Good night'));
+    }
     const greetEl = document.getElementById('home-greeting-text');
     if (greetEl) greetEl.textContent = greet;
 

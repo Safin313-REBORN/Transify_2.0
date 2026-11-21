@@ -42,6 +42,7 @@
       link_sign_in: "Sign in",
 
       // Home
+      home_greeting_night: "Good night",
       home_greeting_morn: "Good morning",
       home_greeting_aft: "Good afternoon",
       home_greeting_eve: "Good evening",
@@ -123,6 +124,7 @@
       link_sign_in: "সাইন ইন",
 
       // Home
+      home_greeting_night: "শুভ রাত্রি",
       home_greeting_morn: "শুভ সকাল",
       home_greeting_aft: "শুভ অপরাহ্ন",
       home_greeting_eve: "শুভ সন্ধ্যা",
@@ -215,9 +217,10 @@
     const h = new Date().getHours();
     const greetEl = document.getElementById('home-greeting-text');
     if (greetEl) {
-      if (h < 12) greetEl.textContent = dict.home_greeting_morn;
-      else if (h < 18) greetEl.textContent = dict.home_greeting_aft;
-      else greetEl.textContent = dict.home_greeting_eve;
+      if (h >= 5 && h < 12) greetEl.textContent = dict.home_greeting_morn;
+      else if (h >= 12 && h < 17) greetEl.textContent = dict.home_greeting_aft;
+      else if (h >= 17 && h < 22) greetEl.textContent = dict.home_greeting_eve;
+      else greetEl.textContent = dict.home_greeting_night || dict.home_greeting_eve;
     }
 
     const nameEl = document.getElementById('home-user-name');
