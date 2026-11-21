@@ -2228,7 +2228,7 @@
               <p class="settings-sub">Preferences, profile identity, visual themes, accessibility dials, and developer contact.</p>
             </div>
             <div class="settings-header-actions">
-              <button type="button" class="btn-settings-action press" id="btn-settings-reset-defaults">
+              <button type="button" class="btn-settings-action press" id="btn-settings-reset-defaults" onclick="window.resetSettingsToDefaults()">
                 Reset to Defaults
               </button>
             </div>
@@ -2237,7 +2237,7 @@
           <!-- Settings Navbar Dock (Profile, Account, Appearance, Accessibility, Privacy & Data, Contact & Support) -->
           <div class="settings-navbar-wrap">
             <nav class="settings-navbar" role="tablist" aria-label="Settings Navigation Dock">
-              <button type="button" class="settings-nav-tab active press" data-settings-tab="profile" role="tab" id="tab-btn-profile" aria-selected="true" aria-controls="settings-pane-profile">
+              <button type="button" class="settings-nav-tab active press" data-settings-tab="profile" role="tab" id="tab-btn-profile" aria-selected="true" aria-controls="settings-pane-profile" onclick="window.switchSettingsTab('profile')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
@@ -2245,7 +2245,7 @@
                 <span>Profile</span>
               </button>
 
-              <button type="button" class="settings-nav-tab press" data-settings-tab="account" role="tab" id="tab-btn-account" aria-selected="false" aria-controls="settings-pane-account">
+              <button type="button" class="settings-nav-tab press" data-settings-tab="account" role="tab" id="tab-btn-account" aria-selected="false" aria-controls="settings-pane-account" onclick="window.switchSettingsTab('account')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -2253,7 +2253,7 @@
                 <span>Account</span>
               </button>
 
-              <button type="button" class="settings-nav-tab press" data-settings-tab="appearance" role="tab" id="tab-btn-appearance" aria-selected="false" aria-controls="settings-pane-appearance">
+              <button type="button" class="settings-nav-tab press" data-settings-tab="appearance" role="tab" id="tab-btn-appearance" aria-selected="false" aria-controls="settings-pane-appearance" onclick="window.switchSettingsTab('appearance')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="5"/>
                   <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
@@ -2261,7 +2261,7 @@
                 <span>Appearance</span>
               </button>
 
-              <button type="button" class="settings-nav-tab press" data-settings-tab="accessibility" role="tab" id="tab-btn-accessibility" aria-selected="false" aria-controls="settings-pane-accessibility">
+              <button type="button" class="settings-nav-tab press" data-settings-tab="accessibility" role="tab" id="tab-btn-accessibility" aria-selected="false" aria-controls="settings-pane-accessibility" onclick="window.switchSettingsTab('accessibility')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10"/>
                   <circle cx="12" cy="8" r="2"/>
@@ -2270,14 +2270,14 @@
                 <span>Accessibility</span>
               </button>
 
-              <button type="button" class="settings-nav-tab press" data-settings-tab="privacy" role="tab" id="tab-btn-privacy" aria-selected="false" aria-controls="settings-pane-privacy">
+              <button type="button" class="settings-nav-tab press" data-settings-tab="privacy" role="tab" id="tab-btn-privacy" aria-selected="false" aria-controls="settings-pane-privacy" onclick="window.switchSettingsTab('privacy')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
                 <span>Privacy &amp; Data</span>
               </button>
 
-              <button type="button" class="settings-nav-tab press" data-settings-tab="contact" role="tab" id="tab-btn-contact" aria-selected="false" aria-controls="settings-pane-contact">
+              <button type="button" class="settings-nav-tab press" data-settings-tab="contact" role="tab" id="tab-btn-contact" aria-selected="false" aria-controls="settings-pane-contact" onclick="window.switchSettingsTab('contact')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
@@ -2366,7 +2366,7 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     <span>Client-Side AES-256 Storage</span>
                   </div>
-                  <button type="button" id="btn-save-profile" class="btn-settings-primary press">
+                  <button type="button" id="btn-save-profile" class="btn-settings-primary press" onclick="window.saveUserProfile()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                     <span>Save Profile Changes</span>
                   </button>
@@ -2548,7 +2548,7 @@
 
                 <div class="theme-picker-grid">
                   <!-- Theme Option 1: Light -->
-                  <button type="button" class="theme-card-btn active" data-theme="light" id="theme-btn-light" aria-pressed="true">
+                  <button type="button" class="theme-card-btn active" data-theme="light" id="theme-btn-light" aria-pressed="true" onclick="window.applyThemeGlobal('light')">
                     <div class="theme-preview theme-prev-light">
                       <div class="theme-dot" style="background: #8338EC;"></div>
                       <div class="theme-bar" style="background: #14111F;"></div>
@@ -2558,7 +2558,7 @@
                   </button>
 
                   <!-- Theme Option 2: Dark -->
-                  <button type="button" class="theme-card-btn" data-theme="dark" id="theme-btn-dark" aria-pressed="false">
+                  <button type="button" class="theme-card-btn" data-theme="dark" id="theme-btn-dark" aria-pressed="false" onclick="window.applyThemeGlobal('dark')">
                     <div class="theme-preview theme-prev-dark">
                       <div class="theme-dot" style="background: #FFCB05;"></div>
                       <div class="theme-bar" style="background: #FFFFFF;"></div>
@@ -2568,7 +2568,7 @@
                   </button>
 
                   <!-- Theme Option 3: High Contrast -->
-                  <button type="button" class="theme-card-btn" data-theme="high-contrast" id="theme-btn-contrast" aria-pressed="false">
+                  <button type="button" class="theme-card-btn" data-theme="high-contrast" id="theme-btn-contrast" aria-pressed="false" onclick="window.applyThemeGlobal('high-contrast')">
                     <div class="theme-preview theme-prev-contrast">
                       <div class="theme-dot" style="background: #FFCB05;"></div>
                       <div class="theme-bar" style="background: #FFCB05;"></div>
@@ -2578,7 +2578,7 @@
                   </button>
 
                   <!-- Theme Option 4: System -->
-                  <button type="button" class="theme-card-btn" data-theme="system" id="theme-btn-system" aria-pressed="false">
+                  <button type="button" class="theme-card-btn" data-theme="system" id="theme-btn-system" aria-pressed="false" onclick="window.applyThemeGlobal('system')">
                     <div class="theme-preview theme-prev-system">
                       <div class="theme-dot" style="background: #0F9D74;"></div>
                       <div class="theme-bar" style="background: #72708A;"></div>
@@ -2611,7 +2611,7 @@
                       <div class="settings-item-title">Interface Language</div>
                       <div class="settings-item-desc">Choose English or বাংলা as the primary application language</div>
                     </div>
-                    <select id="setting-lang-select" class="settings-select" aria-label="Application Interface Language">
+                    <select id="setting-lang-select" class="settings-select" aria-label="Application Interface Language" onchange="window.setAppLanguage(this.value)">
                       <option value="en">English (Default)</option>
                       <option value="bn">বাংলা (Bengali)</option>
                     </select>
@@ -2649,9 +2649,9 @@
                       <div class="settings-item-desc">Adjust UI text size for enhanced legibility</div>
                     </div>
                     <div role="group" aria-label="Typography scaling" class="segmented-control" id="settings-fontsize-group">
-                      <button type="button" class="segmented-btn press active" data-scale="normal">100%</button>
-                      <button type="button" class="segmented-btn press" data-scale="large">115%</button>
-                      <button type="button" class="segmented-btn press" data-scale="xlarge">130%</button>
+                      <button type="button" class="segmented-btn press active" data-scale="normal" onclick="window.applyFontScale('normal')">100%</button>
+                      <button type="button" class="segmented-btn press" data-scale="large" onclick="window.applyFontScale('large')">115%</button>
+                      <button type="button" class="segmented-btn press" data-scale="xlarge" onclick="window.applyFontScale('xlarge')">130%</button>
                     </div>
                   </div>
 
@@ -2661,7 +2661,7 @@
                       <div class="settings-item-desc">Disable background ambient orbs, scanning beams, and transitions</div>
                     </div>
                     <label class="toggle-switch" for="setting-reduce-motion">
-                      <input type="checkbox" id="setting-reduce-motion" aria-label="Reduce motion across all screens">
+                      <input type="checkbox" id="setting-reduce-motion" aria-label="Reduce motion across all screens" onchange="window.toggleReduceMotion(this.checked)">
                       <span class="toggle-slider"></span>
                     </label>
                   </div>
@@ -2672,7 +2672,7 @@
                       <div class="settings-item-desc">Prominent 3px gold focus outline for keyboard accessibility</div>
                     </div>
                     <label class="toggle-switch" for="setting-focus-rings">
-                      <input type="checkbox" id="setting-focus-rings" aria-label="Enhance keyboard focus outlines">
+                      <input type="checkbox" id="setting-focus-rings" aria-label="Enhance keyboard focus outlines" onchange="window.toggleFocusRings(this.checked)">
                       <span class="toggle-slider"></span>
                     </label>
                   </div>
@@ -2702,11 +2702,11 @@
                     </div>
                     <div class="settings-action-cluster">
                       <div role="group" aria-label="Speech pace" class="segmented-control" id="settings-speech-rate-group">
-                        <button type="button" class="segmented-btn press" data-rate="0.8">0.8x</button>
-                        <button type="button" class="segmented-btn press active" data-rate="1.0">1.0x</button>
-                        <button type="button" class="segmented-btn press" data-rate="1.2">1.2x</button>
+                        <button type="button" class="segmented-btn press" data-rate="0.8" onclick="window.setSpeechRate(0.8)">0.8x</button>
+                        <button type="button" class="segmented-btn press active" data-rate="1.0" onclick="window.setSpeechRate(1.0)">1.0x</button>
+                        <button type="button" class="segmented-btn press" data-rate="1.2" onclick="window.setSpeechRate(1.2)">1.2x</button>
                       </div>
-                      <button type="button" class="btn-voice-preview press" id="btn-settings-test-voice">
+                      <button type="button" class="btn-voice-preview press" id="btn-settings-test-voice" onclick="window.testVoicePreview()">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                           <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
@@ -2722,7 +2722,7 @@
                       <div class="settings-item-desc">Play soft confirmation chime upon successful sign or Braille detection</div>
                     </div>
                     <label class="toggle-switch" for="setting-audio-chimes">
-                      <input type="checkbox" id="setting-audio-chimes" checked aria-label="Play audio confirmation chimes">
+                      <input type="checkbox" id="setting-audio-chimes" checked aria-label="Play audio confirmation chimes" onchange="window.toggleAudioChimes(this.checked)">
                       <span class="toggle-slider"></span>
                     </label>
                   </div>
@@ -2752,8 +2752,8 @@
                       <div class="settings-item-desc">Primary sign lexicon for camera recognition pipeline</div>
                     </div>
                     <div role="group" aria-label="Default Sign Language" class="segmented-control" id="settings-sign-lang-group">
-                      <button type="button" class="segmented-btn press" data-sign="bdsl">BdSL (Bengali)</button>
-                      <button type="button" class="segmented-btn press active" data-sign="asl">ASL (American)</button>
+                      <button type="button" class="segmented-btn press" data-sign="bdsl" onclick="window.setDefaultSignLang('bdsl')">BdSL (Bengali)</button>
+                      <button type="button" class="segmented-btn press active" data-sign="asl" onclick="window.setDefaultSignLang('asl')">ASL (American)</button>
                     </div>
                   </div>
 
@@ -2763,8 +2763,8 @@
                       <div class="settings-item-desc">Transcription mode for 6-dot cell OCR scanning</div>
                     </div>
                     <div role="group" aria-label="Braille Standard" class="segmented-control" id="settings-braille-standard-group">
-                      <button type="button" class="segmented-btn press active" data-braille="grade1">Grade 1 (Letter by letter)</button>
-                      <button type="button" class="segmented-btn press" data-braille="grade2">Grade 2 (Contracted)</button>
+                      <button type="button" class="segmented-btn press active" data-braille="grade1" onclick="window.setBrailleStandard('grade1')">Grade 1 (Letter by letter)</button>
+                      <button type="button" class="segmented-btn press" data-braille="grade2" onclick="window.setBrailleStandard('grade2')">Grade 2 (Contracted)</button>
                     </div>
                   </div>
 
@@ -2775,19 +2775,19 @@
                     </div>
                     <div class="radio-container" style="--total-radio: 3;" id="setting-confidence-radio-group" role="radiogroup" aria-label="Vision Model Confidence Gate">
                       <input type="radio" id="confidence-gate-95" name="setting_confidence_radio" value="95">
-                      <label for="confidence-gate-95" class="radio-option-card">
+                      <label for="confidence-gate-95" class="radio-option-card" onclick="window.setConfidenceGate(95)">
                         <span class="radio-opt-title">Strict (95% Accuracy)</span>
                         <span class="radio-opt-desc">High precision landmark gate for critical signs and symptoms</span>
                       </label>
 
                       <input type="radio" id="confidence-gate-85" name="setting_confidence_radio" value="85" checked>
-                      <label for="confidence-gate-85" class="radio-option-card">
+                      <label for="confidence-gate-85" class="radio-option-card" onclick="window.setConfidenceGate(85)">
                         <span class="radio-opt-title">Balanced (85% Accuracy)</span>
                         <span class="radio-opt-desc">Recommended default for smooth real-time conversation</span>
                       </label>
 
                       <input type="radio" id="confidence-gate-70" name="setting_confidence_radio" value="70">
-                      <label for="confidence-gate-70" class="radio-option-card">
+                      <label for="confidence-gate-70" class="radio-option-card" onclick="window.setConfidenceGate(70)">
                         <span class="radio-opt-title">Sensitive (70% Accuracy)</span>
                         <span class="radio-opt-desc">Rapid capture in dim lighting and fast-paced gestures</span>
                       </label>
@@ -2846,10 +2846,10 @@
                     <div class="storage-desc" id="settings-storage-size">14.2 MB cached (Models, guidelines &amp; phrase history)</div>
                   </div>
                   <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn-settings-action press" id="btn-settings-export-data">
+                    <button type="button" class="btn-settings-action press" id="btn-settings-export-data" onclick="window.exportSettingsData()">
                       Export Data (JSON)
                     </button>
-                    <button type="button" class="btn-clear-history-settings press" id="btn-settings-clear-history">
+                    <button type="button" class="btn-clear-history-settings press" id="btn-settings-clear-history" onclick="window.clearActivityHistory()">
                       Clear Cache
                     </button>
                   </div>
@@ -2939,10 +2939,10 @@
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
-                  <button type="button" id="btn-contact-diagnostics" class="btn-settings-action press">
+                  <button type="button" id="btn-contact-diagnostics" class="btn-settings-action press" onclick="window.copySystemDiagnostics()">
                     📋 Copy System Diagnostics
                   </button>
-                  <button type="button" id="btn-contact-submit" class="btn-settings-action press" style="background: var(--violet); color: #FFFFFF; border-color: var(--violet);">
+                  <button type="button" id="btn-contact-submit" class="btn-settings-action press" style="background: var(--violet); color: #FFFFFF; border-color: var(--violet);" onclick="window.submitDeveloperFeedback()">
                     Send Message
                   </button>
                 </div>
