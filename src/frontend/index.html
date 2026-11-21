@@ -2225,7 +2225,7 @@
           <header class="settings-header">
             <div>
               <h1 class="settings-h1">Settings</h1>
-              <p class="settings-sub">Preferences, visual themes, accessibility dials, and account credentials.</p>
+              <p class="settings-sub">Preferences, profile identity, visual themes, accessibility dials, and developer contact.</p>
             </div>
             <div class="settings-header-actions">
               <button type="button" class="btn-settings-action press" id="btn-settings-reset-defaults">
@@ -2234,366 +2234,657 @@
             </div>
           </header>
 
-          <div class="settings-grid">
-            <!-- Card 1: Appearance & Visual Themes -->
-            <div class="settings-card">
-              <div class="settings-card-header">
-                <div class="settings-card-icon-wrap theme-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5" />
-                    <path
-                      d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 class="settings-card-title">Theme & Appearance</h2>
-                  <p class="settings-card-subtitle">Choose interface color scheme and visual style</p>
-                </div>
-              </div>
+          <!-- Settings Navbar Type Option Selection (Profile, Account, Appearance, Accessibility, Privacy, Contact) -->
+          <nav class="settings-navbar" role="tablist" aria-label="Settings Sections Navigation">
+            <button type="button" class="settings-nav-tab active press" data-settings-tab="profile" role="tab" id="tab-btn-profile" aria-selected="true" aria-controls="settings-pane-profile">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span>Profile</span>
+            </button>
 
-              <div class="theme-picker-grid">
-                <!-- Theme Option 1: Light -->
-                <button type="button" class="theme-card-btn active" data-theme="light" id="theme-btn-light"
-                  aria-pressed="true">
-                  <div class="theme-preview theme-prev-light">
-                    <div class="theme-dot" style="background: #8338EC;"></div>
-                    <div class="theme-bar" style="background: #14111F;"></div>
+            <button type="button" class="settings-nav-tab press" data-settings-tab="account" role="tab" id="tab-btn-account" aria-selected="false" aria-controls="settings-pane-account">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <span>Account</span>
+            </button>
+
+            <button type="button" class="settings-nav-tab press" data-settings-tab="appearance" role="tab" id="tab-btn-appearance" aria-selected="false" aria-controls="settings-pane-appearance">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+              </svg>
+              <span>Appearance</span>
+            </button>
+
+            <button type="button" class="settings-nav-tab press" data-settings-tab="accessibility" role="tab" id="tab-btn-accessibility" aria-selected="false" aria-controls="settings-pane-accessibility">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="8" r="2"/>
+                <path d="M12 10v6M9 13h6M10 20l2-4 2 4"/>
+              </svg>
+              <span>Accessibility</span>
+            </button>
+
+            <button type="button" class="settings-nav-tab press" data-settings-tab="privacy" role="tab" id="tab-btn-privacy" aria-selected="false" aria-controls="settings-pane-privacy">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span>Privacy &amp; Data</span>
+            </button>
+
+            <button type="button" class="settings-nav-tab press" data-settings-tab="contact" role="tab" id="tab-btn-contact" aria-selected="false" aria-controls="settings-pane-contact">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <span>Contact &amp; Support</span>
+            </button>
+          </nav>
+
+          <!-- ==========================================
+               PANE 1: USER PROFILE
+               ========================================== -->
+          <div id="settings-pane-profile" class="settings-tab-pane active" role="tabpanel" aria-labelledby="tab-btn-profile">
+            <div class="settings-grid">
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap user-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
                   </div>
-                  <div class="theme-card-label">Light</div>
-                  <div class="theme-card-desc">Editorial Crisp</div>
-                </button>
-
-                <!-- Theme Option 2: Dark -->
-                <button type="button" class="theme-card-btn" data-theme="dark" id="theme-btn-dark" aria-pressed="false">
-                  <div class="theme-preview theme-prev-dark">
-                    <div class="theme-dot" style="background: #FFCB05;"></div>
-                    <div class="theme-bar" style="background: #FFFFFF;"></div>
-                  </div>
-                  <div class="theme-card-label">Midnight Dark</div>
-                  <div class="theme-card-desc">Deep Canvas</div>
-                </button>
-
-                <!-- Theme Option 3: High Contrast -->
-                <button type="button" class="theme-card-btn" data-theme="high-contrast" id="theme-btn-contrast"
-                  aria-pressed="false">
-                  <div class="theme-preview theme-prev-contrast">
-                    <div class="theme-dot" style="background: #FFCB05;"></div>
-                    <div class="theme-bar" style="background: #FFCB05;"></div>
-                  </div>
-                  <div class="theme-card-label">High Contrast</div>
-                  <div class="theme-card-desc">Maximum Visibility</div>
-                </button>
-
-                <!-- Theme Option 4: System -->
-                <button type="button" class="theme-card-btn" data-theme="system" id="theme-btn-system"
-                  aria-pressed="false">
-                  <div class="theme-preview theme-prev-system">
-                    <div class="theme-dot" style="background: #0F9D74;"></div>
-                    <div class="theme-bar" style="background: #72708A;"></div>
-                  </div>
-                  <div class="theme-card-label">System Match</div>
-                  <div class="theme-card-desc">OS Preference</div>
-                </button>
-              </div>
-            </div>
-
-            <!-- Card 2: Visual Accessibility Dials -->
-            <div class="settings-card">
-              <div class="settings-card-header">
-                <div class="settings-card-icon-wrap a11y-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <circle cx="12" cy="8" r="2" />
-                    <path d="M12 10v6M9 13h6M10 20l2-4 2 4" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 class="settings-card-title">Visual Accessibility</h2>
-                  <p class="settings-card-subtitle">Adapt typography, motion, and visual focus</p>
-                </div>
-              </div>
-
-              <div class="settings-list">
-                <!-- Row: Text Size Scaling -->
-                <div class="settings-row">
-                  <div class="settings-label-col">
-                    <div class="settings-item-title">Typography Scaling</div>
-                    <div class="settings-item-desc">Adjust UI text size for enhanced legibility</div>
-                  </div>
-                  <div role="group" aria-label="Typography scaling" class="segmented-control"
-                    id="settings-fontsize-group">
-                    <button type="button" class="segmented-btn press active" data-scale="normal">100%</button>
-                    <button type="button" class="segmented-btn press" data-scale="large">115%</button>
-                    <button type="button" class="segmented-btn press" data-scale="xlarge">130%</button>
+                  <div>
+                    <h2 class="settings-card-title">User Profile &amp; Persona</h2>
+                    <p class="settings-card-subtitle">Manage personal identification, primary role, and communication modes</p>
                   </div>
                 </div>
 
-                <!-- Row: Reduce Motion -->
-                <div class="settings-row">
-                  <div class="settings-label-col">
-                    <div class="settings-item-title">Reduce Motion</div>
-                    <div class="settings-item-desc">Disable background ambient orbs, scanning beams, and transitions
+                <div class="settings-profile-layout" style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+                  <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <div class="settings-avatar-badge" id="profile-avatar-display" style="width: 72px; height: 72px; font-size: 24px; border-radius: 50%;">TR</div>
+                    <span class="status-pill-sub" style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(131,56,236,0.1); color: var(--violet); font-weight: 700;">Client Silicon</span>
+                  </div>
+                  <div style="flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 14px;">
+                    <div>
+                      <label for="profile-input-name" style="font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; display: block;">Full Name / Display Alias</label>
+                      <input type="text" id="profile-input-name" class="settings-input" placeholder="e.g. Safin Chowdhury" value="Guest User">
+                    </div>
+                    <div>
+                      <label for="profile-select-role" style="font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; display: block;">Primary User Role</label>
+                      <select id="profile-select-role" class="settings-select" style="width: 100%;">
+                        <option value="accessibility_user">Accessibility User (Sign / Braille / Speech)</option>
+                        <option value="chronic_care_patient">ChronicCare Patient (Remote Monitoring)</option>
+                        <option value="healthcare_provider">Healthcare Clinician / Provider</option>
+                        <option value="caregiver">Caregiver / Family Advocate</option>
+                        <option value="researcher">Assistive AI Researcher / Developer</option>
+                      </select>
                     </div>
                   </div>
-                  <label class="toggle-switch" for="setting-reduce-motion">
-                    <input type="checkbox" id="setting-reduce-motion" aria-label="Reduce motion across all screens">
-                    <span class="toggle-slider"></span>
-                  </label>
                 </div>
 
-                <!-- Row: High Visibility Focus Ring -->
-                <div class="settings-row">
-                  <div class="settings-label-col">
-                    <div class="settings-item-title">Bold Keyboard Focus Rings</div>
-                    <div class="settings-item-desc">Prominent 3px gold focus outline for keyboard accessibility</div>
+                <div class="settings-list" style="margin-top: 6px;">
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Primary Communication Mode</div>
+                      <div class="settings-item-desc">Default interaction pathway prioritized across app screens</div>
+                    </div>
+                    <select id="profile-select-comm" class="settings-select" style="max-width: 240px;">
+                      <option value="sign_first">Sign Language First (BdSL / ASL)</option>
+                      <option value="voice_first">Voice &amp; Captions First</option>
+                      <option value="braille_first">Braille &amp; Tactile First</option>
+                      <option value="text_first">Text &amp; Chatbot First</option>
+                      <option value="multimodal" selected>Multimodal (All Modalities)</option>
+                    </select>
                   </div>
-                  <label class="toggle-switch" for="setting-focus-rings">
-                    <input type="checkbox" id="setting-focus-rings" aria-label="Enhance keyboard focus outlines">
-                    <span class="toggle-slider"></span>
-                  </label>
+                  <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Assistive Bio &amp; Emergency Health Note</div>
+                      <div class="settings-item-desc">Surfaced during emergency clinical intake and triage assistance</div>
+                    </div>
+                    <textarea id="profile-input-bio" class="settings-textarea" rows="2" placeholder="e.g. Deaf individual communicating in ASL. Diagnosed with Type 1 Diabetes and Hypertension."></textarea>
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                  <button type="button" id="btn-save-profile" class="btn-settings-action press" style="background: var(--violet); color: #FFFFFF; border-color: var(--violet);">
+                    Save Profile Changes
+                  </button>
+                </div>
+              </div>
+
+              <!-- Verified Device & Privacy Capabilities -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap a11y-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="settings-card-title">Verified Capabilities</h2>
+                    <p class="settings-card-subtitle">Active on-device engine and privacy profile</p>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                  <div style="background: var(--surface-2); padding: 14px; border-radius: 12px; border: 1.5px solid var(--line);">
+                    <div style="font-size: 11px; font-weight: 800; color: var(--text-2); text-transform: uppercase;">Vision Pipeline</div>
+                    <div style="font-size: 16px; font-weight: 800; color: var(--ink); margin-top: 4px;">MediaPipe 0.10.14</div>
+                    <div style="font-size: 12px; color: #10B981; font-weight: 700; margin-top: 2px;">● WebAssembly Fast Path</div>
+                  </div>
+                  <div style="background: var(--surface-2); padding: 14px; border-radius: 12px; border: 1.5px solid var(--line);">
+                    <div style="font-size: 11px; font-weight: 800; color: var(--text-2); text-transform: uppercase;">Audio Policy</div>
+                    <div style="font-size: 16px; font-weight: 800; color: var(--ink); margin-top: 4px;">Zero Auto-Audio</div>
+                    <div style="font-size: 12px; color: #8338EC; font-weight: 700; margin-top: 2px;">User-Initiated Speech</div>
+                  </div>
+                  <div style="background: var(--surface-2); padding: 14px; border-radius: 12px; border: 1.5px solid var(--line);">
+                    <div style="font-size: 11px; font-weight: 800; color: var(--text-2); text-transform: uppercase;">Cloud Egress</div>
+                    <div style="font-size: 16px; font-weight: 800; color: var(--ink); margin-top: 4px;">Strictly 0 KB/s</div>
+                    <div style="font-size: 12px; color: #10B981; font-weight: 700; margin-top: 2px;">Local Silicon Sandbox</div>
+                  </div>
+                  <div style="background: var(--surface-2); padding: 14px; border-radius: 12px; border: 1.5px solid var(--line);">
+                    <div style="font-size: 11px; font-weight: 800; color: var(--text-2); text-transform: uppercase;">Federated Sync</div>
+                    <div style="font-size: 16px; font-weight: 800; color: var(--ink); margin-top: 4px;">FedAvg Differential</div>
+                    <div style="font-size: 12px; color: var(--text-2); font-weight: 600; margin-top: 2px;">ε=1.0, δ=10⁻⁵</div>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Card 3: Audio & Speech Assist -->
-            <div class="settings-card">
-              <div class="settings-card-header">
-                <div class="settings-card-icon-wrap audio-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                  </svg>
+          <!-- ==========================================
+               PANE 2: ACCOUNT & CREDENTIALS
+               ========================================== -->
+          <div id="settings-pane-account" class="settings-tab-pane" role="tabpanel" aria-labelledby="tab-btn-account" style="display: none;">
+            <div class="settings-grid">
+              <!-- Account & Session Credentials -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap user-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="settings-card-title">Account &amp; Credentials</h2>
+                    <p class="settings-card-subtitle">Manage session state, identity, and cloud sync</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 class="settings-card-title">Audio & Speech Assist</h2>
-                  <p class="settings-card-subtitle">Tune synthesized speech rate, languages, and feedback cues</p>
+
+                <div class="settings-user-box">
+                  <div class="settings-user-profile-row">
+                    <div class="settings-avatar-badge" id="settings-avatar-initials">TR</div>
+                    <div class="settings-user-meta">
+                      <div class="settings-user-name" id="settings-user-name">Guest User</div>
+                      <div class="settings-user-email" id="settings-user-email">Offline local storage mode</div>
+                      <div class="settings-status-pill" id="settings-session-status">
+                        <span class="status-dot"></span>
+                        <span>Offline Edge Mode (Private)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button type="button" id="btn-settings-auth" class="btn-settings-auth-action press" onclick="window.TransifyApp.handleSettingsAuthAction()">
+                    Sign In / Register
+                  </button>
                 </div>
               </div>
 
-              <div class="settings-list">
-                <!-- Row: Interface Language -->
-                <div class="settings-row">
-                  <div class="settings-label-col">
-                    <div class="settings-item-title">Interface Language</div>
-                    <div class="settings-item-desc">Choose English or বাংলা as the primary application language</div>
+              <!-- Security & Device Vault -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap shield-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
                   </div>
-                  <select id="setting-lang-select" class="settings-select" aria-label="Application Interface Language">
-                    <option value="en">English (Default)</option>
-                    <option value="bn">বাংলা (Bengali)</option>
-                  </select>
+                  <div>
+                    <h2 class="settings-card-title">Security &amp; Device Vault</h2>
+                    <p class="settings-card-subtitle">Encryption keys and hardware authentication</p>
+                  </div>
                 </div>
 
-                <!-- Row: Speech Rate -->
-                <div class="settings-row">
-                  <div class="settings-label-col">
-                    <div class="settings-item-title">Speech Synthesizer Speed</div>
-                    <div class="settings-item-desc">Playback pace for Say-Aloud, Braille scanner, and sign speech</div>
-                  </div>
-                  <div class="settings-action-cluster">
-                    <div role="group" aria-label="Speech pace" class="segmented-control"
-                      id="settings-speech-rate-group">
-                      <button type="button" class="segmented-btn press" data-rate="0.8">0.8x</button>
-                      <button type="button" class="segmented-btn press active" data-rate="1.0">1.0x</button>
-                      <button type="button" class="segmented-btn press" data-rate="1.2">1.2x</button>
+                <div class="settings-list">
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Client-Side Token Encryption</div>
+                      <div class="settings-item-desc">Local 256-bit AES cryptographic vault for session storage</div>
                     </div>
-                    <button type="button" class="btn-voice-preview press" id="btn-settings-test-voice">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                      </svg>
-                      <span>Test Speech</span>
+                    <span style="font-size: 13px; font-weight: 800; color: #10B981;">Active (AES-GCM)</span>
+                  </div>
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Connected Camera &amp; Microphone</div>
+                      <div class="settings-item-desc">Hardware WebRTC stream evaluated exclusively on-chip</div>
+                    </div>
+                    <span style="font-size: 13px; font-weight: 800; color: var(--violet);">Sandboxed</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               PANE 3: THEME & APPEARANCE
+               ========================================== -->
+          <div id="settings-pane-appearance" class="settings-tab-pane" role="tabpanel" aria-labelledby="tab-btn-appearance" style="display: none;">
+            <div class="settings-grid">
+              <!-- Appearance & Visual Themes -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap theme-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="5"/>
+                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="settings-card-title">Theme &amp; Appearance</h2>
+                    <p class="settings-card-subtitle">Choose interface color scheme and visual style</p>
+                  </div>
+                </div>
+
+                <div class="theme-picker-grid">
+                  <!-- Theme Option 1: Light -->
+                  <button type="button" class="theme-card-btn active" data-theme="light" id="theme-btn-light" aria-pressed="true">
+                    <div class="theme-preview theme-prev-light">
+                      <div class="theme-dot" style="background: #8338EC;"></div>
+                      <div class="theme-bar" style="background: #14111F;"></div>
+                    </div>
+                    <div class="theme-card-label">Light</div>
+                    <div class="theme-card-desc">Editorial Crisp</div>
+                  </button>
+
+                  <!-- Theme Option 2: Dark -->
+                  <button type="button" class="theme-card-btn" data-theme="dark" id="theme-btn-dark" aria-pressed="false">
+                    <div class="theme-preview theme-prev-dark">
+                      <div class="theme-dot" style="background: #FFCB05;"></div>
+                      <div class="theme-bar" style="background: #FFFFFF;"></div>
+                    </div>
+                    <div class="theme-card-label">Midnight Dark</div>
+                    <div class="theme-card-desc">Deep Canvas</div>
+                  </button>
+
+                  <!-- Theme Option 3: High Contrast -->
+                  <button type="button" class="theme-card-btn" data-theme="high-contrast" id="theme-btn-contrast" aria-pressed="false">
+                    <div class="theme-preview theme-prev-contrast">
+                      <div class="theme-dot" style="background: #FFCB05;"></div>
+                      <div class="theme-bar" style="background: #FFCB05;"></div>
+                    </div>
+                    <div class="theme-card-label">High Contrast</div>
+                    <div class="theme-card-desc">Maximum Visibility</div>
+                  </button>
+
+                  <!-- Theme Option 4: System -->
+                  <button type="button" class="theme-card-btn" data-theme="system" id="theme-btn-system" aria-pressed="false">
+                    <div class="theme-preview theme-prev-system">
+                      <div class="theme-dot" style="background: #0F9D74;"></div>
+                      <div class="theme-bar" style="background: #72708A;"></div>
+                    </div>
+                    <div class="theme-card-label">System Match</div>
+                    <div class="theme-card-desc">OS Preference</div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Interface Language -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap audio-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="2" y1="12" x2="22" y2="12"/>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="settings-card-title">Language &amp; Region</h2>
+                    <p class="settings-card-subtitle">Interface locale and cultural typography</p>
+                  </div>
+                </div>
+
+                <div class="settings-list">
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Interface Language</div>
+                      <div class="settings-item-desc">Choose English or বাংলা as the primary application language</div>
+                    </div>
+                    <select id="setting-lang-select" class="settings-select" aria-label="Application Interface Language">
+                      <option value="en">English (Default)</option>
+                      <option value="bn">বাংলা (Bengali)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               PANE 4: ACCESSIBILITY & ASSISTIVE AI
+               ========================================== -->
+          <div id="settings-pane-accessibility" class="settings-tab-pane" role="tabpanel" aria-labelledby="tab-btn-accessibility" style="display: none;">
+            <div class="settings-grid">
+              <!-- Visual Accessibility Dials -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap a11y-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <circle cx="12" cy="8" r="2"/>
+                      <path d="M12 10v6M9 13h6M10 20l2-4 2 4"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="settings-card-title">Visual Accessibility</h2>
+                    <p class="settings-card-subtitle">Adapt typography, motion, and visual focus</p>
+                  </div>
+                </div>
+
+                <div class="settings-list">
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Typography Scaling</div>
+                      <div class="settings-item-desc">Adjust UI text size for enhanced legibility</div>
+                    </div>
+                    <div role="group" aria-label="Typography scaling" class="segmented-control" id="settings-fontsize-group">
+                      <button type="button" class="segmented-btn press active" data-scale="normal">100%</button>
+                      <button type="button" class="segmented-btn press" data-scale="large">115%</button>
+                      <button type="button" class="segmented-btn press" data-scale="xlarge">130%</button>
+                    </div>
+                  </div>
+
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Reduce Motion</div>
+                      <div class="settings-item-desc">Disable background ambient orbs, scanning beams, and transitions</div>
+                    </div>
+                    <label class="toggle-switch" for="setting-reduce-motion">
+                      <input type="checkbox" id="setting-reduce-motion" aria-label="Reduce motion across all screens">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Bold Keyboard Focus Rings</div>
+                      <div class="settings-item-desc">Prominent 3px gold focus outline for keyboard accessibility</div>
+                    </div>
+                    <label class="toggle-switch" for="setting-focus-rings">
+                      <input type="checkbox" id="setting-focus-rings" aria-label="Enhance keyboard focus outlines">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Audio & Speech Assist -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap audio-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="settings-card-title">Audio &amp; Speech Assist</h2>
+                    <p class="settings-card-subtitle">Tune synthesized speech rate, languages, and feedback cues</p>
+                  </div>
+                </div>
+
+                <div class="settings-list">
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Speech Synthesizer Speed</div>
+                      <div class="settings-item-desc">Playback pace for Say-Aloud, Braille scanner, and sign speech</div>
+                    </div>
+                    <div class="settings-action-cluster">
+                      <div role="group" aria-label="Speech pace" class="segmented-control" id="settings-speech-rate-group">
+                        <button type="button" class="segmented-btn press" data-rate="0.8">0.8x</button>
+                        <button type="button" class="segmented-btn press active" data-rate="1.0">1.0x</button>
+                        <button type="button" class="segmented-btn press" data-rate="1.2">1.2x</button>
+                      </div>
+                      <button type="button" class="btn-voice-preview press" id="btn-settings-test-voice">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                        </svg>
+                        <span>Test Speech</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Recognition Audio Cues</div>
+                      <div class="settings-item-desc">Play soft confirmation chime upon successful sign or Braille detection</div>
+                    </div>
+                    <label class="toggle-switch" for="setting-audio-chimes">
+                      <input type="checkbox" id="setting-audio-chimes" checked aria-label="Play audio confirmation chimes">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Assistive AI Engine Defaults -->
+              <div class="settings-card" style="grid-column: 1 / -1;">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap ai-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2a10 10 0 1 0 10 10H12V2z"/>
+                      <path d="M12 2a10 10 0 0 1 10 10h-10V2z"/>
+                      <path d="M12 12 2.1 12a10 10 0 0 0 9.9 9.9V12z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="settings-card-title">Assistive AI Engine</h2>
+                    <p class="settings-card-subtitle">Configure sign language models and OCR presets</p>
+                  </div>
+                </div>
+
+                <div class="settings-list">
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Default Sign Language</div>
+                      <div class="settings-item-desc">Primary sign lexicon for camera recognition pipeline</div>
+                    </div>
+                    <div role="group" aria-label="Default Sign Language" class="segmented-control" id="settings-sign-lang-group">
+                      <button type="button" class="segmented-btn press" data-sign="bdsl">BdSL (Bengali)</button>
+                      <button type="button" class="segmented-btn press active" data-sign="asl">ASL (American)</button>
+                    </div>
+                  </div>
+
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Braille Standard</div>
+                      <div class="settings-item-desc">Transcription mode for 6-dot cell OCR scanning</div>
+                    </div>
+                    <div role="group" aria-label="Braille Standard" class="segmented-control" id="settings-braille-standard-group">
+                      <button type="button" class="segmented-btn press active" data-braille="grade1">Grade 1 (Letter by letter)</button>
+                      <button type="button" class="segmented-btn press" data-braille="grade2">Grade 2 (Contracted)</button>
+                    </div>
+                  </div>
+
+                  <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Confidence Gate Precision</div>
+                      <div class="settings-item-desc">Minimum landmark confidence required before speaking words</div>
+                    </div>
+                    <div class="radio-container horizontal" style="--total-radio: 3;" id="setting-confidence-radio-group" role="radiogroup" aria-label="Vision Model Confidence Gate">
+                      <input type="radio" id="confidence-gate-95" name="setting_confidence_radio" value="95">
+                      <label for="confidence-gate-95">Strict (95%)</label>
+
+                      <input type="radio" id="confidence-gate-85" name="setting_confidence_radio" value="85" checked>
+                      <label for="confidence-gate-85">Balanced (85%)</label>
+
+                      <input type="radio" id="confidence-gate-70" name="setting_confidence_radio" value="70">
+                      <label for="confidence-gate-70">Sensitive (70%)</label>
+
+                      <div class="glider-container" aria-hidden="true">
+                        <div class="glider"></div>
+                      </div>
+                    </div>
+                    <select id="setting-confidence-gate" class="settings-select sr-only" aria-label="Vision Model Confidence Gate">
+                      <option value="95">Strict (95% Sure)</option>
+                      <option value="85" selected>Balanced (85% Sure)</option>
+                      <option value="70">Sensitive (70% Sure)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               PANE 5: PRIVACY & DATA STORAGE
+               ========================================== -->
+          <div id="settings-pane-privacy" class="settings-tab-pane" role="tabpanel" aria-labelledby="tab-btn-privacy" style="display: none;">
+            <div class="settings-grid">
+              <!-- Offline Cache & Privacy Vault -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap shield-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="settings-card-title">Offline Cache &amp; Privacy Vault</h2>
+                    <p class="settings-card-subtitle">Local storage management and on-device privacy verification</p>
+                  </div>
+                </div>
+
+                <div class="settings-privacy-banner">
+                  <div class="privacy-banner-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    <span>100% On-Device Processing Guaranteed</span>
+                  </div>
+                  <p class="privacy-banner-text">
+                    Camera video streams, hand landmark coordinates, and microphone audio are evaluated exclusively on
+                    local device silicon. Biometrics are never transmitted to cloud servers.
+                  </p>
+                </div>
+
+                <div class="settings-storage-row">
+                  <div class="storage-info">
+                    <div class="storage-title">Local Activity &amp; Phrase Cache</div>
+                    <div class="storage-desc" id="settings-storage-size">14.2 MB cached (Models, guidelines &amp; phrase history)</div>
+                  </div>
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-settings-action press" id="btn-settings-export-data">
+                      Export Data (JSON)
+                    </button>
+                    <button type="button" class="btn-clear-history-settings press" id="btn-settings-clear-history">
+                      Clear Cache
                     </button>
                   </div>
                 </div>
-
-                <!-- Row: Audio Recognition Chimes -->
-                <div class="settings-row">
-                  <div class="settings-label-col">
-                    <div class="settings-item-title">Recognition Audio Cues</div>
-                    <div class="settings-item-desc">Play soft confirmation chime upon successful sign or Braille
-                      detection</div>
-                  </div>
-                  <label class="toggle-switch" for="setting-audio-chimes">
-                    <input type="checkbox" id="setting-audio-chimes" checked
-                      aria-label="Play audio confirmation chimes">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Card 4: Assistive Recognition Defaults -->
-            <div class="settings-card">
-              <div class="settings-card-header">
-                <div class="settings-card-icon-wrap ai-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
-                    <path d="M12 2a10 10 0 0 1 10 10h-10V2z" />
-                    <path d="M12 12 2.1 12a10 10 0 0 0 9.9 9.9V12z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 class="settings-card-title">Assistive AI Engine</h2>
-                  <p class="settings-card-subtitle">Configure sign language models and OCR presets</p>
-                </div>
               </div>
 
-              <div class="settings-list">
-                <!-- Row: Default Sign Language -->
-                <div class="settings-row">
-                  <div class="settings-label-col">
-                    <div class="settings-item-title">Default Sign Language</div>
-                    <div class="settings-item-desc">Primary sign lexicon for camera recognition pipeline</div>
+              <!-- Compliance & Architecture -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap user-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                   </div>
-                  <div role="group" aria-label="Default Sign Language" class="segmented-control"
-                    id="settings-sign-lang-group">
-                    <button type="button" class="segmented-btn press" data-sign="bdsl">BdSL (Bengali)</button>
-                    <button type="button" class="segmented-btn press active" data-sign="asl">ASL (American)</button>
-                  </div>
-                </div>
-
-                <!-- Row: Braille Transcription -->
-                <div class="settings-row">
-                  <div class="settings-label-col">
-                    <div class="settings-item-title">Braille Standard</div>
-                    <div class="settings-item-desc">Transcription mode for 6-dot cell OCR scanning</div>
-                  </div>
-                  <div role="group" aria-label="Braille Standard" class="segmented-control"
-                    id="settings-braille-standard-group">
-                    <button type="button" class="segmented-btn press active" data-braille="grade1">Grade 1 (Letter by
-                      letter)</button>
-                    <button type="button" class="segmented-btn press" data-braille="grade2">Grade 2
-                      (Contracted)</button>
+                  <div>
+                    <h2 class="settings-card-title">Compliance &amp; Governance</h2>
+                    <p class="settings-card-subtitle">Healthcare privacy standards and regulatory alignment</p>
                   </div>
                 </div>
 
-                <!-- Row: Detection Sensitivity -->
-                <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 10px;">
-                  <div class="settings-label-col">
-                    <div class="settings-item-title">Confidence Gate Precision</div>
-                    <div class="settings-item-desc">Minimum landmark confidence required before speaking words</div>
-                  </div>
-                  <div class="radio-container horizontal" style="--total-radio: 3;" id="setting-confidence-radio-group"
-                    role="radiogroup" aria-label="Vision Model Confidence Gate">
-                    <input type="radio" id="confidence-gate-95" name="setting_confidence_radio" value="95">
-                    <label for="confidence-gate-95">Strict (95%)</label>
-
-                    <input type="radio" id="confidence-gate-85" name="setting_confidence_radio" value="85" checked>
-                    <label for="confidence-gate-85">Balanced (85%)</label>
-
-                    <input type="radio" id="confidence-gate-70" name="setting_confidence_radio" value="70">
-                    <label for="confidence-gate-70">Sensitive (70%)</label>
-
-                    <div class="glider-container" aria-hidden="true">
-                      <div class="glider"></div>
+                <div class="settings-list">
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">HIPAA &amp; GDPR Data Handling</div>
+                      <div class="settings-item-desc">Zero Protected Health Information (PHI) stored or logged without consent</div>
                     </div>
+                    <span style="font-size: 13px; font-weight: 800; color: #10B981;">Compliant</span>
                   </div>
-                  <select id="setting-confidence-gate" class="settings-select sr-only"
-                    aria-label="Vision Model Confidence Gate">
-                    <option value="95">Strict (95% Sure)</option>
-                    <option value="85" selected>Balanced (85% Sure)</option>
-                    <option value="70">Sensitive (70% Sure)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <!-- Card 5: Account & Session Credentials -->
-            <div class="settings-card">
-              <div class="settings-card-header">
-                <div class="settings-card-icon-wrap user-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 class="settings-card-title">Account & Credentials</h2>
-                  <p class="settings-card-subtitle">Manage session state, identity, and cloud sync</p>
-                </div>
-              </div>
-
-              <div class="settings-user-box">
-                <div class="settings-user-profile-row">
-                  <div class="settings-avatar-badge" id="settings-avatar-initials">TR</div>
-                  <div class="settings-user-meta">
-                    <div class="settings-user-name" id="settings-user-name">Guest User</div>
-                    <div class="settings-user-email" id="settings-user-email">Offline local storage mode</div>
-                    <div class="settings-status-pill" id="settings-session-status">
-                      <span class="status-dot"></span>
-                      <span>Offline Edge Mode (Private)</span>
+                  <div class="settings-row">
+                    <div class="settings-label-col">
+                      <div class="settings-item-title">Differential Privacy Threshold</div>
+                      <div class="settings-item-desc">Gaussian noise added to gradient exchanges in federated learning</div>
                     </div>
+                    <span style="font-size: 13px; font-weight: 800; color: var(--violet);">ε = 1.0 (Strict)</span>
                   </div>
                 </div>
-                <button type="button" id="btn-settings-auth" class="btn-settings-auth-action press"
-                  onclick="window.TransifyApp.handleSettingsAuthAction()">
-                  Sign In / Register
-                </button>
               </div>
             </div>
-
-            <!-- Card 6: Offline Cache & Privacy Vault -->
-            <div class="settings-card">
-              <div class="settings-card-header">
-                <div class="settings-card-icon-wrap shield-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 class="settings-card-title">Offline Cache & Privacy Vault</h2>
-                  <p class="settings-card-subtitle">Local storage management and on-device privacy verification</p>
-                </div>
-              </div>
-
-              <div class="settings-privacy-banner">
-                <div class="privacy-banner-title">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
-                  <span>100% On-Device Processing Guaranteed</span>
-                </div>
-                <p class="privacy-banner-text">
-                  Camera video streams, hand landmark coordinates, and microphone audio are evaluated exclusively on
-                  local device silicon. Biometrics are never transmitted to cloud servers.
-                </p>
-              </div>
-
-              <div class="settings-storage-row">
-                <div class="storage-info">
-                  <div class="storage-title">Local Activity & Phrase Cache</div>
-                  <div class="storage-desc" id="settings-storage-size">14.2 MB cached (Models, guidelines & phrase
-                    history)</div>
-                </div>
-                <button type="button" class="btn-clear-history-settings press" id="btn-settings-clear-history">
-                  Clear Activity History
-                </button>
-              </div>
-            </div>
-
-            <!-- Card 7: Contact Developer & GitHub Repository -->
-            <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener noreferrer"
-              class="card card-uiverse contact-card" id="settings-contact-card"
-              aria-label="Contact Developer on GitHub">
-              <div class="go-corner" aria-hidden="true"><span class="go-arrow">→</span></div>
-              <div class="card-title">Contact &amp; GitHub</div>
-              <p class="small-desc">
-                Connect with Safin on GitHub (<strong>@Safin313-REBORN</strong>). Access source code, report issues, and
-                collaborate on assistive AI models.
-              </p>
-            </a>
           </div>
-        </div>
-      </section>
+
+          <!-- ==========================================
+               PANE 6: CONTACT & SUPPORT
+               ========================================== -->
+          <div id="settings-pane-contact" class="settings-tab-pane" role="tabpanel" aria-labelledby="tab-btn-contact" style="display: none;">
+            <div class="settings-grid">
+              <!-- Contact Developer & GitHub Repository -->
+              <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener noreferrer"
+                class="card card-uiverse contact-card" id="settings-contact-card"
+                aria-label="Contact Developer on GitHub">
+                <div class="go-corner" aria-hidden="true"><span class="go-arrow">→</span></div>
+                <div class="card-title">Contact &amp; GitHub</div>
+                <p class="small-desc">
+                  Connect with Safin on GitHub (<strong>@Safin313-REBORN</strong>). Access source code, report issues, and
+                  collaborate on assistive AI models.
+                </p>
+              </a>
+
+              <!-- Developer Support & Direct Feedback Form -->
+              <div class="settings-card">
+                <div class="settings-card-header">
+                  <div class="settings-card-icon-wrap audio-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 class="settings-card-title">Send Developer Feedback</h2>
+                    <p class="settings-card-subtitle">Direct message to developer Safin &amp; issue submission</p>
+                  </div>
+                </div>
+
+                <div class="settings-list">
+                  <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                    <label for="contact-category" style="font-size: 13px; font-weight: 700; color: var(--ink);">Feedback Category</label>
+                    <select id="contact-category" class="settings-select" style="width: 100%;">
+                      <option value="bug">Bug Report (Vision / Speech / Triage)</option>
+                      <option value="feature">Feature Request or Enhancement</option>
+                      <option value="clinical">Clinical Trial / Hospital Partnership</option>
+                      <option value="general">General Feedback / Inquiry</option>
+                    </select>
+                  </div>
+
+                  <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                    <label for="contact-message" style="font-size: 13px; font-weight: 700; color: var(--ink);">Message</label>
+                    <textarea id="contact-message" class="settings-textarea" rows="3" placeholder="Describe the issue, suggestions, or notes..."></textarea>
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
+                  <button type="button" id="btn-contact-diagnostics" class="btn-settings-action press">
+                    📋 Copy System Diagnostics
+                  </button>
+                  <button type="button" id="btn-contact-submit" class="btn-settings-action press" style="background: var(--violet); color: #FFFFFF; border-color: var(--violet);">
+                    Send Message
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /.settings-container -->
       </section>
 
     </div><!-- /.content-frame -->

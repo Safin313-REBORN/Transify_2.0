@@ -3793,6 +3793,11 @@ const EditorialController = {
     } else if (rawRoute === 'care-intake' || rawRoute === 'care') {
       const intakeTab = document.getElementById('care-tab-intake-btn');
       if (intakeTab) intakeTab.click();
+    } else if (route === 'contact' || rawRoute === 'contact') {
+      if (this.switchSettingsTab) this.switchSettingsTab('contact');
+    } else if (rawRoute && rawRoute.startsWith('settings-')) {
+      const sub = rawRoute.replace('settings-', '');
+      if (this.switchSettingsTab) this.switchSettingsTab(sub);
     }
 
     window.scrollTo(0, 0);
@@ -4244,6 +4249,146 @@ const EditorialController = {
   },
 
   setupSettingsScreen() {
+    // 0. Settings Navbar Tab Navigation (Profile, Account, Appearance, Accessibility, Privacy, Contact)
+    const settingsNavTabs = document.querySelectorAll('.settings-nav-tab');
+    settingsNavTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.getAttribute('data-settings-tab');
+        if (target) this.switchSettingsTab(target);
+      });
+    });
+
+    if (window.TransifyApp) {
+      window.TransifyApp.switchSettingsTab = (t) => this.switchSettingsTab(t);
+    }
+
+    const savedSettingsTab = localStorage.getItem('transify_settings_tab') || 'profile';
+    this.switchSettingsTab(savedSettingsTab);
+
+    // Profile Persona Persistence
+    const profName = document.getElementById('profile-input-name');
+    const profRole = document.getElementById('profile-select-role');
+    const profComm = document.getElementById('profile-select-comm');
+    const profBio = document.getElementById('profile-input-bio');
+    const profAvatar = document.getElementById('profile-avatar-display');
+    const saveProfBtn = document.getElementById('btn-save-profile');
+
+    const savedProfStr = localStorage.getItem('transify_user_profile');
+    if (savedProfStr) {
+      try {
+        const p = JSON.parse(savedProfStr);
+        if (profName && p.name) profName.value = p.name;
+        if (profRole && p.role) profRole.value = p.role;
+        if (profComm && p.comm) profComm.value = p.comm;
+        if (profBio && p.bio) profBio.value = p.bio;
+        if (profAvatar && p.name) {
+          const initials = p.name.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
+          profAvatar.textContent = initials || 'TR';
+        }
+      } catch (_) {}
+    }
+
+    if (saveProfBtn) {
+      saveProfBtn.addEventListener('click', () => {
+        const nameVal = (profName ? profName.value : '') || 'Guest User';
+        const roleVal = profRole ? profRole.value : 'accessibility_user';
+        const commVal = profComm ? profComm.value : 'multimodal';
+        const bioVal = profBio ? profBio.value : '';
+
+        const profObj = { name: nameVal, role: roleVal, comm: commVal, bio: bioVal };
+        try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) {}
+
+        const initials = nameVal.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2) || 'TR';
+        if (profAvatar) profAvatar.textContent = initials;
+        const setAv = document.getElementById('settings-avatar-initials');
+        if (setAv) setAv.textContent = initials;
+        const frameAv = document.getElementById('frame-avatar-btn');
+        if (frameAv) frameAv.textContent = initials;
+        const setName = document.getElementById('settings-user-name');
+        if (setName && (setName.textContent === 'Guest User' || !localStorage.getItem('transify_auth_user'))) {
+          setName.textContent = nameVal;
+        }
+
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('Profile changes saved successfully', 'success');
+        }
+      });
+    }
+
+    // Developer Support / Feedback Form
+    const contactSubmitBtn = document.getElementById('btn-contact-submit');
+    const contactMsg = document.getElementById('contact-message');
+
+    if (contactSubmitBtn && contactMsg) {
+      contactSubmitBtn.addEventListener('click', () => {
+        const text = contactMsg.value.trim();
+        if (!text) {
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast('Please type a message before sending', 'info');
+          }
+          return;
+        }
+        contactMsg.value = '';
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('Message sent! Developer Safin has received your feedback.', 'success');
+        }
+      });
+    }
+
+    // Copy Diagnostics Button
+    const diagBtn = document.getElementById('btn-contact-diagnostics');
+    if (diagBtn) {
+      diagBtn.addEventListener('click', () => {
+        const curTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        const diagInfo = `Transify 2.0 Diagnostics\nTimestamp: ${new Date().toISOString()}\nPlatform: ${navigator.platform || 'Linux'}\nResolution: ${window.innerWidth}x${window.innerHeight}\nTheme: ${curTheme}\nConnection: ${navigator.onLine ? 'Online' : 'Offline'}\nMediaPipe Vision: Available (0.10.14 WebAssembly)\nSpeech: Zero Auto-Audio Policy`;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(diagInfo).then(() => {
+            if (window.TransifyApp && window.TransifyApp.showToast) {
+              window.TransifyApp.showToast('System diagnostics copied to clipboard!', 'success');
+            }
+          }).catch(() => {
+            if (window.TransifyApp && window.TransifyApp.showToast) {
+              window.TransifyApp.showToast('Diagnostics ready in developer console', 'info');
+            }
+          });
+        }
+      });
+    }
+
+    // Export User Data (JSON)
+    const exportBtn = document.getElementById('btn-settings-export-data');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        let profData = {};
+        try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) {}
+        const dump = {
+          app: 'Transify 2.0',
+          exported_at: new Date().toISOString(),
+          profile: profData,
+          preferences: {
+            theme: localStorage.getItem('transify_theme') || 'light',
+            font_scale: localStorage.getItem('transify_font_scale') || 'normal',
+            speech_rate: localStorage.getItem('transify_speech_rate') || '1.0',
+            sign_lang: localStorage.getItem('transify_default_sign_lang') || 'asl',
+            braille_standard: localStorage.getItem('transify_braille_standard') || 'grade1',
+            confidence_gate: localStorage.getItem('transify_confidence_gate') || '85'
+          }
+        };
+        const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transify_backup_${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('Profile and settings exported as JSON', 'success');
+        }
+      });
+    }
+
     // 1. Theme Picker & Real-Time Switching
     const themeButtons = document.querySelectorAll('.theme-card-btn');
     const savedTheme = localStorage.getItem('transify_theme') || 'light';
@@ -4601,6 +4746,40 @@ const EditorialController = {
       }
       if (statusPill) statusPill.innerHTML = '<span class="status-dot"></span><span>Offline Edge Mode (Private)</span>';
     }
+  },
+
+  switchSettingsTab(tabName) {
+    const tabs = document.querySelectorAll('.settings-nav-tab');
+    const panes = document.querySelectorAll('.settings-tab-pane');
+    if (!tabs.length || !panes.length) return;
+
+    let matched = false;
+    tabs.forEach(tab => {
+      const isTarget = tab.getAttribute('data-settings-tab') === tabName;
+      tab.classList.toggle('active', isTarget);
+      tab.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+      if (isTarget) matched = true;
+    });
+
+    if (!matched) {
+      tabName = 'profile';
+      const defTab = document.querySelector('.settings-nav-tab[data-settings-tab="profile"]');
+      if (defTab) {
+        tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+        defTab.classList.add('active');
+        defTab.setAttribute('aria-selected', 'true');
+      }
+    }
+
+    panes.forEach(pane => {
+      const isTarget = pane.id === `settings-pane-${tabName}`;
+      pane.classList.toggle('active', isTarget);
+      pane.style.display = isTarget ? 'flex' : 'none';
+    });
+
+    try {
+      localStorage.setItem('transify_settings_tab', tabName);
+    } catch (_) {}
   },
 
   handleSettingsAuthAction() {

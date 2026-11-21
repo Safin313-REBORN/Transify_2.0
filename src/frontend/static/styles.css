@@ -7312,6 +7312,193 @@ body.enhanced-focus :focus-visible {
   color: var(--ink);
 }
 
+/* =============================================================
+   Settings Navbar & Option Selection (Profile, Account, etc.)
+   ============================================================= */
+.settings-navbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.settings-navbar::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-2);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.settings-nav-tab svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease, color 0.2s ease;
+  color: var(--text-2);
+}
+
+.settings-nav-tab:hover {
+  color: var(--ink);
+  background: rgba(131, 56, 236, 0.08);
+}
+
+.settings-nav-tab:hover svg {
+  color: var(--violet);
+}
+
+.settings-nav-tab.active {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+  box-shadow: 0 4px 14px rgba(20, 17, 31, 0.08);
+}
+
+.settings-nav-tab.active svg {
+  color: var(--violet);
+  transform: scale(1.1);
+}
+
+/* Dark theme overrides for settings navbar */
+[data-theme="dark"] .settings-navbar {
+  background: #1B172C;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .settings-nav-tab {
+  color: #B5B2CD;
+}
+
+[data-theme="dark"] .settings-nav-tab:hover {
+  color: #FFFFFF;
+  background: rgba(255, 203, 5, 0.1);
+}
+
+[data-theme="dark"] .settings-nav-tab.active {
+  background: #25203B;
+  color: #FFFFFF;
+  border-color: rgba(255, 203, 5, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .settings-nav-tab.active svg {
+  color: #FFCB05;
+}
+
+/* High-contrast overrides for settings navbar */
+[data-theme="high-contrast"] .settings-navbar,
+body.high-contrast .settings-navbar {
+  background: #000000;
+  border: 2px solid #FFCB05;
+}
+
+[data-theme="high-contrast"] .settings-nav-tab,
+body.high-contrast .settings-nav-tab {
+  color: #FFFFFF;
+  border: 1px solid transparent;
+}
+
+[data-theme="high-contrast"] .settings-nav-tab:hover,
+body.high-contrast .settings-nav-tab:hover {
+  background: #1A1A1A;
+  color: #FFCB05;
+}
+
+[data-theme="high-contrast"] .settings-nav-tab.active,
+body.high-contrast .settings-nav-tab.active {
+  background: #FFCB05;
+  color: #000000;
+  font-weight: 800;
+  border: 2px solid #FFFFFF;
+}
+
+[data-theme="high-contrast"] .settings-nav-tab.active svg,
+body.high-contrast .settings-nav-tab.active svg {
+  color: #000000;
+}
+
+/* Settings Tab Panels */
+.settings-tab-pane {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+  animation: settingsFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+}
+
+.settings-tab-pane.active {
+  display: flex;
+}
+
+@keyframes settingsFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Settings Form Inputs */
+.settings-input,
+.settings-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.settings-input:focus,
+.settings-textarea:focus {
+  outline: none;
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px rgba(131, 56, 236, 0.15);
+}
+
+[data-theme="dark"] .settings-input,
+[data-theme="dark"] .settings-textarea {
+  background: #1B172C;
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme="high-contrast"] .settings-input,
+[data-theme="high-contrast"] .settings-textarea {
+  background: #000000;
+  color: #FFFFFF;
+  border: 2px solid #FFCB05;
+}
+
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
