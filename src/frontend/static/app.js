@@ -3751,7 +3751,408 @@ var BraillePage = window.BraillePage = {
 };
 
 // ==========================================
-// 6. Speech-to-Text (STT) Module
+// 6. Neural Voice Studio 2.0 Module
+// ==========================================
+
+var TransifyVoiceStudio = window.TransifyVoiceStudio = {
+  currentMode: 'studio',
+  persona: 'default',
+  timerInterval: null,
+  vuInterval: null,
+  animFrameId: null,
+  isInitialized: false,
+
+  init() {
+    if (this.isInitialized) return;
+    this.isInitialized = true;
+
+    // Initialize underlying STT & TTS modules
+    if (window.TransifySTT && window.TransifySTT.init) window.TransifySTT.init();
+    if (window.TransifyTTSPage && window.TransifyTTSPage.init) window.TransifyTTSPage.init();
+
+    this.setupVisualizer();
+    this.startVUMeter();
+    this.bindVoiceInputs();
+  },
+
+  switchMode(mode) {
+    this.currentMode = mode;
+    const tabs = ['studio', 'bridge', 'diagnostics'];
+    tabs.forEach(t => {
+      const tabBtn = document.getElementById(`voice-tab-${t}`);
+      const pane = document.getElementById(`voice-pane-${t}`);
+      const isActive = (t === mode);
+
+      if (tabBtn) {
+        tabBtn.classList.toggle('active', isActive);
+        tabBtn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      }
+      if (pane) {
+        pane.classList.toggle('active', isActive);
+        pane.style.display = isActive ? 'block' : 'none';
+      }
+    });
+
+    if (mode === 'bridge') {
+      this.syncActiveSpeechToBridge();
+    }
+    if (window.TransifyApp && window.TransifyApp.announce) {
+      window.TransifyApp.announce(`Switched to Voice ${mode.charAt(0).toUpperCase() + mode.slice(1)} view`);
+    }
+  },
+
+  loadSample(phrase, lang) {
+    // Populate STT box
+    const finalText = document.getElementById('stt-final-text');
+    const placeholder = document.getElementById('stt-placeholder');
+    if (finalText) finalText.textContent = phrase;
+    if (placeholder) placeholder.style.display = 'none';
+
+    if (window.TransifySTT) {
+      window.TransifySTT.finalTranscript = phrase;
+      window.TransifySTT.updateTelemetry(phrase);
+    }
+
+    // Populate TTS textarea
+    const ttsInput = document.getElementById('tts-input-text');
+    if (ttsInput) {
+      ttsInput.value = phrase;
+      this.updateTTSStats(phrase);
+    }
+
+    // Set languages
+    if (lang) {
+      const sttLang = document.getElementById('stt-lang-select');
+      const ttsLang = document.getElementById('tts-lang-select');
+      if (sttLang) sttLang.value = lang;
+      if (ttsLang) {
+        const opt = Array.from(ttsLang.options).find(o => o.value === lang);
+        if (opt) ttsLang.value = lang;
+      }
+    }
+
+    // Update cross-modal bridge
+    this.syncActiveSpeechToBridge(phrase);
+
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast(`Sample loaded: "${phrase.slice(0, 32)}..."`, 'info');
+    }
+  },
+
+  changeCaptionFont(size) {
+    const box = document.getElementById('stt-live-caption-box');
+    if (!box) return;
+    if (size === 'xlarge') {
+      box.style.fontSize = '28px';
+    } else if (size === 'large') {
+      box.style.fontSize = '24px';
+    } else {
+      box.style.fontSize = '20px';
+    }
+  },
+
+  setTTSSpeed(spd) {
+    if (window.TransifyTTSPage) {
+      window.TransifyTTSPage.speed = spd;
+    }
+    document.querySelectorAll('.tts-speed-btn').forEach(btn => {
+      const btnSpeed = parseFloat(btn.getAttribute('data-speed') || '1.0');
+      btn.classList.toggle('active', Math.abs(btnSpeed - spd) < 0.05);
+    });
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast(`Speech rate set to ${spd}x`, 'info');
+    }
+  },
+
+  changeVoicePersona(persona) {
+    this.persona = persona;
+    const badge = document.getElementById('tts-voice-status');
+    const personaLabels = {
+      default: 'Neural Synthesizer',
+      female: 'Studio Female HD',
+      male: 'Professional Male',
+      bangla: 'Bangla Studio (ফারহানা)'
+    };
+    if (badge) badge.textContent = personaLabels[persona] || 'Neural Voice';
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast(`Voice persona: ${personaLabels[persona] || persona}`, 'info');
+    }
+  },
+
+  insertTTSPhrase(phrase) {
+    const textarea = document.getElementById('tts-input-text');
+    if (!textarea) return;
+    if (textarea.value.trim()) {
+      textarea.value += ' ' + phrase;
+    } else {
+      textarea.value = phrase;
+    }
+    this.updateTTSStats(textarea.value);
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast(`Phrase added: "${phrase.slice(0, 24)}..."`, 'success');
+    }
+  },
+
+  copyTTSText() {
+    const textarea = document.getElementById('tts-input-text');
+    const text = textarea ? textarea.value.trim() : '';
+    if (text) {
+      navigator.clipboard.writeText(text);
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast('Speech text copied to clipboard!', 'success');
+      }
+    } else {
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast('No text to copy.', 'warning');
+      }
+    }
+  },
+
+  pauseTTS() {
+    if ('speechSynthesis' in window) {
+      if (window.speechSynthesis.speaking) {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast('Voice playback resumed.', 'info');
+          }
+        } else {
+          window.speechSynthesis.pause();
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast('Voice playback paused.', 'info');
+          }
+        }
+      } else {
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('No active speech playback to pause.', 'warning');
+        }
+      }
+    }
+  },
+
+  downloadCaptionsTXT() {
+    const text = (window.TransifySTT && window.TransifySTT.finalTranscript) ?
+      window.TransifySTT.finalTranscript.trim() :
+      (document.getElementById('stt-final-text') ? document.getElementById('stt-final-text').textContent.trim() : '');
+
+    if (!text) {
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast('No captions recorded to download.', 'warning');
+      }
+      return;
+    }
+
+    const header = `Transify Speech Captions Session\nTimestamp: ${new Date().toISOString()}\n=========================================\n\n`;
+    const blob = new Blob([header + text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transify-captions-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast('Downloaded captions transcript as TXT.', 'success');
+    }
+  },
+
+  downloadCaptionsSRT() {
+    const text = (window.TransifySTT && window.TransifySTT.finalTranscript) ?
+      window.TransifySTT.finalTranscript.trim() :
+      (document.getElementById('stt-final-text') ? document.getElementById('stt-final-text').textContent.trim() : '');
+
+    if (!text) {
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast('No captions recorded to download.', 'warning');
+      }
+      return;
+    }
+
+    const words = text.split(/\s+/).filter(Boolean);
+    let srt = '';
+    let sec = 1;
+    let blockIdx = 1;
+
+    for (let i = 0; i < words.length; i += 6) {
+      const chunk = words.slice(i, i + 6).join(' ');
+      const startSec = sec;
+      const endSec = sec + 3;
+      const formatTime = (s) => {
+        const mm = String(Math.floor(s / 60)).padStart(2, '0');
+        const ss = String(s % 60).padStart(2, '0');
+        return `00:${mm}:${ss},000`;
+      };
+      srt += `${blockIdx}\n${formatTime(startSec)} --> ${formatTime(endSec)}\n${chunk}\n\n`;
+      sec += 3;
+      blockIdx++;
+    }
+
+    const blob = new Blob([srt], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transify-captions-${Date.now()}.srt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast('Downloaded standard SRT subtitle file.', 'success');
+    }
+  },
+
+  bridgeToSign() {
+    this.switchMode('bridge');
+    const strip = document.getElementById('voice-bridge-sign-strip');
+    if (strip) strip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  },
+
+  bridgeToBraille() {
+    this.switchMode('bridge');
+    const strip = document.getElementById('voice-bridge-braille-strip');
+    if (strip) strip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  },
+
+  syncActiveSpeechToBridge(optionalText) {
+    let text = optionalText;
+    if (!text) {
+      text = (window.TransifySTT && window.TransifySTT.finalTranscript) ?
+        window.TransifySTT.finalTranscript.trim() :
+        (document.getElementById('stt-final-text') ? document.getElementById('stt-final-text').textContent.trim() : '');
+    }
+    if (!text) {
+      const ttsVal = document.getElementById('tts-input-text');
+      if (ttsVal && ttsVal.value.trim()) text = ttsVal.value.trim();
+    }
+    if (!text) {
+      text = "Emergency: Need Assistance";
+    }
+
+    const signStrip = document.getElementById('voice-bridge-sign-strip');
+    const brailleStrip = document.getElementById('voice-bridge-braille-strip');
+
+    if (signStrip) {
+      signStrip.innerHTML = '';
+      const chars = text.slice(0, 60).split('');
+      chars.forEach(ch => {
+        const lower = ch.toLowerCase();
+        const badge = document.createElement('div');
+        badge.className = 'voice-bridge-card';
+        if (ch === ' ') {
+          badge.innerHTML = '<span class="bridge-card-char">␣</span><span class="bridge-card-sub">space</span>';
+          badge.style.opacity = '0.5';
+        } else if (lower >= 'a' && lower <= 'z') {
+          badge.innerHTML = `<span class="bridge-card-char">${lower.toUpperCase()}</span><span class="bridge-card-sub">🤟 ASL</span>`;
+        } else {
+          badge.innerHTML = `<span class="bridge-card-char">${ch}</span><span class="bridge-card-sub">sym</span>`;
+        }
+        signStrip.appendChild(badge);
+      });
+    }
+
+    if (brailleStrip) {
+      brailleStrip.innerHTML = '';
+      const chars = text.slice(0, 60).split('');
+      chars.forEach(ch => {
+        const lower = ch.toLowerCase();
+        const meta = (window.BraillePage && window.BraillePage.charToBraille) ? window.BraillePage.charToBraille[lower] : null;
+        const unicode = meta ? meta.unicode : (ch === ' ' ? '⠀' : '⠿');
+        const badge = document.createElement('div');
+        badge.className = 'voice-bridge-card';
+        badge.innerHTML = `<span class="bridge-card-char" style="font-size:24px; font-family:serif;">${unicode}</span><span class="bridge-card-sub">${ch === ' ' ? 'space' : (meta ? (meta.bn || meta.name) : ch)}</span>`;
+        brailleStrip.appendChild(badge);
+      });
+    }
+  },
+
+  updateTTSStats(text) {
+    const charCount = document.getElementById('tts-char-count');
+    const estTime = document.getElementById('tts-est-time');
+    if (charCount) charCount.textContent = `${text.length} characters`;
+    if (estTime) {
+      const words = text.trim().split(/\s+/).filter(Boolean).length;
+      const sec = Math.max(1, Math.round((words / 130) * 60));
+      estTime.textContent = `Est. Speech: ${sec}s`;
+    }
+  },
+
+  bindVoiceInputs() {
+    const ttsText = document.getElementById('tts-input-text');
+    if (ttsText) {
+      ttsText.addEventListener('input', () => {
+        this.updateTTSStats(ttsText.value);
+      });
+    }
+  },
+
+  setupVisualizer() {
+    const canvas = document.getElementById('stt-audio-visualizer');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let phase = 0;
+    const render = () => {
+      this.animFrameId = requestAnimationFrame(render);
+      const isListening = !!(window.TransifySTT && window.TransifySTT.isListening);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const w = canvas.width;
+      const h = canvas.height;
+      const midY = h / 2;
+
+      ctx.lineWidth = isListening ? 2.5 : 1.5;
+      const grad = ctx.createLinearGradient(0, 0, w, 0);
+      if (isListening) {
+        grad.addColorStop(0, '#8338ec');
+        grad.addColorStop(0.5, '#f59e0b');
+        grad.addColorStop(1, '#ec4899');
+      } else {
+        grad.addColorStop(0, 'rgba(140, 136, 165, 0.25)');
+        grad.addColorStop(1, 'rgba(140, 136, 165, 0.4)');
+      }
+      ctx.strokeStyle = grad;
+      ctx.beginPath();
+
+      const numPoints = 60;
+      const amp = isListening ? 12 : 2;
+      const freq = isListening ? 0.08 : 0.03;
+
+      for (let i = 0; i <= numPoints; i++) {
+        const x = (i / numPoints) * w;
+        const y = midY + Math.sin(i * freq + phase) * amp * Math.sin((i / numPoints) * Math.PI);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      phase += isListening ? 0.18 : 0.04;
+    };
+    render();
+  },
+
+  startVUMeter() {
+    const fill = document.getElementById('vu-meter-fill');
+    if (this.vuInterval) clearInterval(this.vuInterval);
+
+    this.vuInterval = setInterval(() => {
+      if (!fill) return;
+      const isListening = !!(window.TransifySTT && window.TransifySTT.isListening);
+      let targetPct = 0;
+      if (isListening) {
+        targetPct = 35 + Math.floor(Math.random() * 50);
+      } else {
+        targetPct = 12 + Math.floor(Math.random() * 8);
+      }
+      fill.style.width = targetPct + '%';
+    }, 180);
+  }
+};
+
+
+// ==========================================
+// 6b. Speech-to-Text (STT) Module
 // ==========================================
 
 var TransifySTT = window.TransifySTT = {
@@ -3761,6 +4162,8 @@ var TransifySTT = window.TransifySTT = {
   finalTranscript: '',
   isLargeFont: false,
   isInitialized: false,
+  startTime: null,
+  timerInterval: null,
 
   init() {
     if (this.isInitialized) return;
@@ -3818,12 +4221,14 @@ var TransifySTT = window.TransifySTT = {
           const ttsInput = document.getElementById('tts-input-text');
           if (ttsInput) {
             ttsInput.value = text;
-            const count = document.getElementById('tts-char-count');
-            if (count) count.textContent = `${text.length} chars`;
+            if (window.TransifyVoiceStudio) {
+              window.TransifyVoiceStudio.updateTTSStats(text);
+            }
           }
           if (typeof openSlide === 'function') {
             openSlide('slide-tts');
           }
+          TransifyApp.showToast('Captions sent to Read Aloud.', 'success');
         } else {
           TransifyApp.showToast('No speech text to send.', 'warning');
         }
@@ -3831,20 +4236,27 @@ var TransifySTT = window.TransifySTT = {
     }
 
     if (fontToggleBtn) {
-      fontToggleBtn.addEventListener('click', () => {
-        this.isLargeFont = !this.isLargeFont;
-        const captionBox = document.getElementById('stt-live-caption-box');
-        const fontLabel = document.getElementById('stt-font-label');
-        if (captionBox && fontLabel) {
-          if (this.isLargeFont) {
-            captionBox.style.fontSize = '28px';
-            fontLabel.textContent = 'Extra Large';
-          } else {
-            captionBox.style.fontSize = '20px';
-            fontLabel.textContent = 'Large';
-          }
+      fontToggleBtn.addEventListener('change', (e) => {
+        if (window.TransifyVoiceStudio) {
+          window.TransifyVoiceStudio.changeCaptionFont(e.target.value);
         }
       });
+    }
+  },
+
+  updateTelemetry(text) {
+    const words = (text || '').trim().split(/\s+/).filter(Boolean);
+    const wordCount = document.getElementById('stt-word-count');
+    const wpmEl = document.getElementById('stt-wpm');
+    const diagWpm = document.getElementById('diag-wpm-val');
+
+    if (wordCount) wordCount.textContent = `${words.length} words`;
+
+    if (this.startTime && words.length > 0) {
+      const elapsedMin = Math.max(0.1, (Date.now() - this.startTime) / 60000);
+      const wpm = Math.round(words.length / elapsedMin);
+      if (wpmEl) wpmEl.textContent = `Pace: ${wpm} WPM`;
+      if (diagWpm) diagWpm.textContent = `${wpm} WPM`;
     }
   },
 
@@ -3866,7 +4278,19 @@ var TransifySTT = window.TransifySTT = {
 
       this.recognition.onstart = () => {
         this.isListening = true;
+        this.startTime = Date.now();
         this.updateUI(true);
+
+        if (this.timerInterval) clearInterval(this.timerInterval);
+        this.timerInterval = setInterval(() => {
+          if (!this.isListening || !this.startTime) return;
+          const sec = Math.floor((Date.now() - this.startTime) / 1000);
+          const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+          const ss = String(sec % 60).padStart(2, '0');
+          const timerEl = document.getElementById('stt-timer');
+          if (timerEl) timerEl.textContent = `Duration: ${mm}:${ss}`;
+        }, 1000);
+
         TransifyApp.announce('Speech recognition listening started');
         TransifyApp.showToast('Microphone active! Speak now...', 'info');
       };
@@ -3918,6 +4342,10 @@ var TransifySTT = window.TransifySTT = {
 
   stop() {
     this.isListening = false;
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
     if (this.recognition) {
       try {
         this.recognition.stop();
@@ -3929,7 +4357,18 @@ var TransifySTT = window.TransifySTT = {
 
   clear() {
     this.finalTranscript = '';
+    this.startTime = null;
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
     this.renderText('', '');
+    const wordCount = document.getElementById('stt-word-count');
+    const timerEl = document.getElementById('stt-timer');
+    const wpmEl = document.getElementById('stt-wpm');
+    if (wordCount) wordCount.textContent = '0 words';
+    if (timerEl) timerEl.textContent = 'Duration: 00:00';
+    if (wpmEl) wpmEl.textContent = 'Pace: 0 WPM';
     TransifyApp.showToast('Captions cleared.', 'info');
   },
 
@@ -3943,36 +4382,49 @@ var TransifySTT = window.TransifySTT = {
     }
     if (finalSpan) finalSpan.textContent = finalText;
     if (interimSpan) interimSpan.textContent = interimText;
+
+    this.updateTelemetry(finalText + ' ' + interimText);
+
+    if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.currentMode === 'bridge') {
+      window.TransifyVoiceStudio.syncActiveSpeechToBridge(finalText);
+    }
   },
 
   updateUI(listening) {
     const btn = document.getElementById('stt-toggle-btn');
-    const icon = document.getElementById('stt-mic-icon');
     const hint = document.getElementById('stt-mic-hint');
     const pill = document.getElementById('stt-status-pill');
+    const rings = document.getElementById('stt-mic-rings-wrap');
+    const diagMic = document.getElementById('diag-mic-status');
 
     if (listening) {
       if (btn) btn.classList.add('listening');
-      if (icon) icon.textContent = '⏹️';
+      if (rings) rings.classList.add('active');
       if (hint) {
         hint.textContent = 'Listening... Speak now';
         hint.style.color = '#dc2626';
       }
       if (pill) {
         pill.textContent = '🔴 Listening Live...';
-        pill.className = 'badge badge-danger';
+        pill.className = 'care-badge online';
+        pill.style.background = 'rgba(239, 68, 68, 0.15)';
+        pill.style.color = '#dc2626';
       }
+      if (diagMic) diagMic.textContent = 'Capturing';
     } else {
       if (btn) btn.classList.remove('listening');
-      if (icon) icon.textContent = '🎙️';
+      if (rings) rings.classList.remove('active');
       if (hint) {
-        hint.textContent = 'Tap to Speak';
-        hint.style.color = '#4b1a11';
+        hint.textContent = 'Tap microphone to speak';
+        hint.style.color = 'var(--text-2)';
       }
       if (pill) {
-        pill.textContent = '🎙️ Ready to Listen';
-        pill.className = 'badge badge-info';
+        pill.textContent = 'Ready to Listen';
+        pill.className = 'care-badge online';
+        pill.style.background = 'rgba(34, 197, 94, 0.1)';
+        pill.style.color = '#15803d';
       }
+      if (diagMic) diagMic.textContent = 'Standby';
     }
   }
 };
@@ -3996,13 +4448,13 @@ var TransifyTTSPage = window.TransifyTTSPage = {
     const stopBtn = document.getElementById('tts-stop-btn');
     const clearBtn = document.getElementById('tts-clear-btn');
     const langSelect = document.getElementById('tts-lang-select');
-    const charCount = document.getElementById('tts-char-count');
     const speedBtns = document.querySelectorAll('.tts-speed-btn');
-    const chips = document.querySelectorAll('.tts-quick-chip');
 
-    if (textarea && charCount) {
+    if (textarea) {
       textarea.addEventListener('input', () => {
-        charCount.textContent = `${textarea.value.length} chars`;
+        if (window.TransifyVoiceStudio) {
+          window.TransifyVoiceStudio.updateTTSStats(textarea.value);
+        }
       });
     }
 
@@ -4014,13 +4466,12 @@ var TransifyTTSPage = window.TransifyTTSPage = {
 
     speedBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        speedBtns.forEach(b => {
-          b.classList.remove('active', 'btn-primary');
-          b.classList.add('btn-secondary');
-        });
-        btn.classList.remove('btn-secondary');
-        btn.classList.add('btn-primary', 'active');
-        this.speed = parseFloat(btn.dataset.speed || '1.0');
+        const spd = parseFloat(btn.getAttribute('data-speed') || '1.0');
+        if (window.TransifyVoiceStudio) {
+          window.TransifyVoiceStudio.setTTSSpeed(spd);
+        } else {
+          this.speed = spd;
+        }
       });
     });
 
@@ -4040,6 +4491,8 @@ var TransifyTTSPage = window.TransifyTTSPage = {
         if ('speechSynthesis' in window) {
           window.speechSynthesis.cancel();
         }
+        const wave = document.getElementById('tts-wave-bar');
+        if (wave) wave.style.display = 'none';
         TransifyApp.showToast('Voice playback stopped.', 'info');
       });
     }
@@ -4047,22 +4500,11 @@ var TransifyTTSPage = window.TransifyTTSPage = {
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
         if (textarea) textarea.value = '';
-        if (charCount) charCount.textContent = '0 chars';
-      });
-    }
-
-    chips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        const phrase = chip.dataset.phrase;
-        if (phrase) {
-          if (textarea) {
-            textarea.value = phrase;
-            if (charCount) charCount.textContent = `${phrase.length} chars`;
-          }
-          this.speakText(phrase);
+        if (window.TransifyVoiceStudio) {
+          window.TransifyVoiceStudio.updateTTSStats('');
         }
       });
-    });
+    }
   },
 
   speakText(text) {
@@ -4070,6 +4512,7 @@ var TransifyTTSPage = window.TransifyTTSPage = {
     const cleanText = text.trim();
     const langSelect = document.getElementById('tts-lang-select');
     const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
+    const wave = document.getElementById('tts-wave-bar');
 
     if ('speechSynthesis' in window) {
       try {
@@ -4095,25 +4538,29 @@ var TransifyTTSPage = window.TransifyTTSPage = {
           speakBtn.innerHTML = '🔊 Speaking...';
           speakBtn.classList.add('btn-success');
         }
+        if (wave) wave.style.display = 'flex';
       };
       utterance.onend = () => {
         if (speakBtn) {
-          speakBtn.innerHTML = '🔊 Speak Voice';
+          speakBtn.innerHTML = 'Speak text';
           speakBtn.classList.remove('btn-success');
         }
+        if (wave) wave.style.display = 'none';
       };
       utterance.onerror = (e) => {
         console.warn('TTS utterance error:', e);
         if (speakBtn) {
-          speakBtn.innerHTML = '🔊 Speak Voice';
+          speakBtn.innerHTML = 'Speak text';
           speakBtn.classList.remove('btn-success');
         }
+        if (wave) wave.style.display = 'none';
         TransifyTTS.fallbackServerTTS(cleanText);
       };
 
       try {
         window.speechSynthesis.speak(utterance);
       } catch (e) {
+        if (wave) wave.style.display = 'none';
         TransifyTTS.fallbackServerTTS(cleanText);
       }
       TransifyApp.showToast(`Speaking: "${cleanText.slice(0, 30)}..."`, 'success');
@@ -4146,6 +4593,9 @@ function initTransifyAllModules() {
   if (window.TransifyTTSPage && window.TransifyTTSPage.init && (document.getElementById('slide-tts') || document.getElementById('tts-input-text'))) {
     window.TransifyTTSPage.init();
   }
+  if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.init && (document.getElementById('view-voice') || document.getElementById('stt-toggle-btn') || document.getElementById('voice-pane-studio'))) {
+    window.TransifyVoiceStudio.init();
+  }
   if (window.DashboardPage && window.DashboardPage.init && (document.getElementById('dashboard-container') || document.getElementById('system-status-badge') || document.getElementById('history-records-list'))) {
     window.DashboardPage.init();
   }
@@ -4158,6 +4608,7 @@ function initTransifyAllModules() {
   window.TransifySTT = TransifySTT;
   window.TransifyTTSPage = TransifyTTSPage;
   window.TransifyTTS = TransifyTTS;
+  window.TransifyVoiceStudio = TransifyVoiceStudio;
   window.openAuthSheet = (m) => TransifyApp.openAuthSheet(m);
   window.closeAuthSheet = () => TransifyApp.closeAuthSheet();
   window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
@@ -4946,6 +5397,9 @@ const EditorialController = {
     }
     if (route === 'braille' && window.BraillePage && window.BraillePage.init) {
       window.BraillePage.init();
+    }
+    if ((route === 'stt' || route === 'tts' || route === 'voice') && window.TransifyVoiceStudio && window.TransifyVoiceStudio.init) {
+      window.TransifyVoiceStudio.init();
     }
     if (route === 'chat' && window.ChatbotPage && window.ChatbotPage.init) {
       window.ChatbotPage.init();

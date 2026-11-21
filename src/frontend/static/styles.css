@@ -5877,14 +5877,346 @@ button.welcome-guest-link {
 .tts-textarea {
   width: 100%;
   box-sizing: border-box;
-  min-height: 120px;
+  min-height: 110px;
   border: 1.5px solid var(--line-2);
   border-radius: 10px;
   padding: 14px;
-  font-size: 18px;
+  font-size: 17px;
   color: var(--ink);
   background: #FAFAFD;
   resize: vertical;
+}
+
+/* ==========================================================================
+   NEURAL VOICE STUDIO 2.0 EXTENSIONS (STT, TTS, BRIDGE, ACOUSTICS)
+   ========================================================================== */
+.voice-subpane {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.voice-samples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.voice-sample-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-2, #F8F7FD);
+  border: 1.5px solid var(--line, #E2DCF3);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.voice-sample-chip:hover {
+  border-color: var(--violet, #8338EC);
+  background: rgba(131, 56, 236, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(131, 56, 236, 0.15);
+}
+
+.voice-sample-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.voice-card-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--surface-2, #F8F7FD);
+  border: 1px solid var(--line, #E2DCF3);
+  border-radius: 10px;
+}
+
+.voice-toolbar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.voice-toolbar-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2, #6B6282);
+  white-space: nowrap;
+}
+
+.voice-visualizer-wrap {
+  width: 100%;
+  height: 42px;
+  background: #110E1B;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.stt-visualizer-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.voice-telemetry-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.telemetry-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: var(--surface-2, #F8F7FD);
+  border: 1px solid var(--line, #E2DCF3);
+  color: var(--text-2, #6B6282);
+}
+
+.voice-mic-hint {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2, #6B6282);
+  margin-top: 4px;
+}
+
+.voice-dials-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tts-speed-bar {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--surface-2, #F8F7FD);
+  border: 1px solid var(--line, #E2DCF3);
+  padding: 3px;
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.tts-speed-btn {
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--text-2, #6B6282);
+  transition: all 0.15s ease;
+}
+
+.tts-speed-btn:hover {
+  color: var(--ink, #1E1B29);
+}
+
+.tts-speed-btn.active {
+  background: var(--violet, #8338EC) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(131, 56, 236, 0.3);
+}
+
+.voice-quick-phrases {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.voice-chips-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.voice-quick-chip {
+  background: var(--surface-2, #F8F7FD);
+  border: 1px solid var(--line, #E2DCF3);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink, #1E1B29);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.voice-quick-chip:hover {
+  background: rgba(131, 56, 236, 0.1);
+  border-color: var(--violet, #8338EC);
+  color: var(--violet, #8338EC);
+}
+
+.tts-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2, #6B6282);
+}
+
+.tts-wave-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(131, 56, 236, 0.08);
+  border: 1px solid rgba(131, 56, 236, 0.25);
+  border-radius: 8px;
+  padding: 8px 14px;
+}
+
+.wave-stick {
+  width: 4px;
+  border-radius: 2px;
+  background: var(--violet, #8338EC);
+  animation: waveBounce 0.8s ease-in-out infinite alternate;
+}
+
+.wave-stick.s1 { height: 16px; animation-delay: 0.1s; }
+.wave-stick.s2 { height: 24px; animation-delay: 0.25s; }
+.wave-stick.s3 { height: 12px; animation-delay: 0.4s; }
+.wave-stick.s4 { height: 28px; animation-delay: 0.15s; }
+.wave-stick.s5 { height: 18px; animation-delay: 0.35s; }
+.wave-stick.s6 { height: 26px; animation-delay: 0.05s; }
+.wave-stick.s7 { height: 14px; animation-delay: 0.3s; }
+.wave-stick.s8 { height: 20px; animation-delay: 0.2s; }
+
+@keyframes waveBounce {
+  0% { transform: scaleY(0.4); opacity: 0.6; }
+  100% { transform: scaleY(1.2); opacity: 1; }
+}
+
+.tts-wave-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--violet, #8338EC);
+  margin-left: 8px;
+}
+
+.voice-bridge-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 10px;
+  background: var(--surface-2, #F8F7FD);
+  border: 1.5px solid var(--line, #E2DCF3);
+  border-radius: 12px;
+  min-height: 80px;
+  align-items: center;
+}
+
+.vu-meter-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.vu-meter-bar-track {
+  width: 100%;
+  height: 12px;
+  background: var(--surface-2, #F8F7FD);
+  border: 1.5px solid var(--line, #E2DCF3);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.vu-meter-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e 0%, #eab308 65%, #ef4444 100%);
+  border-radius: 6px;
+  transition: width 0.12s ease-out;
+}
+
+.vu-meter-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2, #6B6282);
+}
+
+.voice-diag-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.diag-stat-card {
+  background: var(--surface-2, #F8F7FD);
+  border: 1.5px solid var(--line, #E2DCF3);
+  border-radius: 12px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.diag-stat-val {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--violet, #8338EC);
+}
+
+.diag-stat-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2, #6B6282);
+}
+
+/* Dark Theme Adaptations for Voice Studio */
+[data-theme="dark"] .voice-sample-chip,
+[data-theme="dark"] .voice-card-toolbar,
+[data-theme="dark"] .telemetry-badge,
+[data-theme="dark"] .tts-speed-bar,
+[data-theme="dark"] .voice-quick-chip,
+[data-theme="dark"] .voice-bridge-strip,
+[data-theme="dark"] .vu-meter-bar-track,
+[data-theme="dark"] .diag-stat-card {
+  background: var(--surface-2) !important;
+  border-color: var(--line) !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .voice-quick-chip:hover,
+[data-theme="dark"] .voice-sample-chip:hover {
+  background: rgba(131, 56, 236, 0.2) !important;
+  border-color: var(--violet) !important;
+}
+
+[data-theme="dark"] .tts-textarea {
+  background: var(--surface-2) !important;
+  border-color: var(--line) !important;
+  color: #FFFFFF !important;
+}
+
+/* High Contrast Adaptations */
+body.high-contrast .voice-sample-chip:hover,
+[data-theme="high-contrast"] .voice-sample-chip:hover,
+body.high-contrast .voice-quick-chip:hover,
+[data-theme="high-contrast"] .voice-quick-chip:hover {
+  border-color: #FFCB05 !important;
 }
 
 /* -------------------------------------------------------------

@@ -1376,93 +1376,371 @@
       </section>
 
       <!-- ======================================================================
-           VIEW 6: VOICE HUB SCREEN (#stt / #tts)
+           VIEW 6: VOICE HUB & NEURAL SPEECH STUDIO (#stt / #tts)
            ====================================================================== -->
       <section id="view-voice" class="page-view" aria-label="Voice Hub">
         <div class="voice-container">
           <header class="braille-header">
             <div>
-              <h1 class="phrases-h1">Voice hub</h1>
-              <p class="phrases-sub">Live speech captions and natural read aloud.</p>
+              <div class="care-badge-label" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--violet);"></span>
+                NEURAL VOICE STUDIO 2.0
+              </div>
+              <h1 class="phrases-h1">Voice hub &amp; speech studio</h1>
+              <p class="phrases-sub">Real-time bilingual captions, neural speech synthesis, and cross-modal sign &amp; Braille bridging.</p>
             </div>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" id="btn-open-tts" class="sr-only">Open TTS</button>
+            <!-- Sub-Mode Tabs -->
+            <div class="braille-mode-tabs" role="tablist" aria-label="Voice Studio Modes">
+              <button type="button" class="braille-mode-tab active press" id="voice-tab-studio" role="tab" aria-selected="true" onclick="TransifyVoiceStudio.switchMode('studio')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                <span>Voice Studio</span>
+              </button>
+              <button type="button" class="braille-mode-tab press" id="voice-tab-bridge" role="tab" aria-selected="false" onclick="TransifyVoiceStudio.switchMode('bridge')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 8-4-4-4 4"/><path d="M14 4v12a4 4 0 0 1-8 0V8"/></svg>
+                <span>Sign &amp; Braille Bridge</span>
+              </button>
+              <button type="button" class="braille-mode-tab press" id="voice-tab-diagnostics" role="tab" aria-selected="false" onclick="TransifyVoiceStudio.switchMode('diagnostics')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                <span>Acoustic Diagnostics</span>
+              </button>
             </div>
+            <!-- Hidden compatibility buttons -->
+            <button type="button" id="btn-open-tts" class="sr-only">Open TTS</button>
           </header>
 
-          <div class="voice-grid-layout">
-            <!-- Left: Speech to Text Live Captions -->
-            <div class="voice-captions-card" id="slide-stt">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Live
-                  Captions</h2>
-                <span class="care-badge online" id="stt-status-pill">Ready to Listen</span>
+          <!-- =================================================================
+               SUB-PANE 1: DUAL VOICE STUDIO (STT & TTS)
+               ================================================================= -->
+          <div id="voice-pane-studio" class="voice-subpane active">
+            <!-- Preloaded Speech Test Samples -->
+            <div class="braille-samples-section">
+              <div class="braille-samples-header">
+                <span class="braille-samples-title">⚡ Preloaded Speech &amp; Audio Samples (Click to test instantly):</span>
+                <span class="braille-samples-hint">Instant simulation without microphone or audio setup</span>
               </div>
-              <div class="voice-caption-box" id="stt-live-caption-box" aria-live="polite">
-                <span id="stt-final-text">Press the microphone below to begin live speech recognition.</span>
-                <span id="stt-interim-text" class="voice-interim"></span>
+              <div class="voice-samples-grid">
+                <button type="button" class="voice-sample-chip press" onclick="TransifyVoiceStudio.loadSample('Emergency: I need medical assistance immediately', 'en-US')">
+                  <span class="voice-sample-icon">🚨</span>
+                  <div class="sample-chip-info">
+                    <span class="sample-chip-name">Emergency Assistance</span>
+                    <span class="sample-chip-meta">English • Urgent Triage</span>
+                  </div>
+                </button>
+                <button type="button" class="voice-sample-chip press" onclick="TransifyVoiceStudio.loadSample('Clinical: Please check patient pulse and oxygen saturation', 'en-US')">
+                  <span class="voice-sample-icon">🩺</span>
+                  <div class="sample-chip-info">
+                    <span class="sample-chip-name">Clinical Checkup</span>
+                    <span class="sample-chip-meta">English • Vitals Triage</span>
+                  </div>
+                </button>
+                <button type="button" class="voice-sample-chip press" onclick="TransifyVoiceStudio.loadSample('জরুরি: আমার তীব্র শ্বাসকষ্ট হচ্ছে, দয়া করে সাহায্য করুন', 'bn-BD')">
+                  <span class="voice-sample-icon">🇧🇩</span>
+                  <div class="sample-chip-info">
+                    <span class="sample-chip-name">জরুরি শ্বাসকষ্ট (বাংলা)</span>
+                    <span class="sample-chip-meta">বাংলা • হাসপাতাল জরুরি</span>
+                  </div>
+                </button>
+                <button type="button" class="voice-sample-chip press" onclick="TransifyVoiceStudio.loadSample('Accessibility: Where is the nearest wheelchair ramp and tactile pathway?', 'en-US')">
+                  <span class="voice-sample-icon">♿</span>
+                  <div class="sample-chip-info">
+                    <span class="sample-chip-name">Wheelchair Wayfinding</span>
+                    <span class="sample-chip-meta">Accessibility • Direction</span>
+                  </div>
+                </button>
               </div>
-              <!-- Microphone Button with Expanding Rings -->
-              <div style="display: flex; justify-content: center; padding: 12px 0;">
-                <div class="mic-rings-wrap" id="stt-mic-rings-wrap">
-                  <i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i>
-                  <button type="button" id="stt-toggle-btn" class="btn-mic-main press"
-                    aria-label="Toggle speech to text recording">
-                    <svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="stt-mic-icon">
-                      <rect x="9" y="3" width="6" height="11" rx="3" />
-                      <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
-                    </svg>
+            </div>
+
+            <div class="voice-grid-layout">
+              <!-- Left: Speech to Text Live Captions -->
+              <div class="voice-captions-card" id="slide-stt">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                  <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Live Speech Captions</h2>
+                  <span class="care-badge online" id="stt-status-pill">Ready to Listen</span>
+                </div>
+
+                <!-- STT Toolbar -->
+                <div class="voice-card-toolbar">
+                  <div class="voice-toolbar-item">
+                    <label for="stt-lang-select" class="voice-toolbar-label">Language:</label>
+                    <select id="stt-lang-select" class="settings-select" style="min-height: 34px; padding: 4px 8px; font-size: 13px;">
+                      <option value="en-US" selected>🇺🇸 English (United States)</option>
+                      <option value="en-GB">🇬🇧 English (United Kingdom)</option>
+                      <option value="bn-BD">🇧🇩 বাংলা (বাংলাদেশ / BD)</option>
+                      <option value="bn-IN">🇮🇳 বাংলা (ভারত / India)</option>
+                      <option value="es-ES">🇪🇸 Español (Spanish)</option>
+                      <option value="fr-FR">🇫🇷 Français (French)</option>
+                    </select>
+                  </div>
+                  <div class="voice-toolbar-item">
+                    <label for="stt-font-toggle" class="voice-toolbar-label">Font Size:</label>
+                    <select id="stt-font-toggle" class="settings-select" style="min-height: 34px; padding: 4px 8px; font-size: 13px;" onchange="TransifyVoiceStudio.changeCaptionFont(this.value)">
+                      <option value="normal">Normal (20px)</option>
+                      <option value="large">Large (24px)</option>
+                      <option value="xlarge">Extra Large (28px)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Live Waveform Visualizer Canvas -->
+                <div class="voice-visualizer-wrap" id="stt-visualizer-container">
+                  <canvas id="stt-audio-visualizer" class="stt-visualizer-canvas" width="480" height="42"></canvas>
+                </div>
+
+                <!-- Live Caption Output Box -->
+                <div class="voice-caption-box" id="stt-live-caption-box" aria-live="polite">
+                  <span id="stt-placeholder" style="color: var(--muted-on-dark, #8C88A5); font-style: italic;">Press the microphone below to begin live speech recognition...</span>
+                  <span id="stt-final-text"></span>
+                  <span id="stt-interim-text" class="voice-interim"></span>
+                </div>
+
+                <!-- Telemetry Stats Strip -->
+                <div class="voice-telemetry-row">
+                  <span class="telemetry-badge" id="stt-word-count">0 words</span>
+                  <span class="telemetry-badge" id="stt-timer">Duration: 00:00</span>
+                  <span class="telemetry-badge" id="stt-wpm">Pace: 0 WPM</span>
+                </div>
+
+                <!-- Microphone Button with Expanding Rings -->
+                <div style="display: flex; justify-content: center; padding: 8px 0;">
+                  <div class="mic-rings-wrap" id="stt-mic-rings-wrap">
+                    <i class="ring"></i><i class="ring r2"></i><i class="ring r3"></i>
+                    <button type="button" id="stt-toggle-btn" class="btn-mic-main press"
+                      aria-label="Toggle speech to text recording">
+                      <svg aria-hidden="true" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="stt-mic-icon">
+                        <rect x="9" y="3" width="6" height="11" rx="3" />
+                        <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div id="stt-mic-hint" class="voice-mic-hint">Tap microphone to speak</div>
+
+                <!-- Caption Action Buttons -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" id="stt-copy-btn" class="btn-outline-dark press"
+                    style="height: 42px; font-size: 14px; color: var(--ink); border-color: var(--line-2);">Copy captions</button>
+                  <button type="button" id="stt-clear-btn" class="btn-outline-dark press"
+                    style="height: 42px; font-size: 14px; color: var(--ink); border-color: var(--line-2);">Clear</button>
+                  <button type="button" id="stt-send-to-tts-btn" class="btn-outline-dark press"
+                    style="height: 42px; font-size: 14px; color: var(--ink); border-color: var(--line-2);">Send to Read Aloud</button>
+                  <button type="button" id="stt-download-btn" class="btn-outline-dark press" onclick="TransifyVoiceStudio.downloadCaptionsTXT()"
+                    style="height: 42px; font-size: 14px; color: var(--ink); border-color: var(--line-2);">Download TXT</button>
+                  <button type="button" id="stt-srt-btn" class="btn-outline-dark press" onclick="TransifyVoiceStudio.downloadCaptionsSRT()"
+                    style="height: 42px; font-size: 14px; color: var(--ink); border-color: var(--line-2);">Download SRT</button>
+                  <button type="button" id="stt-bridge-sign-btn" class="btn-outline-dark press" onclick="TransifyVoiceStudio.bridgeToSign()"
+                    style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);">Bridge to Signs 🤟</button>
+                  <button type="button" id="stt-bridge-braille-btn" class="btn-outline-dark press" onclick="TransifyVoiceStudio.bridgeToBraille()"
+                    style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);">Bridge to Braille ⠃</button>
+                </div>
+              </div>
+
+              <!-- Right: Text to Speech Read Aloud -->
+              <div class="voice-tts-card" id="slide-tts">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                  <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Natural Read Aloud</h2>
+                  <span class="care-badge" id="tts-voice-status" style="background: rgba(34,197,94,0.1); color: #15803d; border: 1px solid rgba(34,197,94,0.25);">Neural Synthesizer</span>
+                </div>
+
+                <!-- TTS Voice & Language Toolbar -->
+                <div class="voice-card-toolbar">
+                  <div class="voice-toolbar-item">
+                    <label for="tts-lang-select" class="voice-toolbar-label">Language:</label>
+                    <select id="tts-lang-select" class="settings-select" style="min-height: 34px; padding: 4px 8px; font-size: 13px;">
+                      <option value="en-US" selected>🇺🇸 English (US)</option>
+                      <option value="en-GB">🇬🇧 English (UK)</option>
+                      <option value="bn-BD">🇧🇩 বাংলা (Bengali)</option>
+                    </select>
+                  </div>
+                  <div class="voice-toolbar-item">
+                    <label for="tts-voice-persona" class="voice-toolbar-label">Voice Persona:</label>
+                    <select id="tts-voice-persona" class="settings-select" style="min-height: 34px; padding: 4px 8px; font-size: 13px;" onchange="TransifyVoiceStudio.changeVoicePersona(this.value)">
+                      <option value="default" selected>✨ System Natural</option>
+                      <option value="female">👩 Studio Female (Clear)</option>
+                      <option value="male">👨 Professional Male</option>
+                      <option value="bangla">🇧🇩 Bangla Studio (ফারহানা)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Voice Speed Dial Segmented Control -->
+                <div class="voice-dials-row">
+                  <span class="voice-toolbar-label">Playback Rate:</span>
+                  <div class="tts-speed-bar" role="group" aria-label="Speech Speed">
+                    <button type="button" class="tts-speed-btn press" data-speed="0.75" onclick="TransifyVoiceStudio.setTTSSpeed(0.75)">0.75x</button>
+                    <button type="button" class="tts-speed-btn active press" data-speed="1.0" onclick="TransifyVoiceStudio.setTTSSpeed(1.0)">1.0x (Normal)</button>
+                    <button type="button" class="tts-speed-btn press" data-speed="1.25" onclick="TransifyVoiceStudio.setTTSSpeed(1.25)">1.25x</button>
+                    <button type="button" class="tts-speed-btn press" data-speed="1.5" onclick="TransifyVoiceStudio.setTTSSpeed(1.5)">1.5x</button>
+                    <button type="button" class="tts-speed-btn press" data-speed="2.0" onclick="TransifyVoiceStudio.setTTSSpeed(2.0)">2.0x</button>
+                  </div>
+                </div>
+
+                <!-- Quick Phrases Bar -->
+                <div class="voice-quick-phrases">
+                  <span class="voice-toolbar-label" style="margin-bottom: 4px; display: block;">⚡ Quick Medical &amp; Everyday Phrases:</span>
+                  <div class="voice-chips-scroll">
+                    <button type="button" class="voice-quick-chip press" onclick="TransifyVoiceStudio.insertTTSPhrase('Emergency! Please call 999 immediately.')">🚨 Emergency 999</button>
+                    <button type="button" class="voice-quick-chip press" onclick="TransifyVoiceStudio.insertTTSPhrase('I need to take my prescribed medication now.')">💊 Take Medication</button>
+                    <button type="button" class="voice-quick-chip press" onclick="TransifyVoiceStudio.insertTTSPhrase('Please hold the door, I require wheelchair access.')">♿ Wheelchair Access</button>
+                    <button type="button" class="voice-quick-chip press" onclick="TransifyVoiceStudio.insertTTSPhrase('আমার রক্তের গ্রুপ ও-পজিটিভ, জরুরি রক্ত প্রয়োজন।')">🇧🇩 রক্তের গ্রুপ ও-পজিটিভ</button>
+                    <button type="button" class="voice-quick-chip press" onclick="TransifyVoiceStudio.insertTTSPhrase('আমার কথা বলতে কষ্ট হচ্ছে, আমাকে সাহায্য করুন।')">🇧🇩 কথা বলতে কষ্ট হচ্ছে</button>
+                    <button type="button" class="voice-quick-chip press" onclick="TransifyVoiceStudio.insertTTSPhrase('Hello, nice to meet you. Thank you for your support.')">👋 Hello &amp; Thank you</button>
+                  </div>
+                </div>
+
+                <!-- Textarea -->
+                <label for="tts-input-text" class="sr-only">Text to speak aloud</label>
+                <textarea id="tts-input-text" class="tts-textarea" rows="4"
+                  placeholder="Type or paste any text to speak aloud in natural voice..."></textarea>
+
+                <div class="tts-meta-row">
+                  <span id="tts-char-count">0 characters</span>
+                  <span id="tts-est-time">Est. Speech: 0s</span>
+                </div>
+
+                <!-- Active Voice Equalizer Wave Bar -->
+                <div class="tts-wave-bar" id="tts-wave-bar" style="display: none;">
+                  <span class="wave-stick s1"></span>
+                  <span class="wave-stick s2"></span>
+                  <span class="wave-stick s3"></span>
+                  <span class="wave-stick s4"></span>
+                  <span class="wave-stick s5"></span>
+                  <span class="wave-stick s6"></span>
+                  <span class="wave-stick s7"></span>
+                  <span class="wave-stick s8"></span>
+                  <span class="tts-wave-label">Audio Synthesizer Active</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" id="tts-speak-btn" class="btn-welcome-primary press"
+                    style="height: 44px; font-size: 15px; padding: 0 20px;">Speak text</button>
+                  <button type="button" id="tts-pause-btn" class="btn-outline-dark press" onclick="TransifyVoiceStudio.pauseTTS()"
+                    style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Pause / Resume</button>
+                  <button type="button" id="tts-stop-btn" class="btn-outline-dark press"
+                    style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Stop</button>
+                  <button type="button" id="tts-clear-btn" class="btn-outline-dark press"
+                    style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Clear</button>
+                  <button type="button" id="tts-copy-btn" class="btn-outline-dark press" onclick="TransifyVoiceStudio.copyTTSText()"
+                    style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Copy text</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- =================================================================
+               SUB-PANE 2: VOICE-TO-SIGN & BRAILLE LIVE BRIDGE
+               ================================================================= -->
+          <div id="voice-pane-bridge" class="voice-subpane" style="display: none;">
+            <div class="braille-ref-intro">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Cross-Modal Voice Bridge</h2>
+                  <p style="margin: 4px 0 0; color: var(--text-2); font-size: 14px;">Instant real-time translation of spoken voice into ASL Fingerspelling gestures and 6-Dot Unicode Braille.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn-welcome-primary press" onclick="TransifyVoiceStudio.syncActiveSpeechToBridge()" style="height: 38px; font-size: 13px; padding: 0 14px;">
+                    🔄 Sync Current Voice
                   </button>
                 </div>
               </div>
-              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" id="stt-copy-btn" class="btn-outline-dark press"
-                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Copy
-                  captions</button>
-                <button type="button" id="stt-clear-btn" class="btn-outline-dark press"
-                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Clear</button>
-                <button type="button" id="stt-send-to-tts-btn" class="btn-outline-dark press"
-                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Send to
-                  speak</button>
-              </div>
-              <div class="sr-only">
-                <select id="stt-lang-select">
-                  <option value="en-US">English</option>
-                  <option value="bn-BD">Bengali</option>
-                </select>
-                <span id="stt-mic-hint"></span>
-                <button type="button" id="stt-font-toggle"></button>
-                <span id="stt-font-label"></span>
-                <span id="stt-placeholder"></span>
-              </div>
             </div>
 
-            <!-- Right: Text to Speech Read Aloud -->
-            <div class="voice-tts-card" id="slide-tts">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Read Aloud
-                </h2>
-                <div style="display: flex; gap: 6px;">
-                  <select id="tts-lang-select" class="lang-segmented"
-                    style="border: none; padding: 4px 8px; font-size: 14px; font-weight: 700; color: var(--ink);">
-                    <option value="en">English (US)</option>
-                    <option value="bn">বাংলা (Bengali)</option>
-                  </select>
+            <div class="voice-grid-layout">
+              <!-- Bridge Left: ASL Fingerspelling Translation -->
+              <div class="voice-captions-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;">🤟 ASL Fingerspelling Stream</h3>
+                  <button type="button" class="btn-micro press" onclick="window.routeTo('sign')">Open Sign Translator</button>
+                </div>
+                <p style="margin: 0; color: var(--text-2); font-size: 13px;">Live translation of spoken characters into American Sign Language manual gestures.</p>
+                
+                <div class="voice-bridge-strip" id="voice-bridge-sign-strip">
+                  <span class="braille-empty-hint">Speak in the Voice Studio to render manual alphabet signs</span>
                 </div>
               </div>
-              <label for="tts-input-text" class="sr-only">Text to speak aloud</label>
-              <textarea id="tts-input-text" class="tts-textarea"
-                placeholder="Type or paste any text to speak aloud in natural voice..."></textarea>
-              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" id="tts-speak-btn" class="btn-welcome-primary press"
-                  style="height: 48px; font-size: 16px; padding: 0 24px;">Speak text</button>
-                <button type="button" id="tts-stop-btn" class="btn-outline-dark press"
-                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Stop</button>
-                <button type="button" id="tts-clear-btn" class="btn-outline-dark press"
-                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Clear</button>
+
+              <!-- Bridge Right: 6-Dot Tactile Braille Cells -->
+              <div class="voice-tts-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;">⠃ Tactile Braille Cells Stream</h3>
+                  <button type="button" class="btn-micro press" onclick="window.routeTo('braille')">Open Braille Studio</button>
+                </div>
+                <p style="margin: 0; color: var(--text-2); font-size: 13px;">UEB Grade 1 and Bengali Bharati Braille dot matrix representation of spoken audio.</p>
+                
+                <div class="voice-bridge-strip" id="voice-bridge-braille-strip">
+                  <span class="braille-empty-hint">Speak in the Voice Studio to render tactile Braille cells</span>
+                </div>
               </div>
-              <span id="tts-char-count" class="sr-only">0 characters</span>
+            </div>
+          </div>
+
+          <!-- =================================================================
+               SUB-PANE 3: ACOUSTIC HEALTH & TELEMETRY DIAGNOSTICS
+               ================================================================= -->
+          <div id="voice-pane-diagnostics" class="voice-subpane" style="display: none;">
+            <div class="braille-ref-intro">
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Acoustic Health &amp; Input Telemetry</h2>
+              <p style="margin: 4px 0 0; color: var(--text-2); font-size: 14px;">Clinical audio monitoring, microphone decibel calibration, and speech fluency rate metrics.</p>
+            </div>
+
+            <div class="voice-grid-layout">
+              <!-- Acoustic VU Meter & Microphone Health -->
+              <div class="voice-captions-card">
+                <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;">🎙️ Microphone Decibel Meter (VU)</h3>
+                <p style="margin: 0; color: var(--text-2); font-size: 13px;">Real-time acoustic input pressure level with ambient noise threshold detection.</p>
+                
+                <div class="vu-meter-wrap">
+                  <div class="vu-meter-bar-track">
+                    <div class="vu-meter-bar-fill" id="vu-meter-fill" style="width: 32%;"></div>
+                  </div>
+                  <div class="vu-meter-labels">
+                    <span>-60 dB (Silence)</span>
+                    <span>-24 dB (Speech)</span>
+                    <span>0 dB (Clipping)</span>
+                  </div>
+                </div>
+
+                <div class="voice-diag-stats">
+                  <div class="diag-stat-card">
+                    <span class="diag-stat-val" id="diag-mic-status">Active</span>
+                    <span class="diag-stat-lbl">Microphone Engine</span>
+                  </div>
+                  <div class="diag-stat-card">
+                    <span class="diag-stat-val" id="diag-sample-rate">48.0 kHz</span>
+                    <span class="diag-stat-lbl">Sampling Frequency</span>
+                  </div>
+                  <div class="diag-stat-card">
+                    <span class="diag-stat-val" id="diag-latency">&lt; 18 ms</span>
+                    <span class="diag-stat-lbl">Audio I/O Latency</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Speech Fluency & Biomarker Tracking -->
+              <div class="voice-tts-card">
+                <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;">🩺 Speech Fluency &amp; Biomarkers</h3>
+                <p style="margin: 0; color: var(--text-2); font-size: 13px;">Clinical speech rate indicator for assistive evaluation of dysarthria or respiratory effort.</p>
+                
+                <div class="voice-diag-stats">
+                  <div class="diag-stat-card">
+                    <span class="diag-stat-val" id="diag-wpm-val">128 WPM</span>
+                    <span class="diag-stat-lbl">Speech Rate</span>
+                  </div>
+                  <div class="diag-stat-card">
+                    <span class="diag-stat-val" id="diag-fluency-val">Normal</span>
+                    <span class="diag-stat-lbl">Fluency State</span>
+                  </div>
+                  <div class="diag-stat-card">
+                    <span class="diag-stat-val" id="diag-pause-val">0.3s</span>
+                    <span class="diag-stat-lbl">Mean Pause Duration</span>
+                  </div>
+                </div>
+
+                <div style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); border-radius: 10px; padding: 12px; font-size: 13px; color: #15803d;">
+                  <strong>✅ Acoustic Environment Optimal:</strong> Low reverberation, ambient SNR &gt; 22 dB. Speech recognition operates at peak neural accuracy.
+                </div>
+              </div>
             </div>
           </div>
         </div>
