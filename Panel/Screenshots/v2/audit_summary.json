@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-21T14:52:18.021421Z",
+  "timestamp": "2026-11-21T21:39:27.209360Z",
   "safety_audit": {
     "rule_metadata_complete": true,
     "total_rules": 11,
@@ -94,7 +94,7 @@
     "chunks_in_db": 12,
     "sources": [
       {
-        "id": 674,
+        "id": 770,
         "source_id": "SRC-WHO-TRIAGE-2020",
         "title": "WHO Interagency Integrated Triage Tool: Adult and Pediatric Triage Protocols (Facility Adaptation Prototype)",
         "publisher": "World Health Organization (WHO)",
@@ -104,7 +104,7 @@
         "status": "PENDING_REVIEW"
       },
       {
-        "id": 675,
+        "id": 771,
         "source_id": "SRC-DGHS-BD-DENGUE-5TH-ED",
         "title": "National Guidelines for Clinical Management of Dengue Syndrome in Bangladesh (5th Edition)",
         "publisher": "Disease Control Unit, Directorate General of Health Services (DGHS), Ministry of Health & Family Welfare, Government of Bangladesh",
@@ -114,7 +114,7 @@
         "status": "PENDING_REVIEW"
       },
       {
-        "id": 676,
+        "id": 772,
         "source_id": "SRC-DGHS-BD-STROKE-2021",
         "title": "Clinical Practice Guidelines for Acute Ischemic Stroke Management in Bangladesh",
         "publisher": "National Institute of Neurosciences & Hospital (NINS) / DGHS Bangladesh",
@@ -124,7 +124,7 @@
         "status": "PENDING_REVIEW"
       },
       {
-        "id": 677,
+        "id": 773,
         "source_id": "SRC-MERCK-MANUALS-2024",
         "title": "Merck Manual of Diagnosis and Therapy (Professional Edition) - Clinical Decision Support",
         "publisher": "Merck Sharp & Dohme Corp. / Merck & Co.",
@@ -134,7 +134,7 @@
         "status": "APPROVED"
       },
       {
-        "id": 678,
+        "id": 774,
         "source_id": "SRC-MIMIC-IV-CRITICAL-2023",
         "title": "MIMIC-IV Clinical Reasoning & Vital Signs Reference Standard",
         "publisher": "MIT Laboratory for Computational Physiology / PhysioNet",
@@ -144,7 +144,7 @@
         "status": "APPROVED"
       },
       {
-        "id": 679,
+        "id": 775,
         "source_id": "SRC-NLM-MESH-2024",
         "title": "U.S. National Library of Medicine Medical Subject Headings (MeSH) Controlled Vocabulary",
         "publisher": "National Institutes of Health (NIH) / U.S. NLM",
@@ -154,7 +154,7 @@
         "status": "APPROVED"
       },
       {
-        "id": 680,
+        "id": 776,
         "source_id": "SRC-WHO-GHO-EPIDEMIC-2024",
         "title": "WHO Global Health Observatory Disease Prevalence & Regional Outbreak Surveillance Protocol",
         "publisher": "World Health Organization (WHO) Global Health Observatory",
@@ -164,7 +164,7 @@
         "status": "APPROVED"
       },
       {
-        "id": 681,
+        "id": 777,
         "source_id": "SRC-HMD-MORTALITY-2024",
         "title": "Human Mortality Database (HMD) International Actuarial Life Tables & Long-Term Health Trends",
         "publisher": "University of California, Berkeley & Max Planck Institute for Demographic Research",

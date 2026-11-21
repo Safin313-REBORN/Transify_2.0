@@ -51,8 +51,11 @@
       this.bindEvents();
       this.setupOfflineWatcher();
       this.updateOfflineBadge();
-      this.loadDashboardStats();
-      this.loadClinicianQueue();
+      const token = localStorage.getItem('transify_auth_token');
+      if (token) {
+        this.loadDashboardStats();
+        this.loadClinicianQueue();
+      }
       this.initChronicCare();
     },
 
@@ -1222,6 +1225,21 @@
       const tbody = document.getElementById('clinician-queue-tbody');
       if (!tbody) return;
 
+      const token = localStorage.getItem('transify_auth_token');
+      if (!token) {
+        clearElement(tbody);
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 6;
+        td.style.textAlign = 'center';
+        td.style.padding = '16px';
+        td.style.color = 'var(--text-muted)';
+        td.textContent = 'Please sign in to view the clinical review queue.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
       let url = '/api/care/intakes?limit=50';
       if (filterStatus) url += `&status=${encodeURIComponent(filterStatus)}`;
 
@@ -1572,6 +1590,8 @@
     },
 
     loadDashboardStats: function () {
+      const token = localStorage.getItem('transify_auth_token');
+      if (!token) return;
       fetch('/api/care/dashboard/stats')
         .then(res => {
           if (!res.ok) return null;

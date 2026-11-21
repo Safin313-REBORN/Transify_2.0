@@ -292,7 +292,9 @@ window.applyFontScale = function (scale) {
     });
   }
   document.documentElement.setAttribute('data-scale', scale);
+  document.documentElement.setAttribute('data-font-scale', scale);
   document.body.setAttribute('data-scale', scale);
+  document.body.setAttribute('data-font-scale', scale);
   try { localStorage.setItem('transify_font_scale', scale); } catch (_) { }
   if (window.TransifyApp && window.TransifyApp.showToast) {
     const labelMap = { normal: '100%', large: '115%', xlarge: '130%' };
@@ -3993,6 +3995,8 @@ const EditorialController = {
 
   setupRouter() {
     window.routeTo = (r) => this.routeTo(r);
+    window.EditorialController = this;
+    if (window.TransifyApp) window.TransifyApp.routeTo = (r) => this.routeTo(r);
 
     // Rail logo click to go to Home
     const logoBtn = document.getElementById('rail-logo-btn');
@@ -5251,7 +5255,9 @@ const EditorialController = {
       });
     }
     document.documentElement.setAttribute('data-scale', scale);
+    document.documentElement.setAttribute('data-font-scale', scale);
     document.body.setAttribute('data-scale', scale);
+    document.body.setAttribute('data-font-scale', scale);
   },
 
   refreshSettingsUserUI() {
