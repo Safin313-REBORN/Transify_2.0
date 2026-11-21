@@ -125,8 +125,8 @@ window.applyThemeGlobal = function (theme) {
   } catch (e) { }
 };
 
-window.setAppLanguage = function (lang) {
-  try { localStorage.setItem('transify_lang', lang); } catch (_) { }
+window.setAppLanguage = function(lang) {
+  try { localStorage.setItem('transify_lang', lang); } catch (_) {}
   if (typeof applyLocale === 'function') applyLocale(lang);
   const enBtn = document.getElementById('home-lang-en');
   const bnBtn = document.getElementById('home-lang-bn');
@@ -143,7 +143,7 @@ window.setAppLanguage = function (lang) {
   }
 };
 
-window.testVoicePreview = function () {
+window.testVoicePreview = function() {
   const phrase = 'Welcome to Transify. Assistive voice synthesis is verified and operating.';
   if (window.TransifyApp && window.TransifyApp.speak) {
     window.TransifyApp.speak(phrase, { rate: (window.TransifyApp && window.TransifyApp.speechRate) || 1.0 });
@@ -157,9 +157,9 @@ window.testVoicePreview = function () {
   }
 };
 
-window.exportSettingsData = function () {
+window.exportSettingsData = function() {
   let profData = {};
-  try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) { }
+  try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) {}
   const dump = {
     app: 'Transify 2.0',
     exported_at: new Date().toISOString(),
@@ -187,7 +187,7 @@ window.exportSettingsData = function () {
   }
 };
 
-window.clearActivityHistory = async function () {
+window.clearActivityHistory = async function() {
   const recentList = document.getElementById('home-recent-list');
   if (recentList) {
     recentList.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-2); font-size: 14px; font-weight: 600;">No recent translations yet.</div>';
@@ -200,7 +200,7 @@ window.clearActivityHistory = async function () {
   }
 };
 
-window.copySystemDiagnostics = function () {
+window.copySystemDiagnostics = function() {
   const curTheme = document.documentElement.getAttribute('data-theme') || 'light';
   const diagInfo = `Transify 2.0 Diagnostics\nTimestamp: ${new Date().toISOString()}\nPlatform: ${navigator.platform || 'Linux'}\nResolution: ${window.innerWidth}x${window.innerHeight}\nTheme: ${curTheme}\nConnection: ${navigator.onLine ? 'Online' : 'Offline'}\nMediaPipe Vision: Available (0.10.14 WebAssembly)\nSpeech: Zero Auto-Audio Policy`;
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -220,7 +220,7 @@ window.copySystemDiagnostics = function () {
   }
 };
 
-window.submitDeveloperFeedback = function () {
+window.submitDeveloperFeedback = function() {
   const contactMsg = document.getElementById('contact-message');
   if (!contactMsg) return;
   const text = contactMsg.value.trim();
@@ -239,7 +239,7 @@ window.submitDeveloperFeedback = function () {
 // =============================================================
 // Unified Global Settings Option Handlers (100% Reliable Direct Calls)
 // =============================================================
-window.switchSettingsTab = function (tabName) {
+window.switchSettingsTab = function(tabName) {
   const tabs = document.querySelectorAll('.settings-nav-tab');
   const panes = document.querySelectorAll('.settings-tab-pane');
   if (!tabs.length || !panes.length) return;
@@ -256,10 +256,10 @@ window.switchSettingsTab = function (tabName) {
     pane.style.display = isTarget ? 'flex' : 'none';
   });
 
-  try { localStorage.setItem('transify_settings_tab', tabName); } catch (_) { }
+  try { localStorage.setItem('transify_settings_tab', tabName); } catch (_) {}
 };
 
-window.setConfidenceGate = function (val) {
+window.setConfidenceGate = function(val) {
   const strVal = String(val);
   const radios = document.querySelectorAll('input[name="setting_confidence_radio"]');
   radios.forEach(r => {
@@ -269,7 +269,7 @@ window.setConfidenceGate = function (val) {
   if (confGate) {
     confGate.value = strVal;
   }
-  try { localStorage.setItem('transify_confidence_gate', strVal); } catch (_) { }
+  try { localStorage.setItem('transify_confidence_gate', strVal); } catch (_) {}
 
   const glider = document.querySelector('#setting-confidence-radio-group .glider');
   if (glider) {
@@ -284,7 +284,7 @@ window.setConfidenceGate = function (val) {
   }
 };
 
-window.applyFontScale = function (scale) {
+window.applyFontScale = function(scale) {
   const group = document.getElementById('settings-fontsize-group');
   if (group) {
     group.querySelectorAll('.segmented-btn').forEach(btn => {
@@ -292,17 +292,15 @@ window.applyFontScale = function (scale) {
     });
   }
   document.documentElement.setAttribute('data-scale', scale);
-  document.documentElement.setAttribute('data-font-scale', scale);
   document.body.setAttribute('data-scale', scale);
-  document.body.setAttribute('data-font-scale', scale);
-  try { localStorage.setItem('transify_font_scale', scale); } catch (_) { }
+  try { localStorage.setItem('transify_font_scale', scale); } catch (_) {}
   if (window.TransifyApp && window.TransifyApp.showToast) {
     const labelMap = { normal: '100%', large: '115%', xlarge: '130%' };
     window.TransifyApp.showToast(`Typography scaled to ${labelMap[scale] || scale}`, 'info');
   }
 };
 
-window.setSpeechRate = function (rate) {
+window.setSpeechRate = function(rate) {
   const fRate = parseFloat(rate);
   const group = document.getElementById('settings-speech-rate-group');
   if (group) {
@@ -311,20 +309,20 @@ window.setSpeechRate = function (rate) {
     });
   }
   if (window.TransifyApp) window.TransifyApp.speechRate = fRate;
-  try { localStorage.setItem('transify_speech_rate', fRate.toString()); } catch (_) { }
+  try { localStorage.setItem('transify_speech_rate', fRate.toString()); } catch (_) {}
   if (window.TransifyApp && window.TransifyApp.showToast) {
     window.TransifyApp.showToast(`Speech rate set to ${fRate}x`, 'info');
   }
 };
 
-window.setDefaultSignLang = function (lang) {
+window.setDefaultSignLang = function(lang) {
   const group = document.getElementById('settings-sign-lang-group');
   if (group) {
     group.querySelectorAll('.segmented-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.sign === lang);
     });
   }
-  try { localStorage.setItem('transify_default_sign_lang', lang); } catch (_) { }
+  try { localStorage.setItem('transify_default_sign_lang', lang); } catch (_) {}
   const aslBtn = document.getElementById('lang-asl-btn');
   const bdslBtn = document.getElementById('lang-bdsl-btn');
   if (aslBtn && bdslBtn) {
@@ -336,34 +334,34 @@ window.setDefaultSignLang = function (lang) {
   }
 };
 
-window.setBrailleStandard = function (std) {
+window.setBrailleStandard = function(std) {
   const group = document.getElementById('settings-braille-standard-group');
   if (group) {
     group.querySelectorAll('.segmented-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.braille === std);
     });
   }
-  try { localStorage.setItem('transify_braille_standard', std); } catch (_) { }
+  try { localStorage.setItem('transify_braille_standard', std); } catch (_) {}
   if (window.TransifyApp && window.TransifyApp.showToast) {
     window.TransifyApp.showToast(`Braille transcription: ${std === 'grade1' ? 'Grade 1' : 'Grade 2'}`, 'info');
   }
 };
 
-window.toggleReduceMotion = function (checked) {
+window.toggleReduceMotion = function(checked) {
   if (checked) {
     document.documentElement.setAttribute('data-motion', 'reduced');
     document.body.classList.add('reduced-motion');
     try {
       localStorage.setItem('transify_reduce_motion', '1');
       localStorage.setItem('transify_reduced_motion', 'true');
-    } catch (_) { }
+    } catch (_) {}
   } else {
     document.documentElement.removeAttribute('data-motion');
     document.body.classList.remove('reduced-motion');
     try {
       localStorage.removeItem('transify_reduce_motion');
       localStorage.setItem('transify_reduced_motion', 'false');
-    } catch (_) { }
+    } catch (_) {}
   }
   const el = document.getElementById('setting-reduce-motion');
   if (el) el.checked = checked;
@@ -372,13 +370,13 @@ window.toggleReduceMotion = function (checked) {
   }
 };
 
-window.toggleFocusRings = function (checked) {
+window.toggleFocusRings = function(checked) {
   if (checked) {
     document.body.classList.add('enhanced-focus');
-    try { localStorage.setItem('transify_focus_rings', 'true'); } catch (_) { }
+    try { localStorage.setItem('transify_focus_rings', 'true'); } catch (_) {}
   } else {
     document.body.classList.remove('enhanced-focus');
-    try { localStorage.setItem('transify_focus_rings', 'false'); } catch (_) { }
+    try { localStorage.setItem('transify_focus_rings', 'false'); } catch (_) {}
   }
   const el = document.getElementById('setting-focus-rings');
   if (el) el.checked = checked;
@@ -387,9 +385,9 @@ window.toggleFocusRings = function (checked) {
   }
 };
 
-window.toggleAudioChimes = function (checked) {
+window.toggleAudioChimes = function(checked) {
   if (window.TransifyApp) window.TransifyApp.audioChimes = checked;
-  try { localStorage.setItem('transify_audio_chimes', checked ? 'true' : 'false'); } catch (_) { }
+  try { localStorage.setItem('transify_audio_chimes', checked ? 'true' : 'false'); } catch (_) {}
   const el = document.getElementById('setting-audio-chimes');
   if (el) el.checked = checked;
   if (window.TransifyApp && window.TransifyApp.showToast) {
@@ -397,7 +395,7 @@ window.toggleAudioChimes = function (checked) {
   }
 };
 
-window.saveUserProfile = function () {
+window.saveUserProfile = function() {
   const profName = document.getElementById('profile-input-name');
   const profRole = document.getElementById('profile-select-role');
   const profComm = document.getElementById('profile-select-comm');
@@ -422,7 +420,7 @@ window.saveUserProfile = function () {
   const bioVal = profBio ? profBio.value : '';
 
   const profObj = { name: nameVal, role: roleVal, comm: commVal, dialect: dialectVal, bio: bioVal };
-  try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) { }
+  try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) {}
 
   const initials = nameVal.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2) || 'TR';
   if (profAvatar) profAvatar.textContent = initials;
@@ -443,7 +441,7 @@ window.saveUserProfile = function () {
   }
 };
 
-window.resetSettingsToDefaults = function () {
+window.resetSettingsToDefaults = function() {
   window.applyThemeGlobal('light');
   window.applyFontScale('normal');
   window.toggleReduceMotion(false);
@@ -470,7 +468,7 @@ window.resetSettingsToDefaults = function () {
     localStorage.removeItem('transify_confidence_gate');
     localStorage.removeItem('transify_audio_chimes');
     localStorage.removeItem('transify_lang');
-  } catch (_) { }
+  } catch (_) {}
 
   if (window.TransifyApp && window.TransifyApp.showToast) {
     window.TransifyApp.showToast('All settings reset to defaults', 'info');
@@ -3969,7 +3967,6 @@ const EditorialController = {
   ],
 
   init() {
-    this.initBootSequence();
     this.setupRouter();
     this.setupWelcomeScreen();
     this.setupHomeScreen();
@@ -3980,83 +3977,22 @@ const EditorialController = {
       window.ChatbotPage.init();
     }
 
-    // Check initial route - default to Cover Page ('welcome') in first!
+    // Check initial route
     const hash = window.location.hash.replace('#', '').toLowerCase();
-    if (hash && hash !== 'welcome' && hash !== 'home') {
+    if (hash) {
       this.routeTo(hash);
-    } else if (hash === 'home') {
-      this.routeTo('home');
     } else {
-      this.routeTo('welcome');
-    }
-  },
-
-  initBootSequence() {
-    const bootScreen = document.getElementById('transify-boot-screen');
-    if (!bootScreen) return;
-
-    const isReduced = document.documentElement.getAttribute('data-motion') === 'reduced';
-    if (isReduced) {
-      bootScreen.classList.add('boot-done');
-      setTimeout(() => { bootScreen.style.display = 'none'; }, 100);
-      return;
-    }
-
-    const fillEl = document.getElementById('boot-progress-fill');
-    const pctEl = document.getElementById('boot-pct');
-    const statusEl = document.getElementById('boot-status-text');
-
-    const steps = [
-      { pct: 18, msg: 'BOOTING TRANSIFY NEURAL CORE 2.0...' },
-      { pct: 45, msg: 'LOADING MEDIAPIPE VISION SIMD PIPELINE...' },
-      { pct: 72, msg: 'ENFORCING ZERO AUTO-AUDIO PRIVACY...' },
-      { pct: 90, msg: 'SYNCING CLINICAL SAFETY TRIAGE PROTOCOLS...' },
-      { pct: 100, msg: 'SYSTEM READY • CLIENT SILICON ACTIVE' }
-    ];
-
-    let currentStep = 0;
-    let isDone = false;
-
-    const finishBoot = () => {
-      if (isDone) return;
-      isDone = true;
-      if (fillEl) fillEl.style.width = '100%';
-      if (pctEl) pctEl.textContent = '100%';
-      if (statusEl) statusEl.textContent = 'SYSTEM READY • CLIENT SILICON ACTIVE';
-      setTimeout(() => {
-        bootScreen.classList.add('boot-done');
-        setTimeout(() => {
-          bootScreen.style.display = 'none';
-        }, 450);
-      }, 220);
-    };
-
-    window.dismissBootScreen = finishBoot;
-    bootScreen.addEventListener('click', finishBoot);
-    window.addEventListener('keydown', finishBoot, { once: true });
-
-    const interval = setInterval(() => {
-      if (isDone) {
-        clearInterval(interval);
-        return;
-      }
-      if (currentStep < steps.length) {
-        const step = steps[currentStep];
-        if (fillEl) fillEl.style.width = step.pct + '%';
-        if (pctEl) pctEl.textContent = step.pct + '%';
-        if (statusEl) statusEl.textContent = step.msg;
-        currentStep++;
+      const welcomed = localStorage.getItem('transify.welcomed');
+      if (!welcomed) {
+        this.routeTo('welcome');
       } else {
-        clearInterval(interval);
-        finishBoot();
+        this.routeTo('home');
       }
-    }, 180);
+    }
   },
 
   setupRouter() {
     window.routeTo = (r) => this.routeTo(r);
-    window.EditorialController = this;
-    if (window.TransifyApp) window.TransifyApp.routeTo = (r) => this.routeTo(r);
 
     // Rail logo click to go to Home
     const logoBtn = document.getElementById('rail-logo-btn');
@@ -4096,6 +4032,17 @@ const EditorialController = {
       document.body.classList.remove('nav-drawer-open');
     };
     this.closeNavDrawer = closeNavDrawer;
+    window.closeNavDrawer = closeNavDrawer;
+
+    const openNavDrawer = () => {
+      if (burgerToggle) {
+        burgerToggle.checked = true;
+        burgerToggle.setAttribute('aria-expanded', 'true');
+      }
+      document.body.classList.add('nav-drawer-open');
+    };
+    this.openNavDrawer = openNavDrawer;
+    window.openNavDrawer = openNavDrawer;
 
     if (burgerToggle) {
       burgerToggle.addEventListener('change', () => {
@@ -4138,7 +4085,6 @@ const EditorialController = {
   },
 
   routeTo(rawRoute) {
-    if (window.dismissBootScreen) window.dismissBootScreen();
     if (this.closeNavDrawer) this.closeNavDrawer();
     let route = (rawRoute || 'home').toLowerCase();
     if (route === 'voice') route = 'stt';
@@ -4221,28 +4167,7 @@ const EditorialController = {
       }
     });
 
-    // Update nav drawer items active state & Uiverse glider radio
-    const drawerRadioMap = {
-      home: 'drawer-radio-1',
-      sign: 'drawer-radio-2',
-      braille: 'drawer-radio-3',
-      stt: 'drawer-radio-4',
-      voice: 'drawer-radio-4',
-      phrases: 'drawer-radio-5',
-      chat: 'drawer-radio-6',
-      'care-intake': 'drawer-radio-7',
-      care: 'drawer-radio-7',
-      'care-chronic': 'drawer-radio-8',
-      chronic: 'drawer-radio-8',
-      clinician: 'drawer-radio-7',
-      settings: 'drawer-radio-9',
-    };
-    const activeRadioId = drawerRadioMap[route];
-    if (activeRadioId) {
-      const rInput = document.getElementById(activeRadioId);
-      if (rInput) rInput.checked = true;
-    }
-
+    // Update nav drawer items active state
     document.querySelectorAll('.nav-drawer-item').forEach(btn => {
       const r = btn.getAttribute('data-route');
       const isActive = (r === route) || (r === 'stt' && (route === 'stt' || route === 'voice')) || (route === 'care' && (r === 'care-intake' || r === 'care-chronic'));
@@ -4776,7 +4701,7 @@ const EditorialController = {
       const bioVal = profBio ? profBio.value : '';
 
       const profObj = { name: nameVal, role: roleVal, comm: commVal, dialect: dialectVal, bio: bioVal };
-      try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) { }
+      try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) {}
 
       const initials = nameVal.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2) || 'TR';
       if (profAvatar) profAvatar.textContent = initials;
@@ -4816,7 +4741,7 @@ const EditorialController = {
           const initials = p.name.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
           profAvatar.textContent = initials || 'TR';
         }
-      } catch (_) { }
+      } catch (_) {}
     }
 
     // Live reactivity for profile controls
@@ -4894,7 +4819,7 @@ const EditorialController = {
     if (exportBtn) {
       exportBtn.addEventListener('click', () => {
         let profData = {};
-        try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) { }
+        try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) {}
         const dump = {
           app: 'Transify 2.0',
           exported_at: new Date().toISOString(),
@@ -5316,9 +5241,7 @@ const EditorialController = {
       });
     }
     document.documentElement.setAttribute('data-scale', scale);
-    document.documentElement.setAttribute('data-font-scale', scale);
     document.body.setAttribute('data-scale', scale);
-    document.body.setAttribute('data-font-scale', scale);
   },
 
   refreshSettingsUserUI() {
@@ -5387,7 +5310,7 @@ const EditorialController = {
 
     try {
       localStorage.setItem('transify_settings_tab', tabName);
-    } catch (_) { }
+    } catch (_) {}
   },
 
   handleSettingsAuthAction() {
