@@ -81,6 +81,46 @@
 
 <body>
 
+  <!-- ======================================================================
+       TRANSIFY NEURAL BOOT SEQUENCE OVERLAY
+       ====================================================================== -->
+  <div id="transify-boot-screen" class="transify-boot-screen" aria-label="System Initializing" role="status" aria-live="polite">
+    <div class="boot-ambient-glow" aria-hidden="true"></div>
+    <div class="boot-content">
+      <!-- Animated 6-Dot Braille Matrix Badge -->
+      <div class="boot-braille-badge" aria-hidden="true">
+        <span class="boot-dot d1 active-purple"></span>
+        <span class="boot-dot d4 active-gold"></span>
+        <span class="boot-dot d2 active-purple"></span>
+        <span class="boot-dot d5 active-gold"></span>
+        <span class="boot-dot d3"></span>
+        <span class="boot-dot d6 active-purple"></span>
+      </div>
+
+      <!-- Title & Subtitle -->
+      <h1 class="boot-title">TRANSIFY<span class="boot-version">2.0</span></h1>
+      <p class="boot-tagline">Inclusive Assistive AI &amp; Clinical Intelligence</p>
+
+      <!-- Laser Progress Track -->
+      <div class="boot-progress-wrap">
+        <div class="boot-progress-track">
+          <div class="boot-progress-fill" id="boot-progress-fill"></div>
+        </div>
+        <div class="boot-status-row">
+          <span class="boot-status-text" id="boot-status-text">INITIALIZING NEURAL CORE...</span>
+          <span class="boot-pct" id="boot-pct">0%</span>
+        </div>
+      </div>
+
+      <!-- Micro Telemetry Tags -->
+      <div class="boot-pill-row">
+        <span class="boot-pill">CLIENT SILICON</span>
+        <span class="boot-pill">ZERO AUTO-AUDIO</span>
+        <span class="boot-pill">WCAG AAA</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Global Transify Kinetic Page Loader (Uiverse.io by Praashoo7) -->
   <div id="transify-page-loader" class="page-loader-overlay" aria-live="polite" aria-label="Loading content" style="display: none;">
     <div class="loader-content">
@@ -264,9 +304,9 @@
     <div class="content-frame" id="main">
 
       <!-- ======================================================================
-           VIEW 1: WELCOME SCREEN (#welcome)
+           VIEW 1: COVER PAGE & WELCOME SCREEN (#welcome)
            ====================================================================== -->
-      <section id="view-welcome" class="page-view" aria-label="Welcome to Transify">
+      <section id="view-welcome" class="page-view active" aria-label="Welcome to Transify">
         <!-- Left Interactive Stage -->
         <div class="welcome-stage" id="welcome-stage">
           <div class="ph" id="welcome-photo-bg"
@@ -438,15 +478,23 @@
 
             <!-- CTA Buttons -->
             <div class="welcome-cta-row">
-              <button type="button" class="btn-uiverse press" id="btn-open-register"
-                onclick="window.TransifyApp.openAuthSheet('signup')">Create account</button>
+              <button type="button" class="btn-uiverse press" id="btn-explore-dashboard"
+                onclick="window.routeTo('home'); if (window.TransifyApp) window.TransifyApp.handleDemoLogin();"
+                style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                <span>Explore Transify Dashboard</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </button>
               <button type="button" class="btn-welcome-secondary press" id="btn-open-login"
                 onclick="window.TransifyApp.openAuthSheet('login')">Log in</button>
             </div>
-            <div style="margin-top: 8px;">
+            <div style="margin-top: 10px; display: flex; align-items: center; gap: 14px;">
               <button type="button" class="welcome-guest-link" id="btn-demo-guest"
                 style="appearance: none; -webkit-appearance: none; -moz-appearance: none; background: transparent !important; background-color: transparent !important; border: 0 !important; box-shadow: none !important; color: #C7C6D3 !important; padding: 6px 0 !important; cursor: pointer; text-decoration: underline;"
-                onclick="window.TransifyApp.handleDemoLogin()">Continue without an account</button>
+                onclick="window.routeTo('home'); if (window.TransifyApp) window.TransifyApp.handleDemoLogin();">Continue as Guest</button>
+              <span style="color: rgba(255, 255, 255, 0.2);">•</span>
+              <button type="button" class="welcome-guest-link" id="btn-open-register"
+                style="appearance: none; -webkit-appearance: none; -moz-appearance: none; background: transparent !important; background-color: transparent !important; border: 0 !important; box-shadow: none !important; color: #C7C6D3 !important; padding: 6px 0 !important; cursor: pointer; text-decoration: underline;"
+                onclick="window.TransifyApp.openAuthSheet('signup')">Create an account</button>
             </div>
           </div>
         </aside>
@@ -455,7 +503,7 @@
       <!-- ======================================================================
            VIEW 2: HOME SCREEN (#home)
            ====================================================================== -->
-      <section id="view-home" class="page-view active" aria-label="Transify Home">
+      <section id="view-home" class="page-view" aria-label="Transify Home">
         <main class="home-main">
           <!-- Header Row -->
           <header class="home-header">

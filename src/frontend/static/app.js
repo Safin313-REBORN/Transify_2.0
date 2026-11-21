@@ -3969,6 +3969,7 @@ const EditorialController = {
   ],
 
   init() {
+    this.initBootSequence();
     this.setupRouter();
     this.setupWelcomeScreen();
     this.setupHomeScreen();
@@ -3979,18 +3980,77 @@ const EditorialController = {
       window.ChatbotPage.init();
     }
 
-    // Check initial route
+    // Check initial route - default to Cover Page ('welcome') in first!
     const hash = window.location.hash.replace('#', '').toLowerCase();
-    if (hash) {
+    if (hash && hash !== 'welcome' && hash !== 'home') {
       this.routeTo(hash);
+    } else if (hash === 'home') {
+      this.routeTo('home');
     } else {
-      const welcomed = localStorage.getItem('transify.welcomed');
-      if (!welcomed) {
-        this.routeTo('welcome');
-      } else {
-        this.routeTo('home');
-      }
+      this.routeTo('welcome');
     }
+  },
+
+  initBootSequence() {
+    const bootScreen = document.getElementById('transify-boot-screen');
+    if (!bootScreen) return;
+
+    const isReduced = document.documentElement.getAttribute('data-motion') === 'reduced';
+    if (isReduced) {
+      bootScreen.classList.add('boot-done');
+      setTimeout(() => { bootScreen.style.display = 'none'; }, 100);
+      return;
+    }
+
+    const fillEl = document.getElementById('boot-progress-fill');
+    const pctEl = document.getElementById('boot-pct');
+    const statusEl = document.getElementById('boot-status-text');
+
+    const steps = [
+      { pct: 18, msg: 'BOOTING TRANSIFY NEURAL CORE 2.0...' },
+      { pct: 45, msg: 'LOADING MEDIAPIPE VISION SIMD PIPELINE...' },
+      { pct: 72, msg: 'ENFORCING ZERO AUTO-AUDIO PRIVACY...' },
+      { pct: 90, msg: 'SYNCING CLINICAL SAFETY TRIAGE PROTOCOLS...' },
+      { pct: 100, msg: 'SYSTEM READY • CLIENT SILICON ACTIVE' }
+    ];
+
+    let currentStep = 0;
+    let isDone = false;
+
+    const finishBoot = () => {
+      if (isDone) return;
+      isDone = true;
+      if (fillEl) fillEl.style.width = '100%';
+      if (pctEl) pctEl.textContent = '100%';
+      if (statusEl) statusEl.textContent = 'SYSTEM READY • CLIENT SILICON ACTIVE';
+      setTimeout(() => {
+        bootScreen.classList.add('boot-done');
+        setTimeout(() => {
+          bootScreen.style.display = 'none';
+        }, 450);
+      }, 220);
+    };
+
+    window.dismissBootScreen = finishBoot;
+    bootScreen.addEventListener('click', finishBoot);
+    window.addEventListener('keydown', finishBoot, { once: true });
+
+    const interval = setInterval(() => {
+      if (isDone) {
+        clearInterval(interval);
+        return;
+      }
+      if (currentStep < steps.length) {
+        const step = steps[currentStep];
+        if (fillEl) fillEl.style.width = step.pct + '%';
+        if (pctEl) pctEl.textContent = step.pct + '%';
+        if (statusEl) statusEl.textContent = step.msg;
+        currentStep++;
+      } else {
+        clearInterval(interval);
+        finishBoot();
+      }
+    }, 180);
   },
 
   setupRouter() {
@@ -4078,6 +4138,7 @@ const EditorialController = {
   },
 
   routeTo(rawRoute) {
+    if (window.dismissBootScreen) window.dismissBootScreen();
     if (this.closeNavDrawer) this.closeNavDrawer();
     let route = (rawRoute || 'home').toLowerCase();
     if (route === 'voice') route = 'stt';
