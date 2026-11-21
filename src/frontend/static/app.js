@@ -4147,6 +4147,18 @@ const EditorialController = {
       }
     });
 
+    // Update nav drawer items active state
+    document.querySelectorAll('.nav-drawer-item').forEach(btn => {
+      const r = btn.getAttribute('data-route');
+      const isActive = (r === route) || (r === 'stt' && (route === 'stt' || route === 'voice')) || (route === 'care' && (r === 'care-intake' || r === 'care-chronic'));
+      btn.classList.toggle('active', isActive);
+      if (isActive) {
+        btn.setAttribute('aria-current', 'page');
+      } else {
+        btn.removeAttribute('aria-current');
+      }
+    });
+
     // Sub-route handling
     if (route === 'sign' && window.SignPage && window.SignPage.init) {
       window.SignPage.init();
