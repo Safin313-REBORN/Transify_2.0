@@ -2960,55 +2960,85 @@
     </div>
 
     <nav class="nav-drawer-links" aria-label="Drawer Navigation">
-      <div class="nav-drawer-section-label">Assistive Modalities</div>
-      <a href="#home" class="nav-drawer-item press active" data-route="home">
-        <span class="nav-drawer-label">Home Dashboard</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
-      <a href="#sign" class="nav-drawer-item press" data-route="sign">
-        <span class="nav-drawer-label">Sign Language Translator</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
-      <a href="#braille" class="nav-drawer-item press" data-route="braille">
-        <span class="nav-drawer-label">Braille Scanner</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
-      <a href="#stt" class="nav-drawer-item press" data-route="stt">
-        <span class="nav-drawer-label">Voice Hub &amp; Captions</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
-      <a href="#phrases" class="nav-drawer-item press" data-route="phrases">
-        <span class="nav-drawer-label">Quick Phrases</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
+      <div class="radio-container drawer-radio-container" style="--total-radio: 10;" role="radiogroup" aria-label="Modalities and App Navigation">
+        <!-- 1: Home Dashboard -->
+        <input type="radio" id="drawer-radio-1" name="drawer-nav-radio" value="home" checked>
+        <label for="drawer-radio-1" class="nav-drawer-item press active" data-route="home">
+          <span class="nav-drawer-label">Home Dashboard</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </label>
 
-      <div class="nav-drawer-section-label">AI &amp; Clinical Intelligence</div>
-      <a href="#chat" class="nav-drawer-item press" data-route="chat">
-        <span class="nav-drawer-label">AI Assistant &amp; Training</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
-      <a href="#care-intake" class="nav-drawer-item press" data-route="care-intake">
-        <span class="nav-drawer-label">Transify Care Triage</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
-      <a href="#care-chronic" class="nav-drawer-item press" data-route="care-chronic">
-        <span class="nav-drawer-label">ChronicCare AI</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
+        <!-- 2: Sign Language Translator -->
+        <input type="radio" id="drawer-radio-2" name="drawer-nav-radio" value="sign">
+        <label for="drawer-radio-2" class="nav-drawer-item press" data-route="sign">
+          <span class="nav-drawer-label">Sign Language Translator</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </label>
 
-      <div class="nav-drawer-section-label">System &amp; Source</div>
-      <a href="#settings" class="nav-drawer-item press" data-route="settings">
-        <span class="nav-drawer-label">Settings &amp; Preferences</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
-      <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener noreferrer"
-        class="nav-drawer-item press nav-drawer-contact">
-        <div style="display: flex; flex-direction: column; gap: 2px; text-align: left;">
-          <span class="nav-drawer-label">Contact &amp; GitHub</span>
-          <span style="font-size: 11px; color: var(--text-2); font-weight: 500;">@Safin313-REBORN</span>
+        <!-- 3: Braille Scanner -->
+        <input type="radio" id="drawer-radio-3" name="drawer-nav-radio" value="braille">
+        <label for="drawer-radio-3" class="nav-drawer-item press" data-route="braille">
+          <span class="nav-drawer-label">Braille Scanner</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </label>
+
+        <!-- 4: Voice Hub & Captions -->
+        <input type="radio" id="drawer-radio-4" name="drawer-nav-radio" value="stt">
+        <label for="drawer-radio-4" class="nav-drawer-item press" data-route="stt">
+          <span class="nav-drawer-label">Voice Hub &amp; Captions</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </label>
+
+        <!-- 5: Quick Phrases -->
+        <input type="radio" id="drawer-radio-5" name="drawer-nav-radio" value="phrases">
+        <label for="drawer-radio-5" class="nav-drawer-item press" data-route="phrases">
+          <span class="nav-drawer-label">Quick Phrases</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </label>
+
+        <!-- 6: AI Assistant & Training -->
+        <input type="radio" id="drawer-radio-6" name="drawer-nav-radio" value="chat">
+        <label for="drawer-radio-6" class="nav-drawer-item press" data-route="chat">
+          <span class="nav-drawer-label">AI Assistant &amp; Training</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </label>
+
+        <!-- 7: Transify Care Triage -->
+        <input type="radio" id="drawer-radio-7" name="drawer-nav-radio" value="care-intake">
+        <label for="drawer-radio-7" class="nav-drawer-item press" data-route="care-intake">
+          <span class="nav-drawer-label">Transify Care Triage</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </label>
+
+        <!-- 8: ChronicCare AI -->
+        <input type="radio" id="drawer-radio-8" name="drawer-nav-radio" value="care-chronic">
+        <label for="drawer-radio-8" class="nav-drawer-item press" data-route="care-chronic">
+          <span class="nav-drawer-label">ChronicCare AI</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </label>
+
+        <!-- 9: Settings & Preferences -->
+        <input type="radio" id="drawer-radio-9" name="drawer-nav-radio" value="settings">
+        <label for="drawer-radio-9" class="nav-drawer-item press" data-route="settings">
+          <span class="nav-drawer-label">Settings &amp; Preferences</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </label>
+
+        <!-- 10: Contact & GitHub -->
+        <input type="radio" id="drawer-radio-10" name="drawer-nav-radio" value="contact">
+        <label for="drawer-radio-10" class="nav-drawer-item press nav-drawer-contact" data-url="https://github.com/Safin313-REBORN/Transify_2.0">
+          <div style="display: flex; flex-direction: column; gap: 2px; text-align: left;">
+            <span class="nav-drawer-label">Contact &amp; GitHub</span>
+            <span style="font-size: 11px; opacity: 0.72; font-weight: 500;">@Safin313-REBORN</span>
+          </div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </label>
+
+        <!-- Animated Glider Container (From Uiverse.io by Smit-Prajapati) -->
+        <div class="glider-container" aria-hidden="true">
+          <div class="glider"></div>
         </div>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
+      </div>
     </nav>
   </aside>
 

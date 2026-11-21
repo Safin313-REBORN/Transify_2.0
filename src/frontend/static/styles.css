@@ -4194,6 +4194,81 @@ body:has(#nav-burger-toggle:checked) .nav-drawer {
   color: var(--violet, #8338EC);
 }
 
+/* =============================================================
+   UIVERSE GLIDER DRAWER NAVIGATION (From Uiverse.io by Smit-Prajapati)
+   ============================================================= */
+.drawer-radio-container {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  padding-left: 0.5rem !important;
+  width: 100% !important;
+}
+
+.drawer-radio-container .nav-drawer-item {
+  min-height: 44px !important;
+  height: 44px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 12px !important;
+  border-radius: 8px !important;
+  margin: 0 !important;
+  color: var(--text-2, #6B6882) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  user-select: none !important;
+  box-sizing: border-box !important;
+  border-left: none !important;
+  transition: all 0.25s ease-in-out !important;
+}
+
+[data-theme="dark"] .drawer-radio-container .nav-drawer-item {
+  color: #E2E0EE !important;
+}
+
+[data-theme="high-contrast"] .drawer-radio-container .nav-drawer-item {
+  color: #FFFFFF !important;
+}
+
+.drawer-radio-container .nav-drawer-item:hover {
+  color: var(--main-color, var(--violet)) !important;
+  background: var(--main-color-opacity, rgba(131, 56, 236, 0.08)) !important;
+  transform: none !important;
+}
+
+.drawer-radio-container .nav-drawer-item:hover .nav-drawer-arrow {
+  color: var(--main-color, var(--violet)) !important;
+  opacity: 0.85 !important;
+  transform: translateX(3px) !important;
+}
+
+.drawer-radio-container input:checked + .nav-drawer-item {
+  color: var(--main-color, var(--violet)) !important;
+  font-weight: 700 !important;
+  background: var(--main-color-opacity, rgba(131, 56, 236, 0.12)) !important;
+}
+
+.drawer-radio-container input:checked + .nav-drawer-item .nav-drawer-arrow {
+  color: var(--main-color, var(--violet)) !important;
+  opacity: 1 !important;
+  transform: translateX(4px) !important;
+}
+
+[data-theme="dark"] .drawer-radio-container {
+  --main-color: #f7e479 !important;
+  --main-color-opacity: #f7e4791c !important;
+}
+
+[data-theme="high-contrast"] .drawer-radio-container {
+  --main-color: #FFCB05 !important;
+  --main-color-opacity: rgba(255, 203, 5, 0.28) !important;
+}
+
 [data-theme="dark"] .nav-drawer {
   background: #171424;
   border-left-color: rgba(131, 56, 236, 0.3);
