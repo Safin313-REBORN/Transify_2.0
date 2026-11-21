@@ -125,8 +125,8 @@ window.applyThemeGlobal = function (theme) {
   } catch (e) { }
 };
 
-window.setAppLanguage = function(lang) {
-  try { localStorage.setItem('transify_lang', lang); } catch (_) {}
+window.setAppLanguage = function (lang) {
+  try { localStorage.setItem('transify_lang', lang); } catch (_) { }
   if (typeof applyLocale === 'function') applyLocale(lang);
   const enBtn = document.getElementById('home-lang-en');
   const bnBtn = document.getElementById('home-lang-bn');
@@ -143,7 +143,7 @@ window.setAppLanguage = function(lang) {
   }
 };
 
-window.testVoicePreview = function() {
+window.testVoicePreview = function () {
   const phrase = 'Welcome to Transify. Assistive voice synthesis is verified and operating.';
   if (window.TransifyApp && window.TransifyApp.speak) {
     window.TransifyApp.speak(phrase, { rate: (window.TransifyApp && window.TransifyApp.speechRate) || 1.0 });
@@ -157,9 +157,9 @@ window.testVoicePreview = function() {
   }
 };
 
-window.exportSettingsData = function() {
+window.exportSettingsData = function () {
   let profData = {};
-  try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) {}
+  try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) { }
   const dump = {
     app: 'Transify 2.0',
     exported_at: new Date().toISOString(),
@@ -187,7 +187,7 @@ window.exportSettingsData = function() {
   }
 };
 
-window.clearActivityHistory = async function() {
+window.clearActivityHistory = async function () {
   const recentList = document.getElementById('home-recent-list');
   if (recentList) {
     recentList.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-2); font-size: 14px; font-weight: 600;">No recent translations yet.</div>';
@@ -200,7 +200,7 @@ window.clearActivityHistory = async function() {
   }
 };
 
-window.copySystemDiagnostics = function() {
+window.copySystemDiagnostics = function () {
   const curTheme = document.documentElement.getAttribute('data-theme') || 'light';
   const diagInfo = `Transify 2.0 Diagnostics\nTimestamp: ${new Date().toISOString()}\nPlatform: ${navigator.platform || 'Linux'}\nResolution: ${window.innerWidth}x${window.innerHeight}\nTheme: ${curTheme}\nConnection: ${navigator.onLine ? 'Online' : 'Offline'}\nMediaPipe Vision: Available (0.10.14 WebAssembly)\nSpeech: Zero Auto-Audio Policy`;
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -220,7 +220,7 @@ window.copySystemDiagnostics = function() {
   }
 };
 
-window.submitDeveloperFeedback = function() {
+window.submitDeveloperFeedback = function () {
   const contactMsg = document.getElementById('contact-message');
   if (!contactMsg) return;
   const text = contactMsg.value.trim();
@@ -239,7 +239,7 @@ window.submitDeveloperFeedback = function() {
 // =============================================================
 // Unified Global Settings Option Handlers (100% Reliable Direct Calls)
 // =============================================================
-window.switchSettingsTab = function(tabName) {
+window.switchSettingsTab = function (tabName) {
   const tabs = document.querySelectorAll('.settings-nav-tab');
   const panes = document.querySelectorAll('.settings-tab-pane');
   if (!tabs.length || !panes.length) return;
@@ -256,10 +256,10 @@ window.switchSettingsTab = function(tabName) {
     pane.style.display = isTarget ? 'flex' : 'none';
   });
 
-  try { localStorage.setItem('transify_settings_tab', tabName); } catch (_) {}
+  try { localStorage.setItem('transify_settings_tab', tabName); } catch (_) { }
 };
 
-window.setConfidenceGate = function(val) {
+window.setConfidenceGate = function (val) {
   const strVal = String(val);
   const radios = document.querySelectorAll('input[name="setting_confidence_radio"]');
   radios.forEach(r => {
@@ -269,7 +269,7 @@ window.setConfidenceGate = function(val) {
   if (confGate) {
     confGate.value = strVal;
   }
-  try { localStorage.setItem('transify_confidence_gate', strVal); } catch (_) {}
+  try { localStorage.setItem('transify_confidence_gate', strVal); } catch (_) { }
 
   const glider = document.querySelector('#setting-confidence-radio-group .glider');
   if (glider) {
@@ -284,7 +284,7 @@ window.setConfidenceGate = function(val) {
   }
 };
 
-window.applyFontScale = function(scale) {
+window.applyFontScale = function (scale) {
   const group = document.getElementById('settings-fontsize-group');
   if (group) {
     group.querySelectorAll('.segmented-btn').forEach(btn => {
@@ -295,14 +295,14 @@ window.applyFontScale = function(scale) {
   document.documentElement.setAttribute('data-font-scale', scale);
   document.body.setAttribute('data-scale', scale);
   document.body.setAttribute('data-font-scale', scale);
-  try { localStorage.setItem('transify_font_scale', scale); } catch (_) {}
+  try { localStorage.setItem('transify_font_scale', scale); } catch (_) { }
   if (window.TransifyApp && window.TransifyApp.showToast) {
     const labelMap = { normal: '100%', large: '115%', xlarge: '130%' };
     window.TransifyApp.showToast(`Typography scaled to ${labelMap[scale] || scale}`, 'info');
   }
 };
 
-window.setSpeechRate = function(rate) {
+window.setSpeechRate = function (rate) {
   const fRate = parseFloat(rate);
   const group = document.getElementById('settings-speech-rate-group');
   if (group) {
@@ -311,20 +311,20 @@ window.setSpeechRate = function(rate) {
     });
   }
   if (window.TransifyApp) window.TransifyApp.speechRate = fRate;
-  try { localStorage.setItem('transify_speech_rate', fRate.toString()); } catch (_) {}
+  try { localStorage.setItem('transify_speech_rate', fRate.toString()); } catch (_) { }
   if (window.TransifyApp && window.TransifyApp.showToast) {
     window.TransifyApp.showToast(`Speech rate set to ${fRate}x`, 'info');
   }
 };
 
-window.setDefaultSignLang = function(lang) {
+window.setDefaultSignLang = function (lang) {
   const group = document.getElementById('settings-sign-lang-group');
   if (group) {
     group.querySelectorAll('.segmented-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.sign === lang);
     });
   }
-  try { localStorage.setItem('transify_default_sign_lang', lang); } catch (_) {}
+  try { localStorage.setItem('transify_default_sign_lang', lang); } catch (_) { }
   const aslBtn = document.getElementById('lang-asl-btn');
   const bdslBtn = document.getElementById('lang-bdsl-btn');
   if (aslBtn && bdslBtn) {
@@ -336,34 +336,34 @@ window.setDefaultSignLang = function(lang) {
   }
 };
 
-window.setBrailleStandard = function(std) {
+window.setBrailleStandard = function (std) {
   const group = document.getElementById('settings-braille-standard-group');
   if (group) {
     group.querySelectorAll('.segmented-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.braille === std);
     });
   }
-  try { localStorage.setItem('transify_braille_standard', std); } catch (_) {}
+  try { localStorage.setItem('transify_braille_standard', std); } catch (_) { }
   if (window.TransifyApp && window.TransifyApp.showToast) {
     window.TransifyApp.showToast(`Braille transcription: ${std === 'grade1' ? 'Grade 1' : 'Grade 2'}`, 'info');
   }
 };
 
-window.toggleReduceMotion = function(checked) {
+window.toggleReduceMotion = function (checked) {
   if (checked) {
     document.documentElement.setAttribute('data-motion', 'reduced');
     document.body.classList.add('reduced-motion');
     try {
       localStorage.setItem('transify_reduce_motion', '1');
       localStorage.setItem('transify_reduced_motion', 'true');
-    } catch (_) {}
+    } catch (_) { }
   } else {
     document.documentElement.removeAttribute('data-motion');
     document.body.classList.remove('reduced-motion');
     try {
       localStorage.removeItem('transify_reduce_motion');
       localStorage.setItem('transify_reduced_motion', 'false');
-    } catch (_) {}
+    } catch (_) { }
   }
   const el = document.getElementById('setting-reduce-motion');
   if (el) el.checked = checked;
@@ -372,13 +372,13 @@ window.toggleReduceMotion = function(checked) {
   }
 };
 
-window.toggleFocusRings = function(checked) {
+window.toggleFocusRings = function (checked) {
   if (checked) {
     document.body.classList.add('enhanced-focus');
-    try { localStorage.setItem('transify_focus_rings', 'true'); } catch (_) {}
+    try { localStorage.setItem('transify_focus_rings', 'true'); } catch (_) { }
   } else {
     document.body.classList.remove('enhanced-focus');
-    try { localStorage.setItem('transify_focus_rings', 'false'); } catch (_) {}
+    try { localStorage.setItem('transify_focus_rings', 'false'); } catch (_) { }
   }
   const el = document.getElementById('setting-focus-rings');
   if (el) el.checked = checked;
@@ -387,9 +387,9 @@ window.toggleFocusRings = function(checked) {
   }
 };
 
-window.toggleAudioChimes = function(checked) {
+window.toggleAudioChimes = function (checked) {
   if (window.TransifyApp) window.TransifyApp.audioChimes = checked;
-  try { localStorage.setItem('transify_audio_chimes', checked ? 'true' : 'false'); } catch (_) {}
+  try { localStorage.setItem('transify_audio_chimes', checked ? 'true' : 'false'); } catch (_) { }
   const el = document.getElementById('setting-audio-chimes');
   if (el) el.checked = checked;
   if (window.TransifyApp && window.TransifyApp.showToast) {
@@ -397,7 +397,7 @@ window.toggleAudioChimes = function(checked) {
   }
 };
 
-window.saveUserProfile = function() {
+window.saveUserProfile = function () {
   const profName = document.getElementById('profile-input-name');
   const profRole = document.getElementById('profile-select-role');
   const profComm = document.getElementById('profile-select-comm');
@@ -422,7 +422,7 @@ window.saveUserProfile = function() {
   const bioVal = profBio ? profBio.value : '';
 
   const profObj = { name: nameVal, role: roleVal, comm: commVal, dialect: dialectVal, bio: bioVal };
-  try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) {}
+  try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) { }
 
   const initials = nameVal.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2) || 'TR';
   if (profAvatar) profAvatar.textContent = initials;
@@ -443,7 +443,7 @@ window.saveUserProfile = function() {
   }
 };
 
-window.resetSettingsToDefaults = function() {
+window.resetSettingsToDefaults = function () {
   window.applyThemeGlobal('light');
   window.applyFontScale('normal');
   window.toggleReduceMotion(false);
@@ -470,7 +470,7 @@ window.resetSettingsToDefaults = function() {
     localStorage.removeItem('transify_confidence_gate');
     localStorage.removeItem('transify_audio_chimes');
     localStorage.removeItem('transify_lang');
-  } catch (_) {}
+  } catch (_) { }
 
   if (window.TransifyApp && window.TransifyApp.showToast) {
     window.TransifyApp.showToast('All settings reset to defaults', 'info');
@@ -3751,6 +3751,7 @@ var BraillePage = window.BraillePage = {
 };
 
 // ==========================================
+// 6. Speech-to-Text (STT) Module
 // 6. Neural Voice Studio 2.0 Module
 // ==========================================
 
@@ -4221,6 +4222,8 @@ var TransifySTT = window.TransifySTT = {
           const ttsInput = document.getElementById('tts-input-text');
           if (ttsInput) {
             ttsInput.value = text;
+            const count = document.getElementById('tts-char-count');
+            if (count) count.textContent = `${text.length} chars`;
             if (window.TransifyVoiceStudio) {
               window.TransifyVoiceStudio.updateTTSStats(text);
             }
@@ -4236,386 +4239,429 @@ var TransifySTT = window.TransifySTT = {
     }
 
     if (fontToggleBtn) {
-      fontToggleBtn.addEventListener('change', (e) => {
-        if (window.TransifyVoiceStudio) {
-          window.TransifyVoiceStudio.changeCaptionFont(e.target.value);
+      fontToggleBtn.addEventListener('click', () => {
+        this.isLargeFont = !this.isLargeFont;
+        const captionBox = document.getElementById('stt-live-caption-box');
+        const fontLabel = document.getElementById('stt-font-label');
+        if (captionBox && fontLabel) {
+          if (this.isLargeFont) {
+            captionBox.style.fontSize = '28px';
+            fontLabel.textContent = 'Extra Large';
+          } else {
+            captionBox.style.fontSize = '20px';
+            fontLabel.textContent = 'Large';
+          }
         }
       });
     }
   },
 
   updateTelemetry(text) {
-    const words = (text || '').trim().split(/\s+/).filter(Boolean);
-    const wordCount = document.getElementById('stt-word-count');
-    const wpmEl = document.getElementById('stt-wpm');
-    const diagWpm = document.getElementById('diag-wpm-val');
+        const words = (text || '').trim().split(/\s+/).filter(Boolean);
+        const wordCount = document.getElementById('stt-word-count');
+        const wpmEl = document.getElementById('stt-wpm');
+        const diagWpm = document.getElementById('diag-wpm-val');
 
-    if (wordCount) wordCount.textContent = `${words.length} words`;
+        if(wordCount) wordCount.textContent = `${words.length} words`;
 
-    if (this.startTime && words.length > 0) {
-      const elapsedMin = Math.max(0.1, (Date.now() - this.startTime) / 60000);
-      const wpm = Math.round(words.length / elapsedMin);
-      if (wpmEl) wpmEl.textContent = `Pace: ${wpm} WPM`;
-      if (diagWpm) diagWpm.textContent = `${wpm} WPM`;
-    }
-  },
+        if(this.startTime && words.length > 0) {
+        const elapsedMin = Math.max(0.1, (Date.now() - this.startTime) / 60000);
+        const wpm = Math.round(words.length / elapsedMin);
+        if (wpmEl) wpmEl.textContent = `Pace: ${wpm} WPM`;
+        if (diagWpm) diagWpm.textContent = `${wpm} WPM`;
+      }
+    },
 
-  start() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      TransifyApp.showToast('Speech Recognition is not supported by your browser. Please use Chrome or Edge.', 'danger');
-      return;
-    }
+    start() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        TransifyApp.showToast('Speech Recognition is not supported by your browser. Please use Chrome or Edge.', 'danger');
+        return;
+      }
 
-    const langSelect = document.getElementById('stt-lang-select');
-    const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
+      const langSelect = document.getElementById('stt-lang-select');
+      const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
 
-    try {
-      this.recognition = new SpeechRecognition();
-      this.recognition.continuous = true;
-      this.recognition.interimResults = true;
-      this.recognition.lang = chosenLang;
+      try {
+        this.recognition = new SpeechRecognition();
+        this.recognition.continuous = true;
+        this.recognition.interimResults = true;
+        this.recognition.lang = chosenLang;
 
-      this.recognition.onstart = () => {
-        this.isListening = true;
-        this.startTime = Date.now();
-        this.updateUI(true);
+        this.recognition.onstart = () => {
+          this.isListening = true;
+          this.startTime = Date.now();
+          this.updateUI(true);
 
-        if (this.timerInterval) clearInterval(this.timerInterval);
-        this.timerInterval = setInterval(() => {
-          if (!this.isListening || !this.startTime) return;
-          const sec = Math.floor((Date.now() - this.startTime) / 1000);
-          const mm = String(Math.floor(sec / 60)).padStart(2, '0');
-          const ss = String(sec % 60).padStart(2, '0');
-          const timerEl = document.getElementById('stt-timer');
-          if (timerEl) timerEl.textContent = `Duration: ${mm}:${ss}`;
-        }, 1000);
+          if (this.timerInterval) clearInterval(this.timerInterval);
+          this.timerInterval = setInterval(() => {
+            if (!this.isListening || !this.startTime) return;
+            const sec = Math.floor((Date.now() - this.startTime) / 1000);
+            const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+            const ss = String(sec % 60).padStart(2, '0');
+            const timerEl = document.getElementById('stt-timer');
+            if (timerEl) timerEl.textContent = `Duration: ${mm}:${ss}`;
+          }, 1000);
 
-        TransifyApp.announce('Speech recognition listening started');
-        TransifyApp.showToast('Microphone active! Speak now...', 'info');
-      };
+          TransifyApp.announce('Speech recognition listening started');
+          TransifyApp.showToast('Microphone active! Speak now...', 'info');
+        };
 
-      this.recognition.onresult = (event) => {
-        let interim = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            this.finalTranscript += event.results[i][0].transcript + ' ';
-          } else {
-            interim += event.results[i][0].transcript;
+        this.recognition.onresult = (event) => {
+          let interim = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              this.finalTranscript += event.results[i][0].transcript + ' ';
+            } else {
+              interim += event.results[i][0].transcript;
+            }
           }
-        }
-        this.renderText(this.finalTranscript, interim);
-      };
+          this.renderText(this.finalTranscript, interim);
+        };
 
-      this.recognition.onerror = (event) => {
-        console.warn('STT Error:', event.error);
-        if (event.error === 'not-allowed') {
-          TransifyApp.showToast('Microphone permission blocked. Please allow microphone in browser.', 'danger');
-          this.stop();
-        } else if (event.error === 'network') {
-          TransifyApp.showToast('Network error during speech recognition.', 'warning');
-        } else if (event.error === 'no-speech') {
-          TransifyApp.showToast('No speech detected. Speak clearly into the microphone.', 'warning');
-        }
-      };
+        this.recognition.onerror = (event) => {
+          console.warn('STT Error:', event.error);
+          if (event.error === 'not-allowed') {
+            TransifyApp.showToast('Microphone permission blocked. Please allow microphone in browser.', 'danger');
+            this.stop();
+          } else if (event.error === 'network') {
+            TransifyApp.showToast('Network error during speech recognition.', 'warning');
+          } else if (event.error === 'no-speech') {
+            TransifyApp.showToast('No speech detected. Speak clearly into the microphone.', 'warning');
+          }
+        };
 
-      this.recognition.onend = () => {
-        if (this.isListening) {
-          try {
-            this.recognition.start();
-          } catch (e) {
-            this.isListening = false;
+        this.recognition.onend = () => {
+          if (this.isListening) {
+            try {
+              this.recognition.start();
+            } catch (e) {
+              this.isListening = false;
+              this.updateUI(false);
+            }
+          } else {
             this.updateUI(false);
           }
-        } else {
-          this.updateUI(false);
-        }
-      };
+        };
 
-      this.recognition.start();
-    } catch (err) {
-      console.warn('STT Start Error:', err);
+        this.recognition.start();
+      } catch (err) {
+        console.warn('STT Start Error:', err);
+        this.isListening = false;
+        this.updateUI(false);
+      }
+    },
+
+    stop() {
       this.isListening = false;
+      if (this.timerInterval) {
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+      }
+      if (this.recognition) {
+        try {
+          this.recognition.stop();
+        } catch (e) { }
+      }
       this.updateUI(false);
-    }
-  },
+      TransifyApp.announce('Speech recognition stopped');
+    },
 
-  stop() {
-    this.isListening = false;
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-    if (this.recognition) {
-      try {
-        this.recognition.stop();
-      } catch (e) { }
-    }
-    this.updateUI(false);
-    TransifyApp.announce('Speech recognition stopped');
-  },
-
-  clear() {
-    this.finalTranscript = '';
-    this.startTime = null;
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-    this.renderText('', '');
-    const wordCount = document.getElementById('stt-word-count');
-    const timerEl = document.getElementById('stt-timer');
-    const wpmEl = document.getElementById('stt-wpm');
-    if (wordCount) wordCount.textContent = '0 words';
-    if (timerEl) timerEl.textContent = 'Duration: 00:00';
-    if (wpmEl) wpmEl.textContent = 'Pace: 0 WPM';
-    TransifyApp.showToast('Captions cleared.', 'info');
-  },
-
-  renderText(finalText, interimText) {
-    const placeholder = document.getElementById('stt-placeholder');
-    const finalSpan = document.getElementById('stt-final-text');
-    const interimSpan = document.getElementById('stt-interim-text');
-
-    if (placeholder) {
-      placeholder.style.display = (finalText || interimText) ? 'none' : 'inline';
-    }
-    if (finalSpan) finalSpan.textContent = finalText;
-    if (interimSpan) interimSpan.textContent = interimText;
-
-    this.updateTelemetry(finalText + ' ' + interimText);
-
-    if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.currentMode === 'bridge') {
-      window.TransifyVoiceStudio.syncActiveSpeechToBridge(finalText);
-    }
-  },
-
-  updateUI(listening) {
-    const btn = document.getElementById('stt-toggle-btn');
-    const hint = document.getElementById('stt-mic-hint');
-    const pill = document.getElementById('stt-status-pill');
-    const rings = document.getElementById('stt-mic-rings-wrap');
-    const diagMic = document.getElementById('diag-mic-status');
-
-    if (listening) {
-      if (btn) btn.classList.add('listening');
-      if (rings) rings.classList.add('active');
-      if (hint) {
-        hint.textContent = 'Listening... Speak now';
-        hint.style.color = '#dc2626';
+    clear() {
+      this.finalTranscript = '';
+      this.startTime = null;
+      if (this.timerInterval) {
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
       }
-      if (pill) {
-        pill.textContent = '🔴 Listening Live...';
-        pill.className = 'care-badge online';
-        pill.style.background = 'rgba(239, 68, 68, 0.15)';
-        pill.style.color = '#dc2626';
+      this.renderText('', '');
+      const wordCount = document.getElementById('stt-word-count');
+      const timerEl = document.getElementById('stt-timer');
+      const wpmEl = document.getElementById('stt-wpm');
+      if (wordCount) wordCount.textContent = '0 words';
+      if (timerEl) timerEl.textContent = 'Duration: 00:00';
+      if (wpmEl) wpmEl.textContent = 'Pace: 0 WPM';
+      TransifyApp.showToast('Captions cleared.', 'info');
+    },
+
+    renderText(finalText, interimText) {
+      const placeholder = document.getElementById('stt-placeholder');
+      const finalSpan = document.getElementById('stt-final-text');
+      const interimSpan = document.getElementById('stt-interim-text');
+
+      if (placeholder) {
+        placeholder.style.display = (finalText || interimText) ? 'none' : 'inline';
       }
-      if (diagMic) diagMic.textContent = 'Capturing';
-    } else {
-      if (btn) btn.classList.remove('listening');
-      if (rings) rings.classList.remove('active');
-      if (hint) {
-        hint.textContent = 'Tap microphone to speak';
-        hint.style.color = 'var(--text-2)';
+      if (finalSpan) finalSpan.textContent = finalText;
+      if (interimSpan) interimSpan.textContent = interimText;
+
+      this.updateTelemetry(finalText + ' ' + interimText);
+
+      if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.currentMode === 'bridge') {
+        window.TransifyVoiceStudio.syncActiveSpeechToBridge(finalText);
       }
-      if (pill) {
-        pill.textContent = 'Ready to Listen';
-        pill.className = 'care-badge online';
-        pill.style.background = 'rgba(34, 197, 94, 0.1)';
-        pill.style.color = '#15803d';
+    },
+
+    updateUI(listening) {
+      const btn = document.getElementById('stt-toggle-btn');
+      const icon = document.getElementById('stt-mic-icon');
+      const hint = document.getElementById('stt-mic-hint');
+      const pill = document.getElementById('stt-status-pill');
+      const rings = document.getElementById('stt-mic-rings-wrap');
+      const diagMic = document.getElementById('diag-mic-status');
+
+      if (listening) {
+        if (btn) btn.classList.add('listening');
+        if (icon) icon.textContent = '⏹️';
+        if (rings) rings.classList.add('active');
+        if (hint) {
+          hint.textContent = 'Listening... Speak now';
+          hint.style.color = '#dc2626';
+        }
+        if (pill) {
+          pill.textContent = '🔴 Listening Live...';
+          pill.className = 'badge badge-danger';
+          pill.className = 'care-badge online';
+          pill.style.background = 'rgba(239, 68, 68, 0.15)';
+          pill.style.color = '#dc2626';
+        }
+        if (diagMic) diagMic.textContent = 'Capturing';
+      } else {
+        if (btn) btn.classList.remove('listening');
+        if (icon) icon.textContent = '🎙️';
+        if (rings) rings.classList.remove('active');
+        if (hint) {
+          hint.textContent = 'Tap to Speak';
+          hint.style.color = '#4b1a11';
+          hint.textContent = 'Tap microphone to speak';
+          hint.style.color = 'var(--text-2)';
+        }
+        if (pill) {
+          pill.textContent = '🎙️ Ready to Listen';
+          pill.className = 'badge badge-info';
+          pill.textContent = 'Ready to Listen';
+          pill.className = 'care-badge online';
+          pill.style.background = 'rgba(34, 197, 94, 0.1)';
+          pill.style.color = '#15803d';
+        }
+        if (diagMic) diagMic.textContent = 'Standby';
       }
-      if (diagMic) diagMic.textContent = 'Standby';
     }
-  }
-};
+  };
 
 
-// ==========================================
-// 7. Text-to-Speech (TTS) Slide Module
-// ==========================================
+  // ==========================================
+  // 7. Text-to-Speech (TTS) Slide Module
+  // ==========================================
 
-var TransifyTTSPage = window.TransifyTTSPage = {
-  speed: 1.0,
-  lang: 'en-US',
-  isInitialized: false,
+  var TransifyTTSPage = window.TransifyTTSPage = {
+    speed: 1.0,
+    lang: 'en-US',
+    isInitialized: false,
 
-  init() {
-    if (this.isInitialized) return;
-    this.isInitialized = true;
+    init() {
+      if (this.isInitialized) return;
+      this.isInitialized = true;
 
-    const textarea = document.getElementById('tts-input-text');
-    const speakBtn = document.getElementById('tts-speak-btn');
-    const stopBtn = document.getElementById('tts-stop-btn');
-    const clearBtn = document.getElementById('tts-clear-btn');
-    const langSelect = document.getElementById('tts-lang-select');
-    const speedBtns = document.querySelectorAll('.tts-speed-btn');
-
-    if (textarea) {
-      textarea.addEventListener('input', () => {
-        if (window.TransifyVoiceStudio) {
-          window.TransifyVoiceStudio.updateTTSStats(textarea.value);
-        }
-      });
-    }
-
-    if (langSelect) {
-      langSelect.addEventListener('change', (e) => {
-        this.lang = e.target.value;
-      });
-    }
-
-    speedBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const spd = parseFloat(btn.getAttribute('data-speed') || '1.0');
-        if (window.TransifyVoiceStudio) {
-          window.TransifyVoiceStudio.setTTSSpeed(spd);
-        } else {
-          this.speed = spd;
-        }
-      });
-    });
-
-    if (speakBtn) {
-      speakBtn.addEventListener('click', () => {
-        const text = textarea ? textarea.value.trim() : '';
-        if (!text) {
-          TransifyApp.showToast('Please type a message to speak.', 'warning');
-          return;
-        }
-        this.speakText(text);
-      });
-    }
-
-    if (stopBtn) {
-      stopBtn.addEventListener('click', () => {
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-        }
-        const wave = document.getElementById('tts-wave-bar');
-        if (wave) wave.style.display = 'none';
-        TransifyApp.showToast('Voice playback stopped.', 'info');
-      });
-    }
-
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        if (textarea) textarea.value = '';
-        if (window.TransifyVoiceStudio) {
-          window.TransifyVoiceStudio.updateTTSStats('');
-        }
-      });
-    }
-  },
-
-  speakText(text) {
-    if (!text || text.trim() === '') return;
-    const cleanText = text.trim();
-    const langSelect = document.getElementById('tts-lang-select');
-    const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
-    const wave = document.getElementById('tts-wave-bar');
-
-    if ('speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.resume();
-      } catch (e) { }
-
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.rate = this.speed || 1.0;
-      utterance.lang = chosenLang;
-
-      const voices = window.speechSynthesis.getVoices();
-      if (voices && voices.length > 0) {
-        const match = voices.find(v => v.lang.toLowerCase() === chosenLang.toLowerCase()) ||
-          voices.find(v => v.lang.toLowerCase().startsWith(chosenLang.slice(0, 2).toLowerCase())) ||
-          voices[0];
-        if (match) utterance.voice = match;
-      }
-
+      const textarea = document.getElementById('tts-input-text');
       const speakBtn = document.getElementById('tts-speak-btn');
-      utterance.onstart = () => {
-        if (speakBtn) {
-          speakBtn.innerHTML = '🔊 Speaking...';
-          speakBtn.classList.add('btn-success');
-        }
-        if (wave) wave.style.display = 'flex';
-      };
-      utterance.onend = () => {
-        if (speakBtn) {
-          speakBtn.innerHTML = 'Speak text';
-          speakBtn.classList.remove('btn-success');
-        }
-        if (wave) wave.style.display = 'none';
-      };
-      utterance.onerror = (e) => {
-        console.warn('TTS utterance error:', e);
-        if (speakBtn) {
-          speakBtn.innerHTML = 'Speak text';
-          speakBtn.classList.remove('btn-success');
-        }
-        if (wave) wave.style.display = 'none';
-        TransifyTTS.fallbackServerTTS(cleanText);
-      };
+      const stopBtn = document.getElementById('tts-stop-btn');
+      const clearBtn = document.getElementById('tts-clear-btn');
+      const langSelect = document.getElementById('tts-lang-select');
+      const charCount = document.getElementById('tts-char-count');
+      const speedBtns = document.querySelectorAll('.tts-speed-btn');
+      const chips = document.querySelectorAll('.tts-quick-chip');
 
-      try {
-        window.speechSynthesis.speak(utterance);
-      } catch (e) {
-        if (wave) wave.style.display = 'none';
-        TransifyTTS.fallbackServerTTS(cleanText);
+      if (textarea && charCount) {
+        textarea.addEventListener('input', () => {
+          charCount.textContent = `${textarea.value.length} chars`;
+          if (window.TransifyVoiceStudio) {
+            window.TransifyVoiceStudio.updateTTSStats(textarea.value);
+          }
+        });
       }
-      TransifyApp.showToast(`Speaking: "${cleanText.slice(0, 30)}..."`, 'success');
-    } else {
-      TransifyTTS.fallbackServerTTS(cleanText);
-    }
-  }
-};
+
+        if (langSelect) {
+          langSelect.addEventListener('change', (e) => {
+            this.lang = e.target.value;
+          });
+        }
+
+        speedBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            speedBtns.forEach(b => {
+              b.classList.remove('active', 'btn-primary');
+              b.classList.add('btn-secondary');
+            });
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary', 'active');
+            this.speed = parseFloat(btn.dataset.speed || '1.0');
+            const spd = parseFloat(btn.getAttribute('data-speed') || '1.0');
+            if (window.TransifyVoiceStudio) {
+              window.TransifyVoiceStudio.setTTSSpeed(spd);
+            } else {
+              this.speed = spd;
+            }
+          });
+        });
+
+        if (speakBtn) {
+          speakBtn.addEventListener('click', () => {
+            const text = textarea ? textarea.value.trim() : '';
+            if (!text) {
+              TransifyApp.showToast('Please type a message to speak.', 'warning');
+              return;
+            }
+            this.speakText(text);
+          });
+        }
+
+        if (stopBtn) {
+          stopBtn.addEventListener('click', () => {
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+            }
+            const wave = document.getElementById('tts-wave-bar');
+            if (wave) wave.style.display = 'none';
+            TransifyApp.showToast('Voice playback stopped.', 'info');
+          });
+        }
+
+        if (clearBtn) {
+          clearBtn.addEventListener('click', () => {
+            if (textarea) textarea.value = '';
+            if (charCount) charCount.textContent = '0 chars';
+            if (window.TransifyVoiceStudio) {
+              window.TransifyVoiceStudio.updateTTSStats('');
+            }
+          });
+        }
+
+        chips.forEach(chip => {
+          chip.addEventListener('click', () => {
+            const phrase = chip.dataset.phrase;
+            if (phrase) {
+              if (textarea) {
+                textarea.value = phrase;
+                if (charCount) charCount.textContent = `${phrase.length} chars`;
+              }
+              this.speakText(phrase);
+            }
+          });
+        });
+      },
+
+      speakText(text) {
+        if (!text || text.trim() === '') return;
+        const cleanText = text.trim();
+        const langSelect = document.getElementById('tts-lang-select');
+        const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
+        const wave = document.getElementById('tts-wave-bar');
+
+        if ('speechSynthesis' in window) {
+          try {
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.resume();
+          } catch (e) { }
+
+          const utterance = new SpeechSynthesisUtterance(cleanText);
+          utterance.rate = this.speed || 1.0;
+          utterance.lang = chosenLang;
+
+          const voices = window.speechSynthesis.getVoices();
+          if (voices && voices.length > 0) {
+            const match = voices.find(v => v.lang.toLowerCase() === chosenLang.toLowerCase()) ||
+              voices.find(v => v.lang.toLowerCase().startsWith(chosenLang.slice(0, 2).toLowerCase())) ||
+              voices[0];
+            if (match) utterance.voice = match;
+          }
+
+          const speakBtn = document.getElementById('tts-speak-btn');
+          utterance.onstart = () => {
+            if (speakBtn) {
+              speakBtn.innerHTML = '🔊 Speaking...';
+              speakBtn.classList.add('btn-success');
+            }
+            if (wave) wave.style.display = 'flex';
+          };
+          utterance.onend = () => {
+            if (speakBtn) {
+              speakBtn.innerHTML = '🔊 Speak Voice';
+              speakBtn.innerHTML = 'Speak text';
+              speakBtn.classList.remove('btn-success');
+            }
+            if (wave) wave.style.display = 'none';
+          };
+          utterance.onerror = (e) => {
+            console.warn('TTS utterance error:', e);
+            if (speakBtn) {
+              speakBtn.innerHTML = '🔊 Speak Voice';
+              speakBtn.innerHTML = 'Speak text';
+              speakBtn.classList.remove('btn-success');
+            }
+            if (wave) wave.style.display = 'none';
+            TransifyTTS.fallbackServerTTS(cleanText);
+          };
+
+          try {
+            window.speechSynthesis.speak(utterance);
+          } catch (e) {
+            if (wave) wave.style.display = 'none';
+            TransifyTTS.fallbackServerTTS(cleanText);
+          }
+          TransifyApp.showToast(`Speaking: "${cleanText.slice(0, 30)}..."`, 'success');
+        } else {
+          TransifyTTS.fallbackServerTTS(cleanText);
+        }
+      }
+    };
 
 
-// ==========================================
-// 8. Global DOM Initialization
-// ==========================================
+    // ==========================================
+    // 8. Global DOM Initialization
+    // ==========================================
 
-function initTransifyAllModules() {
-  if (window.TransifyApp && window.TransifyApp.init) {
-    window.TransifyApp.init();
-  }
+    function initTransifyAllModules() {
+      if (window.TransifyApp && window.TransifyApp.init) {
+  window.TransifyApp.init();
+}
 
-  // Slide modules: unconditionally initialize if present in DOM
-  if (window.SignPage && window.SignPage.init && (document.getElementById('slide-hand-signal') || document.getElementById('sign-video') || document.getElementById('toggle-camera-btn'))) {
-    window.SignPage.init();
-  }
-  if (window.BraillePage && window.BraillePage.init && (document.getElementById('slide-braille') || document.getElementById('braille-dropzone') || document.getElementById('braille-file-input'))) {
-    window.BraillePage.init();
-  }
-  if (window.TransifySTT && window.TransifySTT.init && (document.getElementById('slide-stt') || document.getElementById('stt-toggle-btn'))) {
-    window.TransifySTT.init();
-  }
-  if (window.TransifyTTSPage && window.TransifyTTSPage.init && (document.getElementById('slide-tts') || document.getElementById('tts-input-text'))) {
-    window.TransifyTTSPage.init();
-  }
-  if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.init && (document.getElementById('view-voice') || document.getElementById('stt-toggle-btn') || document.getElementById('voice-pane-studio'))) {
-    window.TransifyVoiceStudio.init();
-  }
-  if (window.DashboardPage && window.DashboardPage.init && (document.getElementById('dashboard-container') || document.getElementById('system-status-badge') || document.getElementById('history-records-list'))) {
-    window.DashboardPage.init();
-  }
+// Slide modules: unconditionally initialize if present in DOM
+if (window.SignPage && window.SignPage.init && (document.getElementById('slide-hand-signal') || document.getElementById('sign-video') || document.getElementById('toggle-camera-btn'))) {
+  window.SignPage.init();
+}
+if (window.BraillePage && window.BraillePage.init && (document.getElementById('slide-braille') || document.getElementById('braille-dropzone') || document.getElementById('braille-file-input'))) {
+  window.BraillePage.init();
+}
+if (window.TransifySTT && window.TransifySTT.init && (document.getElementById('slide-stt') || document.getElementById('stt-toggle-btn'))) {
+  window.TransifySTT.init();
+}
+if (window.TransifyTTSPage && window.TransifyTTSPage.init && (document.getElementById('slide-tts') || document.getElementById('tts-input-text'))) {
+  window.TransifyTTSPage.init();
+}
+if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.init && (document.getElementById('view-voice') || document.getElementById('stt-toggle-btn') || document.getElementById('voice-pane-studio'))) {
+  window.TransifyVoiceStudio.init();
+}
+if (window.DashboardPage && window.DashboardPage.init && (document.getElementById('dashboard-container') || document.getElementById('system-status-badge') || document.getElementById('history-records-list'))) {
+  window.DashboardPage.init();
+}
 
-  // Expose module APIs to window for inline onclick handlers and extensions
-  window.TransifyApp = TransifyApp;
-  window.SignPage = SignPage;
-  window.TransifySign = SignPage;
-  window.BraillePage = BraillePage;
-  window.TransifySTT = TransifySTT;
-  window.TransifyTTSPage = TransifyTTSPage;
-  window.TransifyTTS = TransifyTTS;
-  window.TransifyVoiceStudio = TransifyVoiceStudio;
-  window.openAuthSheet = (m) => TransifyApp.openAuthSheet(m);
-  window.closeAuthSheet = () => TransifyApp.closeAuthSheet();
-  window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
-  window.handleDemoLogin = () => TransifyApp.handleDemoLogin();
-  window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
-  window.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
-  TransifyApp.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
+// Expose module APIs to window for inline onclick handlers and extensions
+window.TransifyApp = TransifyApp;
+window.SignPage = SignPage;
+window.TransifySign = SignPage;
+window.BraillePage = BraillePage;
+window.TransifySTT = TransifySTT;
+window.TransifyTTSPage = TransifyTTSPage;
+window.TransifyTTS = TransifyTTS;
+window.TransifyVoiceStudio = TransifyVoiceStudio;
+window.openAuthSheet = (m) => TransifyApp.openAuthSheet(m);
+window.closeAuthSheet = () => TransifyApp.closeAuthSheet();
+window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
+window.handleDemoLogin = () => TransifyApp.handleDemoLogin();
+window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
+window.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
+TransifyApp.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
 }
 
 if (document.readyState === 'loading') {
@@ -6163,7 +6209,7 @@ const EditorialController = {
       const bioVal = profBio ? profBio.value : '';
 
       const profObj = { name: nameVal, role: roleVal, comm: commVal, dialect: dialectVal, bio: bioVal };
-      try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) {}
+      try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) { }
 
       const initials = nameVal.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2) || 'TR';
       if (profAvatar) profAvatar.textContent = initials;
@@ -6203,7 +6249,7 @@ const EditorialController = {
           const initials = p.name.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
           profAvatar.textContent = initials || 'TR';
         }
-      } catch (_) {}
+      } catch (_) { }
     }
 
     // Live reactivity for profile controls
@@ -6281,7 +6327,7 @@ const EditorialController = {
     if (exportBtn) {
       exportBtn.addEventListener('click', () => {
         let profData = {};
-        try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) {}
+        try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) { }
         const dump = {
           app: 'Transify 2.0',
           exported_at: new Date().toISOString(),
@@ -6774,7 +6820,7 @@ const EditorialController = {
 
     try {
       localStorage.setItem('transify_settings_tab', tabName);
-    } catch (_) {}
+    } catch (_) { }
   },
 
   handleSettingsAuthAction() {
