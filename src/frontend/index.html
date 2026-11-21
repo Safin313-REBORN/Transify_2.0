@@ -949,34 +949,69 @@
           <!-- Header Row -->
           <header class="phrases-header">
             <div>
-              <h1 class="phrases-h1">Phrases</h1>
-              <p class="phrases-sub">Press a phrase to say it aloud. Add the ones you use every day.</p>
+              <div class="care-badge-label" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--violet);"></span>
+                AAC CLINICAL SPEECH &amp; COMMUNICATION BOARD 2.0
+              </div>
+              <h1 class="phrases-h1">Phrases &amp; AAC speech board</h1>
+              <p class="phrases-sub">Bilingual emergency, medical, and everyday communication cards with instant TTS, sign bridging, and Braille tactile preview.</p>
             </div>
-            <button type="button" id="btn-toggle-add-phrase" class="btn-add-phrase-toggle press" aria-expanded="false">
-              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2.4" stroke-linecap="round">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              <span id="add-phrase-btn-label">Add phrase</span>
-            </button>
+            
+            <div class="phrases-header-actions" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+              <button type="button" id="btn-toggle-add-phrase" class="btn-add-phrase-toggle press" aria-expanded="false">
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.4" stroke-linecap="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                <span id="add-phrase-btn-label">Add phrase</span>
+              </button>
+              
+              <button type="button" id="btn-phrase-emergency-mode" class="btn-outline-dark press" onclick="EditorialController.toggleEmergencyFlashMode()" style="height: 48px; border-color: rgba(239,68,68,0.4); color: #dc2626; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <span>🚨 Emergency Siren Mode</span>
+              </button>
+              
+              <div class="tts-speed-selector-wrap" style="display: inline-flex; align-items: center; gap: 4px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 4px 8px; height: 48px; box-sizing: border-box;">
+                <label for="phrase-speed-select" style="font-size: 13px; font-weight: 600; color: var(--text-2);">Voice Rate:</label>
+                <select id="phrase-speed-select" class="settings-select" style="min-height: 36px; padding: 2px 6px; font-size: 13px; border: none; background: transparent;" onchange="EditorialController.setPhraseSpeed(parseFloat(this.value))">
+                  <option value="0.75">0.75x (Slow)</option>
+                  <option value="1.0" selected>1.0x (Normal)</option>
+                  <option value="1.25">1.25x (Fast)</option>
+                </select>
+              </div>
+
+              <button type="button" class="btn-outline-dark press" onclick="EditorialController.exportPhrasesJSON()" style="height: 48px; font-size: 13px; color: var(--ink); border-color: var(--line-2);">
+                📥 Export JSON
+              </button>
+            </div>
           </header>
 
           <!-- Collapsible Add Phrase Form -->
           <section id="phrase-add-form" class="phrase-add-section" aria-label="Add a phrase" style="display: none;">
-            <div class="phrase-add-row">
-              <div class="phrase-input-field">
-                <label for="np" class="phrase-input-label">What do you want to say?</label>
-                <input id="np" type="text" class="phrase-text-input"
-                  placeholder="For example: I am allergic to peanuts">
+            <div class="phrase-add-row" style="flex-direction: column; gap: 12px; align-items: stretch;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+                <div class="phrase-input-field">
+                  <label for="np" class="phrase-input-label">English Phrase:</label>
+                  <input id="np" type="text" class="phrase-text-input"
+                    placeholder="e.g.: I am allergic to penicillin">
+                </div>
+                <div class="phrase-input-field">
+                  <label for="np-bn" class="phrase-input-label">বাংলা অনুবাদ (Bengali translation - optional):</label>
+                  <input id="np-bn" type="text" class="phrase-text-input"
+                    placeholder="যেমন: আমার পেনিসিলিনে এলার্জি আছে">
+                </div>
               </div>
-              <div role="group" aria-label="Category" class="category-btn-group">
-                <button type="button" class="cat-select-btn press active" data-cat="Everyday"
-                  aria-pressed="true">Everyday</button>
-                <button type="button" class="cat-select-btn press" data-cat="Needs" aria-pressed="false">Needs</button>
-                <button type="button" class="cat-select-btn press" data-cat="Emergency"
-                  aria-pressed="false">Emergency</button>
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div role="group" aria-label="Category" class="category-btn-group" style="flex-wrap: wrap; gap: 6px;">
+                  <button type="button" class="cat-select-btn press active" data-cat="Everyday" aria-pressed="true">Everyday</button>
+                  <button type="button" class="cat-select-btn press" data-cat="Needs" aria-pressed="false">Needs</button>
+                  <button type="button" class="cat-select-btn press" data-cat="Medical" aria-pressed="false">Medical</button>
+                  <button type="button" class="cat-select-btn press" data-cat="Emergency" aria-pressed="false">Emergency</button>
+                  <button type="button" class="cat-select-btn press" data-cat="Mobility" aria-pressed="false">Mobility</button>
+                  <button type="button" class="cat-select-btn press" data-cat="Hospital" aria-pressed="false">Hospital</button>
+                  <button type="button" class="cat-select-btn press" data-cat="Assistive" aria-pressed="false">Assistive</button>
+                </div>
+                <button type="button" id="btn-save-phrase" class="btn-save-phrase press">Save phrase</button>
               </div>
-              <button type="button" id="btn-save-phrase" class="btn-save-phrase press">Save phrase</button>
             </div>
           </section>
 
@@ -989,17 +1024,27 @@
                 <circle cx="11" cy="11" r="7" />
                 <path d="M20 20l-3.5-3.5" />
               </svg>
-              <input id="q" type="search" class="phrase-search-input" placeholder="Search phrases">
+              <input id="q" type="search" class="phrase-search-input" placeholder="Search phrases in English or বাংলা...">
             </div>
             <div role="tablist" aria-label="Category" class="phrase-category-tablist">
               <button type="button" role="tab" class="phrase-cat-tab active" data-cat="All" aria-selected="true">All
                 <span class="phrase-cat-count" id="count-all">0</span></button>
               <button type="button" role="tab" class="phrase-cat-tab" data-cat="Everyday" aria-selected="false">Everyday
                 <span class="phrase-cat-count" id="count-everyday">0</span></button>
-              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Needs" aria-selected="false">Needs <span
-                  class="phrase-cat-count" id="count-needs">0</span></button>
-              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Emergency"
-                aria-selected="false">Emergency <span class="phrase-cat-count" id="count-emergency">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Needs" aria-selected="false">Needs
+                <span class="phrase-cat-count" id="count-needs">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Medical" aria-selected="false">Medical
+                <span class="phrase-cat-count" id="count-medical">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Emergency" aria-selected="false">Emergency
+                <span class="phrase-cat-count" id="count-emergency">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Mobility" aria-selected="false">Mobility
+                <span class="phrase-cat-count" id="count-mobility">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Hospital" aria-selected="false">Hospital
+                <span class="phrase-cat-count" id="count-hospital">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Assistive" aria-selected="false">Assistive
+                <span class="phrase-cat-count" id="count-assistive">0</span></button>
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Favorites" aria-selected="false">⭐ Favorites
+                <span class="phrase-cat-count" id="count-favorites">0</span></button>
             </div>
           </div>
 
@@ -1017,6 +1062,23 @@
             <button type="button" id="btn-seed-starter-phrases" class="btn-welcome-primary press"
               style="max-width: 240px; height: 52px; font-size: 16px;">Add starter phrases</button>
           </section>
+
+          <!-- Emergency Flash Fullscreen Overlay -->
+          <div id="phrase-flash-overlay" class="phrase-flash-overlay" style="display: none;" onclick="EditorialController.dismissEmergencyFlash()">
+            <div class="phrase-flash-modal" onclick="event.stopPropagation()">
+              <div class="phrase-flash-siren">🚨 URGENT MEDICAL EMERGENCY 🚨</div>
+              <div id="phrase-flash-text" class="phrase-flash-text">EMERGENCY ASSISTANCE NEEDED</div>
+              <div id="phrase-flash-bn" class="phrase-flash-bn">জরুরি চিকিৎসা সহায়তা প্রয়োজন</div>
+              <div class="phrase-flash-hotlines">
+                <span class="hotline-pill">🚨 National Emergency: 999</span>
+                <span class="hotline-pill">🩺 Health Triage: 16263</span>
+              </div>
+              <p style="margin: 12px 0 0; color: #fee2e2; font-size: 14px;">Please assist this individual or call 999 emergency services immediately.</p>
+              <button type="button" class="btn-welcome-primary press" onclick="EditorialController.dismissEmergencyFlash()" style="margin-top: 18px; background: #ffffff; color: #b91c1c; font-weight: 800; border: none; padding: 0 24px;">
+                Dismiss Emergency Alert
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 

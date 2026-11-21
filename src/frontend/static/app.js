@@ -5104,18 +5104,76 @@ const EditorialController = {
     '234': 's', '2345': 't', '136': 'u', '1236': 'v', '2456': 'w', '1346': 'x',
     '13456': 'y', '1356': 'z'
   },
+  phraseSpeed: 1.0,
   defaultPhrases: [
-    { en: 'Hello', bn: 'হ্যালো', cat: 'Everyday' },
-    { en: 'Thank you', bn: 'ধন্যবাদ', cat: 'Everyday' },
-    { en: 'Please slow down', bn: 'দয়া করে আস্তে বলুন', cat: 'Everyday' },
-    { en: 'Can you write that down?', bn: 'আপনি কি এটা লিখে দিতে পারবেন?', cat: 'Everyday' },
-    { en: 'I do not understand', bn: 'আমি বুঝতে পারছি না', cat: 'Everyday' },
-    { en: 'I need water', bn: 'আমার পানি দরকার', cat: 'Needs' },
-    { en: 'Where is the restroom?', bn: 'টয়লেট কোথায়?', cat: 'Needs' },
-    { en: 'I need help reading this', bn: 'এটা পড়তে আমার সাহায্য দরকার', cat: 'Needs' },
-    { en: 'I need help', bn: 'আমার সাহায্য দরকার', cat: 'Emergency' },
-    { en: 'Please call a doctor', bn: 'দয়া করে ডাক্তার ডাকুন', cat: 'Emergency' },
-    { en: 'I am lost', bn: 'আমি পথ হারিয়ে ফেলেছি', cat: 'Emergency' }
+    // Everyday & Social
+    { id: 'p1', en: 'Hello', bn: 'হ্যালো', translit: 'Hyālō', cat: 'Everyday', fav: true },
+    { id: 'p2', en: 'Thank you', bn: 'ধন্যবাদ', translit: 'Dhonnobād', cat: 'Everyday', fav: true },
+    { id: 'p3', en: 'Please slow down', bn: 'দয়া করে আস্তে বলুন', translit: 'Doyā kore āste bolun', cat: 'Everyday' },
+    { id: 'p4', en: 'Can you write that down?', bn: 'আপনি কি এটা লিখে দিতে পারবেন?', translit: 'Āpni ki eṭā likhe dite pārben?', cat: 'Everyday' },
+    { id: 'p5', en: 'I do not understand', bn: 'আমি বুঝতে পারছি না', translit: 'Āmi bujhte pārchi nā', cat: 'Everyday' },
+    { id: 'p6', en: 'Yes, please', bn: 'হ্যাঁ, অনুগ্রহ করে', translit: 'Hnǣ, onugroho kore', cat: 'Everyday' },
+    { id: 'p7', en: 'No, thank you', bn: 'না, ধন্যবাদ', translit: 'Nā, dhonnobād', cat: 'Everyday' },
+    { id: 'p8', en: 'Good morning', bn: 'শুভ সকাল', translit: 'Shubho shokāl', cat: 'Everyday' },
+    { id: 'p9', en: 'How are you?', bn: 'আপনি কেমন আছেন?', translit: 'Āpni kemon āchen?', cat: 'Everyday' },
+    { id: 'p10', en: 'Please repeat that once more', bn: 'দয়া করে আর একবার বলুন', translit: 'Doyā kore ār ekbār bolun', cat: 'Everyday' },
+
+    // Daily Needs & Comfort
+    { id: 'p11', en: 'I need water', bn: 'আমার পানি দরকার', translit: 'Āmār pāni dorkār', cat: 'Needs', fav: true },
+    { id: 'p12', en: 'Where is the restroom?', bn: 'টয়লেট কোথায়?', translit: 'Ṭoyleṭ kothāy?', cat: 'Needs', fav: true },
+    { id: 'p13', en: 'I need help reading this', bn: 'এটা পড়তে আমার সাহায্য দরকার', translit: 'Eṭā poṛte āmār sāhājjo dorkār', cat: 'Needs' },
+    { id: 'p14', en: 'I am hungry, need food', bn: 'আমার ক্ষুধা পেয়েছে, খাবার দরকার', translit: 'Āmār khudhā peyeche, khābār dorkār', cat: 'Needs' },
+    { id: 'p15', en: 'I feel cold, need a blanket', bn: 'আমার ঠান্ডা লাগছে, একটি কম্বল দরকার', translit: 'Āmār ṭhāndā lāgche, kombol dorkār', cat: 'Needs' },
+    { id: 'p16', en: 'I feel very hot', bn: 'আমার খুব গরম লাগছে', translit: 'Āmār khub gorom lāgche', cat: 'Needs' },
+    { id: 'p17', en: 'I need to sit down and rest', bn: 'আমাকে একটু বসতে হবে এবং বিশ্রাম নিতে হবে', translit: 'Āmāke ektu boste hobe, bishrām dorkār', cat: 'Needs' },
+    { id: 'p18', en: 'Please turn down the noise / lights', bn: 'দয়া করে আলো অথবা শব্দ কমিয়ে দিন', translit: 'Doyā kore ālo othobā shobdo komiye din', cat: 'Needs' },
+    { id: 'p19', en: 'I need my spectacles / eyeglasses', bn: 'আমার চশমা প্রয়োজন', translit: 'Āmār choshmā proyojon', cat: 'Needs' },
+    { id: 'p20', en: 'I need my phone or charger', bn: 'আমার ফোন বা চার্জার প্রয়োজন', translit: 'Āmār phone bā chārjār proyojon', cat: 'Needs' },
+
+    // Medical & Clinical Triage
+    { id: 'p21', en: 'I am having severe pain (Level 8/10)', bn: 'আমার তীব্র ব্যথা হচ্ছে (মাত্রা ৮/১০)', translit: 'Tībro byathā hochhe (mātrā 8/10)', cat: 'Medical', fav: true },
+    { id: 'p22', en: 'I feel dizzy and nauseous', bn: 'আমার মাথা ঘুরছে এবং বমি বমি ভাব হচ্ছে', translit: 'Māthā ghūrche ebong bomi bhāb hochhe', cat: 'Medical' },
+    { id: 'p23', en: 'I have high blood pressure', bn: 'আমার উচ্চ রক্তচাপ রয়েছে', translit: 'Āmār uccho roktochāp royeche', cat: 'Medical' },
+    { id: 'p24', en: 'I am diabetic, need insulin or glucose', bn: 'আমি ডায়াবেটিক, ইনসুলিন বা গ্লুকোজ প্রয়োজন', translit: 'Āmi diabetic, insulin bā glucose proyojon', cat: 'Medical', fav: true },
+    { id: 'p25', en: 'I have an allergy to penicillin', bn: 'আমার পেনিসিলিনে এলার্জি আছে', translit: 'Āmār penicillin-e allergy āche', cat: 'Medical' },
+    { id: 'p26', en: 'Please check my heart rate and pulse', bn: 'দয়া করে আমার নাড়ির স্পন্দন পরীক্ষা করুন', translit: 'Doyā kore nāṛir spondon porikkha korun', cat: 'Medical' },
+    { id: 'p27', en: 'I have a severe migraine headache', bn: 'আমার তীব্র মাইগ্রেন ও মাথাব্যথা হচ্ছে', translit: 'Āmār tībro migraine o māthābyathā hochhe', cat: 'Medical' },
+    { id: 'p28', en: 'I need to take my prescribed medication', bn: 'আমার প্রেসক্রিপশনের ওষুধ খাওয়া দরকার', translit: 'Prescription-er oshudh khāwā dorkār', cat: 'Medical' },
+    { id: 'p29', en: 'Where is the nearest pharmacy?', bn: 'নিকটতম ফার্মেসি কোথায়?', translit: 'Nikoṭ-tomo pharmacy kothāy?', cat: 'Medical' },
+    { id: 'p30', en: 'My blood group is O-positive', bn: 'আমার রক্তের গ্রুপ ও-পজিটিভ', translit: 'Āmār rokter group O-positive', cat: 'Medical' },
+
+    // Urgent & Emergency 999
+    { id: 'p31', en: 'I need help immediately', bn: 'আমার অবিলম্বে সাহায্য দরকার', translit: 'Āmār obilombe sāhājjo dorkār', cat: 'Emergency', fav: true },
+    { id: 'p32', en: 'Please call a doctor', bn: 'দয়া করে ডাক্তার ডাকুন', translit: 'Doyā kore doctor dākun', cat: 'Emergency', fav: true },
+    { id: 'p33', en: 'I am lost, please guide me', bn: 'আমি পথ হারিয়ে ফেলেছি, দয়া করে সাহায্য করুন', translit: 'Āmi poth hāriye felechi, sāhājjo korun', cat: 'Emergency' },
+    { id: 'p34', en: 'Call an ambulance right now (999)', bn: 'তাত্ক্ষণিকভাবে একটি অ্যাম্বুলেন্স ডাকুন (৯৯৯)', translit: 'Tāṯkkhonik bhābe ambulance dākun (999)', cat: 'Emergency', fav: true },
+    { id: 'p35', en: 'I cannot breathe / severe shortness of breath', bn: 'আমি শ্বাস নিতে পারছি না, তীব্র শ্বাসকষ্ট হচ্ছে', translit: 'Āmi shwās nite pārchi nā, tībro shwāskoṣṭo', cat: 'Emergency', fav: true },
+    { id: 'p36', en: 'Severe chest pain / possible heart attack', bn: 'বুকে তীব্র ব্যথা, হার্ট অ্যাটাকের আশঙ্কা', translit: 'Buke tībro byathā, heart attack āshongkā', cat: 'Emergency', fav: true },
+    { id: 'p37', en: 'I am bleeding heavily', bn: 'আমার শরীর থেকে প্রচুর রক্তক্ষরণ হচ্ছে', translit: 'Āmār shorīr theke prochur rokto-khoron hochhe', cat: 'Emergency' },
+    { id: 'p38', en: 'Someone has collapsed here', bn: 'এখানে একজন ব্যক্তি অচেতন হয়ে পড়েছেন', translit: 'Ekhāne ekjon byokti ocheton hoye poṛechen', cat: 'Emergency' },
+    { id: 'p39', en: 'I am having an acute allergic reaction', bn: 'আমার তীব্র এলার্জির প্রতিক্রিয়া হচ্ছে', translit: 'Āmār tībro allergy-r protikriyā hochhe', cat: 'Emergency' },
+    { id: 'p40', en: 'Call my emergency ICE contact', bn: 'আমার জরুরি যোগাযোগের নম্বরে দ্রুত ফোন করুন', translit: 'Āmār joruri contact-e druto phone korun', cat: 'Emergency' },
+
+    // Mobility & Wayfinding
+    { id: 'p41', en: 'Where is the wheelchair accessible ramp?', bn: 'হুইলচেয়ার চলাচলের র‍্যাম্প কোথায়?', translit: 'Wheelchair cholācholer ramp kothāy?', cat: 'Mobility', fav: true },
+    { id: 'p42', en: 'Can you guide me to the elevator?', bn: 'আমাকে লিফটের পথ দেখাবেন কি?', translit: 'Āmāke lift-er poth dekhāben ki?', cat: 'Mobility' },
+    { id: 'p43', en: 'Please hold the door open for me', bn: 'দয়া করে আমার জন্য দরজাটি ধরে রাখুন', translit: 'Doyā kore āmār jonno dorjāṭi dhore rākhun', cat: 'Mobility' },
+    { id: 'p44', en: 'Where is the accessible taxi or bus stop?', bn: 'প্রতিবন্ধী-বান্ধব ট্যাক্সি বা বাস স্টপ কোথায়?', translit: 'Protibondhi-bāndhob taxi bā bus stop kothāy?', cat: 'Mobility' },
+    { id: 'p45', en: 'I need assistance walking down the stairs', bn: 'সিঁড়ি দিয়ে নামতে আমার সাহায্য প্রয়োজন', translit: 'Sninṛi diye nāmte āmār sāhājjo proyojon', cat: 'Mobility' },
+
+    // Hospital & Inpatient Care
+    { id: 'p46', en: 'Please call the on-duty nurse', bn: 'দয়া করে কর্তব্যরত নার্সকে ডাকুন', translit: 'Doyā kore kortobyoroto nurse-ke dākun', cat: 'Hospital', fav: true },
+    { id: 'p47', en: 'The IV drip is finished or leaking', bn: 'স্যালাইন বা আইভি ড্রিপ শেষ অথবা লিক করছে', translit: 'Saline bā IV drip shesh othobā leak korche', cat: 'Hospital' },
+    { id: 'p48', en: 'Can I speak with the consulting physician?', bn: 'আমি কি কনসাল্টিং চিকিৎসকের সাথে কথা বলতে পারি?', translit: 'Āmi ki consulting chikitshoker sāthe kothā bolte pāri?', cat: 'Hospital' },
+    { id: 'p49', en: 'When will my diagnostic test reports be ready?', bn: 'আমার মেডিকেল টেস্টের রিপোর্ট কখন পাওয়া যাবে?', translit: 'Medical test-er report kokhon pāoyā jābe?', cat: 'Hospital' },
+    { id: 'p50', en: 'I need help adjusting my hospital bed', bn: 'হাসপাতালের বিছানা সমন্বয় করতে সাহায্য দরকার', translit: 'Hāspātāler bichhānā shomonwoy korte sāhājjo', cat: 'Hospital' },
+
+    // Deaf & Assistive Communication
+    { id: 'p51', en: 'I am deaf / hard of hearing', bn: 'আমি বধির / কানে কম শুনি', translit: 'Āmi bodhir / kāne kom shuni', cat: 'Assistive', fav: true },
+    { id: 'p52', en: 'Please face me so I can lip-read', bn: 'দয়া করে আমার দিকে তাকিয়ে কথা বলুন যাতে ঠোঁট পড়তে পারি', translit: 'Doyā kore āmār dike tākiye kothā bolun', cat: 'Assistive' },
+    { id: 'p53', en: 'Can you communicate in sign language?', bn: 'আপনি কি ইশারা ভাষায় কথা বলতে পারেন?', translit: 'Āpni ki ishārā bhāshāy kothā bolte pāren?', cat: 'Assistive' },
+    { id: 'p54', en: 'Please type or write it on my screen', bn: 'দয়া করে আমার স্ক্রিনে লিখে দিন', translit: 'Doyā kore āmār screen-e likhe din', cat: 'Assistive' },
+    { id: 'p55', en: 'I communicate using Transify AAC', bn: 'আমি ট্রান্সিফাই এএসি দিয়ে যোগাযোগ করি', translit: 'Āmi Transify AAC diye jogājog kori', cat: 'Assistive' }
   ],
 
   init() {
@@ -5647,6 +5705,152 @@ const EditorialController = {
     }
   },
 
+  setPhraseSpeed(spd) {
+    this.phraseSpeed = spd || 1.0;
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast(`Phrase playback rate set to ${this.phraseSpeed}x`, 'info');
+    }
+  },
+
+  toggleEmergencyFlashMode() {
+    const overlay = document.getElementById('phrase-flash-overlay');
+    if (!overlay) return;
+    const isVisible = overlay.style.display !== 'none';
+    if (isVisible) {
+      overlay.style.display = 'none';
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    } else {
+      const textEl = document.getElementById('phrase-flash-text');
+      const bnEl = document.getElementById('phrase-flash-bn');
+      if (textEl) textEl.textContent = 'URGENT: I NEED IMMEDIATE MEDICAL ASSISTANCE';
+      if (bnEl) bnEl.textContent = 'জরুরি: আমার অবিলম্বে চিকিৎসা সহায়তা প্রয়োজন (৯৯৯)';
+      overlay.style.display = 'flex';
+      if (window.TransifyTTS && window.TransifyTTS.speak) {
+        window.TransifyTTS.speak('Emergency: I need medical assistance immediately. Please call 999.');
+      }
+    }
+  },
+
+  dismissEmergencyFlash() {
+    const overlay = document.getElementById('phrase-flash-overlay');
+    if (overlay) overlay.style.display = 'none';
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  },
+
+  triggerEmergencyFlashByIdx(idx) {
+    if (this._lastVisiblePhrases && this._lastVisiblePhrases[idx]) {
+      const p = this._lastVisiblePhrases[idx];
+      const overlay = document.getElementById('phrase-flash-overlay');
+      const textEl = document.getElementById('phrase-flash-text');
+      const bnEl = document.getElementById('phrase-flash-bn');
+      if (textEl) textEl.textContent = p.en.toUpperCase();
+      if (bnEl) bnEl.textContent = p.bn || '';
+      if (overlay) overlay.style.display = 'flex';
+      this.speakPhraseCard(idx);
+    }
+  },
+
+  speakPhraseCard(idx) {
+    if (this._lastVisiblePhrases && this._lastVisiblePhrases[idx]) {
+      const p = this._lastVisiblePhrases[idx];
+      const iconEl = document.getElementById(`card-icon-${idx}`);
+      if (iconEl) {
+        iconEl.innerHTML = '<span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>';
+      }
+
+      if ('speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(p.en);
+          utterance.rate = this.phraseSpeed || 1.0;
+          utterance.onend = () => {
+            if (iconEl) {
+              iconEl.innerHTML = '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>';
+            }
+          };
+          utterance.onerror = () => {
+            if (iconEl) {
+              iconEl.innerHTML = '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>';
+            }
+          };
+          window.speechSynthesis.speak(utterance);
+        } catch (e) {
+          if (window.TransifyTTS && window.TransifyTTS.speak) {
+            window.TransifyTTS.speak(p.en);
+          }
+        }
+      } else if (window.TransifyTTS && window.TransifyTTS.speak) {
+        window.TransifyTTS.speak(p.en);
+      }
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast(`Speaking: "${p.en.slice(0, 28)}..."`, 'info');
+      }
+    }
+  },
+
+  toggleFavoritePhrase(idOrEn, event) {
+    if (event) event.stopPropagation();
+    if (this._allPhrases) {
+      const p = this._allPhrases.find(item => (item.id === idOrEn || item.en === idOrEn));
+      if (p) {
+        p.fav = !p.fav;
+        try { localStorage.setItem('transify_phrases', JSON.stringify(this._allPhrases)); } catch (e) { }
+        if (this._renderPhrases) this._renderPhrases();
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast(p.fav ? `Saved "${p.en.slice(0, 20)}..." to favorites!` : 'Removed from favorites.', 'info');
+        }
+      }
+    }
+  },
+
+  copyPhrase(textEn, textBn) {
+    const text = textBn ? `${textEn} (${textBn})` : textEn;
+    navigator.clipboard.writeText(text);
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast('Phrase copied to clipboard!', 'success');
+    }
+  },
+
+  bridgePhraseToSign(textEn) {
+    this.routeTo('sign');
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast(`Bridge: Loaded "${textEn.slice(0, 20)}..." in Sign Translator`, 'info');
+    }
+  },
+
+  bridgePhraseToBraille(textEn) {
+    this.routeTo('braille');
+    if (window.BraillePage && window.BraillePage.switchMode) {
+      window.BraillePage.switchMode('generator');
+    }
+    const input = document.getElementById('braille-gen-input');
+    if (input) {
+      input.value = textEn;
+      if (window.BraillePage && window.BraillePage.generateBrailleFromText) {
+        window.BraillePage.generateBrailleFromText();
+      }
+    }
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast(`Bridge: Generating Braille for "${textEn.slice(0, 20)}..."`, 'info');
+    }
+  },
+
+  exportPhrasesJSON() {
+    const list = this._allPhrases || this.defaultPhrases;
+    const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transify-phrases-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast('Exported phrases library as JSON.', 'success');
+    }
+  },
+
   setupPhrasesScreen() {
     const grid = document.getElementById('phrases-grid');
     const emptyState = document.getElementById('phrases-empty-state');
@@ -5656,23 +5860,32 @@ const EditorialController = {
     const addBtnLabel = document.getElementById('add-phrase-btn-label');
     const saveBtn = document.getElementById('btn-save-phrase');
     const npInput = document.getElementById('np');
+    const npBnInput = document.getElementById('np-bn');
     const toastMsg = document.getElementById('phrase-toast-msg');
     const seedBtn = document.getElementById('btn-seed-starter-phrases');
 
     let activeCategory = 'All';
     let newCategory = 'Everyday';
     let searchQuery = '';
-    let playingIdx = -1;
 
     // Load phrases
     let phrases = [];
     try {
       const stored = localStorage.getItem('transify_phrases');
-      if (stored) phrases = JSON.parse(stored);
-      else phrases = [...this.defaultPhrases];
+      if (stored) {
+        phrases = JSON.parse(stored);
+        if (!Array.isArray(phrases) || phrases.length < 20) {
+          phrases = [...this.defaultPhrases];
+          localStorage.setItem('transify_phrases', JSON.stringify(phrases));
+        }
+      } else {
+        phrases = [...this.defaultPhrases];
+      }
     } catch (e) {
       phrases = [...this.defaultPhrases];
     }
+
+    this._allPhrases = phrases;
 
     const savePhrases = () => {
       try { localStorage.setItem('transify_phrases', JSON.stringify(phrases)); } catch (e) { }
@@ -5681,27 +5894,49 @@ const EditorialController = {
     const render = () => {
       if (!grid) return;
       const q = searchQuery.trim().toLowerCase();
-      const inCat = (p) => activeCategory === 'All' || p.cat === activeCategory;
-      const match = (p) => !q || p.en.toLowerCase().includes(q) || (p.bn && p.bn.includes(q));
+      const inCat = (p) => {
+        if (activeCategory === 'All') return true;
+        if (activeCategory === 'Favorites') return !!p.fav;
+        return p.cat.toLowerCase() === activeCategory.toLowerCase();
+      };
+      const match = (p) => {
+        if (!q) return true;
+        return (p.en && p.en.toLowerCase().includes(q)) ||
+          (p.bn && p.bn.includes(q)) ||
+          (p.translit && p.translit.toLowerCase().includes(q)) ||
+          (p.cat && p.cat.toLowerCase().includes(q));
+      };
 
       const visible = phrases.filter(p => inCat(p) && match(p));
+      this._lastVisiblePhrases = visible;
 
       // Update counts
       const counts = {
         all: phrases.length,
         everyday: phrases.filter(p => p.cat === 'Everyday').length,
         needs: phrases.filter(p => p.cat === 'Needs').length,
-        emergency: phrases.filter(p => p.cat === 'Emergency').length
+        medical: phrases.filter(p => p.cat === 'Medical').length,
+        emergency: phrases.filter(p => p.cat === 'Emergency').length,
+        mobility: phrases.filter(p => p.cat === 'Mobility').length,
+        hospital: phrases.filter(p => p.cat === 'Hospital').length,
+        assistive: phrases.filter(p => p.cat === 'Assistive').length,
+        favorites: phrases.filter(p => !!p.fav).length
       };
 
-      const cAll = document.getElementById('count-all');
-      const cEv = document.getElementById('count-everyday');
-      const cNd = document.getElementById('count-needs');
-      const cEm = document.getElementById('count-emergency');
-      if (cAll) cAll.textContent = counts.all;
-      if (cEv) cEv.textContent = counts.everyday;
-      if (cNd) cNd.textContent = counts.needs;
-      if (cEm) cEm.textContent = counts.emergency;
+      const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+
+      setEl('count-all', counts.all);
+      setEl('count-everyday', counts.everyday);
+      setEl('count-needs', counts.needs);
+      setEl('count-medical', counts.medical);
+      setEl('count-emergency', counts.emergency);
+      setEl('count-mobility', counts.mobility);
+      setEl('count-hospital', counts.hospital);
+      setEl('count-assistive', counts.assistive);
+      setEl('count-favorites', counts.favorites);
 
       if (!visible.length) {
         grid.style.display = 'none';
@@ -5714,8 +5949,8 @@ const EditorialController = {
             if (body) body.textContent = 'Check the spelling, or add it as a new phrase.';
             if (seedBtn) seedBtn.style.display = 'none';
           } else {
-            if (title) title.textContent = 'No phrases here yet';
-            if (body) body.textContent = 'Add the phrases you say most. They will appear here.';
+            if (title) title.textContent = 'No phrases in this category';
+            if (body) body.textContent = 'Add the phrases you use most, or click below to restore full library.';
             if (seedBtn) seedBtn.style.display = 'inline-block';
           }
         }
@@ -5725,46 +5960,57 @@ const EditorialController = {
       grid.style.display = 'grid';
       if (emptyState) emptyState.style.display = 'none';
 
-      grid.innerHTML = visible.map((p, idx) => `
+      grid.innerHTML = visible.map((p, idx) => {
+        const isEmergency = (p.cat === 'Emergency');
+        const catClass = `cat-${(p.cat || 'everyday').toLowerCase()}`;
+        const isFav = !!p.fav;
+        return `
         <li>
-          <button type="button" class="phrase-card card-uiverse press" data-idx="${idx}" aria-label="Say aloud: ${p.en}">
-            <div class="go-corner" aria-hidden="true"><span class="go-arrow">→</span></div>
-            <span class="phrase-card-top ${p.cat === 'Emergency' ? 'emergency-tag' : ''}">
-              <span>${p.cat}</span>
-              <span class="phrase-card-icon" id="card-icon-${idx}">
-                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A4860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>
-              </span>
-            </span>
-            <span class="phrase-en card-title">${p.en}</span>
-            ${p.bn ? `<span class="phrase-bn small-desc">${p.bn}</span>` : ''}
-          </button>
+          <div class="phrase-card card-uiverse ${isEmergency ? 'is-emergency' : ''}" data-idx="${idx}" role="region" aria-label="${p.en}">
+            <div class="go-corner" aria-hidden="true" onclick="EditorialController.speakPhraseCard(${idx})"><span class="go-arrow">🔊</span></div>
+            <div class="phrase-card-top">
+              <span class="phrase-badge ${catClass}">${p.cat}</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <button type="button" class="phrase-fav-btn ${isFav ? 'is-fav' : ''}" onclick="EditorialController.toggleFavoritePhrase('${p.id || p.en}', event)" title="Toggle Favorite" aria-label="Toggle favorite">
+                  ${isFav ? '★' : '☆'}
+                </button>
+                <span class="phrase-card-icon" id="card-icon-${idx}" onclick="EditorialController.speakPhraseCard(${idx})" style="cursor: pointer;" title="Speak phrase">
+                  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>
+                </span>
+              </div>
+            </div>
+            
+            <div onclick="EditorialController.speakPhraseCard(${idx})" style="cursor: pointer;">
+              <span class="phrase-en card-title">${p.en}</span>
+              ${p.bn ? `<span class="phrase-bn small-desc">${p.bn}</span>` : ''}
+              ${p.translit ? `<span class="phrase-translit">Pronounce: ${p.translit}</span>` : ''}
+            </div>
+
+            <div class="phrase-card-actions">
+              <button type="button" class="phrase-action-btn press" onclick="EditorialController.speakPhraseCard(${idx})" title="Say phrase aloud">
+                <span>🔊 Speak</span>
+              </button>
+              <button type="button" class="phrase-action-btn press" onclick="EditorialController.copyPhrase('${p.en.replace(/'/g, "\\'")}', '${(p.bn || '').replace(/'/g, "\\'")}')" title="Copy text">
+                <span>📋 Copy</span>
+              </button>
+              <button type="button" class="phrase-action-btn press" onclick="EditorialController.bridgePhraseToSign('${p.en.replace(/'/g, "\\'")}')" title="Bridge to sign translator">
+                <span>🤟 Signs</span>
+              </button>
+              <button type="button" class="phrase-action-btn press" onclick="EditorialController.bridgePhraseToBraille('${p.en.replace(/'/g, "\\'")}')" title="Bridge to Braille studio">
+                <span>⠃ Braille</span>
+              </button>
+              ${isEmergency ? `
+              <button type="button" class="phrase-action-btn press" onclick="EditorialController.triggerEmergencyFlashByIdx(${idx})" style="background: rgba(239,68,68,0.12); color: #dc2626; border-color: rgba(239,68,68,0.3);" title="Trigger emergency siren">
+                <span>🚨 Alert</span>
+              </button>` : ''}
+            </div>
+          </div>
         </li>
-      `).join('');
-
-      // Wire card click speech
-      grid.querySelectorAll('.phrase-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const i = parseInt(card.getAttribute('data-idx') || '0', 10);
-          const p = visible[i];
-          if (!p) return;
-
-          const iconEl = document.getElementById(`card-icon-${i}`);
-          if (iconEl) {
-            iconEl.innerHTML = '<span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>';
-          }
-
-          if (window.TransifyTTS && window.TransifyTTS.speak) {
-            window.TransifyTTS.speak(p.en, {
-              onEnd: () => {
-                if (iconEl) {
-                  iconEl.innerHTML = '<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A4860" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>';
-                }
-              }
-            });
-          }
-        });
-      });
+      `;
+      }).join('');
     };
+
+    this._renderPhrases = render;
 
     // Category Tabs click
     document.querySelectorAll('.phrase-cat-tab').forEach(tab => {
@@ -5816,15 +6062,25 @@ const EditorialController = {
     if (saveBtn && npInput) {
       saveBtn.addEventListener('click', () => {
         const text = npInput.value.trim();
+        const textBn = npBnInput ? npBnInput.value.trim() : '';
         if (!text) {
           npInput.focus();
-          if (toastMsg) toastMsg.textContent = 'Type a phrase first';
+          if (toastMsg) toastMsg.textContent = 'Type an English phrase first';
           return;
         }
 
-        phrases.unshift({ en: text, bn: '', cat: newCategory });
+        phrases.unshift({
+          id: 'p_custom_' + Date.now(),
+          en: text,
+          bn: textBn,
+          translit: '',
+          cat: newCategory,
+          fav: false
+        });
+        this._allPhrases = phrases;
         savePhrases();
         npInput.value = '';
+        if (npBnInput) npBnInput.value = '';
         if (addSection) addSection.style.display = 'none';
         if (toggleAddBtn) {
           toggleAddBtn.setAttribute('aria-expanded', 'false');
@@ -5844,8 +6100,12 @@ const EditorialController = {
     if (seedBtn) {
       seedBtn.addEventListener('click', () => {
         phrases = [...this.defaultPhrases];
+        this._allPhrases = phrases;
         savePhrases();
         render();
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('Restored standard 50+ phrase library!', 'success');
+        }
       });
     }
 
