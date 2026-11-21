@@ -658,21 +658,21 @@
                 <span class="care-badge online">Healthcare Intake</span>
                 <span class="care-badge">Offline-First</span>
                 <span class="care-badge"
-                  style="background: rgba(131,56,236,0.15); color: var(--violet); border: 1px solid rgba(131,56,236,0.3);">🤖
-                  AI Trained</span>
+                  style="background: rgba(131,56,236,0.15); color: var(--violet); border: 1px solid rgba(131,56,236,0.3);">🩺
+                  Clinical Triage</span>
               </div>
-              <div class="care-title" style="margin-top: 6px;">Transify Care &amp; AI Assistant</div>
-              <div class="care-desc">Accessible clinical symptom triage, WHO/Merck guidelines &amp; AI consultation.
+              <div class="care-title" style="margin-top: 6px;">Transify Care &amp; Clinical Health</div>
+              <div class="care-desc">Accessible clinical symptom triage, WHO/DGHS guidelines &amp; health consultation.
               </div>
             </div>
             <div class="care-actions">
               <a href="#chat" class="btn-welcome-primary press" id="btn-open-ai-chat"
                 style="height: 44px; padding: 0 18px; font-size: 15px; background: var(--violet); color: #fff;">
-                🤖 AI Chatbot
+                💬 Assistant Chat
               </a>
               <a href="#care-chronic" class="btn-welcome-primary press" id="btn-open-care-chronic"
                 style="height: 44px; padding: 0 16px; font-size: 15px; background: #8338EC; color: #fff;">
-                ⌚ ChronicCare AI
+                ⌚ ChronicCare
               </a>
               <a href="#care-intake" class="btn-welcome-secondary press" id="btn-open-care-intake"
                 style="height: 44px; padding: 0 16px; font-size: 15px;">Symptom Intake</a>
@@ -1830,7 +1830,7 @@
                 <button type="button" class="care-tab-btn" id="care-tab-clinician-btn"
                   data-care-sub="clinician">Clinician Portal</button>
                 <button type="button" class="care-tab-btn" id="care-tab-chronic-btn"
-                  data-care-sub="chronic">ChronicCare AI</button>
+                  data-care-sub="chronic">ChronicCare</button>
               </div>
             </div>
           </header>
@@ -1856,45 +1856,45 @@
             <div class="careanywhere-toolbar"
               style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; margin-bottom: 4px;">
               <label for="care-photo-input" class="btn-outline-dark press"
-                style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px;">
+                style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
                 <span>📷 Scan Lesion / Eye</span>
                 <input type="file" id="care-photo-input" accept="image/*" class="sr-only">
               </label>
               <button type="button" id="btn-care-voice-dialect" class="btn-outline-dark press"
-                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
-                🎤 Voice Dialect
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
+                <span>🎤 Voice Dialect</span>
               </button>
               <button type="button" id="btn-care-outbreak-alert" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: #E65100; border-color: #FFE082; background: #FFF8E1;">
-                📍 Outbreak Alert (Dhaka)
+                <span>📍 Outbreak Alert (Dhaka)</span>
               </button>
               <button type="button" id="btn-care-nearby-facilities" class="btn-outline-dark press"
-                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
-                🏥 Nearest Clinics (OSM)
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
+                <span>🏥 Nearest Clinics (OSM)</span>
               </button>
               <button type="button" id="btn-care-ada-diff" class="btn-outline-dark press"
-                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
-                🎯 Differential (Ada)
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
+                <span>🎯 Differential (Ada)</span>
               </button>
               <button type="button" id="btn-care-k-health" class="btn-outline-dark press"
-                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
-                📊 People Like Me (K Health)
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
+                <span>📊 People Like Me (K Health)</span>
               </button>
               <button type="button" id="btn-care-healthy-io" class="btn-outline-dark press"
-                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
-                🧪 Urine &amp; Wound (Healthy.io)
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
+                <span>🧪 Urine &amp; Wound (Healthy.io)</span>
               </button>
               <button type="button" id="btn-care-mimic-hmd" class="btn-outline-dark press"
-                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
-                📈 Shock &amp; Risk (MIMIC/HMD)
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
+                <span>📈 Shock &amp; Risk (MIMIC/HMD)</span>
               </button>
               <button type="button" id="btn-care-zipline" class="btn-outline-dark press"
-                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
-                🚁 Drone Supply (Zipline)
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
+                <span>🚁 Drone Supply (Zipline)</span>
               </button>
               <button type="button" id="btn-care-who-gho" class="btn-outline-dark press"
-                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px;">
-                🌍 Infrastructure (WHO GHO)
+                style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
+                <span>🌍 Infrastructure (WHO GHO)</span>
               </button>
             </div>
 
@@ -2097,7 +2097,7 @@
                 <input type="checkbox" id="care-consent-check" style="width: 20px; height: 20px;">
                 <input type="checkbox" id="care-consent-checkbox" class="sr-only">
                 <label for="care-consent-check" style="font-weight: 600; font-size: 15px; color: var(--text-2);">I
-                  consent to clinical AI assisted triage review and symptom analysis.</label>
+                  consent to clinical triage review and symptom analysis.</label>
               </div>
               <div style="display: flex; gap: 12px;">
                 <button type="button" id="care-submit-intake-btn" class="btn-welcome-primary press"
@@ -2177,7 +2177,7 @@
                 <div><strong>Protocol:</strong> <span id="inspect-ai-rule">—</span></div>
               </div>
               <div style="margin-top: 10px;"><strong>Symptoms:</strong> <span id="inspect-symptoms">—</span></div>
-              <div style="margin-top: 10px;"><strong>AI Explanation:</strong>
+              <div style="margin-top: 10px;"><strong>Clinical Explanation:</strong>
                 <p id="inspect-ai-explanation" style="margin: 4px 0 0; color: var(--text-2);"></p>
               </div>
               <div style="margin-top: 10px;"><strong>Citations & Evidence:</strong>
@@ -2223,7 +2223,7 @@
                 <div class="radio-container" style="--total-radio: 4;" id="clinician-override-radio-group"
                   role="radiogroup" aria-label="Triage Urgency Protocol Choice">
                   <input type="radio" id="clinician-override-opt-none" name="clinician_urgency_choice" value="" checked>
-                  <label for="clinician-override-opt-none">Standard Protocol (Accept AI Classification)</label>
+                  <label for="clinician-override-opt-none">Standard Protocol (Accept Classification)</label>
 
                   <input type="radio" id="clinician-override-opt-emergent" name="clinician_urgency_choice"
                     value="EMERGENT">
@@ -2241,7 +2241,7 @@
                   </div>
                 </div>
                 <select id="clinician-override-select" class="care-input sr-only" aria-hidden="true">
-                  <option value="" selected>No Override (Accept AI Classification)</option>
+                  <option value="" selected>No Override (Accept Classification)</option>
                   <option value="EMERGENT">Override to EMERGENT</option>
                   <option value="URGENT">Override to URGENT</option>
                   <option value="ROUTINE">Override to ROUTINE</option>
@@ -2257,12 +2257,12 @@
             </div>
           </div>
 
-          <!-- Sub-View C: ChronicCare AI -->
+          <!-- Sub-View C: ChronicCare Monitoring -->
           <div id="slide-care-chronic" class="care-card" style="display: none; flex-direction: column; gap: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
               <div>
                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                  <h2 style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 800;">ChronicCare AI</h2>
+                  <h2 style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 800;">ChronicCare Monitoring</h2>
                   <span class="care-badge online">Remote Monitoring Active</span>
                   <span class="care-badge" style="background: rgba(131,56,236,0.12); color: #8338EC; border: 1px solid rgba(131,56,236,0.25);">Fitbit &amp; CGM Telemetry</span>
                   <span class="care-badge" style="background: rgba(46,125,50,0.12); color: #2E7D32; border: 1px solid rgba(46,125,50,0.25);">Differential Privacy (ε=1.0)</span>
@@ -3736,10 +3736,10 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </label>
 
-        <!-- 8: ChronicCare AI -->
+        <!-- 8: ChronicCare Monitoring -->
         <input type="radio" id="drawer-radio-8" name="drawer-nav-radio" value="care-chronic">
         <label for="drawer-radio-8" class="nav-drawer-item press" data-route="care-chronic">
-          <span class="nav-drawer-label">ChronicCare AI</span>
+          <span class="nav-drawer-label">ChronicCare</span>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="nav-drawer-arrow" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </label>
 
