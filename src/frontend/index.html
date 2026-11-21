@@ -1021,76 +1021,343 @@
       </section>
 
       <!-- ======================================================================
-           VIEW 5: BRAILLE SCANNER SCREEN (#braille)
+           VIEW 5: BRAILLE SCANNER & TRANSLATION STUDIO (#braille)
            ====================================================================== -->
       <section id="view-braille" class="page-view" aria-label="Braille Image Translator">
         <div class="braille-container">
           <header class="braille-header">
             <div>
-              <h1 class="phrases-h1">Braille scanner</h1>
-              <p class="phrases-sub">Scan a page, hear it read aloud, and explore Braille patterns.</p>
+              <div class="care-badge-label" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--violet);"></span>
+                MULTI-MODAL BRAILLE STUDIO 2.0
+              </div>
+              <h1 class="phrases-h1">Braille scanner &amp; translation studio</h1>
+              <p class="phrases-sub">Scan physical embossed pages, generate tactile Braille from text, and explore interactive 6-dot patterns.</p>
+            </div>
+            <!-- Sub-Mode Tabs -->
+            <div class="braille-mode-tabs" role="tablist" aria-label="Braille Studio Modes">
+              <button type="button" class="braille-mode-tab active press" id="braille-tab-scan" role="tab" aria-selected="true" onclick="BraillePage.switchMode('scan')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3M9 12h6M12 9v6"/></svg>
+                <span>Optical Scanner</span>
+              </button>
+              <button type="button" class="braille-mode-tab press" id="braille-tab-generator" role="tab" aria-selected="false" onclick="BraillePage.switchMode('generator')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M14 4l6 6-10 10H4v-6L14 4z"/></svg>
+                <span>Text to Braille</span>
+              </button>
+              <button type="button" class="braille-mode-tab press" id="braille-tab-reference" role="tab" aria-selected="false" onclick="BraillePage.switchMode('reference')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span>Alphabet &amp; Reference</span>
+              </button>
             </div>
           </header>
 
-          <!-- Upload Dropzone -->
-          <div class="braille-dropzone-card press" id="braille-dropzone" role="button" tabindex="0"
-            aria-label="Drop Braille image here or browse">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8338EC" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <path d="M21 15l-5-5L5 21" />
-            </svg>
-            <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 800;">Drop an image of
-              Braille or browse</h2>
-            <p style="margin: 6px 0 0; color: var(--text-2); font-size: 16px;" id="dropzone-text">Supports JPEG, PNG,
-              WEBP with embossed or printed cells</p>
-            <form id="braille-upload-form" class="sr-only">
-              <input type="file" id="braille-file-input" accept="image/*">
-            </form>
-          </div>
-
-          <div class="braille-grid-layout">
-            <!-- Left: Interactive 6-Dot Cell Explorer -->
-            <div class="braille-interactive-card">
-              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Interactive
-                Braille Cell</h2>
-              <p style="margin: 0; color: var(--text-2); font-size: 15px;">Press dots to inspect and verify character
-                mappings.</p>
-              <div class="braille-grid-demo" style="margin: 16px 0;" role="group" aria-label="Interactive Braille dots">
-                <button type="button" class="dotb" data-braille-dot="1">1</button>
-                <button type="button" class="dotb" data-braille-dot="2">2</button>
-                <button type="button" class="dotb" data-braille-dot="3">3</button>
-                <button type="button" class="dotb" data-braille-dot="4">4</button>
-                <button type="button" class="dotb" data-braille-dot="5">5</button>
-                <button type="button" class="dotb" data-braille-dot="6">6</button>
+          <!-- =================================================================
+               SUB-PANE 1: OPTICAL IMAGE & CAMERA SCANNER
+               ================================================================= -->
+          <div id="braille-pane-scan" class="braille-subpane active">
+            <!-- Preloaded Test Samples Bar -->
+            <div class="braille-samples-section">
+              <div class="braille-samples-header">
+                <span class="braille-samples-title">⚡ Preloaded Test Samples (Click to test instantly):</span>
+                <span class="braille-samples-hint">Authentic physical embossed photos ready for AI OCR</span>
               </div>
-              <div style="font-size: 18px; font-weight: 700; color: var(--violet);" id="braille-interactive-char">
-                Character: —</div>
-            </div>
-
-            <!-- Right: Translated Text Output -->
-            <div class="braille-result-card">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Translated
-                  Document</h2>
-                <span class="care-badge online" id="braille-stats-badge">Ready</span>
-              </div>
-              <div class="braille-output-box" id="braille-text-output" aria-live="polite">Upload or drop an image above
-                to translate optical Braille.</div>
-              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" id="speak-braille-btn" class="btn-welcome-primary press"
-                  style="height: 48px; font-size: 16px; padding: 0 20px;">Speak aloud</button>
-                <button type="button" id="copy-braille-btn" class="btn-outline-dark press"
-                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Copy
-                  text</button>
-                <button type="button" id="download-braille-btn" class="btn-outline-dark press"
-                  style="height: 48px; font-size: 16px; color: var(--ink); border-color: var(--line-2);">Download</button>
+              <div class="braille-samples-grid">
+                <button type="button" class="braille-sample-chip press" onclick="BraillePage.loadSample('/static/photos/braille-page.jpg', 'braille-page.jpg')">
+                  <img src="/static/photos/braille-page_lqip.jpg" alt="Embossed Page" class="sample-chip-thumb" loading="lazy">
+                  <div class="sample-chip-info">
+                    <span class="sample-chip-name">Embossed Document</span>
+                    <span class="sample-chip-meta">Full Page • High Relief</span>
+                  </div>
+                </button>
+                <button type="button" class="braille-sample-chip press" onclick="BraillePage.loadSample('/static/photos/care-braille-access.jpg', 'care-braille-access.jpg')">
+                  <img src="/static/photos/care-braille-access_lqip.jpg" alt="Clinical Sign" class="sample-chip-thumb" loading="lazy">
+                  <div class="sample-chip-info">
+                    <span class="sample-chip-name">Clinical Care Access</span>
+                    <span class="sample-chip-meta">Hospital Sign • Directional Light</span>
+                  </div>
+                </button>
+                <button type="button" class="braille-sample-chip press" onclick="BraillePage.loadSample('/static/photos/tile-braille-embossed.jpg', 'tile-braille-embossed.jpg')">
+                  <img src="/static/photos/tile-braille-embossed_lqip.jpg" alt="Tactile Tile" class="sample-chip-thumb" loading="lazy">
+                  <div class="sample-chip-info">
+                    <span class="sample-chip-name">Tactile Embossed Grid</span>
+                    <span class="sample-chip-meta">Embossed Tile • Structured Dots</span>
+                  </div>
+                </button>
+                <button type="button" class="braille-sample-chip press" onclick="BraillePage.loadSample('/static/photos/braille-bg-wide.jpg', 'braille-bg-wide.jpg')">
+                  <img src="/static/photos/braille-bg-wide_lqip.jpg" alt="Signboard" class="sample-chip-thumb" loading="lazy">
+                  <div class="sample-chip-info">
+                    <span class="sample-chip-name">Signboard Navigation</span>
+                    <span class="sample-chip-meta">Wayfinding • Environmental</span>
+                  </div>
+                </button>
               </div>
             </div>
+
+            <!-- Upload Dropzone -->
+            <div class="braille-dropzone-card press" id="braille-dropzone" role="button" tabindex="0"
+              aria-label="Drop Braille image here or browse">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#8338EC" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px;">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="M21 15l-5-5L5 21" />
+              </svg>
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Drop an image of Braille or browse</h2>
+              <p style="margin: 4px 0 12px; color: var(--text-2); font-size: 15px;" id="dropzone-text">Supports JPEG, PNG, WEBP with embossed or printed cells</p>
+              
+              <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button type="button" class="btn-welcome-primary press" id="braille-select-file-btn" style="height: 38px; font-size: 14px; padding: 0 16px;">
+                  📁 Browse Image
+                </button>
+                <button type="button" class="btn-outline-dark press" id="braille-open-camera-btn" onclick="BraillePage.openCamera(event)" style="height: 38px; font-size: 14px; padding: 0 16px; color: var(--ink); border-color: var(--line-2);">
+                  📷 Snap with Camera
+                </button>
+              </div>
+
+              <div id="braille-active-file-indicator" class="braille-file-indicator" style="display: none;">
+                <span id="braille-active-file-name">Selected: filename.jpg</span>
+              </div>
+
+              <form id="braille-upload-form" class="sr-only">
+                <input type="file" id="braille-file-input" accept="image/*">
+              </form>
+            </div>
+
+            <!-- OCR Options Toolbar -->
+            <div class="braille-toolbar-card">
+              <div class="braille-toolbar-left">
+                <div class="braille-toolbar-item">
+                  <label for="braille-opt-standard" class="braille-toolbar-label">Translation Standard:</label>
+                  <select id="braille-opt-standard" class="settings-select" style="min-height: 36px; padding: 4px 10px; font-size: 13px;">
+                    <option value="ueb1" selected>Unified English Braille (UEB Grade 1)</option>
+                    <option value="ueb2">UEB Grade 2 (Contracted)</option>
+                    <option value="bharati">Bharati Braille (বাংলা / Bengali)</option>
+                  </select>
+                </div>
+                <div class="braille-toolbar-item">
+                  <label class="braille-checkbox-label">
+                    <input type="checkbox" id="braille-opt-invert">
+                    <span>Invert Contrast (Dark Dots on Light)</span>
+                  </label>
+                </div>
+              </div>
+              <div class="braille-toolbar-right">
+                <button type="button" id="check-iqa-btn-visible" class="btn-outline-dark press" onclick="BraillePage.runIQACheck()" style="height: 36px; font-size: 13px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);">
+                  🔍 Check Quality (IQA)
+                </button>
+                <button type="button" id="translate-braille-btn-visible" class="btn-welcome-primary press" onclick="BraillePage.runTranslation()" style="height: 36px; font-size: 13px; padding: 0 16px;">
+                  ✨ Translate Image
+                </button>
+              </div>
+            </div>
+
+            <div class="braille-grid-layout">
+              <!-- Left: Interactive 6-Dot Cell Explorer -->
+              <div class="braille-interactive-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <h2 style="margin: 0; font-family: var(--font-display); font-size: 19px; font-weight: 800;">Interactive Braille Cell</h2>
+                  <span class="care-badge" id="braille-cell-badge" style="background: rgba(131,56,236,0.12); color: var(--violet); border: 1px solid rgba(131,56,236,0.25);">6-Dot Matrix</span>
+                </div>
+                <p style="margin: 0; color: var(--text-2); font-size: 14px;">Toggle tactile dots to inspect character mappings, Unicode Braille, and Bengali Bharati equivalents.</p>
+                
+                <div class="braille-cell-stage">
+                  <div class="braille-grid-demo" role="group" aria-label="Interactive Braille dots">
+                    <button type="button" class="dotb press" data-braille-dot="1" aria-label="Dot 1 (Top Left)">1</button>
+                    <button type="button" class="dotb press" data-braille-dot="4" aria-label="Dot 4 (Top Right)">4</button>
+                    <button type="button" class="dotb press" data-braille-dot="2" aria-label="Dot 2 (Middle Left)">2</button>
+                    <button type="button" class="dotb press" data-braille-dot="5" aria-label="Dot 5 (Middle Right)">5</button>
+                    <button type="button" class="dotb press" data-braille-dot="3" aria-label="Dot 3 (Bottom Left)">3</button>
+                    <button type="button" class="dotb press" data-braille-dot="6" aria-label="Dot 6 (Bottom Right)">6</button>
+                  </div>
+                  <div class="braille-cell-meta-box">
+                    <div style="font-size: 26px; font-weight: 800; color: var(--violet);" id="braille-interactive-char">Character: —</div>
+                    <div class="braille-meta-line" id="braille-interactive-dots">Active: None</div>
+                    <div class="braille-meta-line" id="braille-interactive-unicode">Unicode: ⠀ (U+2800)</div>
+                    <div class="braille-meta-line" id="braille-interactive-bengali">বাংলা: —</div>
+                  </div>
+                </div>
+
+                <!-- Explorer Utility Controls -->
+                <div class="braille-explorer-actions">
+                  <button type="button" class="btn-micro press" onclick="BraillePage.clearCellDots()">🧹 Clear</button>
+                  <button type="button" class="btn-micro press" onclick="BraillePage.speakActiveCell()">🔊 Pronounce</button>
+                  <button type="button" class="btn-micro press" onclick="BraillePage.invertCellDots()">🔄 Invert</button>
+                  <button type="button" class="btn-micro press" onclick="BraillePage.randomCellPattern()">🎲 Random</button>
+                </div>
+              </div>
+
+              <!-- Right: Translated Text Output -->
+              <div class="braille-result-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <h2 style="margin: 0; font-family: var(--font-display); font-size: 19px; font-weight: 800;">Translated Document</h2>
+                  <span class="care-badge online" id="braille-stats-badge">Ready</span>
+                </div>
+                <div class="braille-output-box" id="braille-text-output" aria-live="polite">Upload or drop an image above to translate optical Braille.</div>
+                
+                <!-- Secondary Raw Braille Unicode Container -->
+                <div class="braille-raw-container" id="braille-raw-wrapper" style="display: none;">
+                  <div class="braille-raw-label">Raw Braille Unicode (UEB):</div>
+                  <div class="braille-raw-glyphs" id="braille-unicode-output">⠀</div>
+                </div>
+
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" id="speak-braille-btn" class="btn-welcome-primary press"
+                    style="height: 44px; font-size: 15px; padding: 0 18px;">Speak aloud</button>
+                  <button type="button" id="copy-braille-btn" class="btn-outline-dark press"
+                    style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Copy text</button>
+                  <button type="button" id="copy-braille-unicode-btn" class="btn-outline-dark press" onclick="BraillePage.copyUnicodeBraille()"
+                    style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Copy Braille ⠓⠑⠇⠇⠕</button>
+                  <button type="button" id="download-braille-btn" class="btn-outline-dark press"
+                    style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Download TXT</button>
+                  <button type="button" id="download-brf-btn" class="btn-outline-dark press" onclick="BraillePage.downloadBRF()"
+                    style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Download BRF</button>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Hidden compatibility elements for braille page -->
+          <!-- =================================================================
+               SUB-PANE 2: BIDIRECTIONAL TEXT-TO-BRAILLE GENERATOR
+               ================================================================= -->
+          <div id="braille-pane-generator" class="braille-subpane" style="display: none;">
+            <!-- Quick Presets -->
+            <div class="braille-samples-section">
+              <div class="braille-samples-header">
+                <span class="braille-samples-title">⚡ Instant Generator Presets:</span>
+                <span class="braille-samples-hint">Click a phrase to generate real-time 6-dot Braille</span>
+              </div>
+              <div class="braille-presets-bar">
+                <button type="button" class="braille-preset-btn press" onclick="BraillePage.loadGeneratorPreset('Hello Transify')">👋 "Hello Transify"</button>
+                <button type="button" class="braille-preset-btn press" onclick="BraillePage.loadGeneratorPreset('Emergency 999')">🚨 "Emergency 999"</button>
+                <button type="button" class="braille-preset-btn press" onclick="BraillePage.loadGeneratorPreset('Medicine: Paracetamol 500mg')">💊 "Medicine: Paracetamol"</button>
+                <button type="button" class="braille-preset-btn press" onclick="BraillePage.loadGeneratorPreset('Caution: Wet Floor')">⚠️ "Caution: Wet Floor"</button>
+                <button type="button" class="braille-preset-btn press" onclick="BraillePage.loadGeneratorPreset('স্বাগতম')">🇧🇩 "স্বাগতম (Welcome)"</button>
+                <button type="button" class="braille-preset-btn press" onclick="BraillePage.loadGeneratorPreset('Thank you very much')">🙏 "Thank you very much"</button>
+              </div>
+            </div>
+
+            <div class="braille-grid-layout">
+              <!-- Left: Text Input Box -->
+              <div class="braille-interactive-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <h2 style="margin: 0; font-family: var(--font-display); font-size: 19px; font-weight: 800;">Type Text or Speech</h2>
+                  <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-micro press" onclick="BraillePage.clearGeneratorInput()">Clear</button>
+                  </div>
+                </div>
+                <p style="margin: 0; color: var(--text-2); font-size: 14px;">Enter English or Bengali text. Transify translates character-by-character into standard 6-dot tactile cells.</p>
+                
+                <textarea id="braille-generator-input" class="braille-textarea" rows="4" placeholder="Type text here (e.g. Hello, Care 101, বাতি নিভান)..." oninput="BraillePage.onGeneratorInput(this.value)"></textarea>
+
+                <div class="braille-input-stats">
+                  <span id="braille-gen-char-count">0 characters</span>
+                  <span id="braille-gen-cell-count">0 Braille cells</span>
+                </div>
+              </div>
+
+              <!-- Right: Visual Tactile Cells & Unicode Output -->
+              <div class="braille-result-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <h2 style="margin: 0; font-family: var(--font-display); font-size: 19px; font-weight: 800;">Generated Braille</h2>
+                  <span class="care-badge online" id="braille-gen-status">Real-time</span>
+                </div>
+
+                <!-- Unicode Glyphs Display -->
+                <div class="braille-unicode-hero-box" id="braille-gen-unicode-box" aria-live="polite">⠀</div>
+
+                <!-- Interactive Tactile Cells Flex Strip -->
+                <div class="braille-tactile-strip-wrapper">
+                  <div class="braille-strip-header">Tactile Embossed Cells (Click cell to inspect):</div>
+                  <div class="braille-cells-strip" id="braille-cells-strip" tabindex="0" role="region" aria-label="Visual embossed Braille cells">
+                    <span class="braille-empty-hint">Type text on the left to render tactile Braille cells</span>
+                  </div>
+                </div>
+
+                <!-- Dot Formula Line -->
+                <div class="braille-formula-line" id="braille-formula-line">
+                  <strong>Dot Formula:</strong> <span id="braille-formula-text">None</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" class="btn-welcome-primary press" onclick="BraillePage.speakGeneratorText()" style="height: 44px; font-size: 15px; padding: 0 18px;">Speak text</button>
+                  <button type="button" class="btn-outline-dark press" onclick="BraillePage.copyGeneratorUnicode()" style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Copy Unicode ⠓⠑⠇⠇⠕</button>
+                  <button type="button" class="btn-outline-dark press" onclick="BraillePage.copyGeneratorDots()" style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Copy Dot Numbers</button>
+                  <button type="button" class="btn-outline-dark press" onclick="BraillePage.downloadGeneratorBRF()" style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Download .BRF</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- =================================================================
+               SUB-PANE 3: BRAILLE ALPHABET & REFERENCE ENCYCLOPEDIA
+               ================================================================= -->
+          <div id="braille-pane-reference" class="braille-subpane" style="display: none;">
+            <div class="braille-ref-intro">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                  <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800;">Braille Reference Studio</h2>
+                  <p style="margin: 4px 0 0; color: var(--text-2); font-size: 14px;">Click any card to load its pattern into the interactive 6-dot explorer and hear its pronunciation.</p>
+                </div>
+                <!-- Reference Category Filter Buttons -->
+                <div class="braille-ref-filters">
+                  <button type="button" class="braille-ref-filter active press" data-cat="letters" onclick="BraillePage.filterReference('letters')">Letters (A-Z)</button>
+                  <button type="button" class="braille-ref-filter press" data-cat="numbers" onclick="BraillePage.filterReference('numbers')">Numbers (0-9)</button>
+                  <button type="button" class="braille-ref-filter press" data-cat="punct" onclick="BraillePage.filterReference('punct')">Punctuation</button>
+                  <button type="button" class="braille-ref-filter press" data-cat="contractions" onclick="BraillePage.filterReference('contractions')">Contractions (Grade 2)</button>
+                  <button type="button" class="braille-ref-filter press" data-cat="bengali" onclick="BraillePage.filterReference('bengali')">বাংলা বর্ণমালা (Bharati)</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dynamic Reference Cards Grid -->
+            <div class="braille-ref-grid" id="braille-ref-grid">
+              <!-- Rendered via JavaScript -->
+            </div>
+          </div>
+
+          <!-- =================================================================
+               LIVE CAMERA CAPTURE MODAL
+               ================================================================= -->
+          <div id="braille-camera-modal" class="braille-camera-modal" style="display: none;" role="dialog" aria-modal="true" aria-label="Capture Braille with Camera">
+            <div class="braille-camera-dialog">
+              <div class="braille-camera-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ef4444; animation: pulse 1.5s infinite;"></span>
+                  <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff;">Braille Viewfinder</h3>
+                </div>
+                <button type="button" class="btn-camera-close press" onclick="BraillePage.closeCamera()" aria-label="Close Camera">✕</button>
+              </div>
+              
+              <div class="braille-camera-viewport">
+                <video id="braille-camera-video" playsinline muted></video>
+                <canvas id="braille-camera-canvas" style="display: none;"></canvas>
+                <div class="braille-viewfinder-overlay">
+                  <div class="braille-viewfinder-box">
+                    <span class="vf-corner tl"></span>
+                    <span class="vf-corner tr"></span>
+                    <span class="vf-corner bl"></span>
+                    <span class="vf-corner br"></span>
+                    <div class="braille-viewfinder-grid">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </div>
+                  </div>
+                  <div class="braille-viewfinder-hint">Align Braille dots inside frame and hold steady under directional light</div>
+                </div>
+              </div>
+
+              <div class="braille-camera-controls">
+                <button type="button" class="btn-outline-dark press" onclick="BraillePage.switchCameraFacing()" style="color: #fff; border-color: rgba(255,255,255,0.3); height: 44px; padding: 0 16px;">
+                  🔄 Flip Camera
+                </button>
+                <button type="button" class="btn-welcome-primary press" onclick="BraillePage.captureCamera()" style="height: 48px; font-size: 16px; padding: 0 24px;">
+                  📸 Capture &amp; Translate
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hidden compatibility elements for braille page (Required by tests and legacy hooks) -->
           <div id="slide-braille" style="display: none;"></div>
           <div id="braille-preview-wrapper" style="display: none;"><img id="braille-preview-img"
               alt="Braille scan preview"></div>

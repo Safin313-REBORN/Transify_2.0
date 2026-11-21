@@ -125,8 +125,8 @@ window.applyThemeGlobal = function (theme) {
   } catch (e) { }
 };
 
-window.setAppLanguage = function (lang) {
-  try { localStorage.setItem('transify_lang', lang); } catch (_) { }
+window.setAppLanguage = function(lang) {
+  try { localStorage.setItem('transify_lang', lang); } catch (_) {}
   if (typeof applyLocale === 'function') applyLocale(lang);
   const enBtn = document.getElementById('home-lang-en');
   const bnBtn = document.getElementById('home-lang-bn');
@@ -143,7 +143,7 @@ window.setAppLanguage = function (lang) {
   }
 };
 
-window.testVoicePreview = function () {
+window.testVoicePreview = function() {
   const phrase = 'Welcome to Transify. Assistive voice synthesis is verified and operating.';
   if (window.TransifyApp && window.TransifyApp.speak) {
     window.TransifyApp.speak(phrase, { rate: (window.TransifyApp && window.TransifyApp.speechRate) || 1.0 });
@@ -157,9 +157,9 @@ window.testVoicePreview = function () {
   }
 };
 
-window.exportSettingsData = function () {
+window.exportSettingsData = function() {
   let profData = {};
-  try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) { }
+  try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) {}
   const dump = {
     app: 'Transify 2.0',
     exported_at: new Date().toISOString(),
@@ -187,7 +187,7 @@ window.exportSettingsData = function () {
   }
 };
 
-window.clearActivityHistory = async function () {
+window.clearActivityHistory = async function() {
   const recentList = document.getElementById('home-recent-list');
   if (recentList) {
     recentList.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-2); font-size: 14px; font-weight: 600;">No recent translations yet.</div>';
@@ -200,7 +200,7 @@ window.clearActivityHistory = async function () {
   }
 };
 
-window.copySystemDiagnostics = function () {
+window.copySystemDiagnostics = function() {
   const curTheme = document.documentElement.getAttribute('data-theme') || 'light';
   const diagInfo = `Transify 2.0 Diagnostics\nTimestamp: ${new Date().toISOString()}\nPlatform: ${navigator.platform || 'Linux'}\nResolution: ${window.innerWidth}x${window.innerHeight}\nTheme: ${curTheme}\nConnection: ${navigator.onLine ? 'Online' : 'Offline'}\nMediaPipe Vision: Available (0.10.14 WebAssembly)\nSpeech: Zero Auto-Audio Policy`;
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -220,7 +220,7 @@ window.copySystemDiagnostics = function () {
   }
 };
 
-window.submitDeveloperFeedback = function () {
+window.submitDeveloperFeedback = function() {
   const contactMsg = document.getElementById('contact-message');
   if (!contactMsg) return;
   const text = contactMsg.value.trim();
@@ -239,7 +239,7 @@ window.submitDeveloperFeedback = function () {
 // =============================================================
 // Unified Global Settings Option Handlers (100% Reliable Direct Calls)
 // =============================================================
-window.switchSettingsTab = function (tabName) {
+window.switchSettingsTab = function(tabName) {
   const tabs = document.querySelectorAll('.settings-nav-tab');
   const panes = document.querySelectorAll('.settings-tab-pane');
   if (!tabs.length || !panes.length) return;
@@ -256,10 +256,10 @@ window.switchSettingsTab = function (tabName) {
     pane.style.display = isTarget ? 'flex' : 'none';
   });
 
-  try { localStorage.setItem('transify_settings_tab', tabName); } catch (_) { }
+  try { localStorage.setItem('transify_settings_tab', tabName); } catch (_) {}
 };
 
-window.setConfidenceGate = function (val) {
+window.setConfidenceGate = function(val) {
   const strVal = String(val);
   const radios = document.querySelectorAll('input[name="setting_confidence_radio"]');
   radios.forEach(r => {
@@ -269,7 +269,7 @@ window.setConfidenceGate = function (val) {
   if (confGate) {
     confGate.value = strVal;
   }
-  try { localStorage.setItem('transify_confidence_gate', strVal); } catch (_) { }
+  try { localStorage.setItem('transify_confidence_gate', strVal); } catch (_) {}
 
   const glider = document.querySelector('#setting-confidence-radio-group .glider');
   if (glider) {
@@ -284,7 +284,7 @@ window.setConfidenceGate = function (val) {
   }
 };
 
-window.applyFontScale = function (scale) {
+window.applyFontScale = function(scale) {
   const group = document.getElementById('settings-fontsize-group');
   if (group) {
     group.querySelectorAll('.segmented-btn').forEach(btn => {
@@ -295,14 +295,14 @@ window.applyFontScale = function (scale) {
   document.documentElement.setAttribute('data-font-scale', scale);
   document.body.setAttribute('data-scale', scale);
   document.body.setAttribute('data-font-scale', scale);
-  try { localStorage.setItem('transify_font_scale', scale); } catch (_) { }
+  try { localStorage.setItem('transify_font_scale', scale); } catch (_) {}
   if (window.TransifyApp && window.TransifyApp.showToast) {
     const labelMap = { normal: '100%', large: '115%', xlarge: '130%' };
     window.TransifyApp.showToast(`Typography scaled to ${labelMap[scale] || scale}`, 'info');
   }
 };
 
-window.setSpeechRate = function (rate) {
+window.setSpeechRate = function(rate) {
   const fRate = parseFloat(rate);
   const group = document.getElementById('settings-speech-rate-group');
   if (group) {
@@ -311,20 +311,20 @@ window.setSpeechRate = function (rate) {
     });
   }
   if (window.TransifyApp) window.TransifyApp.speechRate = fRate;
-  try { localStorage.setItem('transify_speech_rate', fRate.toString()); } catch (_) { }
+  try { localStorage.setItem('transify_speech_rate', fRate.toString()); } catch (_) {}
   if (window.TransifyApp && window.TransifyApp.showToast) {
     window.TransifyApp.showToast(`Speech rate set to ${fRate}x`, 'info');
   }
 };
 
-window.setDefaultSignLang = function (lang) {
+window.setDefaultSignLang = function(lang) {
   const group = document.getElementById('settings-sign-lang-group');
   if (group) {
     group.querySelectorAll('.segmented-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.sign === lang);
     });
   }
-  try { localStorage.setItem('transify_default_sign_lang', lang); } catch (_) { }
+  try { localStorage.setItem('transify_default_sign_lang', lang); } catch (_) {}
   const aslBtn = document.getElementById('lang-asl-btn');
   const bdslBtn = document.getElementById('lang-bdsl-btn');
   if (aslBtn && bdslBtn) {
@@ -336,34 +336,34 @@ window.setDefaultSignLang = function (lang) {
   }
 };
 
-window.setBrailleStandard = function (std) {
+window.setBrailleStandard = function(std) {
   const group = document.getElementById('settings-braille-standard-group');
   if (group) {
     group.querySelectorAll('.segmented-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.braille === std);
     });
   }
-  try { localStorage.setItem('transify_braille_standard', std); } catch (_) { }
+  try { localStorage.setItem('transify_braille_standard', std); } catch (_) {}
   if (window.TransifyApp && window.TransifyApp.showToast) {
     window.TransifyApp.showToast(`Braille transcription: ${std === 'grade1' ? 'Grade 1' : 'Grade 2'}`, 'info');
   }
 };
 
-window.toggleReduceMotion = function (checked) {
+window.toggleReduceMotion = function(checked) {
   if (checked) {
     document.documentElement.setAttribute('data-motion', 'reduced');
     document.body.classList.add('reduced-motion');
     try {
       localStorage.setItem('transify_reduce_motion', '1');
       localStorage.setItem('transify_reduced_motion', 'true');
-    } catch (_) { }
+    } catch (_) {}
   } else {
     document.documentElement.removeAttribute('data-motion');
     document.body.classList.remove('reduced-motion');
     try {
       localStorage.removeItem('transify_reduce_motion');
       localStorage.setItem('transify_reduced_motion', 'false');
-    } catch (_) { }
+    } catch (_) {}
   }
   const el = document.getElementById('setting-reduce-motion');
   if (el) el.checked = checked;
@@ -372,13 +372,13 @@ window.toggleReduceMotion = function (checked) {
   }
 };
 
-window.toggleFocusRings = function (checked) {
+window.toggleFocusRings = function(checked) {
   if (checked) {
     document.body.classList.add('enhanced-focus');
-    try { localStorage.setItem('transify_focus_rings', 'true'); } catch (_) { }
+    try { localStorage.setItem('transify_focus_rings', 'true'); } catch (_) {}
   } else {
     document.body.classList.remove('enhanced-focus');
-    try { localStorage.setItem('transify_focus_rings', 'false'); } catch (_) { }
+    try { localStorage.setItem('transify_focus_rings', 'false'); } catch (_) {}
   }
   const el = document.getElementById('setting-focus-rings');
   if (el) el.checked = checked;
@@ -387,9 +387,9 @@ window.toggleFocusRings = function (checked) {
   }
 };
 
-window.toggleAudioChimes = function (checked) {
+window.toggleAudioChimes = function(checked) {
   if (window.TransifyApp) window.TransifyApp.audioChimes = checked;
-  try { localStorage.setItem('transify_audio_chimes', checked ? 'true' : 'false'); } catch (_) { }
+  try { localStorage.setItem('transify_audio_chimes', checked ? 'true' : 'false'); } catch (_) {}
   const el = document.getElementById('setting-audio-chimes');
   if (el) el.checked = checked;
   if (window.TransifyApp && window.TransifyApp.showToast) {
@@ -397,7 +397,7 @@ window.toggleAudioChimes = function (checked) {
   }
 };
 
-window.saveUserProfile = function () {
+window.saveUserProfile = function() {
   const profName = document.getElementById('profile-input-name');
   const profRole = document.getElementById('profile-select-role');
   const profComm = document.getElementById('profile-select-comm');
@@ -422,7 +422,7 @@ window.saveUserProfile = function () {
   const bioVal = profBio ? profBio.value : '';
 
   const profObj = { name: nameVal, role: roleVal, comm: commVal, dialect: dialectVal, bio: bioVal };
-  try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) { }
+  try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) {}
 
   const initials = nameVal.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2) || 'TR';
   if (profAvatar) profAvatar.textContent = initials;
@@ -443,7 +443,7 @@ window.saveUserProfile = function () {
   }
 };
 
-window.resetSettingsToDefaults = function () {
+window.resetSettingsToDefaults = function() {
   window.applyThemeGlobal('light');
   window.applyFontScale('normal');
   window.toggleReduceMotion(false);
@@ -470,7 +470,7 @@ window.resetSettingsToDefaults = function () {
     localStorage.removeItem('transify_confidence_gate');
     localStorage.removeItem('transify_audio_chimes');
     localStorage.removeItem('transify_lang');
-  } catch (_) { }
+  } catch (_) {}
 
   if (window.TransifyApp && window.TransifyApp.showToast) {
     window.TransifyApp.showToast('All settings reset to defaults', 'info');
@@ -2699,25 +2699,219 @@ var SignPage = window.SignPage = window.TransifySign = {
 // 5. Module 02: Braille Image Translator
 // ==========================================
 
+// ==========================================
+// 5. Module 02: Braille Image Translator & Multi-Modal Studio
+// ==========================================
+
 var BraillePage = window.BraillePage = {
   currentFile: null,
   currentImageSrc: null,
   isInitialized: false,
+  currentMode: 'scan',
+  cameraStream: null,
+  cameraFacing: 'environment',
+  activeCellDots: [],
+
+  // Comprehensive UEB Grade 1 / Grade 2 & Bharati Braille dictionary
+  charToBraille: {
+    'a': { dots: [1], unicode: '⠁', bn: 'অ', name: 'Letter A' },
+    'b': { dots: [1, 2], unicode: '⠃', bn: 'ব', name: 'Letter B' },
+    'c': { dots: [1, 4], unicode: '⠉', bn: 'চ', name: 'Letter C' },
+    'd': { dots: [1, 4, 5], unicode: '⠙', bn: 'দ', name: 'Letter D' },
+    'e': { dots: [1, 5], unicode: '⠑', bn: 'এ', name: 'Letter E' },
+    'f': { dots: [1, 2, 4], unicode: '⠋', bn: 'ফ', name: 'Letter F' },
+    'g': { dots: [1, 2, 4, 5], unicode: '⠛', bn: 'গ', name: 'Letter G' },
+    'h': { dots: [1, 2, 5], unicode: '⠓', bn: 'হ', name: 'Letter H' },
+    'i': { dots: [2, 4], unicode: '⠊', bn: 'ই', name: 'Letter I' },
+    'j': { dots: [2, 4, 5], unicode: '⠚', bn: 'জ', name: 'Letter J' },
+    'k': { dots: [1, 3], unicode: '⠅', bn: 'ক', name: 'Letter K' },
+    'l': { dots: [1, 2, 3], unicode: '⠇', bn: 'ল', name: 'Letter L' },
+    'm': { dots: [1, 3, 4], unicode: '⠍', bn: 'ম', name: 'Letter M' },
+    'n': { dots: [1, 3, 4, 5], unicode: '⠝', bn: 'ন', name: 'Letter N' },
+    'o': { dots: [1, 3, 5], unicode: '⠕', bn: 'ও', name: 'Letter O' },
+    'p': { dots: [1, 2, 3, 4], unicode: '⠏', bn: 'প', name: 'Letter P' },
+    'q': { dots: [1, 2, 3, 4, 5], unicode: '⠟', bn: '–', name: 'Letter Q' },
+    'r': { dots: [1, 2, 3, 5], unicode: '⠗', bn: 'র', name: 'Letter R' },
+    's': { dots: [2, 3, 4], unicode: '⠎', bn: 'স', name: 'Letter S' },
+    't': { dots: [2, 3, 4, 5], unicode: '⠞', bn: 'ত', name: 'Letter T' },
+    'u': { dots: [1, 3, 6], unicode: '⠥', bn: 'উ', name: 'Letter U' },
+    'v': { dots: [1, 2, 3, 6], unicode: '⠧', bn: 'ভ', name: 'Letter V' },
+    'w': { dots: [2, 4, 5, 6], unicode: '⠺', bn: 'ঠ', name: 'Letter W' },
+    'x': { dots: [1, 3, 4, 6], unicode: '⠭', bn: '–', name: 'Letter X' },
+    'y': { dots: [1, 3, 4, 5, 6], unicode: '⠽', bn: 'য', name: 'Letter Y' },
+    'z': { dots: [1, 3, 5, 6], unicode: '⠵', bn: '–', name: 'Letter Z' },
+    '1': { dots: [1], unicode: '⠁', isDigit: true, name: 'Digit 1' },
+    '2': { dots: [1, 2], unicode: '⠃', isDigit: true, name: 'Digit 2' },
+    '3': { dots: [1, 4], unicode: '⠉', isDigit: true, name: 'Digit 3' },
+    '4': { dots: [1, 4, 5], unicode: '⠙', isDigit: true, name: 'Digit 4' },
+    '5': { dots: [1, 5], unicode: '⠑', isDigit: true, name: 'Digit 5' },
+    '6': { dots: [1, 2, 4], unicode: '⠋', isDigit: true, name: 'Digit 6' },
+    '7': { dots: [1, 2, 4, 5], unicode: '⠛', isDigit: true, name: 'Digit 7' },
+    '8': { dots: [1, 2, 5], unicode: '⠓', isDigit: true, name: 'Digit 8' },
+    '9': { dots: [2, 4], unicode: '⠊', isDigit: true, name: 'Digit 9' },
+    '0': { dots: [2, 4, 5], unicode: '⠚', isDigit: true, name: 'Digit 0' },
+    '.': { dots: [2, 5, 6], unicode: '⠲', bn: '।', name: 'Period' },
+    ',': { dots: [2], unicode: '⠂', bn: ',', name: 'Comma' },
+    ';': { dots: [2, 3], unicode: '⠆', name: 'Semicolon' },
+    ':': { dots: [2, 5], unicode: '⠒', name: 'Colon' },
+    '?': { dots: [2, 3, 6], unicode: '⠦', name: 'Question Mark' },
+    '!': { dots: [2, 3, 5], unicode: '⠖', name: 'Exclamation' },
+    '-': { dots: [3, 6], unicode: '⠤', name: 'Hyphen' },
+    "'": { dots: [3], unicode: '⠄', name: 'Apostrophe' },
+    '"': { dots: [3, 5, 6], unicode: '⠴', name: 'Quote' }
+  },
+
+  // Bengali Bharati Braille Map
+  bengaliBraille: {
+    'অ': { dots: [1], unicode: '⠁', roman: 'o / a' },
+    'আ': { dots: [3, 4, 5], unicode: '⠜', roman: 'aa' },
+    'ই': { dots: [2, 4], unicode: '⠊', roman: 'i' },
+    'ঈ': { dots: [3, 5], unicode: '⠔', roman: 'ee' },
+    'উ': { dots: [1, 3, 6], unicode: '⠥', roman: 'u' },
+    'ঊ': { dots: [1, 2, 5, 6], unicode: '⠳', roman: 'oo' },
+    'এ': { dots: [1, 5], unicode: '⠑', roman: 'e' },
+    'ঐ': { dots: [3, 4], unicode: '⠌', roman: 'oi' },
+    'ও': { dots: [1, 3, 5], unicode: '⠕', roman: 'o' },
+    'ঔ': { dots: [2, 4, 6], unicode: '⠪', roman: 'ou' },
+    'ক': { dots: [1, 3], unicode: '⠅', roman: 'k' },
+    'খ': { dots: [4, 6], unicode: '⠨', roman: 'kh' },
+    'গ': { dots: [1, 2, 4, 5], unicode: '⠛', roman: 'g' },
+    'ঘ': { dots: [1, 2, 6], unicode: '⠣', roman: 'gh' },
+    'ঙ': { dots: [3, 4, 6], unicode: '⠬', roman: 'ng' },
+    'চ': { dots: [1, 4], unicode: '⠉', roman: 'ch' },
+    'ছ': { dots: [1, 4, 6], unicode: '⠡', roman: 'chh' },
+    'জ': { dots: [2, 4, 5], unicode: '⠚', roman: 'j' },
+    'ঝ': { dots: [3, 5, 6], unicode: '⠴', roman: 'jh' },
+    'ঞ': { dots: [2, 5], unicode: '⠒', roman: 'ny' },
+    'ট': { dots: [2, 3, 4, 5, 6], unicode: '⠾', roman: 'T' },
+    'ঠ': { dots: [2, 4, 5, 6], unicode: '⠺', roman: 'Th' },
+    'ড': { dots: [1, 2, 4, 6], unicode: '⠫', roman: 'D' },
+    'ঢ': { dots: [1, 2, 3, 4, 5, 6], unicode: '⠿', roman: 'Dh' },
+    'ণ': { dots: [3, 4, 5, 6], unicode: '⠼', roman: 'N' },
+    'ত': { dots: [2, 3, 4, 5], unicode: '⠞', roman: 't' },
+    'থ': { dots: [1, 4, 5, 6], unicode: '⠹', roman: 'th' },
+    'দ': { dots: [1, 4, 5], unicode: '⠙', roman: 'd' },
+    'ধ': { dots: [2, 3, 4, 6], unicode: '⠮', roman: 'dh' },
+    'ন': { dots: [1, 3, 4, 5], unicode: '⠝', roman: 'n' },
+    'প': { dots: [1, 2, 3, 4], unicode: '⠏', roman: 'p' },
+    'ফ': { dots: [2, 3, 5], unicode: '⠖', roman: 'ph/f' },
+    'ব': { dots: [1, 2], unicode: '⠃', roman: 'b' },
+    'ভ': { dots: [4, 5], unicode: '⠘', roman: 'bh/v' },
+    'ম': { dots: [1, 3, 4], unicode: '⠍', roman: 'm' },
+    'য': { dots: [1, 3, 4, 5, 6], unicode: '⠽', roman: 'y/z' },
+    'র': { dots: [1, 2, 3, 5], unicode: '⠗', roman: 'r' },
+    'ল': { dots: [1, 2, 3], unicode: '⠇', roman: 'l' },
+    'শ': { dots: [1, 4, 6], unicode: '⠱', roman: 'sh' },
+    'ষ': { dots: [1, 2, 3, 4, 6], unicode: '⠯', roman: 'shh' },
+    'স': { dots: [2, 3, 4], unicode: '⠎', roman: 's' },
+    'হ': { dots: [1, 2, 5], unicode: '⠓', roman: 'h' }
+  },
+
+  // Common Grade 2 Contractions
+  contractions: [
+    { word: 'and', dots: [1, 2, 3, 4, 6], unicode: '⠯' },
+    { word: 'for', dots: [1, 2, 3, 4, 5, 6], unicode: '⠿' },
+    { word: 'of', dots: [1, 2, 3, 5, 6], unicode: '⠷' },
+    { word: 'the', dots: [2, 3, 4, 6], unicode: '⠮' },
+    { word: 'with', dots: [2, 3, 4, 5, 6], unicode: '⠾' },
+    { word: 'ch', dots: [1, 6], unicode: '⠡' },
+    { word: 'sh', dots: [1, 4, 6], unicode: '⠱' },
+    { word: 'th', dots: [1, 4, 5, 6], unicode: '⠹' },
+    { word: 'wh', dots: [1, 5, 6], unicode: '⠱' },
+    { word: 'ed', dots: [1, 2, 4, 6], unicode: '⠫' },
+    { word: 'er', dots: [1, 2, 4, 5, 6], unicode: '⠻' },
+    { word: 'ou', dots: [1, 2, 5, 6], unicode: '⠳' },
+    { word: 'ow', dots: [2, 4, 6], unicode: '⠪' }
+  ],
+
+  // Reverse mapping from dots string ('134') to char details
+  dotsToChar: {},
 
   init() {
     if (this.isInitialized) return;
     this.isInitialized = true;
+
+    // Build reverse dots-to-character lookup table
+    this.buildDotsLookup();
+
     this.setupDropzone();
     this.setupActionButtons();
+    this.setupInteractiveCell();
+    this.initReference();
+    this.initGenerator();
+  },
+
+  buildDotsLookup() {
+    this.dotsToChar = {};
+    for (const [char, meta] of Object.entries(this.charToBraille)) {
+      const key = meta.dots.slice().sort((a, b) => a - b).join('');
+      if (!this.dotsToChar[key]) {
+        this.dotsToChar[key] = { char, meta };
+      }
+    }
+  },
+
+  // Sub-Navigation Mode Switching
+  switchMode(mode) {
+    this.currentMode = mode;
+    ['scan', 'generator', 'reference'].forEach(m => {
+      const tab = document.getElementById(`braille-tab-${m}`);
+      const pane = document.getElementById(`braille-pane-${m}`);
+      const isActive = (m === mode);
+      if (tab) {
+        tab.classList.toggle('active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      }
+      if (pane) {
+        pane.style.display = isActive ? 'flex' : 'none';
+        pane.classList.toggle('active', isActive);
+      }
+    });
+
+    if (mode === 'generator') {
+      const inputEl = document.getElementById('braille-generator-input');
+      if (inputEl && !inputEl.value) {
+        this.loadGeneratorPreset('Hello Transify');
+      }
+    } else if (mode === 'reference') {
+      this.filterReference('letters');
+    }
+  },
+
+  // Preloaded 1-Click Test Samples
+  async loadSample(url, filename) {
+    TransifyApp.showToast(`Loading sample image: ${filename}...`, 'info');
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+      this.handleFileSelected(file);
+    } catch (e) {
+      TransifyApp.showToast(`Could not load sample: ${e.message}`, 'danger');
+    }
   },
 
   setupDropzone() {
     const dropzone = document.getElementById('braille-dropzone');
     const fileInput = document.getElementById('braille-file-input');
+    const browseBtn = document.getElementById('braille-select-file-btn');
 
     if (!dropzone || !fileInput) return;
 
-    dropzone.addEventListener('click', () => fileInput.click());
+    if (browseBtn) {
+      browseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.click();
+      });
+    }
+
+    dropzone.addEventListener('click', (e) => {
+      if (e.target.closest('#braille-open-camera-btn') || e.target.closest('#braille-select-file-btn')) {
+        return;
+      }
+      fileInput.click();
+    });
 
     dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -2760,28 +2954,89 @@ var BraillePage = window.BraillePage = {
         previewImg.src = this.currentImageSrc;
         previewWrapper.style.display = 'block';
       }
-      // Also update dropzone visual state
       const dropzone = document.getElementById('braille-dropzone');
       if (dropzone) {
-        dropzone.style.border = '2px solid #22c55e';
+        dropzone.style.borderColor = '#22c55e';
         dropzone.style.background = 'rgba(34, 197, 94, 0.05)';
       }
     };
     reader.readAsDataURL(file);
 
-    // Update dropzone text
-    const dropzoneText = document.getElementById('dropzone-text');
-    if (dropzoneText) {
-      dropzoneText.innerHTML = `<strong>✅ Selected:</strong> ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    // Update file indicator
+    const fileIndicator = document.getElementById('braille-active-file-indicator');
+    const fileNameEl = document.getElementById('braille-active-file-name');
+    if (fileIndicator && fileNameEl) {
+      fileNameEl.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      fileIndicator.style.display = 'inline-block';
     }
 
-    // Hide old results
-    const resultsSection = document.getElementById('braille-results-section');
-    if (resultsSection) resultsSection.style.display = 'none';
+    TransifyApp.showToast(`Selected ${file.name}. Click "Translate Image" to run AI OCR.`, 'info');
+  },
 
-    TransifyApp.showToast(`Translating ${file.name}...`, 'info');
-    // Auto-translate immediately upon selection or sample click
-    this.runTranslation();
+  // Live Camera Capture
+  async openCamera(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const modal = document.getElementById('braille-camera-modal');
+    const video = document.getElementById('braille-camera-video');
+    if (!modal || !video) return;
+
+    modal.style.display = 'flex';
+
+    try {
+      if (this.cameraStream) {
+        this.cameraStream.getTracks().forEach(t => t.stop());
+      }
+      const constraints = {
+        video: {
+          facingMode: this.cameraFacing,
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      this.cameraStream = stream;
+      video.srcObject = stream;
+      video.play();
+    } catch (err) {
+      TransifyApp.showToast('Could not access camera: ' + err.message, 'danger');
+      this.closeCamera();
+    }
+  },
+
+  switchCameraFacing() {
+    this.cameraFacing = this.cameraFacing === 'environment' ? 'user' : 'environment';
+    this.openCamera();
+  },
+
+  captureCamera() {
+    const video = document.getElementById('braille-camera-video');
+    const canvas = document.getElementById('braille-camera-canvas');
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const file = new File([blob], `braille_camera_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      this.closeCamera();
+      this.handleFileSelected(file);
+      TransifyApp.showToast('Camera frame captured! Click Translate Image.', 'success');
+    }, 'image/jpeg', 0.92);
+  },
+
+  closeCamera() {
+    const modal = document.getElementById('braille-camera-modal');
+    const video = document.getElementById('braille-camera-video');
+    if (this.cameraStream) {
+      this.cameraStream.getTracks().forEach(t => t.stop());
+      this.cameraStream = null;
+    }
+    if (video) video.srcObject = null;
+    if (modal) modal.style.display = 'none';
   },
 
   setupActionButtons() {
@@ -2793,7 +3048,6 @@ var BraillePage = window.BraillePage = {
       });
     }
 
-    // Also bind the form submit to prevent page reload
     const uploadForm = document.getElementById('braille-upload-form');
     if (uploadForm) {
       uploadForm.addEventListener('submit', (e) => {
@@ -2802,16 +3056,11 @@ var BraillePage = window.BraillePage = {
       });
     }
 
-    const iqaBtn = document.getElementById('check-iqa-btn');
-    if (iqaBtn) {
-      iqaBtn.addEventListener('click', () => this.runIQACheck());
-    }
-
     const speakBtn = document.getElementById('speak-braille-btn');
     if (speakBtn) {
       speakBtn.addEventListener('click', () => {
         const textarea = document.getElementById('braille-text-output');
-        const text = textarea ? textarea.value.trim() : '';
+        const text = textarea ? (textarea.value || textarea.textContent || '').trim() : '';
         if (text) {
           TransifyTTS.speak(text);
         } else {
@@ -2824,11 +3073,12 @@ var BraillePage = window.BraillePage = {
     if (copyBtn) {
       copyBtn.addEventListener('click', () => {
         const textarea = document.getElementById('braille-text-output');
-        if (textarea && textarea.value) {
-          navigator.clipboard.writeText(textarea.value).then(() => {
-            TransifyApp.showToast('Copied to clipboard!', 'success');
+        const text = textarea ? (textarea.value || textarea.textContent || '').trim() : '';
+        if (text) {
+          navigator.clipboard.writeText(text).then(() => {
+            TransifyApp.showToast('Text copied to clipboard!', 'success');
           }).catch(() => {
-            TransifyApp.showToast('Copy failed. Please select and copy manually.', 'warning');
+            TransifyApp.showToast('Copy failed. Please copy manually.', 'warning');
           });
         }
       });
@@ -2838,7 +3088,7 @@ var BraillePage = window.BraillePage = {
     if (downloadBtn) {
       downloadBtn.addEventListener('click', () => {
         const textarea = document.getElementById('braille-text-output');
-        const text = textarea ? textarea.value : '';
+        const text = textarea ? (textarea.value || textarea.textContent || '').trim() : '';
         if (!text) return;
         const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
@@ -2849,6 +3099,440 @@ var BraillePage = window.BraillePage = {
         URL.revokeObjectURL(url);
       });
     }
+  },
+
+  // 6-Dot Cell Explorer Implementation
+  setupInteractiveCell() {
+    const dotButtons = document.querySelectorAll('.braille-interactive-card [data-braille-dot]');
+    dotButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dotNum = parseInt(btn.getAttribute('data-braille-dot'), 10);
+        this.toggleCellDot(dotNum);
+      });
+    });
+    this.updateCellDisplay();
+  },
+
+  toggleCellDot(dotNum) {
+    const idx = this.activeCellDots.indexOf(dotNum);
+    if (idx >= 0) {
+      this.activeCellDots.splice(idx, 1);
+    } else {
+      this.activeCellDots.push(dotNum);
+    }
+    this.activeCellDots.sort((a, b) => a - b);
+    this.updateCellDisplay();
+  },
+
+  clearCellDots() {
+    this.activeCellDots = [];
+    this.updateCellDisplay();
+  },
+
+  invertCellDots() {
+    const all = [1, 2, 3, 4, 5, 6];
+    this.activeCellDots = all.filter(d => !this.activeCellDots.includes(d));
+    this.updateCellDisplay();
+  },
+
+  randomCellPattern() {
+    const letters = Object.keys(this.charToBraille).filter(c => c >= 'a' && c <= 'z');
+    const rand = letters[Math.floor(Math.random() * letters.length)];
+    const meta = this.charToBraille[rand];
+    this.loadPattern(meta.dots, rand.toUpperCase(), meta.bn);
+  },
+
+  loadPattern(dots, charLabel, bengaliLabel) {
+    this.activeCellDots = dots.slice().sort((a, b) => a - b);
+    this.updateCellDisplay(charLabel, bengaliLabel);
+  },
+
+  updateCellDisplay(overrideChar, overrideBengali) {
+    // Update button .active classes
+    const dotButtons = document.querySelectorAll('.braille-interactive-card [data-braille-dot]');
+    dotButtons.forEach(btn => {
+      const dotNum = parseInt(btn.getAttribute('data-braille-dot'), 10);
+      btn.classList.toggle('active', this.activeCellDots.includes(dotNum));
+    });
+
+    const key = this.activeCellDots.join('');
+    const unicodeChar = this.dotsToUnicode(this.activeCellDots);
+    const codepoint = unicodeChar.charCodeAt(0).toString(16).toUpperCase();
+
+    let char = overrideChar;
+    let bn = overrideBengali;
+
+    if (!char) {
+      const match = this.dotsToChar[key];
+      if (match) {
+        char = match.char.toUpperCase();
+        bn = match.meta.bn || '–';
+      } else if (this.activeCellDots.length === 0) {
+        char = '—';
+        bn = '—';
+      } else {
+        char = 'Special / Unassigned';
+        bn = '–';
+      }
+    }
+
+    const charEl = document.getElementById('braille-interactive-char');
+    const dotsEl = document.getElementById('braille-interactive-dots');
+    const unicodeEl = document.getElementById('braille-interactive-unicode');
+    const bnEl = document.getElementById('braille-interactive-bengali');
+
+    if (charEl) charEl.textContent = `Character: ${char}`;
+    if (dotsEl) dotsEl.textContent = `Active: ${this.activeCellDots.length ? 'Dots ' + this.activeCellDots.join(', ') : 'None'}`;
+    if (unicodeEl) unicodeEl.textContent = `Unicode: ${unicodeChar} (U+${codepoint})`;
+    if (bnEl) bnEl.textContent = `বাংলা (Bharati): ${bn || '–'}`;
+  },
+
+  speakActiveCell() {
+    const charEl = document.getElementById('braille-interactive-char');
+    const text = charEl ? charEl.textContent.replace('Character: ', '').trim() : '';
+    if (text && text !== '—' && text !== 'Special / Unassigned') {
+      TransifyTTS.speak(text);
+    } else {
+      TransifyApp.showToast('Please toggle dots to select a character.', 'warning');
+    }
+  },
+
+  dotsToUnicode(dotsArray) {
+    let mask = 0;
+    dotsArray.forEach(d => {
+      if (d >= 1 && d <= 6) {
+        mask |= (1 << (d - 1));
+      }
+    });
+    return String.fromCharCode(0x2800 + mask);
+  },
+
+  // Text-to-Braille Generator Engine
+  initGenerator() {
+    const inputEl = document.getElementById('braille-generator-input');
+    if (inputEl && !inputEl.value) {
+      this.loadGeneratorPreset('Hello Transify');
+    }
+  },
+
+  loadGeneratorPreset(phrase) {
+    const inputEl = document.getElementById('braille-generator-input');
+    if (inputEl) {
+      inputEl.value = phrase;
+      this.onGeneratorInput(phrase);
+    }
+  },
+
+  clearGeneratorInput() {
+    const inputEl = document.getElementById('braille-generator-input');
+    if (inputEl) {
+      inputEl.value = '';
+      this.onGeneratorInput('');
+    }
+  },
+
+  onGeneratorInput(text) {
+    const charCountEl = document.getElementById('braille-gen-char-count');
+    const cellCountEl = document.getElementById('braille-gen-cell-count');
+    const unicodeBox = document.getElementById('braille-gen-unicode-box');
+    const strip = document.getElementById('braille-cells-strip');
+    const formulaText = document.getElementById('braille-formula-text');
+
+    if (charCountEl) charCountEl.textContent = `${text.length} characters`;
+
+    if (!text || !text.trim()) {
+      if (cellCountEl) cellCountEl.textContent = '0 Braille cells';
+      if (unicodeBox) unicodeBox.textContent = '⠀';
+      if (strip) strip.innerHTML = '<span class="braille-empty-hint">Type text on the left to render tactile Braille cells</span>';
+      if (formulaText) formulaText.textContent = 'None';
+      return;
+    }
+
+    const { unicodeStr, cells, formulas } = this.convertTextToBraille(text);
+
+    if (cellCountEl) cellCountEl.textContent = `${cells.length} Braille cells`;
+    if (unicodeBox) unicodeBox.textContent = unicodeStr;
+    if (formulaText) formulaText.textContent = formulas.slice(0, 15).join(' ') + (formulas.length > 15 ? ' ...' : '');
+
+    // Render 3D Embossed Cells
+    if (strip) {
+      strip.innerHTML = '';
+      cells.forEach((cell, idx) => {
+        const card = document.createElement('div');
+        card.className = `braille-cell-card press ${cell.isSpace ? 'space-cell' : ''}`;
+        card.title = cell.isSpace ? 'Space' : `Char: ${cell.char} • Dots: ${cell.dots.join(', ')}`;
+        card.onclick = () => {
+          if (!cell.isSpace) {
+            this.loadPattern(cell.dots, cell.char, cell.bn);
+            TransifyApp.showToast(`Inspecting '${cell.char}' (Dots ${cell.dots.join(', ')})`, 'info');
+          }
+        };
+
+        if (cell.isSpace) {
+          card.innerHTML = `<span style="font-size: 11px; color: var(--text-2);">␣</span><span class="cell-letter-badge">&nbsp;</span>`;
+        } else {
+          const dotsGrid = document.createElement('div');
+          dotsGrid.className = 'braille-cell-dots-grid';
+          // Visual 6-dot matrix in standard order (1, 4, 2, 5, 3, 6)
+          [1, 4, 2, 5, 3, 6].forEach(d => {
+            const dot = document.createElement('span');
+            dot.className = `cell-dot ${cell.dots.includes(d) ? 'active' : ''}`;
+            dotsGrid.appendChild(dot);
+          });
+          card.appendChild(dotsGrid);
+
+          const badge = document.createElement('span');
+          badge.className = 'cell-letter-badge';
+          badge.textContent = cell.char;
+          card.appendChild(badge);
+        }
+
+        strip.appendChild(card);
+      });
+    }
+  },
+
+  convertTextToBraille(text) {
+    let unicodeStr = '';
+    const cells = [];
+    const formulas = [];
+
+    let inNumber = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      const lower = ch.toLowerCase();
+
+      if (ch === ' ') {
+        inNumber = false;
+        unicodeStr += '⠀';
+        cells.push({ isSpace: true, char: ' ', dots: [] });
+        continue;
+      }
+
+      // Check Bengali
+      if (this.bengaliBraille[ch]) {
+        inNumber = false;
+        const b = this.bengaliBraille[ch];
+        unicodeStr += b.unicode;
+        cells.push({ isSpace: false, char: ch, dots: b.dots, bn: ch });
+        formulas.push(`[${b.dots.join('-')}]`);
+        continue;
+      }
+
+      // Check digits (add number prefix ⠼ if not already in number sequence)
+      if (ch >= '0' && ch <= '9') {
+        if (!inNumber) {
+          inNumber = true;
+          // Number indicator dots [3,4,5,6] (⠼)
+          unicodeStr += '⠼';
+          cells.push({ isSpace: false, char: '⠼', dots: [3, 4, 5, 6], bn: 'সংখ্যা' });
+          formulas.push('[3-4-5-6]');
+        }
+        const digitMeta = this.charToBraille[ch];
+        if (digitMeta) {
+          unicodeStr += digitMeta.unicode;
+          cells.push({ isSpace: false, char: ch, dots: digitMeta.dots });
+          formulas.push(`[${digitMeta.dots.join('-')}]`);
+        }
+        continue;
+      }
+
+      inNumber = false;
+
+      // Check capital letter indicator dot 6 (⠠)
+      if (ch >= 'A' && ch <= 'Z') {
+        unicodeStr += '⠠';
+        cells.push({ isSpace: false, char: '⠠', dots: [6], bn: 'বড় হাত' });
+        formulas.push('[6]');
+      }
+
+      // Check Latin letter or punctuation
+      const meta = this.charToBraille[lower];
+      if (meta) {
+        unicodeStr += meta.unicode;
+        cells.push({ isSpace: false, char: ch, dots: meta.dots, bn: meta.bn });
+        formulas.push(`[${meta.dots.join('-')}]`);
+      } else {
+        // Unknown symbol placeholder
+        unicodeStr += '⠿';
+        cells.push({ isSpace: false, char: ch, dots: [1, 2, 3, 4, 5, 6] });
+        formulas.push('[?]');
+      }
+    }
+
+    return { unicodeStr, cells, formulas };
+  },
+
+  speakGeneratorText() {
+    const inputEl = document.getElementById('braille-generator-input');
+    const text = inputEl ? inputEl.value.trim() : '';
+    if (text) {
+      TransifyTTS.speak(text);
+    } else {
+      TransifyApp.showToast('Please type text first.', 'warning');
+    }
+  },
+
+  copyGeneratorUnicode() {
+    const unicodeBox = document.getElementById('braille-gen-unicode-box');
+    const text = unicodeBox ? unicodeBox.textContent : '';
+    if (text && text !== '⠀') {
+      navigator.clipboard.writeText(text).then(() => {
+        TransifyApp.showToast('Unicode Braille glyphs copied!', 'success');
+      });
+    }
+  },
+
+  copyGeneratorDots() {
+    const formulaText = document.getElementById('braille-formula-text');
+    const text = formulaText ? formulaText.textContent : '';
+    if (text && text !== 'None') {
+      navigator.clipboard.writeText(text).then(() => {
+        TransifyApp.showToast('Braille dot formulas copied!', 'success');
+      });
+    }
+  },
+
+  downloadGeneratorBRF() {
+    const inputEl = document.getElementById('braille-generator-input');
+    const text = inputEl ? inputEl.value : 'Transify Braille Document';
+    const { unicodeStr } = this.convertTextToBraille(text);
+    const content = `TRANSIFY MULTI-MODAL BRAILLE DOCUMENT\nSource Text: ${text}\nGenerated: ${new Date().toISOString()}\n\n${unicodeStr}\n`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Braille_${Date.now()}.brf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  // Alphabet & Reference Studio
+  initReference() {
+    this.filterReference('letters');
+  },
+
+  filterReference(cat) {
+    const filterBtns = document.querySelectorAll('.braille-ref-filter');
+    filterBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
+    });
+
+    const grid = document.getElementById('braille-ref-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    let items = [];
+
+    if (cat === 'letters') {
+      for (let i = 97; i <= 122; i++) {
+        const ch = String.fromCharCode(i);
+        const meta = this.charToBraille[ch];
+        if (meta) {
+          items.push({
+            char: ch.toUpperCase(),
+            unicode: meta.unicode,
+            dots: meta.dots,
+            label: `Dots ${meta.dots.join(', ')}`,
+            sub: meta.bn ? `বাংলা: ${meta.bn}` : ''
+          });
+        }
+      }
+    } else if (cat === 'numbers') {
+      for (let i = 0; i <= 9; i++) {
+        const numStr = i.toString();
+        const meta = this.charToBraille[numStr];
+        if (meta) {
+          items.push({
+            char: `⠼${numStr}`,
+            unicode: `⠼${meta.unicode}`,
+            dots: [3, 4, 5, 6].concat(meta.dots),
+            label: `3-4-5-6 + ${meta.dots.join('-')}`,
+            sub: `Number ${numStr}`
+          });
+        }
+      }
+    } else if (cat === 'punct') {
+      const punctList = ['.', ',', ';', ':', '?', '!', '-', "'", '"'];
+      punctList.forEach(p => {
+        const meta = this.charToBraille[p];
+        if (meta) {
+          items.push({
+            char: p,
+            unicode: meta.unicode,
+            dots: meta.dots,
+            label: `Dots ${meta.dots.join(', ')}`,
+            sub: meta.name
+          });
+        }
+      });
+    } else if (cat === 'contractions') {
+      this.contractions.forEach(c => {
+        items.push({
+          char: c.word,
+          unicode: c.unicode,
+          dots: c.dots,
+          label: `Dots ${c.dots.join(', ')}`,
+          sub: 'Grade 2'
+        });
+      });
+    } else if (cat === 'bengali') {
+      for (const [bnChar, meta] of Object.entries(this.bengaliBraille)) {
+        items.push({
+          char: bnChar,
+          unicode: meta.unicode,
+          dots: meta.dots,
+          label: `Dots ${meta.dots.join(', ')}`,
+          sub: meta.roman
+        });
+      }
+    }
+
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'braille-ref-card press';
+      card.innerHTML = `
+        <span class="ref-card-char">${item.char}</span>
+        <span class="ref-card-unicode">${item.unicode}</span>
+        <span class="ref-card-dots">${item.label}</span>
+        <span class="ref-card-label">${item.sub || ''}</span>
+      `;
+      card.onclick = () => {
+        this.loadPattern(item.dots, item.char, item.sub);
+        TransifyTTS.speak(item.char);
+        TransifyApp.showToast(`Loaded '${item.char}' into 6-dot explorer`, 'success');
+      };
+      grid.appendChild(card);
+    });
+  },
+
+  // Optical Translation Engine
+  copyUnicodeBraille() {
+    const rawEl = document.getElementById('braille-unicode-output');
+    const text = rawEl ? rawEl.textContent : '';
+    if (text && text !== '⠀') {
+      navigator.clipboard.writeText(text).then(() => {
+        TransifyApp.showToast('Braille Unicode copied!', 'success');
+      });
+    } else {
+      TransifyApp.showToast('No Braille Unicode available.', 'warning');
+    }
+  },
+
+  downloadBRF() {
+    const textarea = document.getElementById('braille-text-output');
+    const rawEl = document.getElementById('braille-unicode-output');
+    const plainText = textarea ? (textarea.value || textarea.textContent || '') : '';
+    const brailleGlyphs = rawEl ? rawEl.textContent : '';
+    const content = `TRANSIFY BRAILLE TRANSLATION REPORT\nTimestamp: ${new Date().toISOString()}\n\n--- LATIN TRANSCRIPTION ---\n${plainText}\n\n--- UNICODE BRAILLE ---\n${brailleGlyphs}\n`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Braille_Scan_${Date.now()}.brf`;
+    a.click();
+    URL.revokeObjectURL(url);
   },
 
   async runIQACheck() {
@@ -2907,16 +3591,21 @@ var BraillePage = window.BraillePage = {
     }
 
     const translateBtn = document.getElementById('translate-braille-btn');
-    if (translateBtn) {
-      translateBtn.disabled = true;
-      translateBtn.innerHTML = '⏳ Analyzing Braille Dots...';
-    }
+    const translateBtnVisible = document.getElementById('translate-braille-btn-visible');
+    [translateBtn, translateBtnVisible].forEach(btn => {
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Analyzing Braille Dots...';
+      }
+    });
 
-    // Show loading state in results
     const resultsSection = document.getElementById('braille-results-section');
     const outputTextarea = document.getElementById('braille-text-output');
     if (resultsSection) resultsSection.style.display = 'block';
-    if (outputTextarea) outputTextarea.value = 'Translating... please wait.';
+    if (outputTextarea) {
+      if ('value' in outputTextarea) outputTextarea.value = 'Translating... please wait.';
+      else outputTextarea.textContent = 'Translating... please wait.';
+    }
 
     const brailleCard = document.querySelector('.braille-result-card');
     if (brailleCard && window.setCardLoading) {
@@ -2934,7 +3623,6 @@ var BraillePage = window.BraillePage = {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        // Show IQA rejection details
         const errorObj = data.error || {};
         this.displayIQAResult({
           accepted: false,
@@ -2942,17 +3630,29 @@ var BraillePage = window.BraillePage = {
           metrics: errorObj.metrics || {},
           remediation_guidance: errorObj.user_guidance || 'Please upload a clear photograph of physical embossed Braille.'
         });
-        if (outputTextarea) outputTextarea.value = 'Translation failed. See quality report above.';
+        if (outputTextarea) {
+          if ('value' in outputTextarea) outputTextarea.value = 'Translation failed. See quality report above.';
+          else outputTextarea.textContent = 'Translation failed. See quality report above.';
+        }
         TransifyApp.showToast('Image rejected: ' + (errorObj.rejection_reason || 'Could not translate Braille.'), 'danger');
         return;
       }
 
       const result = data.data;
 
-      // Show translated text
+      // Update translated text (supports textarea or div)
+      const finalText = result.text || '(No text detected)';
       if (outputTextarea) {
-        outputTextarea.value = result.text || '(No text detected)';
+        if ('value' in outputTextarea) outputTextarea.value = finalText;
+        else outputTextarea.textContent = finalText;
       }
+
+      // Convert translated text to Braille Unicode for display
+      const { unicodeStr } = this.convertTextToBraille(finalText);
+      const unicodeBox = document.getElementById('braille-unicode-output');
+      const rawWrapper = document.getElementById('braille-raw-wrapper');
+      if (unicodeBox) unicodeBox.textContent = unicodeStr;
+      if (rawWrapper) rawWrapper.style.display = 'flex';
 
       // Show ASCII banner
       const asciiBanner = document.getElementById('braille-ascii-banner');
@@ -3023,30 +3723,29 @@ var BraillePage = window.BraillePage = {
         `;
       }
 
-      // Show IQA as passed
       this.displayIQAResult({ accepted: true, metrics: result.qa_metrics || {}, is_usable: true });
 
-      TransifyApp.showToast('Braille translated successfully!', 'success');
+      TransifyApp.showToast('Braille translated successfully! Click "Speak aloud" to listen.', 'success');
       TransifyApp.announce('Translation complete: ' + result.text);
-
-      // Auto-speak the translation
-      if (result.text && result.text.trim()) {
-        setTimeout(() => TransifyTTS.speak(result.text), 500);
-      }
 
     } catch (e) {
       TransifyApp.showToast('Error during Braille translation: ' + e.message, 'danger');
-      if (outputTextarea) outputTextarea.value = 'Translation error. Check server connection.';
+      if (outputTextarea) {
+        if ('value' in outputTextarea) outputTextarea.value = 'Translation error. Check server connection.';
+        else outputTextarea.textContent = 'Translation error. Check server connection.';
+      }
     } finally {
       const brailleCard = document.querySelector('.braille-result-card');
       if (brailleCard && window.setCardLoading) {
         window.setCardLoading(brailleCard, false);
       }
       if (window.hidePageLoader) window.hidePageLoader();
-      if (translateBtn) {
-        translateBtn.disabled = false;
-        translateBtn.innerHTML = '✨ Translate Braille Image';
-      }
+      [translateBtn, translateBtnVisible].forEach(btn => {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '✨ Translate Image';
+        }
+      });
     }
   }
 };
@@ -3969,6 +4668,7 @@ const EditorialController = {
   ],
 
   init() {
+    this.initBootSequence();
     this.setupRouter();
     this.setupWelcomeScreen();
     this.setupHomeScreen();
@@ -3979,24 +4679,81 @@ const EditorialController = {
       window.ChatbotPage.init();
     }
 
-    // Check initial route
+    // Check initial route - default to Cover Page ('welcome') first
     const hash = window.location.hash.replace('#', '').toLowerCase();
-    if (hash) {
+    if (hash && hash !== 'welcome' && hash !== 'home') {
       this.routeTo(hash);
+    } else if (hash === 'home') {
+      this.routeTo('home');
     } else {
-      const welcomed = localStorage.getItem('transify.welcomed');
-      if (!welcomed) {
-        this.routeTo('welcome');
-      } else {
-        this.routeTo('home');
-      }
+      this.routeTo('welcome');
     }
+  },
+
+  initBootSequence() {
+    const bootScreen = document.getElementById('transify-boot-screen');
+    if (!bootScreen) return;
+
+    const isReduced = document.documentElement.getAttribute('data-motion') === 'reduced';
+    if (isReduced) {
+      bootScreen.classList.add('boot-done');
+      bootScreen.style.pointerEvents = 'none';
+      bootScreen.style.display = 'none';
+      return;
+    }
+
+    const fillEl = document.getElementById('boot-progress-fill');
+    const pctEl = document.getElementById('boot-pct');
+    const statusEl = document.getElementById('boot-status-text');
+
+    const steps = [
+      { pct: 20, msg: 'BOOTING TRANSIFY NEURAL CORE 2.0...' },
+      { pct: 50, msg: 'LOADING MEDIAPIPE VISION SIMD PIPELINE...' },
+      { pct: 75, msg: 'ENFORCING ZERO AUTO-AUDIO PRIVACY...' },
+      { pct: 90, msg: 'SYNCING CLINICAL SAFETY TRIAGE PROTOCOLS...' },
+      { pct: 100, msg: 'SYSTEM READY • CLIENT SILICON ACTIVE' }
+    ];
+
+    let currentStep = 0;
+    let isDone = false;
+
+    const finishBoot = () => {
+      if (isDone) return;
+      isDone = true;
+      if (fillEl) fillEl.style.width = '100%';
+      if (pctEl) pctEl.textContent = '100%';
+      if (statusEl) statusEl.textContent = 'SYSTEM READY • CLIENT SILICON ACTIVE';
+      bootScreen.classList.add('boot-done');
+      bootScreen.style.pointerEvents = 'none';
+      setTimeout(() => {
+        bootScreen.style.display = 'none';
+      }, 350);
+    };
+
+    window.dismissBootScreen = finishBoot;
+    bootScreen.addEventListener('click', finishBoot);
+    window.addEventListener('keydown', finishBoot, { once: true });
+
+    const interval = setInterval(() => {
+      if (isDone) {
+        clearInterval(interval);
+        return;
+      }
+      if (currentStep < steps.length) {
+        const step = steps[currentStep];
+        if (fillEl) fillEl.style.width = step.pct + '%';
+        if (pctEl) pctEl.textContent = step.pct + '%';
+        if (statusEl) statusEl.textContent = step.msg;
+        currentStep++;
+      } else {
+        clearInterval(interval);
+        finishBoot();
+      }
+    }, 180);
   },
 
   setupRouter() {
     window.routeTo = (r) => this.routeTo(r);
-    window.EditorialController = this;
-    if (window.TransifyApp) window.TransifyApp.routeTo = (r) => this.routeTo(r);
 
     // Rail logo click to go to Home
     const logoBtn = document.getElementById('rail-logo-btn');
@@ -4171,28 +4928,7 @@ const EditorialController = {
       }
     });
 
-    // Update nav drawer items active state & Uiverse glider radio
-    const drawerRadioMap = {
-      home: 'drawer-radio-1',
-      sign: 'drawer-radio-2',
-      braille: 'drawer-radio-3',
-      stt: 'drawer-radio-4',
-      voice: 'drawer-radio-4',
-      phrases: 'drawer-radio-5',
-      chat: 'drawer-radio-6',
-      'care-intake': 'drawer-radio-7',
-      care: 'drawer-radio-7',
-      'care-chronic': 'drawer-radio-8',
-      chronic: 'drawer-radio-8',
-      clinician: 'drawer-radio-7',
-      settings: 'drawer-radio-9',
-    };
-    const activeRadioId = drawerRadioMap[route];
-    if (activeRadioId) {
-      const rInput = document.getElementById(activeRadioId);
-      if (rInput) rInput.checked = true;
-    }
-
+    // Update nav drawer items active state
     document.querySelectorAll('.nav-drawer-item').forEach(btn => {
       const r = btn.getAttribute('data-route');
       const isActive = (r === route) || (r === 'stt' && (route === 'stt' || route === 'voice')) || (route === 'care' && (r === 'care-intake' || r === 'care-chronic'));
@@ -4207,6 +4943,9 @@ const EditorialController = {
     // Sub-route handling
     if (route === 'sign' && window.SignPage && window.SignPage.init) {
       window.SignPage.init();
+    }
+    if (route === 'braille' && window.BraillePage && window.BraillePage.init) {
+      window.BraillePage.init();
     }
     if (route === 'chat' && window.ChatbotPage && window.ChatbotPage.init) {
       window.ChatbotPage.init();
@@ -4661,25 +5400,9 @@ const EditorialController = {
   },
 
   setupBrailleInteractiveCell() {
-    let activeDots = [];
-    const charDisplay = document.getElementById('braille-interactive-char');
-    document.querySelectorAll('[data-braille-dot]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const dot = btn.getAttribute('data-braille-dot');
-        btn.classList.toggle('active');
-        if (activeDots.includes(dot)) {
-          activeDots = activeDots.filter(d => d !== dot);
-        } else {
-          activeDots.push(dot);
-        }
-        activeDots.sort();
-        const key = activeDots.join('');
-        const char = this.brailleMap[key] || (key ? '–' : '—');
-        if (charDisplay) {
-          charDisplay.textContent = `Character: ${char}`;
-        }
-      });
-    });
+    if (window.BraillePage && window.BraillePage.init) {
+      window.BraillePage.init();
+    }
   },
 
   setupSettingsScreen() {
@@ -4726,7 +5449,7 @@ const EditorialController = {
       const bioVal = profBio ? profBio.value : '';
 
       const profObj = { name: nameVal, role: roleVal, comm: commVal, dialect: dialectVal, bio: bioVal };
-      try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) { }
+      try { localStorage.setItem('transify_user_profile', JSON.stringify(profObj)); } catch (_) {}
 
       const initials = nameVal.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2) || 'TR';
       if (profAvatar) profAvatar.textContent = initials;
@@ -4766,7 +5489,7 @@ const EditorialController = {
           const initials = p.name.trim().split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
           profAvatar.textContent = initials || 'TR';
         }
-      } catch (_) { }
+      } catch (_) {}
     }
 
     // Live reactivity for profile controls
@@ -4844,7 +5567,7 @@ const EditorialController = {
     if (exportBtn) {
       exportBtn.addEventListener('click', () => {
         let profData = {};
-        try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) { }
+        try { profData = JSON.parse(localStorage.getItem('transify_user_profile') || '{}'); } catch (_) {}
         const dump = {
           app: 'Transify 2.0',
           exported_at: new Date().toISOString(),
@@ -5337,7 +6060,7 @@ const EditorialController = {
 
     try {
       localStorage.setItem('transify_settings_tab', tabName);
-    } catch (_) { }
+    } catch (_) {}
   },
 
   handleSettingsAuthAction() {

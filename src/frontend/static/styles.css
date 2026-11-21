@@ -88,6 +88,219 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ==========================================================================
+   TRANSIFY NEURAL BOOT SEQUENCE OVERLAY
+   High-Tech Medical/Accessibility Initialization Experience
+   ========================================================================== */
+.transify-boot-screen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 999999;
+  background: #0B0912;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.45s;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.transify-boot-screen.boot-done {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  display: none !important;
+}
+
+.boot-ambient-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(131, 56, 236, 0.32) 0%, rgba(255, 203, 5, 0.08) 45%, rgba(0, 0, 0, 0) 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  animation: bootPulse 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes bootPulse {
+  0% { transform: scale(0.85); opacity: 0.6; }
+  100% { transform: scale(1.15); opacity: 0.95; }
+}
+
+.boot-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+  max-width: 460px;
+  width: 90%;
+  box-sizing: border-box;
+}
+
+.boot-braille-badge {
+  width: 54px;
+  height: 66px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(131, 56, 236, 0.4);
+  box-shadow: 0 0 24px rgba(131, 56, 236, 0.35);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding: 10px 12px;
+  gap: 8px;
+  margin-bottom: 20px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.boot-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.25s ease;
+}
+
+.boot-dot.active-purple {
+  background: #8338EC;
+  box-shadow: 0 0 10px #8338EC, 0 0 16px rgba(131, 56, 236, 0.8);
+  animation: dotFlashPurple 1.2s ease-in-out infinite alternate;
+}
+
+.boot-dot.active-gold {
+  background: #FFCB05;
+  box-shadow: 0 0 10px #FFCB05, 0 0 16px rgba(255, 203, 5, 0.8);
+  animation: dotFlashGold 1.2s ease-in-out infinite alternate 0.3s;
+}
+
+@keyframes dotFlashPurple {
+  0% { transform: scale(0.85); opacity: 0.7; }
+  100% { transform: scale(1.2); opacity: 1; }
+}
+
+@keyframes dotFlashGold {
+  0% { transform: scale(0.85); opacity: 0.7; }
+  100% { transform: scale(1.2); opacity: 1; }
+}
+
+.boot-title {
+  font-family: var(--font-display, -apple-system, sans-serif);
+  font-weight: 900;
+  font-size: 28px;
+  letter-spacing: 0.12em;
+  color: #FFFFFF;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.boot-version {
+  font-size: 13px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(131, 56, 236, 0.3);
+  border: 1px solid rgba(131, 56, 236, 0.6);
+  color: #C4B5FD;
+  letter-spacing: 0.04em;
+}
+
+.boot-tagline {
+  margin: 6px 0 24px;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  color: #A9A5C4;
+  letter-spacing: 0.02em;
+}
+
+.boot-progress-wrap {
+  width: 100%;
+  max-width: 280px;
+  margin-bottom: 12px;
+}
+
+.boot-progress-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.boot-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #8338EC, #FFCB05);
+  box-shadow: 0 0 12px #FFCB05;
+  border-radius: 4px;
+  transition: width 0.15s ease-out;
+}
+
+.boot-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 280px;
+  font-family: monospace, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8C88A5;
+  margin-top: 6px;
+}
+
+.boot-status-text {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 230px;
+}
+
+.boot-pct {
+  color: #FFCB05;
+  font-weight: 700;
+}
+
+.boot-pill-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.boot-pill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: #9C98B6;
+}
+
+[data-motion="reduced"] .transify-boot-screen {
+  display: none !important;
+}
+
 /* Remove all scrolling options and scrollbars completely across the app */
 html,
 body,
