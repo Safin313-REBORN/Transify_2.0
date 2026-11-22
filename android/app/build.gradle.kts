@@ -13,9 +13,10 @@ val transifyBaseUrlProp: String = (
 
 val escapedBaseUrl = transifyBaseUrlProp.replace("\\", "\\\\").replace("\"", "\\\"")
 
+// Strict security: Credential resolution ONLY via environment variables or secure external properties file (mode 0600).
+// Command-line -P project properties for credentials are explicitly rejected.
 val externalSigningPropsFile = (
-    project.findProperty("SIGNING_PROPERTIES_PATH") as? String
-        ?: System.getenv("SIGNING_PROPERTIES_PATH")
+    System.getenv("SIGNING_PROPERTIES_PATH")
         ?: "${System.getProperty("user.home")}/.transify_release/release-signing.properties"
 ).let { File(it) }
 
@@ -25,9 +26,7 @@ if (externalSigningPropsFile.exists()) {
 }
 
 fun resolveSigningProperty(name: String): String? {
-    return (project.findProperty(name) as? String)
-        ?: System.getenv(name)
-        ?: signingFileProperties.getProperty(name)
+    return System.getenv(name) ?: signingFileProperties.getProperty(name)
 }
 
 android {
@@ -47,20 +46,58 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            val keystorePath = resolveSigningProperty("KEYSTORE_PATH")
+        create("directRelease") {
+            val keystorePath = resolveSigningProperty("DIRECT_KEYSTORE_PATH")
+                ?: resolveSigningProperty("KEYSTORE_PATH")
                 ?: "${System.getProperty("user.home")}/.transify_release/transify-release.keystore"
             val keystoreFile = File(keystorePath)
 
-            val storePasswordValue = resolveSigningProperty("KEYSTORE_PASSWORD")
-            val keyAliasValue = resolveSigningProperty("KEY_ALIAS") ?: "transify"
-            val keyPasswordValue = resolveSigningProperty("KEY_PASSWORD") ?: storePasswordValue
+            val storePasswordValue = resolveSigningProperty("DIRECT_KEYSTORE_PASSWORD")
+                ?: resolveSigningProperty("KEYSTORE_PASSWORD")
+            val keyAliasValue = resolveSigningProperty("DIRECT_KEY_ALIAS")
+                ?: resolveSigningProperty("KEY_ALIAS") ?: "transify"
+            val keyPasswordValue = resolveSigningProperty("DIRECT_KEY_PASSWORD")
+                ?: resolveSigningProperty("KEY_PASSWORD") ?: storePasswordValue
+
             if (keystoreFile.exists() && !storePasswordValue.isNullOrBlank() && !keyPasswordValue.isNullOrBlank()) {
                 this.storeFile = keystoreFile
                 this.storePassword = storePasswordValue
                 this.keyAlias = keyAliasValue
                 this.keyPassword = keyPasswordValue
             }
+        }
+
+        create("playRelease") {
+            val keystorePath = resolveSigningProperty("PLAY_KEYSTORE_PATH")
+                ?: resolveSigningProperty("KEYSTORE_PATH")
+                ?: "${System.getProperty("user.home")}/.transify_release/transify-release.keystore"
+            val keystoreFile = File(keystorePath)
+
+            val storePasswordValue = resolveSigningProperty("PLAY_KEYSTORE_PASSWORD")
+                ?: resolveSigningProperty("KEYSTORE_PASSWORD")
+            val keyAliasValue = resolveSigningProperty("PLAY_KEY_ALIAS")
+                ?: resolveSigningProperty("KEY_ALIAS") ?: "transify"
+            val keyPasswordValue = resolveSigningProperty("PLAY_KEY_PASSWORD")
+                ?: resolveSigningProperty("KEY_PASSWORD") ?: storePasswordValue
+
+            if (keystoreFile.exists() && !storePasswordValue.isNullOrBlank() && !keyPasswordValue.isNullOrBlank()) {
+                this.storeFile = keystoreFile
+                this.storePassword = storePasswordValue
+                this.keyAlias = keyAliasValue
+                this.keyPassword = keyPasswordValue
+            }
+        }
+    }
+
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("direct") {
+            dimension = "distribution"
+            signingConfig = signingConfigs.getByName("directRelease")
+        }
+        create("play") {
+            dimension = "distribution"
+            signingConfig = signingConfigs.getByName("playRelease")
         }
     }
 
@@ -73,7 +110,6 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -104,16 +140,34 @@ android {
 
 // Strict Release guards for URL validation and Signing Credential enforcement
 gradle.taskGraph.whenReady {
-    val isReleaseBuild = hasTask(":app:assembleRelease") || hasTask(":app:bundleRelease")
-    if (isReleaseBuild) {
-        val releaseConfig = android.signingConfigs.getByName("release")
-        val store = releaseConfig.storeFile
-        if (store == null || !store.exists() || releaseConfig.storePassword.isNullOrBlank() || releaseConfig.keyPassword.isNullOrBlank()) {
-            throw GradleException(
-                "Release build failed: Required signing credentials are absent or keystore file does not exist. " +
-                "Please configure KEYSTORE_PASSWORD and KEY_PASSWORD via environment variables, " +
-                "Gradle project properties (-PKEYSTORE_PASSWORD=...), or ~/.transify_release/release-signing.properties."
-            )
+    val isDirectRelease = hasTask(":app:assembleDirectRelease") || hasTask(":app:bundleDirectRelease")
+    val isPlayRelease = hasTask(":app:assemblePlayRelease") || hasTask(":app:bundlePlayRelease")
+    val isGenericRelease = hasTask(":app:assembleRelease") || hasTask(":app:bundleRelease")
+
+    if (isDirectRelease || isPlayRelease || isGenericRelease) {
+        val directConfig = android.signingConfigs.getByName("directRelease")
+        val playConfig = android.signingConfigs.getByName("playRelease")
+
+        if (isDirectRelease || isGenericRelease) {
+            val store = directConfig.storeFile
+            if (store == null || !store.exists() || directConfig.storePassword.isNullOrBlank() || directConfig.keyPassword.isNullOrBlank()) {
+                throw GradleException(
+                    "Direct release build failed: Required signing credentials are absent or keystore file does not exist. " +
+                    "Credentials must be supplied strictly via environment variables (KEYSTORE_PASSWORD, KEY_PASSWORD) " +
+                    "or ~/.transify_release/release-signing.properties (mode 0600). Command-line -P arguments are forbidden."
+                )
+            }
+        }
+
+        if (isPlayRelease || isGenericRelease) {
+            val store = playConfig.storeFile
+            if (store == null || !store.exists() || playConfig.storePassword.isNullOrBlank() || playConfig.keyPassword.isNullOrBlank()) {
+                throw GradleException(
+                    "Play release build failed: Required signing credentials are absent or keystore file does not exist. " +
+                    "Credentials must be supplied strictly via environment variables (KEYSTORE_PASSWORD, KEY_PASSWORD) " +
+                    "or ~/.transify_release/release-signing.properties (mode 0600). Command-line -P arguments are forbidden."
+                )
+            }
         }
 
         if (transifyBaseUrlProp.isBlank()) {

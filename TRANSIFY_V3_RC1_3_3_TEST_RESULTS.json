@@ -1,0 +1,158 @@
+{
+  "milestone": "RC1.3.3",
+  "project": "Transify V3",
+  "package": "com.abrarafick.transify",
+  "timestamp": "2026-11-22T19:07:00+06:00",
+  "toolchain": {
+    "compile_sdk": 36,
+    "target_sdk": 36,
+    "min_sdk": 26,
+    "android_gradle_plugin": "8.9.0",
+    "gradle_wrapper": "8.13",
+    "build_tools": "36.0.0",
+    "java_version": "21.0.4"
+  },
+  "signing_architecture": {
+    "direct_release": {
+      "signing_config": "directRelease",
+      "keystore_path": "~/.transify_release/transify-release.keystore",
+      "alias": "transify",
+      "certificate_fingerprint_sha256": "63:B8:CE:CA:C1:7E:06:1C:1E:EF:4D:BC:C1:39:79:B7:2E:4A:B2:34:07:A8:DA:A6:46:75:04:09:25:50:B1:2E",
+      "credential_resolution": "Environment variables or ~/.transify_release/release-signing.properties (mode 0600 in mode 0700 dir)",
+      "commandline_p_properties_permitted": false,
+      "fail_closed_enforced": true
+    },
+    "play_release": {
+      "signing_config": "playRelease",
+      "keystore_path": "~/.transify_release/transify-release.keystore",
+      "alias": "transify",
+      "note": "Using currently registered upload key until replacement key activation is confirmed by Google Play Console",
+      "certificate_fingerprint_sha256": "63:B8:CE:CA:C1:7E:06:1C:1E:EF:4D:BC:C1:39:79:B7:2E:4A:B2:34:07:A8:DA:A6:46:75:04:09:25:50:B1:2E",
+      "staged_replacement_key": {
+        "keystore_path": "~/.transify_release/transify-upload-replacement.keystore",
+        "alias": "transify-upload",
+        "certificate_fingerprint_sha256": "9A:A3:EB:76:CD:6F:E9:7D:6B:42:DE:DE:D2:C3:FF:C4:6E:1D:95:97:D5:FF:AC:12:F6:41:81:4A:14:0E:98:98",
+        "status": "STAGED_AWAITING_GOOGLE_PLAY_CONSOLE_CONFIRMATION"
+      }
+    }
+  },
+  "artifacts": {
+    "direct_apk": {
+      "path": "android/app/build/outputs/apk/direct/release/app-direct-release.apk",
+      "size_bytes": 1859006,
+      "sha256": "8621c1bd79b4acf28545c536a66b7303694f693662da313ef6c522dd4479fbe7",
+      "verified_by": "apksigner",
+      "v1_signing_enabled": false,
+      "v2_signing_enabled": true,
+      "v3_signing_enabled": false,
+      "v4_signing_enabled": false,
+      "signing_status": "VALID"
+    },
+    "play_aab": {
+      "path": "android/app/build/outputs/bundle/playRelease/app-play-release.aab",
+      "size_bytes": 2525447,
+      "sha256": "9614af569af81681e280dfa23c3db39464f89f4d8c92c78f8db0a9e700b3e4bd",
+      "verified_by": "jarsigner and bundletool",
+      "jarsigner_status": "PASSED (jar verified)",
+      "bundletool_status": "PASSED (exit code 0)",
+      "signing_status": "VALID"
+    }
+  },
+  "test_evidence_disaggregated": {
+    "automated_test_cases_total": 259,
+    "categories": {
+      "backend_unit_and_integration": {
+        "framework": "pytest",
+        "total_test_cases": 178,
+        "passed": 178,
+        "failed": 0,
+        "skipped": 0,
+        "execution_time_seconds": 12.82
+      },
+      "android_unit_tests": {
+        "framework": "junit4_robolectric",
+        "task": "testDirectReleaseUnitTest",
+        "total_test_cases": 40,
+        "passed": 40,
+        "failed": 0,
+        "skipped": 0,
+        "execution_time_seconds": 1.15,
+        "subsuites": {
+          "strict_no_auto_audio_policy": {
+            "test_class": "com.abrarafick.transify.StrictNoAutoAudioPolicyTest",
+            "test_cases": 10,
+            "passed": 10,
+            "failed": 0,
+            "accounting_note": "Single test category; never double-counted into audio assertions or general test counts"
+          },
+          "network_monitor": {
+            "test_class": "com.abrarafick.transify.NetworkMonitorTest",
+            "test_cases": 12,
+            "passed": 12,
+            "failed": 0
+          },
+          "webchrome_client": {
+            "test_class": "com.abrarafick.transify.TransifyWebChromeClientTest",
+            "test_cases": 18,
+            "passed": 18,
+            "failed": 0
+          }
+        }
+      },
+      "browser_e2e_checks": {
+        "framework": "playwright",
+        "total_checks": 41,
+        "passed": 41,
+        "failed": 0
+      }
+    },
+    "viewport_matrix_checks": {
+      "framework": "scripts/verify_responsive_ui_matrix.py",
+      "total_viewports": 15,
+      "passed": 15,
+      "failed": 0,
+      "tiers": [
+        "Mobile (320px, 360px, 375px, 390px, 412px, 428px)",
+        "Tablet (600px, 768px, 800px, 820px, 834px)",
+        "Desktop (1024px, 1280px, 1440px, 1920px)"
+      ]
+    },
+    "accessibility_audit_phases": {
+      "standard": "WCAG 2.1 AA / Section 508",
+      "total_phases": 8,
+      "passed": 8,
+      "failed": 0,
+      "phases": [
+        "1. Full Keyboard Navigation & Tab Order",
+        "2. Screen Reader ARIA Semantics & Live Regions",
+        "3. Color Contrast Compliance (>= 4.5:1 text, >= 3:1 UI)",
+        "4. Minimum Touch Target Sizing (>= 48x48 dp)",
+        "5. Visible Focus Indicators (2px solid #00f2fe)",
+        "6. Zoom & Text Reflow (up to 200% without horizontal scroll)",
+        "7. Reduced Motion Support (prefers-reduced-motion media query)",
+        "8. Strict Zero Auto-Audio Policy Verification"
+      ]
+    },
+    "grand_total_checks": 282
+  },
+  "physical_hardware_validation_gate": {
+    "status": "OPEN",
+    "resolution": "DEFERRED",
+    "attached_devices": 0,
+    "blocking_reason": "No physical Android handsets attached to CI/audit runner. Simulation and unit mocks cannot substitute for physical hardware testing per regulatory governance requirements."
+  },
+  "clinical_governance_gate": {
+    "clinical_safety_rules_verified": 11,
+    "bilingual_triage_latency_p99_ms": 14.8,
+    "emergency_hotline_routing": "VERIFIED (16263, 999, 109)",
+    "ethics_approvals_status": {
+      "institutional_review_board_irb": "PENDING_FORMAL_SUBMISSION",
+      "bangladesh_medical_research_council_bmrc": "PENDING_PROTOCOL_REVIEW",
+      "dghs_mis_integration": "PENDING_API_SIGN_OFF"
+    }
+  },
+  "release_verdict": {
+    "decision": "CONDITIONALLY APPROVED",
+    "summary": "Direct APK and Play AAB release builds and signing architecture are fully hardened, verified, and reconciled. Web and desktop workstations are approved for controlled clinical pilot. Physical mobile distribution is conditionally deferred until physical handset QA gate is cleared and institutional ethics approvals are formalized."
+  }
+}
