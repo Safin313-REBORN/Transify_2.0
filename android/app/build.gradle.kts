@@ -1,4 +1,6 @@
 import java.util.Properties
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
 
 plugins {
     id("com.android.application")
@@ -20,8 +22,44 @@ val externalSigningPropsFile = (
         ?: "${System.getProperty("user.home")}/.transify_release/release-signing.properties"
 ).let { File(it) }
 
+// Enforce restrictive POSIX permissions before reading secrets from disk.
+fun requirePosixMode(file: File, expected: Set<PosixFilePermission>, description: String) {
+    try {
+        val actual = Files.getPosixFilePermissions(file.toPath())
+        if (actual != expected) {
+            throw GradleException(
+                "$description has insecure POSIX permissions; expected owner-only access. Refusing to read signing secrets."
+            )
+        }
+    } catch (e: UnsupportedOperationException) {
+        throw GradleException(
+            "The filesystem does not support POSIX permission checks for $description; refusing to read signing secrets.",
+            e
+        )
+    }
+}
+
 val signingFileProperties = Properties()
 if (externalSigningPropsFile.exists()) {
+    if (!externalSigningPropsFile.isFile) {
+        throw GradleException("SIGNING_PROPERTIES_PATH must point to a regular file.")
+    }
+    val signingDirectory = externalSigningPropsFile.absoluteFile.parentFile
+        ?: throw GradleException("Signing properties file must have a parent directory.")
+    requirePosixMode(
+        signingDirectory,
+        setOf(
+            PosixFilePermission.OWNER_READ,
+            PosixFilePermission.OWNER_WRITE,
+            PosixFilePermission.OWNER_EXECUTE
+        ),
+        "Signing properties parent directory"
+    )
+    requirePosixMode(
+        externalSigningPropsFile,
+        setOf(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE),
+        "Signing properties file"
+    )
     externalSigningPropsFile.inputStream().use { signingFileProperties.load(it) }
 }
 
