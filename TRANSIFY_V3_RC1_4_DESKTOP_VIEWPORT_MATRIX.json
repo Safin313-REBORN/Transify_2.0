@@ -1,0 +1,290 @@
+{
+  "timestamp": "2026-11-23T00:45:00+06:00",
+  "desktop_runtime": "Chromium Embedded Desktop WebView (Linux x86_64)",
+  "viewports_tested": [
+    {
+      "viewport_name": "desktop_1280x720_hd",
+      "width": 1280,
+      "height": 720,
+      "aspect_ratio": "16:9",
+      "tier": "HD Laptop / Thin Client",
+      "initial_load_latency_ms": 1586.01,
+      "rail_width_px": 112,
+      "content_width_px": 1168,
+      "home_main_width_px": 884,
+      "bento_width_px": 820,
+      "zero_horizontal_overflow": true,
+      "status": "PASS",
+      "screenshots": {
+        "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_home.png",
+        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_care.png",
+        "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_sign.png"
+      }
+    },
+    {
+      "viewport_name": "desktop_1280x800_wxga",
+      "width": 1280,
+      "height": 800,
+      "aspect_ratio": "16:10",
+      "tier": "WXGA MacBook / Monitor",
+      "initial_load_latency_ms": 1809.94,
+      "rail_width_px": 112,
+      "content_width_px": 1168,
+      "home_main_width_px": 884,
+      "bento_width_px": 820,
+      "zero_horizontal_overflow": true,
+      "status": "PASS",
+      "screenshots": {
+        "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_home.png",
+        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_care.png",
+        "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_sign.png"
+      }
+    },
+    {
+      "viewport_name": "desktop_1366x768_laptop",
+      "width": 1366,
+      "height": 768,
+      "aspect_ratio": "16:9",
+      "tier": "Standard Budget Laptop",
+      "initial_load_latency_ms": 1667.9,
+      "rail_width_px": 112,
+      "content_width_px": 1254,
+      "home_main_width_px": 950,
+      "bento_width_px": 882,
+      "zero_horizontal_overflow": true,
+      "status": "PASS",
+      "screenshots": {
+        "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_home.png",
+        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_care.png",
+        "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_sign.png"
+      }
+    },
+    {
+      "viewport_name": "desktop_1440x900_wxga_plus",
+      "width": 1440,
+      "height": 900,
+      "aspect_ratio": "16:10",
+      "tier": "WXGA+ Display / Workstation",
+      "initial_load_latency_ms": 1502.96,
+      "rail_width_px": 112,
+      "content_width_px": 1328,
+      "home_main_width_px": 1008,
+      "bento_width_px": 936,
+      "zero_horizontal_overflow": true,
+      "status": "PASS",
+      "screenshots": {
+        "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_home.png",
+        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_care.png",
+        "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_sign.png"
+      }
+    },
+    {
+      "viewport_name": "desktop_1536x864_scaled_fhd",
+      "width": 1536,
+      "height": 864,
+      "aspect_ratio": "16:9",
+      "tier": "Windows 125% Scaled FHD",
+      "initial_load_latency_ms": 1850.52,
+      "rail_width_px": 112,
+      "content_width_px": 1424,
+      "home_main_width_px": 1104,
+      "bento_width_px": 1032,
+      "zero_horizontal_overflow": true,
+      "status": "PASS",
+      "screenshots": {
+        "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_home.png",
+        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_care.png",
+        "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_sign.png"
+      }
+    },
+    {
+      "viewport_name": "desktop_1600x900_hd_plus",
+      "width": 1600,
+      "height": 900,
+      "aspect_ratio": "16:9",
+      "tier": "HD+ Workstation Monitor",
+      "initial_load_latency_ms": 1692.77,
+      "rail_width_px": 112,
+      "content_width_px": 1488,
+      "home_main_width_px": 1168,
+      "bento_width_px": 1096,
+      "zero_horizontal_overflow": true,
+      "status": "PASS",
+      "screenshots": {
+        "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_home.png",
+        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_care.png",
+        "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_sign.png"
+      }
+    },
+    {
+      "viewport_name": "desktop_1920x1080_fhd",
+      "width": 1920,
+      "height": 1080,
+      "aspect_ratio": "16:9",
+      "tier": "Standard FHD Desktop Display",
+      "initial_load_latency_ms": 1548.76,
+      "rail_width_px": 112,
+      "content_width_px": 1808,
+      "home_main_width_px": 1488,
+      "bento_width_px": 1416,
+      "zero_horizontal_overflow": true,
+      "status": "PASS",
+      "screenshots": {
+        "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_home.png",
+        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_care.png",
+        "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_sign.png"
+      }
+    },
+    {
+      "viewport_name": "desktop_1920x1200_wuxga",
+      "width": 1920,
+      "height": 1200,
+      "aspect_ratio": "16:10",
+      "tier": "WUXGA Professional Medical Display",
+      "initial_load_latency_ms": 1516.13,
+      "rail_width_px": 112,
+      "content_width_px": 1808,
+      "home_main_width_px": 1488,
+      "bento_width_px": 1416,
+      "zero_horizontal_overflow": true,
+      "status": "PASS",
+      "screenshots": {
+        "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_home.png",
+        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_care.png",
+        "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_sign.png"
+      }
+    },
+    {
+      "viewport_name": "desktop_2560x1440_qhd",
+      "width": 2560,
+      "height": 1440,
+      "aspect_ratio": "16:9",
+      "tier": "QHD / 2K Studio Monitor",
+      "initial_load_latency_ms": 1870.88,
+      "rail_width_px": 112,
+      "content_width_px": 2448,
+      "home_main_width_px": 1680,
+      "bento_width_px": 1608,
+      "zero_horizontal_overflow": true,
+      "status": "PASS",
+      "screenshots": {
+        "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_home.png",
+        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_care.png",
+        "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_sign.png"
+      }
+    },
+    {
+      "viewport_name": "desktop_3440x1440_ultrawide",
+      "width": 3440,
+      "height": 1440,
+      "aspect_ratio": "21:9",
+      "tier": "Ultra-Wide Panoramic Display",
+      "initial_load_latency_ms": 1676.33,
+      "rail_width_px": 112,
+      "content_width_px": 3328,
+      "home_main_width_px": 1680,
+      "bento_width_px": 1608,
+      "zero_horizontal_overflow": true,
+      "status": "PASS",
+      "screenshots": {
+        "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_home.png",
+        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_care.png",
+        "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_sign.png"
+      }
+    }
+  ],
+  "dpi_scaling_tested": [
+    {
+      "name": "100% Native Scaling",
+      "scale_factor": 1.0,
+      "measured_dpr": 1,
+      "zero_horizontal_overflow": true,
+      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_100pct_scale.png",
+      "status": "PASS"
+    },
+    {
+      "name": "125% Windows Scaling",
+      "scale_factor": 1.25,
+      "measured_dpr": 1.25,
+      "zero_horizontal_overflow": true,
+      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_125pct_scale.png",
+      "status": "PASS"
+    },
+    {
+      "name": "150% High-DPI Scaling",
+      "scale_factor": 1.5,
+      "measured_dpr": 1.5,
+      "zero_horizontal_overflow": true,
+      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_150pct_scale.png",
+      "status": "PASS"
+    },
+    {
+      "name": "200% Retina / 4K Scaling",
+      "scale_factor": 2.0,
+      "measured_dpr": 2,
+      "zero_horizontal_overflow": true,
+      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_200pct_scale.png",
+      "status": "PASS"
+    }
+  ],
+  "window_state_tests": [
+    {
+      "state": "Restored Window (1280x720)",
+      "zero_overflow": true,
+      "status": "PASS"
+    },
+    {
+      "state": "Maximized Window (1920x1080)",
+      "zero_overflow": true,
+      "status": "PASS"
+    },
+    {
+      "state": "Ultrawide Fullscreen (3440x1440)",
+      "zero_overflow": true,
+      "status": "PASS"
+    },
+    {
+      "state": "Restored Back (1366x768)",
+      "zero_overflow": true,
+      "status": "PASS"
+    }
+  ],
+  "keyboard_accessibility": {
+    "tab_navigation_working": true,
+    "shift_tab_reverse_working": true,
+    "modal_escape_dismissal_working": true,
+    "chat_tuning_modal_working": true,
+    "status": "PASS"
+  },
+  "zero_auto_audio_verified": true,
+  "performance_benchmarks": {
+    "initial_startup_ms": 1718.43,
+    "mean_route_transition_ms": 88.56,
+    "route_latencies_ms": {
+      "welcome": 35.57,
+      "home": 24.28,
+      "sign": 19.09,
+      "phrases": 50.1,
+      "braille": 20.46,
+      "voice": 19.98,
+      "chat": 18.17,
+      "care": 13.87,
+      "clinician": 651.51,
+      "settings": 32.62
+    },
+    "js_heap_memory": {
+      "usedHeapMB": "9.54",
+      "totalHeapMB": "9.54"
+    }
+  },
+  "summary": {
+    "viewports_evaluated": 10,
+    "viewports_passed": 10,
+    "dpi_tiers_evaluated": 4,
+    "dpi_tiers_passed": 4,
+    "window_resizes_passed": true,
+    "keyboard_accessibility_passed": true,
+    "zero_auto_audio_passed": true,
+    "overall_workstream_b_status": "PASS"
+  }
+}
