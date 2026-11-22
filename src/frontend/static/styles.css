@@ -49,9 +49,10 @@
   --r-14: 14px;
   --r-16: 16px;
 
-  --font-display: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-ui: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-ui: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-body: var(--font-ui);
+  --font-sans: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', Menlo, Consolas, monospace;
 
   --ease: cubic-bezier(.2, .8, .2, 1);
@@ -946,7 +947,44 @@ h3,
   flex-direction: column;
 }
 
-/* Page Views */
+/* Page Views & In-Page Change Animations */
+@keyframes transifyPageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.996);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes transifyTopBeam {
+  0% {
+    transform: scaleX(0);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scaleX(0.7);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+@keyframes transifyContentStagger {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .page-view {
   display: none;
   width: 100%;
@@ -957,10 +995,84 @@ h3,
   max-height: 100dvh;
   overflow: hidden !important;
   box-sizing: border-box;
+  position: relative;
 }
 
-.page-view.active {
-  display: flex;
+.page-view.active,
+.page-view.page-entering {
+  display: flex !important;
+  animation: transifyPageEnter 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  position: relative;
+}
+
+.page-view.active::before,
+.page-view.page-entering::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #7B42BC, #FFCC00, #00E5FF, #7B42BC);
+  background-size: 200% 100%;
+  transform-origin: left;
+  animation: transifyTopBeam 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.page-view.active .home-main,
+.page-view.active .stage-container,
+.page-view.active .voice-page-shell,
+.page-view.active .braille-page-shell,
+.page-view.active .phrases-container,
+.page-view.active .care-page-container,
+.page-view.active .chat-page-shell,
+.page-view.active .settings-container,
+.page-view.active .welcome-shell {
+  animation: transifyContentStagger 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-view.active,
+  .page-view.page-entering,
+  .page-view.active::before,
+  .page-view.page-entering::before,
+  .page-view.active .home-main,
+  .page-view.active .stage-container,
+  .page-view.active .voice-page-shell,
+  .page-view.active .braille-page-shell,
+  .page-view.active .phrases-container,
+  .page-view.active .care-page-container,
+  .page-view.active .chat-page-shell,
+  .page-view.active .settings-container,
+  .page-view.active .welcome-shell {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+[data-motion="reduced"] .page-view.active,
+[data-motion="reduced"] .page-view.page-entering,
+[data-motion="reduced"] .page-view.active::before,
+[data-motion="reduced"] .page-view.page-entering::before,
+[data-motion="reduced"] .page-view.active .home-main,
+[data-motion="reduced"] .page-view.active .stage-container,
+[data-motion="reduced"] .page-view.active .voice-page-shell,
+[data-motion="reduced"] .page-view.active .braille-page-shell,
+[data-motion="reduced"] .page-view.active .phrases-container,
+[data-motion="reduced"] .page-view.active .care-page-container,
+[data-motion="reduced"] .page-view.active .chat-page-shell,
+[data-motion="reduced"] .page-view.active .settings-container,
+[data-motion="reduced"] .page-view.active .welcome-shell,
+body.reduced-motion .page-view.active,
+body.reduced-motion .page-view.page-entering,
+body.reduced-motion .page-view.active::before {
+  animation: none !important;
+  transform: none !important;
+  transition: none !important;
 }
 
 /* -------------------------------------------------------------

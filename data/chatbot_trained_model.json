@@ -12,7 +12,7 @@
   ],
   "final_loss": 0.6996,
   "training_accuracy_pct": 96.4,
-  "trained_at": "2026-11-21T23:56:26Z",
+  "trained_at": "2026-11-22T00:03:24Z",
   "status": "TRAINED_OPTIMAL",
   "doc_vectors": {
     "care_fever_triage": {

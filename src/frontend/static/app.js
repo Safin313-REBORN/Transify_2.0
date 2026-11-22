@@ -5463,10 +5463,12 @@ const EditorialController = {
     const targetViewId = viewMap[route] || 'view-home';
     document.querySelectorAll('.page-view').forEach(view => {
       if (view.id === targetViewId) {
-        view.classList.add('active');
+        view.classList.remove('page-entering');
+        void view.offsetWidth;
+        view.classList.add('active', 'page-entering');
         view.style.display = 'flex';
       } else {
-        view.classList.remove('active');
+        view.classList.remove('active', 'page-entering');
         view.style.display = 'none';
       }
     });
