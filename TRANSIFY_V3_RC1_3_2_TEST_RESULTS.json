@@ -1,0 +1,138 @@
+{
+  "milestone": "RC1.3.2",
+  "audit_date": "2026-11-22T18:50:00+06:00",
+  "repository": "Safin313-REBORN/Transify_2.0",
+  "branch": "fix/rc1.3.2-release-integrity",
+  "base_commit": "fe7124af598de156be6906ff208b1a6e824e70c0",
+  "target_package": "com.abrarafick.transify",
+  "verdict": "CONDITIONALLY APPROVED",
+  "test_count_reconciliation": {
+    "previously_reported_aggregate": 326,
+    "reconciliation_status": "CORRECTED_AND_DISAGGREGATED",
+    "explanation": "The previous aggregate of 326 was an inflated number resulting from conflating the WCAG 44x44px touch target criteria and sub-assertions into automated tests. The actual empirical count across all distinct validation suites is 282 verified checks, categorized strictly below.",
+    "actual_empirical_total_checks": 282
+  },
+  "summary": {
+    "automated_test_cases": 259,
+    "responsive_viewports_validated": 15,
+    "accessibility_phases_validated": 8,
+    "pass_rate_percentage": 100.0,
+    "physical_hardware_tests_status": "DEFERRED",
+    "institutional_ethics_status": "PENDING_SUBMISSION"
+  },
+  "categories": {
+    "automated_test_cases": {
+      "total": 259,
+      "passed": 259,
+      "failed": 0,
+      "subcategories": {
+        "backend_pytest_suite": {
+          "total": 178,
+          "passed": 178,
+          "failed": 0,
+          "execution_time_seconds": 15.12,
+          "exit_code": 0
+        },
+        "android_unit_tests": {
+          "total": 40,
+          "passed": 40,
+          "failed": 0,
+          "execution_framework": "JUnit 4 via AGP 8.9.1 / Gradle 8.11.1",
+          "exit_code": 0,
+          "test_classes": {
+            "UrlValidationTest": {"total": 7, "passed": 7},
+            "NavigationAndSecurityTest": {"total": 3, "passed": 3},
+            "StrictNoAutoAudioPolicyTest": {"total": 10, "passed": 10},
+            "TTSBridgeValidationTest": {"total": 7, "passed": 7},
+            "NetworkMonitorValidationTest": {"total": 3, "passed": 3},
+            "FileProviderAndCaptureTest": {"total": 4, "passed": 4},
+            "FullWorkflowIntegrationTest": {"total": 6, "passed": 6}
+          }
+        },
+        "browser_e2e_checks": {
+          "total": 41,
+          "passed": 41,
+          "failed": 0,
+          "execution_framework": "Playwright Automation",
+          "exit_code": 0
+        }
+      }
+    },
+    "responsive_validation": {
+      "total_viewports": 15,
+      "passed": 15,
+      "failed": 0,
+      "resolutions": [
+        {"name": "Samsung Galaxy S5", "width": 360, "height": 640},
+        {"name": "Samsung Galaxy A", "width": 360, "height": 800},
+        {"name": "iPhone SE1", "width": 320, "height": 568},
+        {"name": "iPhone SE2", "width": 375, "height": 667},
+        {"name": "iPhone 14", "width": 390, "height": 844},
+        {"name": "iPhone 15 Pro", "width": 393, "height": 852},
+        {"name": "Pixel 8", "width": 412, "height": 915},
+        {"name": "iPhone 15 Pro Max", "width": 430, "height": 932},
+        {"name": "iPad Portrait", "width": 768, "height": 1024},
+        {"name": "iPad Air Portrait", "width": 820, "height": 1180},
+        {"name": "iPad Landscape", "width": 1024, "height": 768},
+        {"name": "MacBook Laptop", "width": 1280, "height": 800},
+        {"name": "HD Laptop", "width": 1366, "height": 768},
+        {"name": "Wide Laptop", "width": 1440, "height": 900},
+        {"name": "FHD Desktop", "width": 1920, "height": 1080}
+      ]
+    },
+    "accessibility_validation": {
+      "total_phases": 8,
+      "passed": 8,
+      "failed": 0,
+      "standard": "WCAG 2.1 Level AA",
+      "phases": [
+        {"phase": "8.1", "name": "Multi-Viewport Layout Integrity", "status": "PASS"},
+        {"phase": "8.2", "name": "Keyboard Navigation & Focus State", "status": "PASS"},
+        {"phase": "8.3", "name": "Modal Focus Trapping & Escape Key", "status": "PASS"},
+        {"phase": "8.4", "name": "Screen Reader ARIA Live Regions (49 detected)", "status": "PASS"},
+        {"phase": "8.5", "name": "High Contrast Mode Contrast Compliance", "status": "PASS"},
+        {"phase": "8.6", "name": "Reduced Motion Media Query Respect", "status": "PASS"},
+        {"phase": "8.7", "name": "Perkins Braille 6-Dot Touch Accessibility", "status": "PASS"},
+        {"phase": "8.8", "name": "Triage Result Screen-Reader Sync", "status": "PASS"}
+      ]
+    },
+    "audio_safety": {
+      "policy": "Zero Auto-Audio Enforcement",
+      "dedicated_unit_test_assertions": 10,
+      "runtime_verification": "VERIFIED_ABSOLUTE_SILENCE_UNTIL_EXPLICIT_USER_ACTION"
+    }
+  },
+  "android_toolchain": {
+    "compile_sdk": 36,
+    "target_sdk": 36,
+    "min_sdk": 24,
+    "agp_version": "8.9.1",
+    "gradle_version": "8.11.1",
+    "jdk_version": "OpenJDK 17",
+    "build_tools_version": "35.0.0"
+  },
+  "release_artifacts": {
+    "apk": {
+      "path": "android/app/build/outputs/apk/release/app-release.apk",
+      "size_bytes": 1847427,
+      "sha256": "97754d2070602452ced09aded109c1087f1391b83efeadcd741442ab9381c6b9",
+      "signing_scheme_v1": false,
+      "signing_scheme_v2": true,
+      "signing_scheme_v3": false,
+      "signing_scheme_v4": false,
+      "signing_certificate_sha256": "63b8cecac17e061c1eef4dbcc13979b72e4ab23407a8daa6467504092550b12e"
+    },
+    "aab": {
+      "path": "android/app/build/outputs/bundle/release/app-release.aab",
+      "size_bytes": 2603417,
+      "sha256": "e4b95d774d91b265e9cef2a9041d011c07f0a38e5c841090b8c836b25d52ba67",
+      "signing_scheme": "JAR Manifest Signing (Developer Upload Key)",
+      "bundletool_validation": "PASSED"
+    }
+  },
+  "hardware_validation_gate": {
+    "gate": "GATE_3",
+    "status": "OPEN",
+    "reason": "0 physical devices attached (adb devices -l reports empty device list). Requires physical handset execution."
+  }
+}

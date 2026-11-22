@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -11,9 +13,26 @@ val transifyBaseUrlProp: String = (
 
 val escapedBaseUrl = transifyBaseUrlProp.replace("\\", "\\\\").replace("\"", "\\\"")
 
+val externalSigningPropsFile = (
+    project.findProperty("SIGNING_PROPERTIES_PATH") as? String
+        ?: System.getenv("SIGNING_PROPERTIES_PATH")
+        ?: "${System.getProperty("user.home")}/.transify_release/release-signing.properties"
+).let { File(it) }
+
+val signingFileProperties = Properties()
+if (externalSigningPropsFile.exists()) {
+    externalSigningPropsFile.inputStream().use { signingFileProperties.load(it) }
+}
+
+fun resolveSigningProperty(name: String): String? {
+    return (project.findProperty(name) as? String)
+        ?: System.getenv(name)
+        ?: signingFileProperties.getProperty(name)
+}
+
 android {
     namespace = "com.abrarafick.transify"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.abrarafick.transify"
@@ -29,21 +48,18 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystorePath = project.findProperty("KEYSTORE_PATH") as? String
-                ?: System.getenv("KEYSTORE_PATH")
-                ?: "/home/safin313/.transify_release/transify-release.keystore"
+            val keystorePath = resolveSigningProperty("KEYSTORE_PATH")
+                ?: "${System.getProperty("user.home")}/.transify_release/transify-release.keystore"
             val keystoreFile = File(keystorePath)
-            if (keystoreFile.exists()) {
-                storeFile = keystoreFile
-                storePassword = project.findProperty("KEYSTORE_PASSWORD") as? String
-                    ?: System.getenv("KEYSTORE_PASSWORD")
-                    ?: "TransifyRelease2026!"
-                keyAlias = project.findProperty("KEY_ALIAS") as? String
-                    ?: System.getenv("KEY_ALIAS")
-                    ?: "transify"
-                keyPassword = project.findProperty("KEY_PASSWORD") as? String
-                    ?: System.getenv("KEY_PASSWORD")
-                    ?: "TransifyRelease2026!"
+
+            val storePasswordValue = resolveSigningProperty("KEYSTORE_PASSWORD")
+            val keyAliasValue = resolveSigningProperty("KEY_ALIAS") ?: "transify"
+            val keyPasswordValue = resolveSigningProperty("KEY_PASSWORD") ?: storePasswordValue
+            if (keystoreFile.exists() && !storePasswordValue.isNullOrBlank() && !keyPasswordValue.isNullOrBlank()) {
+                this.storeFile = keystoreFile
+                this.storePassword = storePasswordValue
+                this.keyAlias = keyAliasValue
+                this.keyPassword = keyPasswordValue
             }
         }
     }
@@ -86,10 +102,20 @@ android {
     }
 }
 
-// Strict URL validation guard for Release APK builds
+// Strict Release guards for URL validation and Signing Credential enforcement
 gradle.taskGraph.whenReady {
     val isReleaseBuild = hasTask(":app:assembleRelease") || hasTask(":app:bundleRelease")
     if (isReleaseBuild) {
+        val releaseConfig = android.signingConfigs.getByName("release")
+        val store = releaseConfig.storeFile
+        if (store == null || !store.exists() || releaseConfig.storePassword.isNullOrBlank() || releaseConfig.keyPassword.isNullOrBlank()) {
+            throw GradleException(
+                "Release build failed: Required signing credentials are absent or keystore file does not exist. " +
+                "Please configure KEYSTORE_PASSWORD and KEY_PASSWORD via environment variables, " +
+                "Gradle project properties (-PKEYSTORE_PASSWORD=...), or ~/.transify_release/release-signing.properties."
+            )
+        }
+
         if (transifyBaseUrlProp.isBlank()) {
             throw GradleException(
                 "TRANSIFY_BASE_URL must be specified for Release builds. " +
