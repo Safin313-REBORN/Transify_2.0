@@ -12,6 +12,18 @@
 
 ---
 
+## Evidence Boundary for Repository Review
+
+This document records operations reported as executed in the local Linux environment. A GitHub source review cannot directly inspect files under `/home/safin313/.transify_release/`. Therefore, the following remain **locally reported, not independently verified by repository access**:
+- The keystore backup's byte-for-byte identity and POSIX permissions.
+- Successful password rotation and rejection of the previous password.
+- The current replacement upload keystore's private-key identity and exported PEM fingerprint.
+- The actual permissions and ownership of the local signing-properties file and its parent directory.
+
+The Gradle source now enforces owner-only POSIX permissions (directory `0700`, properties file `0600`) before reading the external signing-properties file. The actual local filesystem state must still be verified on the build host. Retain redacted command output and fingerprints only; never place passwords or private key material in Git.
+
+---
+
 ## 1. EXECUTIVE SUMMARY
 
 The RC1.3.3 security milestone completes the critical credential remediation and signing pipeline separation initiated in RC1.3.2:
