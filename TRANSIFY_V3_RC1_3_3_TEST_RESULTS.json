@@ -6,11 +6,19 @@
   "toolchain": {
     "compile_sdk": 36,
     "target_sdk": 36,
-    "min_sdk": 26,
-    "android_gradle_plugin": "8.9.0",
-    "gradle_wrapper": "8.13",
+    "min_sdk": 24,
+    "android_gradle_plugin": "8.9.1",
+    "gradle_wrapper": "8.11.1",
     "build_tools": "36.0.0",
-    "java_version": "21.0.4"
+    "java_version": "21.0.4",
+    "java_source_compatibility": 17,
+    "kotlin_jvm_target": 17,
+    "runtime_jdk_version": "NOT_INDEPENDENTLY_VERIFIED_FROM_REPOSITORY",
+    "build_tools_versions": [
+      "35.0.0",
+      "36.0.0"
+    ],
+    "build_tools_installation_status": "REPORTED_IN_AUDIT; VERIFY_ON_BUILD_HOST"
   },
   "signing_architecture": {
     "direct_release": {
@@ -133,7 +141,30 @@
         "8. Strict Zero Auto-Audio Policy Verification"
       ]
     },
-    "grand_total_checks": 282
+    "quality_dimensions": {
+      "automated_test_cases": {
+        "total": 259,
+        "passed": 259,
+        "failed": 0
+      },
+      "responsive_viewport_configurations": {
+        "total": 15,
+        "passed": 15,
+        "failed": 0
+      },
+      "accessibility_verification_phases": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0
+      },
+      "accounting_rule": "Do not sum these categories into one test-case total. The 10 Zero Auto-Audio test cases are already included in the 40 Android unit tests."
+    },
+    "release_verification_limits": {
+      "local_keystore_password_rotation": "REPORTED; NOT INDEPENDENTLY VERIFIED FROM REPOSITORY",
+      "signing_properties_file_permissions": "GRADLE ENFORCEMENT ADDED; HOST STATE MUST BE CHECKED",
+      "replacement_play_upload_key_fingerprint": "REQUIRES LOCAL KEYSTORE AND PEM CROSS-CHECK; DO NOT SUBMIT UNTIL CONFIRMED",
+      "physical_android_hardware": "OPEN / DEFERRED"
+    }
   },
   "physical_hardware_validation_gate": {
     "status": "OPEN",
@@ -153,6 +184,6 @@
   },
   "release_verdict": {
     "decision": "CONDITIONALLY APPROVED",
-    "summary": "Direct APK and Play AAB release builds and signing architecture are fully hardened, verified, and reconciled. Web and desktop workstations are approved for controlled clinical pilot. Physical mobile distribution is conditionally deferred until physical handset QA gate is cleared and institutional ethics approvals are formalized."
+    "summary": "RC1.3.3 source configuration and reports are under review. Automated case counts, viewport configurations and accessibility phases are reported separately. Local keystore, build-host JDK, Play Console upload-key activation and physical handset testing remain external verification requirements."
   }
 }
