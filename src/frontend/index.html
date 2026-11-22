@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Schibsted+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
     rel="stylesheet">
 
   <!-- Self-Hosted Typography Fallback (Offline First) -->
@@ -39,7 +39,6 @@
     window.handleDirectLogin = function () {
       try {
         localStorage.setItem('transify_auth_user', JSON.stringify({ name: 'Transify Member', email: 'member@transify.ai' }));
-        localStorage.setItem('transify_auth_token', 'jwt_' + Date.now());
         localStorage.setItem('transify.welcomed', '1');
       } catch (e) { }
       window.closeAuthSheet();
@@ -301,6 +300,18 @@
         </svg>
         <span>Contact</span>
       </a>
+
+      <!-- 9. More (Mobile Navigation Drawer Trigger) -->
+      <button type="button" class="rail-item rail-item-more" id="rail-btn-more" aria-label="More navigation options"
+        title="More options" aria-haspopup="dialog" aria-expanded="false">
+        <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="1.5" />
+          <circle cx="6" cy="12" r="1.5" />
+          <circle cx="18" cy="12" r="1.5" />
+        </svg>
+        <span>More</span>
+      </button>
     </nav>
 
     <!-- Content Frame -->
@@ -671,13 +682,13 @@
                   Clinical Triage</span>
               </div>
               <div class="care-title" style="margin-top: 6px;">Transify Care &amp; Clinical Health</div>
-              <div class="care-desc">Accessible clinical symptom triage, WHO/DGHS guidelines &amp; health consultation.
+              <div class="care-desc">Accessible clinical symptom triage, WHO/Merck guidelines &amp; clinical review.
               </div>
             </div>
             <div class="care-actions">
               <a href="#chat" class="btn-welcome-primary press" id="btn-open-ai-chat"
                 style="height: 44px; padding: 0 18px; font-size: 15px; background: var(--violet); color: #fff;">
-                💬 Assistant Chat
+                🤖 AI Chatbot
               </a>
               <a href="#care-chronic" class="btn-welcome-primary press" id="btn-open-care-chronic"
                 style="height: 44px; padding: 0 16px; font-size: 15px; background: #8338EC; color: #fff;">
@@ -728,30 +739,79 @@
               <div class="rec-text">hello</div>
             </a>
           </div>
-          <!-- Truthful Privacy Card (§12) -->
-          <div class="privacy-card card-uiverse">
-            <div class="go-corner" aria-hidden="true"><span class="go-arrow">→</span></div>
-            <div class="privacy-card-title card-title">Stays on your device</div>
-            <p class="privacy-card-body small-desc">Signs, Braille and speech are processed to communicate seamlessly.
-              Camera video
-              is never stored.</p>
+          <!-- Uiverse 3D Flip Card by joe-watson-sbf (§12 Privacy Card) -->
+          <div class="flip-card privacy-flip-card privacy-card" tabindex="0" role="region"
+            aria-label="Privacy Information Card. Hover, tap or focus to flip.">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-card-badge">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  <span>Private by Design</span>
+                </div>
+                <p class="title privacy-card-title">Stays on your device</p>
+                <p class="flip-card-subtitle">Signs, Braille and speech process locally in real-time.</p>
+                <div class="flip-hint-pill" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                  </svg>
+                  <span>Flip card ↻</span>
+                </div>
+              </div>
+              <div class="flip-card-back">
+                <div class="flip-card-badge back-badge">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                  <span>Zero Video Storage</span>
+                </div>
+                <p class="title">100% Client-Side</p>
+                <p class="privacy-card-body flip-card-desc">Camera video is processed in browser memory and is never
+                  uploaded, recorded, or retained.</p>
+                <span class="flip-card-team">Engineered by Alpha Nexus</span>
+              </div>
+            </div>
           </div>
 
-          <!-- Contact Developer Card (Uiverse Expanding Card with GitHub Link) -->
+          <!-- Uiverse 3D Flip Card for Contact & GitHub -->
           <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener noreferrer"
-            class="card card-uiverse contact-card" id="home-contact-card" aria-label="Contact Developer on GitHub">
-            <div class="go-corner" aria-hidden="true"><span class="go-arrow">→</span></div>
-            <div class="card-title"
-              style="font-size: 18px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                  d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-              </svg>
-              <span>Contact &amp; GitHub</span>
+            class="flip-card contact-flip-card card contact-card" id="home-contact-card"
+            aria-label="Contact Developer on GitHub. Hover, tap or focus to flip.">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">
+                <div class="flip-card-badge">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                      d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                  </svg>
+                  <span>Open Source</span>
+                </div>
+                <p class="title">Contact &amp; GitHub</p>
+                <p class="flip-card-subtitle">Connect with Safin on GitHub (@Safin313-REBORN).</p>
+                <div class="flip-hint-pill" aria-hidden="true">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                  </svg>
+                  <span>Flip for repo ↻</span>
+                </div>
+              </div>
+              <div class="flip-card-back">
+                <div class="flip-card-badge back-badge">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                      d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                  </svg>
+                  <span>Transify 2.0</span>
+                </div>
+                <p class="title">Safin313-REBORN</p>
+                <p class="flip-card-desc">Click anywhere to explore repository code, report issues, or contribute.</p>
+                <span class="flip-card-link-cta">View on GitHub →</span>
+              </div>
             </div>
-            <p class="small-desc" style="font-size: 14px; margin: 0; line-height: 1.45;">
-              Connect with Safin on GitHub (@Safin313-REBORN) for feedback, issues, or contributions.
-            </p>
           </a>
         </aside>
       </section>
@@ -2343,7 +2403,7 @@
               <button type="button" id="care-next-to-symptoms"></button>
               <input type="hidden" id="care-raw-input">
               <span id="care-severity-badge"></span>
-              <input type="range" id="care-severity-slider">
+              <input type="range" id="care-severity-slider" min="1" max="10" value="5">
               <span id="care-triage-explanation-text"></span>
               <button type="button" id="btn-care-speak-triage"></button>
               <div id="care-offline-banner"></div>
@@ -2523,8 +2583,10 @@
               style="display: flex; flex-direction: column; gap: 16px;">
               <div
                 style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                <h3 style="margin: 0; font-size: 18px; font-weight: 800;">Wearable Telemetry Stream &amp; 24h Crisis
-                  Forecaster</h3>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <h3 style="margin: 0; font-size: 18px; font-weight: 800;">Wearable Telemetry Stream &amp; 24h Crisis Forecaster</h3>
+                  <span class="badge" style="background: rgba(131, 56, 236, 0.12); color: #8338EC; border: 1px solid rgba(131, 56, 236, 0.3); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; letter-spacing: 0.04em;">SIMULATION BENCHMARK — SYNTHETIC DATA</span>
+                </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                   <button type="button" id="btn-chronic-sim-normal" class="btn-outline-dark press"
                     style="font-size: 12px; padding: 6px 12px; height: 32px;">Load Normal Fitbit</button>
@@ -4250,7 +4312,7 @@
           </svg>
         </label>
 
-        <!-- 8: ChronicCare Monitoring -->
+        <!-- 8: ChronicCare -->
         <input type="radio" id="drawer-radio-8" name="drawer-nav-radio" value="care-chronic">
         <label for="drawer-radio-8" class="nav-drawer-item press" data-route="care-chronic">
           <span class="nav-drawer-label">ChronicCare</span>

@@ -545,7 +545,6 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
       authUser = { name: 'Sarah Ahmed', email: 'demo@transify.ai', provider: 'login' };
       try {
         localStorage.setItem('transify_auth_user', JSON.stringify(authUser));
-        localStorage.setItem('transify_auth_token', 'jwt_' + Date.now());
       } catch (_) { }
     }
 
@@ -650,8 +649,30 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     }
   },
 
-  handleDirectLogin() {
+  async handleDirectLogin() {
     this.showAuthAlert('Logging in as Sarah Ahmed...', true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: 'demo@transify.ai',
+          password: 'transify2026demo',
+          remember_me: true
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        this.completeAuthentication({
+          name: data.user?.name || 'Sarah Ahmed',
+          email: data.user?.email || 'demo@transify.ai',
+          role: data.user?.role || 'clinician',
+          provider: 'direct'
+        });
+        return;
+      }
+    } catch (_) { }
     this.completeAuthentication({
       name: 'Sarah Ahmed',
       email: 'demo@transify.ai',
@@ -659,8 +680,30 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     });
   },
 
-  handleDemoLogin() {
+  async handleDemoLogin() {
     this.showAuthAlert('Continuing as Demo Guest...', true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: 'demo@transify.ai',
+          password: 'transify2026demo',
+          remember_me: true
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        this.completeAuthentication({
+          name: data.user?.name || 'Sarah Ahmed',
+          email: data.user?.email || 'demo@transify.ai',
+          role: data.user?.role || 'clinician',
+          provider: 'guest'
+        });
+        return;
+      }
+    } catch (_) { }
     this.completeAuthentication({
       name: 'Sarah Ahmed',
       email: 'demo@transify.ai',
@@ -731,14 +774,14 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     }, 450);
   },
 
-  handleAuthSubmit(e) {
+  async handleAuthSubmit(e) {
     if (e) e.preventDefault();
     const emailInput = document.getElementById('input-email');
     const pwdInput = document.getElementById('input-password');
     const nameInput = document.getElementById('input-fullname');
 
     const email = (emailInput && emailInput.value.trim()) ? emailInput.value.trim() : 'demo@transify.ai';
-    const password = (pwdInput && pwdInput.value) ? pwdInput.value : 'transify2026';
+    const password = (pwdInput && pwdInput.value) ? pwdInput.value : 'transify2026demo';
     const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Sarah Ahmed';
 
     const mode = this.activeAuthMode || 'login';
@@ -750,14 +793,63 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
       if (label) label.textContent = mode === 'login' ? 'Logging in...' : 'Opening Transify...';
     }
 
-    setTimeout(() => {
-      this.showAuthAlert(mode === 'login' ? 'Login successful! Opening Transify...' : 'Account registered! Opening Transify...', true);
+    try {
+      let res;
+      if (mode === 'signup') {
+        res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            name: name,
+            email: email,
+            password: password,
+            consent_terms: true
+          })
+        });
+      } else {
+        res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            email: email,
+            password: password,
+            remember_me: true
+          })
+        });
+      }
+
+      if (res && res.ok) {
+        const data = await res.json();
+        this.showAuthAlert(mode === 'login' ? 'Login successful! Opening Transify...' : 'Account registered! Opening Transify...', true);
+        this.completeAuthentication({
+          name: data.user?.name || name,
+          email: data.user?.email || email,
+          role: data.user?.role || 'user',
+          provider: 'password'
+        });
+      } else {
+        this.completeAuthentication({
+          name: name,
+          email: email,
+          provider: 'demo'
+        });
+      }
+    } catch (_) {
       this.completeAuthentication({
         name: name,
         email: email,
-        provider: 'password'
+        provider: 'demo'
       });
-    }, 200);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        const label = submitBtn.querySelector('#btn-text');
+        if (label) label.textContent = mode === 'login' ? 'Login' : 'Register';
+      }
+    }
   },
 
   handleGoogleLogin() {
@@ -774,7 +866,6 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
   completeAuthentication(userObj) {
     try {
       localStorage.setItem('transify_auth_user', JSON.stringify(userObj));
-      localStorage.setItem('transify_auth_token', 'jwt_' + Date.now());
     } catch (_) { }
 
     this.updateProfileUI(userObj);
@@ -4257,411 +4348,411 @@ var TransifySTT = window.TransifySTT = {
   },
 
   updateTelemetry(text) {
-        const words = (text || '').trim().split(/\s+/).filter(Boolean);
-        const wordCount = document.getElementById('stt-word-count');
-        const wpmEl = document.getElementById('stt-wpm');
-        const diagWpm = document.getElementById('diag-wpm-val');
+    const words = (text || '').trim().split(/\s+/).filter(Boolean);
+    const wordCount = document.getElementById('stt-word-count');
+    const wpmEl = document.getElementById('stt-wpm');
+    const diagWpm = document.getElementById('diag-wpm-val');
 
-        if(wordCount) wordCount.textContent = `${words.length} words`;
+    if (wordCount) wordCount.textContent = `${words.length} words`;
 
-        if(this.startTime && words.length > 0) {
-        const elapsedMin = Math.max(0.1, (Date.now() - this.startTime) / 60000);
-        const wpm = Math.round(words.length / elapsedMin);
-        if (wpmEl) wpmEl.textContent = `Pace: ${wpm} WPM`;
-        if (diagWpm) diagWpm.textContent = `${wpm} WPM`;
-      }
-    },
+    if (this.startTime && words.length > 0) {
+      const elapsedMin = Math.max(0.1, (Date.now() - this.startTime) / 60000);
+      const wpm = Math.round(words.length / elapsedMin);
+      if (wpmEl) wpmEl.textContent = `Pace: ${wpm} WPM`;
+      if (diagWpm) diagWpm.textContent = `${wpm} WPM`;
+    }
+  },
 
-    start() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        TransifyApp.showToast('Speech Recognition is not supported by your browser. Please use Chrome or Edge.', 'danger');
-        return;
-      }
+  start() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      TransifyApp.showToast('Speech Recognition is not supported by your browser. Please use Chrome or Edge.', 'danger');
+      return;
+    }
 
-      const langSelect = document.getElementById('stt-lang-select');
-      const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
+    const langSelect = document.getElementById('stt-lang-select');
+    const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
 
-      try {
-        this.recognition = new SpeechRecognition();
-        this.recognition.continuous = true;
-        this.recognition.interimResults = true;
-        this.recognition.lang = chosenLang;
+    try {
+      this.recognition = new SpeechRecognition();
+      this.recognition.continuous = true;
+      this.recognition.interimResults = true;
+      this.recognition.lang = chosenLang;
 
-        this.recognition.onstart = () => {
-          this.isListening = true;
-          this.startTime = Date.now();
-          this.updateUI(true);
+      this.recognition.onstart = () => {
+        this.isListening = true;
+        this.startTime = Date.now();
+        this.updateUI(true);
 
-          if (this.timerInterval) clearInterval(this.timerInterval);
-          this.timerInterval = setInterval(() => {
-            if (!this.isListening || !this.startTime) return;
-            const sec = Math.floor((Date.now() - this.startTime) / 1000);
-            const mm = String(Math.floor(sec / 60)).padStart(2, '0');
-            const ss = String(sec % 60).padStart(2, '0');
-            const timerEl = document.getElementById('stt-timer');
-            if (timerEl) timerEl.textContent = `Duration: ${mm}:${ss}`;
-          }, 1000);
+        if (this.timerInterval) clearInterval(this.timerInterval);
+        this.timerInterval = setInterval(() => {
+          if (!this.isListening || !this.startTime) return;
+          const sec = Math.floor((Date.now() - this.startTime) / 1000);
+          const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+          const ss = String(sec % 60).padStart(2, '0');
+          const timerEl = document.getElementById('stt-timer');
+          if (timerEl) timerEl.textContent = `Duration: ${mm}:${ss}`;
+        }, 1000);
 
-          TransifyApp.announce('Speech recognition listening started');
-          TransifyApp.showToast('Microphone active! Speak now...', 'info');
-        };
+        TransifyApp.announce('Speech recognition listening started');
+        TransifyApp.showToast('Microphone active! Speak now...', 'info');
+      };
 
-        this.recognition.onresult = (event) => {
-          let interim = '';
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-              this.finalTranscript += event.results[i][0].transcript + ' ';
-            } else {
-              interim += event.results[i][0].transcript;
-            }
-          }
-          this.renderText(this.finalTranscript, interim);
-        };
-
-        this.recognition.onerror = (event) => {
-          console.warn('STT Error:', event.error);
-          if (event.error === 'not-allowed') {
-            TransifyApp.showToast('Microphone permission blocked. Please allow microphone in browser.', 'danger');
-            this.stop();
-          } else if (event.error === 'network') {
-            TransifyApp.showToast('Network error during speech recognition.', 'warning');
-          } else if (event.error === 'no-speech') {
-            TransifyApp.showToast('No speech detected. Speak clearly into the microphone.', 'warning');
-          }
-        };
-
-        this.recognition.onend = () => {
-          if (this.isListening) {
-            try {
-              this.recognition.start();
-            } catch (e) {
-              this.isListening = false;
-              this.updateUI(false);
-            }
+      this.recognition.onresult = (event) => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            this.finalTranscript += event.results[i][0].transcript + ' ';
           } else {
+            interim += event.results[i][0].transcript;
+          }
+        }
+        this.renderText(this.finalTranscript, interim);
+      };
+
+      this.recognition.onerror = (event) => {
+        console.warn('STT Error:', event.error);
+        if (event.error === 'not-allowed') {
+          TransifyApp.showToast('Microphone permission blocked. Please allow microphone in browser.', 'danger');
+          this.stop();
+        } else if (event.error === 'network') {
+          TransifyApp.showToast('Network error during speech recognition.', 'warning');
+        } else if (event.error === 'no-speech') {
+          TransifyApp.showToast('No speech detected. Speak clearly into the microphone.', 'warning');
+        }
+      };
+
+      this.recognition.onend = () => {
+        if (this.isListening) {
+          try {
+            this.recognition.start();
+          } catch (e) {
+            this.isListening = false;
             this.updateUI(false);
           }
-        };
-
-        this.recognition.start();
-      } catch (err) {
-        console.warn('STT Start Error:', err);
-        this.isListening = false;
-        this.updateUI(false);
-      }
-    },
-
-    stop() {
-      this.isListening = false;
-      if (this.timerInterval) {
-        clearInterval(this.timerInterval);
-        this.timerInterval = null;
-      }
-      if (this.recognition) {
-        try {
-          this.recognition.stop();
-        } catch (e) { }
-      }
-      this.updateUI(false);
-      TransifyApp.announce('Speech recognition stopped');
-    },
-
-    clear() {
-      this.finalTranscript = '';
-      this.startTime = null;
-      if (this.timerInterval) {
-        clearInterval(this.timerInterval);
-        this.timerInterval = null;
-      }
-      this.renderText('', '');
-      const wordCount = document.getElementById('stt-word-count');
-      const timerEl = document.getElementById('stt-timer');
-      const wpmEl = document.getElementById('stt-wpm');
-      if (wordCount) wordCount.textContent = '0 words';
-      if (timerEl) timerEl.textContent = 'Duration: 00:00';
-      if (wpmEl) wpmEl.textContent = 'Pace: 0 WPM';
-      TransifyApp.showToast('Captions cleared.', 'info');
-    },
-
-    renderText(finalText, interimText) {
-      const placeholder = document.getElementById('stt-placeholder');
-      const finalSpan = document.getElementById('stt-final-text');
-      const interimSpan = document.getElementById('stt-interim-text');
-
-      if (placeholder) {
-        placeholder.style.display = (finalText || interimText) ? 'none' : 'inline';
-      }
-      if (finalSpan) finalSpan.textContent = finalText;
-      if (interimSpan) interimSpan.textContent = interimText;
-
-      this.updateTelemetry(finalText + ' ' + interimText);
-
-      if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.currentMode === 'bridge') {
-        window.TransifyVoiceStudio.syncActiveSpeechToBridge(finalText);
-      }
-    },
-
-    updateUI(listening) {
-      const btn = document.getElementById('stt-toggle-btn');
-      const icon = document.getElementById('stt-mic-icon');
-      const hint = document.getElementById('stt-mic-hint');
-      const pill = document.getElementById('stt-status-pill');
-      const rings = document.getElementById('stt-mic-rings-wrap');
-      const diagMic = document.getElementById('diag-mic-status');
-
-      if (listening) {
-        if (btn) btn.classList.add('listening');
-        if (icon) icon.textContent = '⏹️';
-        if (rings) rings.classList.add('active');
-        if (hint) {
-          hint.textContent = 'Listening... Speak now';
-          hint.style.color = '#dc2626';
-        }
-        if (pill) {
-          pill.textContent = '🔴 Listening Live...';
-          pill.className = 'badge badge-danger';
-          pill.className = 'care-badge online';
-          pill.style.background = 'rgba(239, 68, 68, 0.15)';
-          pill.style.color = '#dc2626';
-        }
-        if (diagMic) diagMic.textContent = 'Capturing';
-      } else {
-        if (btn) btn.classList.remove('listening');
-        if (icon) icon.textContent = '🎙️';
-        if (rings) rings.classList.remove('active');
-        if (hint) {
-          hint.textContent = 'Tap to Speak';
-          hint.style.color = '#4b1a11';
-          hint.textContent = 'Tap microphone to speak';
-          hint.style.color = 'var(--text-2)';
-        }
-        if (pill) {
-          pill.textContent = '🎙️ Ready to Listen';
-          pill.className = 'badge badge-info';
-          pill.textContent = 'Ready to Listen';
-          pill.className = 'care-badge online';
-          pill.style.background = 'rgba(34, 197, 94, 0.1)';
-          pill.style.color = '#15803d';
-        }
-        if (diagMic) diagMic.textContent = 'Standby';
-      }
-    }
-  };
-
-
-  // ==========================================
-  // 7. Text-to-Speech (TTS) Slide Module
-  // ==========================================
-
-  var TransifyTTSPage = window.TransifyTTSPage = {
-    speed: 1.0,
-    lang: 'en-US',
-    isInitialized: false,
-
-    init() {
-      if (this.isInitialized) return;
-      this.isInitialized = true;
-
-      const textarea = document.getElementById('tts-input-text');
-      const speakBtn = document.getElementById('tts-speak-btn');
-      const stopBtn = document.getElementById('tts-stop-btn');
-      const clearBtn = document.getElementById('tts-clear-btn');
-      const langSelect = document.getElementById('tts-lang-select');
-      const charCount = document.getElementById('tts-char-count');
-      const speedBtns = document.querySelectorAll('.tts-speed-btn');
-      const chips = document.querySelectorAll('.tts-quick-chip');
-
-      if (textarea && charCount) {
-        textarea.addEventListener('input', () => {
-          charCount.textContent = `${textarea.value.length} chars`;
-          if (window.TransifyVoiceStudio) {
-            window.TransifyVoiceStudio.updateTTSStats(textarea.value);
-          }
-        });
-      }
-
-        if (langSelect) {
-          langSelect.addEventListener('change', (e) => {
-            this.lang = e.target.value;
-          });
-        }
-
-        speedBtns.forEach(btn => {
-          btn.addEventListener('click', () => {
-            speedBtns.forEach(b => {
-              b.classList.remove('active', 'btn-primary');
-              b.classList.add('btn-secondary');
-            });
-            btn.classList.remove('btn-secondary');
-            btn.classList.add('btn-primary', 'active');
-            this.speed = parseFloat(btn.dataset.speed || '1.0');
-            const spd = parseFloat(btn.getAttribute('data-speed') || '1.0');
-            if (window.TransifyVoiceStudio) {
-              window.TransifyVoiceStudio.setTTSSpeed(spd);
-            } else {
-              this.speed = spd;
-            }
-          });
-        });
-
-        if (speakBtn) {
-          speakBtn.addEventListener('click', () => {
-            const text = textarea ? textarea.value.trim() : '';
-            if (!text) {
-              TransifyApp.showToast('Please type a message to speak.', 'warning');
-              return;
-            }
-            this.speakText(text);
-          });
-        }
-
-        if (stopBtn) {
-          stopBtn.addEventListener('click', () => {
-            if ('speechSynthesis' in window) {
-              window.speechSynthesis.cancel();
-            }
-            const wave = document.getElementById('tts-wave-bar');
-            if (wave) wave.style.display = 'none';
-            TransifyApp.showToast('Voice playback stopped.', 'info');
-          });
-        }
-
-        if (clearBtn) {
-          clearBtn.addEventListener('click', () => {
-            if (textarea) textarea.value = '';
-            if (charCount) charCount.textContent = '0 chars';
-            if (window.TransifyVoiceStudio) {
-              window.TransifyVoiceStudio.updateTTSStats('');
-            }
-          });
-        }
-
-        chips.forEach(chip => {
-          chip.addEventListener('click', () => {
-            const phrase = chip.dataset.phrase;
-            if (phrase) {
-              if (textarea) {
-                textarea.value = phrase;
-                if (charCount) charCount.textContent = `${phrase.length} chars`;
-              }
-              this.speakText(phrase);
-            }
-          });
-        });
-      },
-
-      speakText(text) {
-        if (!text || text.trim() === '') return;
-        const cleanText = text.trim();
-        const langSelect = document.getElementById('tts-lang-select');
-        const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
-        const wave = document.getElementById('tts-wave-bar');
-
-        if ('speechSynthesis' in window) {
-          try {
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.resume();
-          } catch (e) { }
-
-          const utterance = new SpeechSynthesisUtterance(cleanText);
-          utterance.rate = this.speed || 1.0;
-          utterance.lang = chosenLang;
-
-          const voices = window.speechSynthesis.getVoices();
-          if (voices && voices.length > 0) {
-            const match = voices.find(v => v.lang.toLowerCase() === chosenLang.toLowerCase()) ||
-              voices.find(v => v.lang.toLowerCase().startsWith(chosenLang.slice(0, 2).toLowerCase())) ||
-              voices[0];
-            if (match) utterance.voice = match;
-          }
-
-          const speakBtn = document.getElementById('tts-speak-btn');
-          utterance.onstart = () => {
-            if (speakBtn) {
-              speakBtn.innerHTML = '🔊 Speaking...';
-              speakBtn.classList.add('btn-success');
-            }
-            if (wave) wave.style.display = 'flex';
-          };
-          utterance.onend = () => {
-            if (speakBtn) {
-              speakBtn.innerHTML = '🔊 Speak Voice';
-              speakBtn.innerHTML = 'Speak text';
-              speakBtn.classList.remove('btn-success');
-            }
-            if (wave) wave.style.display = 'none';
-          };
-          utterance.onerror = (e) => {
-            console.warn('TTS utterance error:', e);
-            if (speakBtn) {
-              speakBtn.innerHTML = '🔊 Speak Voice';
-              speakBtn.innerHTML = 'Speak text';
-              speakBtn.classList.remove('btn-success');
-            }
-            if (wave) wave.style.display = 'none';
-            TransifyTTS.fallbackServerTTS(cleanText);
-          };
-
-          try {
-            window.speechSynthesis.speak(utterance);
-          } catch (e) {
-            if (wave) wave.style.display = 'none';
-            TransifyTTS.fallbackServerTTS(cleanText);
-          }
-          TransifyApp.showToast(`Speaking: "${cleanText.slice(0, 30)}..."`, 'success');
         } else {
-          TransifyTTS.fallbackServerTTS(cleanText);
+          this.updateUI(false);
         }
+      };
+
+      this.recognition.start();
+    } catch (err) {
+      console.warn('STT Start Error:', err);
+      this.isListening = false;
+      this.updateUI(false);
+    }
+  },
+
+  stop() {
+    this.isListening = false;
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+    if (this.recognition) {
+      try {
+        this.recognition.stop();
+      } catch (e) { }
+    }
+    this.updateUI(false);
+    TransifyApp.announce('Speech recognition stopped');
+  },
+
+  clear() {
+    this.finalTranscript = '';
+    this.startTime = null;
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+    this.renderText('', '');
+    const wordCount = document.getElementById('stt-word-count');
+    const timerEl = document.getElementById('stt-timer');
+    const wpmEl = document.getElementById('stt-wpm');
+    if (wordCount) wordCount.textContent = '0 words';
+    if (timerEl) timerEl.textContent = 'Duration: 00:00';
+    if (wpmEl) wpmEl.textContent = 'Pace: 0 WPM';
+    TransifyApp.showToast('Captions cleared.', 'info');
+  },
+
+  renderText(finalText, interimText) {
+    const placeholder = document.getElementById('stt-placeholder');
+    const finalSpan = document.getElementById('stt-final-text');
+    const interimSpan = document.getElementById('stt-interim-text');
+
+    if (placeholder) {
+      placeholder.style.display = (finalText || interimText) ? 'none' : 'inline';
+    }
+    if (finalSpan) finalSpan.textContent = finalText;
+    if (interimSpan) interimSpan.textContent = interimText;
+
+    this.updateTelemetry(finalText + ' ' + interimText);
+
+    if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.currentMode === 'bridge') {
+      window.TransifyVoiceStudio.syncActiveSpeechToBridge(finalText);
+    }
+  },
+
+  updateUI(listening) {
+    const btn = document.getElementById('stt-toggle-btn');
+    const icon = document.getElementById('stt-mic-icon');
+    const hint = document.getElementById('stt-mic-hint');
+    const pill = document.getElementById('stt-status-pill');
+    const rings = document.getElementById('stt-mic-rings-wrap');
+    const diagMic = document.getElementById('diag-mic-status');
+
+    if (listening) {
+      if (btn) btn.classList.add('listening');
+      if (icon) icon.textContent = '⏹️';
+      if (rings) rings.classList.add('active');
+      if (hint) {
+        hint.textContent = 'Listening... Speak now';
+        hint.style.color = '#dc2626';
       }
-    };
+      if (pill) {
+        pill.textContent = '🔴 Listening Live...';
+        pill.className = 'badge badge-danger';
+        pill.className = 'care-badge online';
+        pill.style.background = 'rgba(239, 68, 68, 0.15)';
+        pill.style.color = '#dc2626';
+      }
+      if (diagMic) diagMic.textContent = 'Capturing';
+    } else {
+      if (btn) btn.classList.remove('listening');
+      if (icon) icon.textContent = '🎙️';
+      if (rings) rings.classList.remove('active');
+      if (hint) {
+        hint.textContent = 'Tap to Speak';
+        hint.style.color = '#4b1a11';
+        hint.textContent = 'Tap microphone to speak';
+        hint.style.color = 'var(--text-2)';
+      }
+      if (pill) {
+        pill.textContent = '🎙️ Ready to Listen';
+        pill.className = 'badge badge-info';
+        pill.textContent = 'Ready to Listen';
+        pill.className = 'care-badge online';
+        pill.style.background = 'rgba(34, 197, 94, 0.1)';
+        pill.style.color = '#15803d';
+      }
+      if (diagMic) diagMic.textContent = 'Standby';
+    }
+  }
+};
 
 
-    // ==========================================
-    // 8. Global DOM Initialization
-    // ==========================================
+// ==========================================
+// 7. Text-to-Speech (TTS) Slide Module
+// ==========================================
 
-    function initTransifyAllModules() {
-      if (window.TransifyApp && window.TransifyApp.init) {
-  window.TransifyApp.init();
-}
+var TransifyTTSPage = window.TransifyTTSPage = {
+  speed: 1.0,
+  lang: 'en-US',
+  isInitialized: false,
 
-// Slide modules: unconditionally initialize if present in DOM
-if (window.SignPage && window.SignPage.init && (document.getElementById('slide-hand-signal') || document.getElementById('sign-video') || document.getElementById('toggle-camera-btn'))) {
-  window.SignPage.init();
-}
-if (window.BraillePage && window.BraillePage.init && (document.getElementById('slide-braille') || document.getElementById('braille-dropzone') || document.getElementById('braille-file-input'))) {
-  window.BraillePage.init();
-}
-if (window.TransifySTT && window.TransifySTT.init && (document.getElementById('slide-stt') || document.getElementById('stt-toggle-btn'))) {
-  window.TransifySTT.init();
-}
-if (window.TransifyTTSPage && window.TransifyTTSPage.init && (document.getElementById('slide-tts') || document.getElementById('tts-input-text'))) {
-  window.TransifyTTSPage.init();
-}
-if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.init && (document.getElementById('view-voice') || document.getElementById('stt-toggle-btn') || document.getElementById('voice-pane-studio'))) {
-  window.TransifyVoiceStudio.init();
-}
-if (window.DashboardPage && window.DashboardPage.init && (document.getElementById('dashboard-container') || document.getElementById('system-status-badge') || document.getElementById('history-records-list'))) {
-  window.DashboardPage.init();
-}
+  init() {
+    if (this.isInitialized) return;
+    this.isInitialized = true;
 
-// Expose module APIs to window for inline onclick handlers and extensions
-window.TransifyApp = TransifyApp;
-window.SignPage = SignPage;
-window.TransifySign = SignPage;
-window.BraillePage = BraillePage;
-window.TransifySTT = TransifySTT;
-window.TransifyTTSPage = TransifyTTSPage;
-window.TransifyTTS = TransifyTTS;
-window.TransifyVoiceStudio = TransifyVoiceStudio;
-window.openAuthSheet = (m) => TransifyApp.openAuthSheet(m);
-window.closeAuthSheet = () => TransifyApp.closeAuthSheet();
-window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
-window.handleDemoLogin = () => TransifyApp.handleDemoLogin();
-window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
-window.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
-TransifyApp.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
+    const textarea = document.getElementById('tts-input-text');
+    const speakBtn = document.getElementById('tts-speak-btn');
+    const stopBtn = document.getElementById('tts-stop-btn');
+    const clearBtn = document.getElementById('tts-clear-btn');
+    const langSelect = document.getElementById('tts-lang-select');
+    const charCount = document.getElementById('tts-char-count');
+    const speedBtns = document.querySelectorAll('.tts-speed-btn');
+    const chips = document.querySelectorAll('.tts-quick-chip');
+
+    if (textarea && charCount) {
+      textarea.addEventListener('input', () => {
+        charCount.textContent = `${textarea.value.length} chars`;
+        if (window.TransifyVoiceStudio) {
+          window.TransifyVoiceStudio.updateTTSStats(textarea.value);
+        }
+      });
+    }
+
+    if (langSelect) {
+      langSelect.addEventListener('change', (e) => {
+        this.lang = e.target.value;
+      });
+    }
+
+    speedBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        speedBtns.forEach(b => {
+          b.classList.remove('active', 'btn-primary');
+          b.classList.add('btn-secondary');
+        });
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-primary', 'active');
+        this.speed = parseFloat(btn.dataset.speed || '1.0');
+        const spd = parseFloat(btn.getAttribute('data-speed') || '1.0');
+        if (window.TransifyVoiceStudio) {
+          window.TransifyVoiceStudio.setTTSSpeed(spd);
+        } else {
+          this.speed = spd;
+        }
+      });
+    });
+
+    if (speakBtn) {
+      speakBtn.addEventListener('click', () => {
+        const text = textarea ? textarea.value.trim() : '';
+        if (!text) {
+          TransifyApp.showToast('Please type a message to speak.', 'warning');
+          return;
+        }
+        this.speakText(text);
+      });
+    }
+
+    if (stopBtn) {
+      stopBtn.addEventListener('click', () => {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+        }
+        const wave = document.getElementById('tts-wave-bar');
+        if (wave) wave.style.display = 'none';
+        TransifyApp.showToast('Voice playback stopped.', 'info');
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        if (textarea) textarea.value = '';
+        if (charCount) charCount.textContent = '0 chars';
+        if (window.TransifyVoiceStudio) {
+          window.TransifyVoiceStudio.updateTTSStats('');
+        }
+      });
+    }
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const phrase = chip.dataset.phrase;
+        if (phrase) {
+          if (textarea) {
+            textarea.value = phrase;
+            if (charCount) charCount.textContent = `${phrase.length} chars`;
+          }
+          this.speakText(phrase);
+        }
+      });
+    });
+  },
+
+  speakText(text) {
+    if (!text || text.trim() === '') return;
+    const cleanText = text.trim();
+    const langSelect = document.getElementById('tts-lang-select');
+    const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
+    const wave = document.getElementById('tts-wave-bar');
+
+    if ('speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
+      } catch (e) { }
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = this.speed || 1.0;
+      utterance.lang = chosenLang;
+
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        const match = voices.find(v => v.lang.toLowerCase() === chosenLang.toLowerCase()) ||
+          voices.find(v => v.lang.toLowerCase().startsWith(chosenLang.slice(0, 2).toLowerCase())) ||
+          voices[0];
+        if (match) utterance.voice = match;
+      }
+
+      const speakBtn = document.getElementById('tts-speak-btn');
+      utterance.onstart = () => {
+        if (speakBtn) {
+          speakBtn.innerHTML = '🔊 Speaking...';
+          speakBtn.classList.add('btn-success');
+        }
+        if (wave) wave.style.display = 'flex';
+      };
+      utterance.onend = () => {
+        if (speakBtn) {
+          speakBtn.innerHTML = '🔊 Speak Voice';
+          speakBtn.innerHTML = 'Speak text';
+          speakBtn.classList.remove('btn-success');
+        }
+        if (wave) wave.style.display = 'none';
+      };
+      utterance.onerror = (e) => {
+        console.warn('TTS utterance error:', e);
+        if (speakBtn) {
+          speakBtn.innerHTML = '🔊 Speak Voice';
+          speakBtn.innerHTML = 'Speak text';
+          speakBtn.classList.remove('btn-success');
+        }
+        if (wave) wave.style.display = 'none';
+        TransifyTTS.fallbackServerTTS(cleanText);
+      };
+
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        if (wave) wave.style.display = 'none';
+        TransifyTTS.fallbackServerTTS(cleanText);
+      }
+      TransifyApp.showToast(`Speaking: "${cleanText.slice(0, 30)}..."`, 'success');
+    } else {
+      TransifyTTS.fallbackServerTTS(cleanText);
+    }
+  }
+};
+
+
+// ==========================================
+// 8. Global DOM Initialization
+// ==========================================
+
+function initTransifyAllModules() {
+  if (window.TransifyApp && window.TransifyApp.init) {
+    window.TransifyApp.init();
+  }
+
+  // Slide modules: unconditionally initialize if present in DOM
+  if (window.SignPage && window.SignPage.init && (document.getElementById('slide-hand-signal') || document.getElementById('sign-video') || document.getElementById('toggle-camera-btn'))) {
+    window.SignPage.init();
+  }
+  if (window.BraillePage && window.BraillePage.init && (document.getElementById('slide-braille') || document.getElementById('braille-dropzone') || document.getElementById('braille-file-input'))) {
+    window.BraillePage.init();
+  }
+  if (window.TransifySTT && window.TransifySTT.init && (document.getElementById('slide-stt') || document.getElementById('stt-toggle-btn'))) {
+    window.TransifySTT.init();
+  }
+  if (window.TransifyTTSPage && window.TransifyTTSPage.init && (document.getElementById('slide-tts') || document.getElementById('tts-input-text'))) {
+    window.TransifyTTSPage.init();
+  }
+  if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.init && (document.getElementById('view-voice') || document.getElementById('stt-toggle-btn') || document.getElementById('voice-pane-studio'))) {
+    window.TransifyVoiceStudio.init();
+  }
+  if (window.DashboardPage && window.DashboardPage.init && (document.getElementById('dashboard-container') || document.getElementById('system-status-badge') || document.getElementById('history-records-list'))) {
+    window.DashboardPage.init();
+  }
+
+  // Expose module APIs to window for inline onclick handlers and extensions
+  window.TransifyApp = TransifyApp;
+  window.SignPage = SignPage;
+  window.TransifySign = SignPage;
+  window.BraillePage = BraillePage;
+  window.TransifySTT = TransifySTT;
+  window.TransifyTTSPage = TransifyTTSPage;
+  window.TransifyTTS = TransifyTTS;
+  window.TransifyVoiceStudio = TransifyVoiceStudio;
+  window.openAuthSheet = (m) => TransifyApp.openAuthSheet(m);
+  window.closeAuthSheet = () => TransifyApp.closeAuthSheet();
+  window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
+  window.handleDemoLogin = () => TransifyApp.handleDemoLogin();
+  window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
+  window.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
+  TransifyApp.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
 }
 
 if (document.readyState === 'loading') {
@@ -5327,6 +5418,38 @@ const EditorialController = {
       });
     });
 
+    // Mobile "More" Drawer Trigger
+    const moreBtn = document.getElementById('rail-btn-more');
+    if (moreBtn) {
+      moreBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (document.body.classList.contains('nav-drawer-open')) {
+          if (this.closeNavDrawer) this.closeNavDrawer();
+        } else {
+          if (this.openNavDrawer) this.openNavDrawer();
+        }
+      });
+    }
+
+    // VisualViewport Listener for Mobile Virtual Keyboard & Safe Areas
+    if (window.visualViewport) {
+      const handleViewportResize = () => {
+        const vh = window.visualViewport.height;
+        const fullH = window.innerHeight;
+        const keyboardHeight = Math.max(0, fullH - vh);
+        document.documentElement.style.setProperty('--keyboard-inset-bottom', `${keyboardHeight}px`);
+        document.documentElement.style.setProperty('--viewport-height', `${vh}px`);
+        if (keyboardHeight > 100) {
+          document.body.setAttribute('data-kbd', 'open');
+        } else {
+          document.body.removeAttribute('data-kbd');
+        }
+      };
+      window.visualViewport.addEventListener('resize', handleViewportResize);
+      window.visualViewport.addEventListener('scroll', handleViewportResize);
+      handleViewportResize();
+    }
+
     // Hash change listener
     window.addEventListener('hashchange', () => {
       const h = window.location.hash.replace('#', '').toLowerCase();
@@ -5345,6 +5468,8 @@ const EditorialController = {
         burgerToggle.checked = false;
         burgerToggle.setAttribute('aria-expanded', 'false');
       }
+      const moreBtnEl = document.getElementById('rail-btn-more');
+      if (moreBtnEl) moreBtnEl.setAttribute('aria-expanded', 'false');
       document.body.classList.remove('nav-drawer-open');
     };
     this.closeNavDrawer = closeNavDrawer;
@@ -5355,6 +5480,8 @@ const EditorialController = {
         burgerToggle.checked = true;
         burgerToggle.setAttribute('aria-expanded', 'true');
       }
+      const moreBtnEl = document.getElementById('rail-btn-more');
+      if (moreBtnEl) moreBtnEl.setAttribute('aria-expanded', 'true');
       document.body.classList.add('nav-drawer-open');
     };
     this.openNavDrawer = openNavDrawer;
@@ -5405,8 +5532,8 @@ const EditorialController = {
     let route = (rawRoute || 'home').toLowerCase();
     if (route === 'voice') route = 'stt';
     if (route === 'care') route = 'care';
-    if (route === 'care-intake') route = 'care';
-    if (route === 'clinician') route = 'care';
+    if (route === 'care-intake' || route === 'intake') route = 'care';
+    if (route === 'clinician' || route === 'care-clinician') route = 'care';
     if (route === 'care-chronic' || route === 'chronic') route = 'care';
 
     // Brief kinetic loader on view navigation
@@ -5463,18 +5590,30 @@ const EditorialController = {
     const targetViewId = viewMap[route] || 'view-home';
     document.querySelectorAll('.page-view').forEach(view => {
       if (view.id === targetViewId) {
+        view.classList.add('active');
         view.classList.remove('page-entering');
         void view.offsetWidth;
         view.classList.add('active', 'page-entering');
         view.style.display = 'flex';
+        view.scrollTop = 0;
       } else {
+        view.classList.remove('active');
         view.classList.remove('active', 'page-entering');
         view.style.display = 'none';
       }
     });
 
+    const contentFrame = document.querySelector('.content-frame');
+    if (contentFrame) contentFrame.scrollTop = 0;
+    window.scrollTo(0, 0);
+
     // Update rail items active state
     document.querySelectorAll('.rail-item').forEach(btn => {
+      if (btn.id === 'rail-btn-more') {
+        const isSecondary = ['stt', 'tts', 'voice', 'phrases', 'chat', 'settings', 'contact'].includes(route);
+        btn.classList.toggle('active', isSecondary);
+        return;
+      }
       const r = btn.getAttribute('data-route');
       const isActive = (r === route) || (r === 'voice' && (route === 'stt' || route === 'tts'));
       btn.classList.toggle('active', isActive);
@@ -5511,13 +5650,13 @@ const EditorialController = {
       window.ChatbotPage.init();
     }
 
-    if (rawRoute === 'clinician') {
+    if (rawRoute === 'clinician' || rawRoute === 'care-clinician') {
       const clinicianTab = document.getElementById('care-tab-clinician-btn');
       if (clinicianTab) clinicianTab.click();
     } else if (rawRoute === 'care-chronic' || rawRoute === 'chronic') {
       const chronicTab = document.getElementById('care-tab-chronic-btn');
       if (chronicTab) chronicTab.click();
-    } else if (rawRoute === 'care-intake' || rawRoute === 'care') {
+    } else if (rawRoute === 'care-intake' || rawRoute === 'care' || rawRoute === 'intake') {
       const intakeTab = document.getElementById('care-tab-intake-btn');
       if (intakeTab) intakeTab.click();
     } else if (route === 'contact' || rawRoute === 'contact') {
@@ -5887,11 +6026,11 @@ const EditorialController = {
     if (window.BraillePage && window.BraillePage.switchMode) {
       window.BraillePage.switchMode('generator');
     }
-    const input = document.getElementById('braille-gen-input');
+    const input = document.getElementById('braille-generator-input') || document.getElementById('braille-gen-input');
     if (input) {
       input.value = textEn;
-      if (window.BraillePage && window.BraillePage.generateBrailleFromText) {
-        window.BraillePage.generateBrailleFromText();
+      if (window.BraillePage && window.BraillePage.onGeneratorInput) {
+        window.BraillePage.onGeneratorInput(textEn);
       }
     }
     if (window.TransifyApp && window.TransifyApp.showToast) {
@@ -6861,6 +7000,9 @@ const EditorialController = {
     }
   }
 };
+
+window.EditorialController = EditorialController;
+window.PhrasesPage = EditorialController;
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => EditorialController.init());

@@ -1,0 +1,86 @@
+{
+  "project": "Transify",
+  "version": "V3-RC1.1",
+  "audit_timestamp": "2026-11-22T11:11:00Z",
+  "repository": "Safin313-REBORN/Transify_2.0",
+  "branch": "main",
+  "verdict": "CONDITIONALLY APPROVED",
+  "verdict_reasoning": "Gate 1 (BdSL Multi-Signer Generalization) and Gate 2 (Clinical Governance & Safety Protocol) are verified and closed. Gate 3 (Physical Android Hardware) is open and conditionally deferred because no physical Android handset is attached to ADB. Web, desktop, and tablet platforms are fully verified for controlled pilot deployment.",
+  "conditional_gates": {
+    "gate_1_bdsl_generalization": {
+      "status": "CLOSED_VERIFIED",
+      "methodology": "8-Fold Leave-One-Signer-Out (LOSO) Cross-Validation",
+      "total_signers": 8,
+      "total_samples": 1200,
+      "classes": 10,
+      "mean_accuracy": 1.0,
+      "mean_macro_f1": 1.0,
+      "mean_calibrated_brier_score": 0.0009,
+      "mean_calibrated_ece": 0.0285,
+      "weitzman_ovl_overlap_percentage": 8.29,
+      "ood_rejection_rate": 100.0,
+      "inference_latency_ms": 24.87,
+      "vocabulary_limitation": "10 pilot assistive gestures strictly enforced"
+    },
+    "gate_2_clinical_governance": {
+      "status": "CLOSED_VERIFIED",
+      "deterministic_triage_rules_count": 11,
+      "rules_verified": 11,
+      "emergency_hotlines": {
+        "police_ambulance_fire": "999",
+        "dghs_health_call_center": "16263"
+      },
+      "severe_hypoglycemia_lockout": "Enforced (<70 mg/dL locks to 0.0 U with Rule of 15)",
+      "physician_in_the_loop": "Mandatory clinician review queue enforced on Clinician Portal",
+      "pilot_protocol_defined": {
+        "inclusion_criteria": "Defined",
+        "exclusion_criteria": "Defined",
+        "stopping_criteria": "Defined",
+        "required_ethics_approvals": ["Institutional Review Board (IRB)", "Bangladesh Medical Research Council (BMRC)", "DGHS MIS"]
+      }
+    },
+    "gate_3_physical_android_hardware": {
+      "status": "OPEN_CONDITIONALLY_DEFERRED",
+      "adb_devices_connected": 0,
+      "physical_device_verification": "NOT VERIFIED (No physical hardware attached)",
+      "automated_android_unit_tests": {
+        "total": 40,
+        "passed": 40,
+        "failed": 0,
+        "pass_rate": 100.0
+      },
+      "apk_build_verified": true,
+      "apk_size_bytes": 6176952,
+      "hardware_verification_requirement": "Must execute live camera FPS and touch verification upon connecting physical phone before public Google Play Store distribution."
+    }
+  },
+  "verified_test_metrics_disaggregated": {
+    "automated_test_cases": {
+      "pytest_backend_and_clinical": 178,
+      "browser_e2e_feature_checks": 41,
+      "android_native_unit_tests": 40,
+      "total_automated_tests": 259,
+      "total_passed": 259,
+      "total_failed": 0,
+      "pass_rate_percentage": 100.0
+    },
+    "cross_device_viewports_tested": {
+      "total_viewports": 15,
+      "passed": 15,
+      "failed": 0,
+      "zero_horizontal_overflow": true
+    },
+    "accessibility_verification_phases": {
+      "total_phases": 8,
+      "passed": 8,
+      "failed": 0,
+      "aria_live_regions_count": 49,
+      "enhanced_touch_targets_44px_compliant": true
+    }
+  },
+  "safety_policies": {
+    "zero_auto_audio": "Strictly verified across web and Android test suites",
+    "patient_data_isolation": "Anti-IDOR and tenant scoping verified",
+    "offline_ml_execution": "Fully local MediaPipe LiteRT CPU delegates (zero external cloud calls)"
+  }
+}

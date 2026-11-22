@@ -65,14 +65,51 @@ app = FastAPI(
 app.include_router(care_router)
 app.include_router(chat_router)
 
-# Enable CORS for cross-origin browser clients
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Enable CORS for trusted origins
+if is_production():
+    cors_env = os.getenv("CORS_ORIGINS", "https://transify.ai,https://app.transify.ai")
+    allowed_origins = [o.strip() for o in cors_env.split(",") if o.strip()]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allowed_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+
+def validate_production_configuration():
+    """
+    Mandatory startup validation ensuring fail-closed security.
+    If running in a production or unknown environment:
+    - CORS_ORIGINS must be set and cannot be wildcard '*' or contain localhost / 127.0.0.1.
+    - Demo mode and dev clinician mode must be strictly disabled.
+    """
+    if is_production():
+        cors_env = os.getenv("CORS_ORIGINS", "https://transify.ai,https://app.transify.ai")
+        if not cors_env or cors_env.strip() == "*":
+            raise RuntimeError(
+                "FATAL: Production security configuration invalid. CORS_ORIGINS must be explicitly configured and cannot be '*' in production."
+            )
+        origins = [o.strip().lower() for o in cors_env.split(",") if o.strip()]
+        for o in origins:
+            if "localhost" in o or "127.0.0.1" in o:
+                raise RuntimeError(
+                    f"FATAL: Production security configuration invalid. Insecure origin '{o}' detected in CORS_ORIGINS. Localhost is prohibited in production."
+                )
+
+
+@app.on_event("startup")
+def on_startup():
+    validate_production_configuration()
 
 # Initialize AI Adapters & Assistive Engines
 sign_adapter = SignLanguageAdapter()
@@ -214,6 +251,7 @@ def register_user(req: RegisterRequest, response: Response, request: Request):
     return {
         "status": "success",
         "message": "User registered successfully.",
+        "token": token,
         "user": {
             "id": user["id"],
             "name": user["name"],
@@ -257,6 +295,7 @@ def login_user(req: LoginRequest, response: Response, request: Request):
     return {
         "status": "success",
         "message": "Login successful.",
+        "token": token,
         "user": {
             "id": user["id"],
             "name": user["name"],
@@ -269,11 +308,12 @@ def login_user(req: LoginRequest, response: Response, request: Request):
 @app.get("/api/auth/me", tags=["Authentication"])
 def get_auth_me(request: Request):
     """Returns the profile of the currently authenticated session or unauthenticated state."""
-    token = request.cookies.get("transify_session")
+    token = None
+    auth_hdr = request.headers.get("Authorization") or request.headers.get("authorization")
+    if auth_hdr and auth_hdr.lower().startswith("bearer "):
+        token = auth_hdr.split(" ", 1)[1].strip()
     if not token:
-        auth_hdr = request.headers.get("Authorization") or request.headers.get("authorization")
-        if auth_hdr and auth_hdr.lower().startswith("bearer "):
-            token = auth_hdr.split(" ", 1)[1].strip()
+        token = request.cookies.get("transify_session")
 
     if not token:
         return {"authenticated": False, "user": None}
@@ -287,8 +327,21 @@ def get_auth_me(request: Request):
 
 @app.post("/api/auth/logout", tags=["Authentication"])
 def logout_user(response: Response, request: Request):
-    """Revokes the active session and clears the session cookie."""
-    token = request.cookies.get("transify_session")
+    """Revokes the active session and clears the session cookie with CSRF verification."""
+    token = None
+    auth_hdr = request.headers.get("Authorization") or request.headers.get("authorization")
+    is_bearer = False
+    if auth_hdr and auth_hdr.lower().startswith("bearer "):
+        token = auth_hdr.split(" ", 1)[1].strip()
+        is_bearer = True
+    if not token:
+        token = request.cookies.get("transify_session")
+
+    # If cookie authenticated, enforce CSRF
+    if not is_bearer and request.cookies.get("transify_session"):
+        from src.api.care_routes import verify_csrf_origin
+        verify_csrf_origin(request)
+
     if token:
         revoke_session(token)
     response.delete_cookie(key="transify_session", path="/")

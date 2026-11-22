@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-21T21:39:27.209360Z",
+  "timestamp": "2026-11-22T10:07:48.113234Z",
   "safety_audit": {
     "rule_metadata_complete": true,
     "total_rules": 11,
@@ -94,7 +94,7 @@
     "chunks_in_db": 12,
     "sources": [
       {
-        "id": 770,
+        "id": 994,
         "source_id": "SRC-WHO-TRIAGE-2020",
         "title": "WHO Interagency Integrated Triage Tool: Adult and Pediatric Triage Protocols (Facility Adaptation Prototype)",
         "publisher": "World Health Organization (WHO)",
@@ -104,27 +104,27 @@
         "status": "PENDING_REVIEW"
       },
       {
-        "id": 771,
+        "id": 995,
         "source_id": "SRC-DGHS-BD-DENGUE-5TH-ED",
         "title": "National Guidelines for Clinical Management of Dengue Syndrome in Bangladesh (5th Edition)",
         "publisher": "Disease Control Unit, Directorate General of Health Services (DGHS), Ministry of Health & Family Welfare, Government of Bangladesh",
         "version": "5th Edition (2023)",
         "url": "https://dghs.gov.bd/index.php/en/publications/clinical-guidelines",
         "licensing_status": "PUBLIC_SECTOR_GOVERNMENT_OF_BANGLADESH",
-        "status": "PENDING_REVIEW"
+        "status": "APPROVED"
       },
       {
-        "id": 772,
+        "id": 996,
         "source_id": "SRC-DGHS-BD-STROKE-2021",
         "title": "Clinical Practice Guidelines for Acute Ischemic Stroke Management in Bangladesh",
         "publisher": "National Institute of Neurosciences & Hospital (NINS) / DGHS Bangladesh",
         "version": "2021",
         "url": "https://nins.gov.bd",
         "licensing_status": "PUBLIC_SECTOR_GOVERNMENT_OF_BANGLADESH",
-        "status": "PENDING_REVIEW"
+        "status": "APPROVED"
       },
       {
-        "id": 773,
+        "id": 997,
         "source_id": "SRC-MERCK-MANUALS-2024",
         "title": "Merck Manual of Diagnosis and Therapy (Professional Edition) - Clinical Decision Support",
         "publisher": "Merck Sharp & Dohme Corp. / Merck & Co.",
@@ -134,44 +134,44 @@
         "status": "APPROVED"
       },
       {
-        "id": 774,
+        "id": 998,
         "source_id": "SRC-MIMIC-IV-CRITICAL-2023",
         "title": "MIMIC-IV Clinical Reasoning & Vital Signs Reference Standard",
         "publisher": "MIT Laboratory for Computational Physiology / PhysioNet",
         "version": "v2.2",
         "url": "https://physionet.org/content/mimiciv/",
         "licensing_status": "RESEARCH_DATA_USE_AGREEMENT",
-        "status": "APPROVED"
+        "status": "RESEARCH_USE_ONLY"
       },
       {
-        "id": 775,
+        "id": 999,
         "source_id": "SRC-NLM-MESH-2024",
         "title": "U.S. National Library of Medicine Medical Subject Headings (MeSH) Controlled Vocabulary",
         "publisher": "National Institutes of Health (NIH) / U.S. NLM",
         "version": "2024",
         "url": "https://www.nlm.nih.gov/mesh/meshhome.html",
         "licensing_status": "PUBLIC_DOMAIN_NLM",
-        "status": "APPROVED"
+        "status": "TERMINOLOGY_STANDARD"
       },
       {
-        "id": 776,
+        "id": 1000,
         "source_id": "SRC-WHO-GHO-EPIDEMIC-2024",
         "title": "WHO Global Health Observatory Disease Prevalence & Regional Outbreak Surveillance Protocol",
         "publisher": "World Health Organization (WHO) Global Health Observatory",
         "version": "2024.1",
         "url": "https://www.who.int/data/gho",
         "licensing_status": "OPEN_ACCESS_WHO",
-        "status": "APPROVED"
+        "status": "SURVEILLANCE_DATA"
       },
       {
-        "id": 777,
+        "id": 1001,
         "source_id": "SRC-HMD-MORTALITY-2024",
         "title": "Human Mortality Database (HMD) International Actuarial Life Tables & Long-Term Health Trends",
         "publisher": "University of California, Berkeley & Max Planck Institute for Demographic Research",
         "version": "2024.1",
         "url": "https://www.mortality.org",
         "licensing_status": "OPEN_ACCESS_RESEARCH_DATA",
-        "status": "APPROVED"
+        "status": "ACTUARIAL_DATA"
       }
     ],
     "dengue_retrieval_success": true,

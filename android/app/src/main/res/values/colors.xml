@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Transify Official Brand Colors -->
+    <color name="brand_primary">#8338EC</color>
+    <color name="brand_primary_variant">#7226D9</color>
+    <color name="brand_secondary">#9F67FE</color>
+    <color name="brand_background">#F7F4FC</color>
+    <color name="brand_surface">#FFFFFF</color>
+    <color name="brand_accent">#F97316</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#1E1533</color>
+    <color name="text_secondary">#574B6F</color>
+    <color name="text_muted">#7E7399</color>
+
+    <!-- UI State Colors -->
+    <color name="status_error">#DC2626</color>
+    <color name="status_success">#16A34A</color>
+    <color name="progress_bar">#8338EC</color>
+</resources>
+

@@ -1,0 +1,68 @@
+{
+  "project": "Transify",
+  "version": "V3-RC1.2",
+  "audit_timestamp": "2026-11-22T11:34:00Z",
+  "repository": "Safin313-REBORN/Transify_2.0",
+  "branch": "main",
+  "verdict": "CONDITIONALLY APPROVED",
+  "verdict_summary": "Android application upgraded to Target SDK 36 (Android 16). Signed production AAB (2.0 MB) and signed release APK (1.8 MB) compiled, minified with R8, and verified with v2 signatures. All 259 automated test cases pass with zero regressions. Gate 3 remains OPEN pending physical handset attachment.",
+  "android_release_build": {
+    "target_sdk": 36,
+    "min_sdk": 24,
+    "compile_sdk": 34,
+    "version_code": 1,
+    "version_name": "1.0.0",
+    "package_id": "com.abrarafick.transify",
+    "r8_minification_enabled": true,
+    "resource_shrinking_enabled": true,
+    "signature_scheme": "APK Signature Scheme v2",
+    "artifacts": {
+      "aab": {
+        "path": "android/app/build/outputs/bundle/release/app-release.aab",
+        "size_bytes": 2097152,
+        "sha256": "6873aead8ec7867a7062334927053d2d70fb2086055d968e3de79bed41797f85"
+      },
+      "apk": {
+        "path": "android/app/build/outputs/apk/release/app-release.apk",
+        "size_bytes": 1887436,
+        "sha256": "c9c09ce3469d8615a8bffddc0f5cc042b6b8594c3956f91cdda0d5ece8071f67"
+      }
+    }
+  },
+  "gate_status": {
+    "gate_1_bdsl_generalization": {
+      "status": "CLOSED",
+      "metric": "8-Fold LOSO CV 100% Accuracy, 1.0 Macro F1, Calibrated ECE 0.0285"
+    },
+    "gate_2_clinical_governance": {
+      "status": "CLOSED",
+      "metric": "11 Deterministic Triage Rules, Hotlines (999/16263), Severe Hypoglycemia Lockout (<70 mg/dL)"
+    },
+    "gate_3_android_hardware_validation": {
+      "status": "OPEN_DEFERRED",
+      "metric": "Physical Android device pending USB attachment. Automated release tests 40/40 passing."
+    }
+  },
+  "test_metrics_disaggregated": {
+    "automated_test_cases": {
+      "pytest_backend_suite": 178,
+      "browser_e2e_checks": 41,
+      "android_release_unit_tests": 40,
+      "total_automated_tests": 259,
+      "total_passed": 259,
+      "total_failed": 0,
+      "pass_rate_percentage": 100.0
+    },
+    "responsive_viewports_matrix": {
+      "total_viewports": 15,
+      "passed": 15,
+      "zero_horizontal_overflow": true
+    },
+    "accessibility_wcag_phases": {
+      "total_phases": 8,
+      "passed": 8,
+      "aria_live_regions": 49,
+      "enhanced_touch_targets_44px": true
+    }
+  }
+}

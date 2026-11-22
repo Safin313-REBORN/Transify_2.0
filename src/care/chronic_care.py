@@ -488,17 +488,68 @@ def analyze_meal_and_calculate_insulin(
     icr: float = 10.0, # 1 unit insulin per 10g carbs
     isf: float = 50.0, # 1 unit drops glucose by 50 mg/dL
     iob: float = 0.0,  # Active insulin on board
-    portion_factor: float = 1.0
+    portion_factor: float = 1.0,
+    glucose_unit: str = "mg/dL",
+    clinician_confirmed_parameters: bool = False
 ) -> Dict[str, Any]:
     """
     Computer Vision meal nutritional breakdown and automated insulin dosage calculator.
     Implements:
-    - Meal Bolus = Net Carbs / ICR
-    - Correction Bolus = max(0, (Current Glucose - Target Glucose) / ISF)
-    - Total Insulin = max(0, Meal Bolus + Correction Bolus - IOB)
-    - Hypoglycemia safety lockout (<80 mg/dL)
-    - Upper-bound single bolus dose safety cap
+    - Glucose unit validation and conversion (mg/dL vs mmol/L)
+    - Strict physiological bounds checking (mg/dL: 20-800, mmol/L: 1.1-44.4)
+    - Severe hypoglycemia lockout (<70 mg/dL / <3.9 mmol/L sets total bolus to 0.0 units)
+    - Mandatory ability-to-swallow assessment & aspiration emergency hazard warning
+    - Mild hypoglycemia lockout (<80 mg/dL sets correction bolus to 0.0 units)
+    - Non-negative correction constraint
+    - Conservative single bolus safety cap (15.0 units protocol ceiling)
+    - Clinician confirmation parameter audit
+    - Explicit calculation assumptions and prototype disclaimer
     """
+    # 1. Input parsing and unit validation
+    try:
+        raw_current_glucose = float(current_glucose)
+        raw_target_glucose = float(target_glucose)
+        icr = float(icr)
+        isf = float(isf)
+        iob = float(iob)
+        portion_factor = float(portion_factor)
+    except (ValueError, TypeError) as ex:
+        raise ValueError(f"Invalid non-numeric input parameter: {ex}")
+
+    unit_norm = (glucose_unit or "mg/dL").strip()
+    if unit_norm.lower() not in ("mg/dl", "mmol/l"):
+        raise ValueError(f"Unsupported glucose unit '{glucose_unit}'. Supported units are 'mg/dL' or 'mmol/L'.")
+
+    # Handle mmol/L conversion to mg/dL (1 mmol/L = 18.0182 mg/dL)
+    is_mmol = unit_norm.lower() == "mmol/l"
+    if is_mmol:
+        if not (1.1 <= raw_current_glucose <= 44.4):
+            raise ValueError(f"Current glucose {raw_current_glucose} mmol/L is outside physiologically plausible range (1.1 - 44.4 mmol/L).")
+        if not (3.9 <= raw_target_glucose <= 10.0):
+            raise ValueError(f"Target glucose {raw_target_glucose} mmol/L is outside valid clinical target range (3.9 - 10.0 mmol/L).")
+        current_glucose_mgdl = round(raw_current_glucose * 18.0182, 1)
+        target_glucose_mgdl = round(raw_target_glucose * 18.0182, 1)
+    else:
+        # Check if user accidentally entered mmol/L value while specifying mg/dL
+        if raw_current_glucose < 15.0:
+            raise ValueError(
+                f"Current glucose value ({raw_current_glucose}) appears to be in mmol/L rather than mg/dL. "
+                "Please specify glucose_unit='mmol/L' or verify blood glucose measurement."
+            )
+        if not (20.0 <= raw_current_glucose <= 800.0):
+            raise ValueError(f"Current glucose {raw_current_glucose} mg/dL is outside physiologically plausible range (20.0 - 800.0 mg/dL).")
+        if not (70.0 <= raw_target_glucose <= 180.0):
+            raise ValueError(f"Target glucose {raw_target_glucose} mg/dL is outside valid clinical target range (70.0 - 180.0 mg/dL).")
+        current_glucose_mgdl = raw_current_glucose
+        target_glucose_mgdl = raw_target_glucose
+
+    if not (1.0 <= icr <= 100.0):
+        raise ValueError(f"Insulin-to-Carbohydrate Ratio (ICR) {icr} g/U is outside plausible clinical range (1.0 - 100.0 g/U).")
+    if not (5.0 <= isf <= 300.0):
+        raise ValueError(f"Insulin Sensitivity Factor (ISF) {isf} mg/dL/U is outside plausible clinical range (5.0 - 300.0 mg/dL/U).")
+    if not (0.0 <= iob <= 30.0):
+        raise ValueError(f"Active Insulin On Board (IOB) {iob} U is outside plausible clinical range (0.0 - 30.0 U).")
+
     selected_key = "south_asian_roti_dal"
 
     # If image provided, simulate CV feature extraction via color histogram & texture
@@ -541,37 +592,58 @@ def analyze_meal_and_calculate_insulin(
     gl = int(round((total_carbs * gi) / 100.0))
 
     # Insulin Calculation
-    safe_icr = max(3.0, float(icr))
-    safe_isf = max(10.0, float(isf))
+    safe_icr = max(1.0, float(icr))
+    safe_isf = max(5.0, float(isf))
     active_iob = max(0.0, float(iob))
 
-    # 1. Meal Bolus
-    meal_bolus = round(total_carbs / safe_icr, 2)
-
-    # 2. Correction Bolus
-    correction_needed = current_glucose - target_glucose
-    if current_glucose < 80.0:
-        correction_bolus = 0.0
-        hypo_lockout = True
-    elif correction_needed > 0:
-        correction_bolus = round(correction_needed / safe_isf, 2)
-        hypo_lockout = False
-    else:
-        correction_bolus = 0.0
-        hypo_lockout = False
-
-    # 3. Total dose with IOB offset
-    raw_total = meal_bolus + correction_bolus - active_iob
-    # Safety cap: max 15.0 units in single dose to prevent iatrogenic hypoglycemia
-    recommended_dose = max(0.0, min(15.0, round(raw_total, 1)))
-
     safety_notes = []
-    if hypo_lockout:
-        safety_notes.append("HYPOGLYCEMIA ALERT: Blood glucose is below 80 mg/dL. Zero correction insulin administered. Consume 15g fast-acting carbohydrate (e.g. 4 oz juice or 3 glucose tablets) before eating.")
-    if raw_total > 15.0:
-        safety_notes.append("SAFETY CAP TRIGGERED: Calculated dose exceeded 15.0 units ceiling. Capped at 15.0 units. Split-dose injection or clinician consultation required.")
-    if active_iob > 0:
-        safety_notes.append(f"Insulin On Board (IOB) of {active_iob} units subtracted to prevent insulin stacking.")
+
+    # Check clinician confirmed parameters
+    if not clinician_confirmed_parameters:
+        safety_notes.append(
+            "UNCONFIRMED CLINICAL PARAMETERS: Individual Insulin-to-Carb Ratio (ICR), Insulin Sensitivity Factor (ISF), and glucose targets "
+            "have NOT been verified by an endocrinologist or treating physician. Calculated doses are strictly hypothetical educational simulations "
+            "and MUST NOT be administered to a real patient."
+        )
+
+    # Check severe hypoglycemia lockout (<70 mg/dL / <3.9 mmol/L)
+    if current_glucose_mgdl < 70.0:
+        meal_bolus = 0.0
+        correction_bolus = 0.0
+        recommended_dose = 0.0
+        current_display = f"{raw_current_glucose} {unit_norm}" + (f" ({current_glucose_mgdl} mg/dL)" if is_mmol else "")
+        safety_notes.append(
+            f"CRITICAL SEVERE HYPOGLYCEMIA LOCKOUT: Blood glucose is {current_display} (<70 mg/dL / <3.9 mmol/L). "
+            "ALL INSULIN DOSING IS LOCKED OUT (0.0 units). Administering insulin during hypoglycemia is life-threatening.\n"
+            "ABILITY-TO-SWALLOW ASSESSMENT: If the patient is conscious, alert, and able to swallow normally, immediately treat with the 'Rule of 15': "
+            "ingest 15-20g of fast-acting simple carbohydrate (e.g., 4 oz fruit juice, 4-5 glucose tablets, or 1/2 can regular soda), rest, and recheck blood glucose in 15 minutes.\n"
+            "ASPIRATION HAZARD & UNCONSCIOUS PATIENT PROTOCOL: If the patient is unconscious, semi-conscious, convulsing, or UNABLE TO SWALLOW, "
+            "DO NOT ADMINISTER ANYTHING BY MOUTH due to severe choking and aspiration risk. Immediately administer prescribed emergency glucagon if trained, "
+            "and call emergency medical services (999 / 16263) without delay."
+        )
+    else:
+        # 1. Meal Bolus
+        meal_bolus = round(total_carbs / safe_icr, 2)
+
+        # 2. Correction Bolus (strictly non-negative)
+        correction_needed = current_glucose_mgdl - target_glucose_mgdl
+        if current_glucose_mgdl < 80.0:
+            correction_bolus = 0.0
+            safety_notes.append("HYPOGLYCEMIA ALERT: Blood glucose is below 80 mg/dL (4.4 mmol/L). Zero correction insulin administered. Consume 15g fast-acting carbohydrate (e.g. 4 oz juice or 3 glucose tablets) before eating.")
+        elif correction_needed > 0:
+            correction_bolus = round(correction_needed / safe_isf, 2)
+        else:
+            correction_bolus = 0.0
+
+        # 3. Total dose with IOB offset
+        raw_total = max(0.0, meal_bolus + correction_bolus - active_iob)
+        # Safety cap: max 15.0 units protocol ceiling
+        recommended_dose = max(0.0, min(15.0, round(raw_total, 1)))
+
+        if (meal_bolus + correction_bolus - active_iob) > 15.0:
+            safety_notes.append("SAFETY CAP TRIGGERED / SAFETY CEILING APPLIED: Calculated dose exceeded 15.0 units protocol ceiling. Capped at 15.0 units. Note: This ceiling is an algorithmic prototype safeguard, NOT an individually validated clinical limit.")
+        if active_iob > 0:
+            safety_notes.append(f"Insulin On Board (IOB) of {active_iob} units subtracted to prevent insulin stacking.")
 
     # Lifestyle adjunct
     walking_recommendation = "Engage in a 15-20 minute casual walk within 30 minutes of meal completion. This activates muscle GLUT-4 transporters independently of insulin, reducing post-prandial glycemic excursion by 25-35%."
@@ -597,19 +669,39 @@ def analyze_meal_and_calculate_insulin(
         },
         "insulin_dosage_recommendation": {
             "patient_parameters": {
-                "current_glucose_mg_dl": current_glucose,
-                "target_glucose_mg_dl": target_glucose,
+                "current_glucose_input": raw_current_glucose,
+                "current_glucose_mg_dl": current_glucose_mgdl,
+                "target_glucose_input": raw_target_glucose,
+                "target_glucose_mg_dl": target_glucose_mgdl,
+                "glucose_unit": unit_norm,
                 "insulin_to_carb_ratio_icr": safe_icr,
                 "insulin_sensitivity_factor_isf": safe_isf,
-                "insulin_on_board_iob_units": active_iob
+                "insulin_on_board_iob_units": active_iob,
+                "clinician_confirmed_parameters": clinician_confirmed_parameters
             },
             "dosage_breakdown": {
                 "meal_bolus_units": meal_bolus,
                 "correction_bolus_units": correction_bolus,
-                "recommended_injection_units": recommended_dose
+                "recommended_injection_units": recommended_dose,
+                "educational_calculated_units": recommended_dose
+            },
+            "calculation_assumptions": {
+                "formula": "Meal Bolus = Net Carbs / ICR; Correction Bolus = max(0, (Current Glucose - Target Glucose) / ISF); Total = max(0, Meal + Correction - IOB)",
+                "safety_ceiling_applied": 15.0,
+                "safety_ceiling_note": "15.0 units protocol ceiling applied. NOTE: This is an algorithmic safeguard ceiling, NOT a universally safe clinical dosing recommendation.",
+                "clinician_confirmed_parameters": clinician_confirmed_parameters,
+                "glucose_unit_input": unit_norm,
+                "autonomous_injection_directed": False,
+                "mode": "CLINICIAN_SUPERVISED_SIMULATION_PROTOTYPE"
             },
             "safety_warnings": safety_notes,
-            "lifestyle_adjunct": walking_recommendation
+            "lifestyle_adjunct": walking_recommendation,
+            "educational_prototype_disclaimer": (
+                "CLINICAL SAFETY DISCLAIMER (EDUCATIONAL PROTOTYPE ONLY): This insulin calculation is an algorithmic simulation for "
+                "educational demonstration purposes only and does NOT constitute medical advice, prescription, "
+                "or clinical dosage direction. Transify strictly prohibits autonomous or unverified insulin injection. "
+                "Insulin dosing must always be verified and confirmed by a licensed endocrinologist or certified diabetes educator."
+            )
         }
     }
 
@@ -795,6 +887,7 @@ def track_elderly_adherence_and_cognition(
 
     return {
         "status": "ELDERLY_CARE_EVALUATED",
+        "prototype_classification": "EDUCATIONAL_DEMONSTRATION_PROTOTYPE",
         "medication_adherence": {
             "total_doses_scheduled": total_scheduled,
             "doses_confirmed": taken_count,
@@ -809,8 +902,16 @@ def track_elderly_adherence_and_cognition(
             "vocal_jitter_pct": vocal_jitter_pct,
             "cognitive_hesitation_index_0_100": cognitive_index,
             "cognitive_status": cog_tier,
+            "prototype_status_description": "CONVERSATIONAL_PAUSE_VARIATION (EDUCATIONAL PROTOTYPE)",
             "detected_signals": cognitive_signals if cognitive_signals else ["Fluid speech rhythm and clear chronological recall."],
-            "caregiver_guidance": caregiver_action
+            "caregiver_guidance": caregiver_action,
+            "clinical_non_diagnosis_disclaimer": (
+                "EDUCATIONAL PROTOTYPE ONLY: Speech cadence and pause analysis measures conversational flow "
+                "for educational demonstration purposes only and does NOT constitute a diagnosis of Mild Cognitive Impairment (MCI) "
+                "or dementia. Conversational hesitation varies naturally with mood, fatigue, dialect, and recording acoustics. "
+                "Formal cognitive assessment requires standardized in-person clinical neuropsychological evaluation (e.g., MoCA or MMSE) "
+                "administered by a qualified clinician."
+            )
         }
     }
 
@@ -846,20 +947,38 @@ def check_openfda_polypharmacy_interactions(medications: List[str]) -> Dict[str,
 
     if has_contraindication:
         overall_safety = "CONTRAINDICATION_DETECTED"
+        evidence_status = "CRITICAL_INTERACTION_IDENTIFIED"
     elif has_major:
         overall_safety = "MAJOR_INTERACTIONS_ALERT"
+        evidence_status = "MAJOR_INTERACTION_IDENTIFIED"
     elif len(identified_interactions) > 0:
         overall_safety = "MODERATE_INTERACTIONS_OBSERVED"
+        evidence_status = "MODERATE_INTERACTION_IDENTIFIED"
     else:
         overall_safety = "NO_KNOWN_HIGH_RISK_INTERACTIONS"
+        evidence_status = "NO_CATALOGED_INTERACTION_FOUND"
+
+    disclaimer = (
+        "NOTICE: An absence of detected interactions in this catalog does NOT prove that your medications are free of interactions. "
+        "This engine cross-checks a curated subset of 12 common chronic drug classes and is NOT an exhaustive pharmacological database. "
+        "Always consult your pharmacist or prescribing physician before modifying any medication regimen."
+    )
 
     return {
         "status": "POLYPHARMACY_CHECK_COMPLETED",
         "medications_analyzed": [m.title() for m in clean_meds],
         "total_medications": total_checked,
         "overall_safety_rating": overall_safety,
+        "evidence_status": evidence_status,
         "interaction_count": len(identified_interactions),
         "interactions": identified_interactions,
+        "safety_disclaimer": disclaimer,
+        "catalog_provenance": {
+            "data_sources": ["U.S. FDA Adverse Event Reporting System (FAERS)", "Curated Chronic Pharmacotherapy Contraindications"],
+            "version_snapshot_date": "Q3 2024 Reference Snapshot",
+            "coverage_scope": "Curated subset of 12 common chronic cardiovascular, metabolic, and renal medication classes",
+            "exhaustive_coverage": False
+        },
         "fda_data_source": "U.S. FDA Adverse Event Reporting System (FAERS) & National Drug Code (NDC) Directory."
     }
 

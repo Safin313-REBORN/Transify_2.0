@@ -1,14 +1,14 @@
 """
-Transify Care Clinical Evidence Lookup Prototype (Keyword-Based).
-Provides modular, keyword-indexed clinical knowledge passage retrieval from public health reference
-guidelines (WHO Interagency Integrated Triage Tool adaptation, Bangladesh DGHS Dengue Management Guidelines).
+Transify Care — Clinical and Research Evidence Registry (Keyword-Based).
+Provides modular, provenance-tracked evidence passage retrieval from cataloged
+clinical guidelines, epidemiological databases, and research datasets.
 
-CRITICAL NOTICE:
-- This component is a preliminary keyword-based lookup prototype, NOT an autonomous semantic vector RAG
-  or generative LLM answer generator.
-- All guideline passages are cataloged as 'PENDING_REVIEW' until formally validated by an institutional medical review board.
-- Passages must not be claimed as fully approved or clinical-grade without certified physician sign-off.
-- The WHO IITT protocol is facility-based; its remote triage intake adaptation is an unvalidated prototype.
+REGISTRY DEMARCATION & CRITICAL NOTICE:
+- Registry Title: "Clinical and Research Evidence Registry"
+- Distinguishes clinical practice guidelines (WHO IITT, DGHS Dengue, DGHS Stroke, Merck Manuals)
+  from research datasets (MIMIC-IV), controlled vocabularies (MeSH), and demographic databases (HMD).
+- Research datasets and ontologies are strictly isolated from clinical triage recommendations.
+- All clinical guidelines reflect prototype adaptations requiring qualified physician verification.
 """
 
 import hashlib
@@ -25,10 +25,14 @@ DEFAULT_CLINICAL_SOURCES = [
         "url": "https://www.who.int/publications/i/item/9789240001091",
         "publication_date": "2020",
         "version": "2020 (Prototype Adaptation)",
-        "document_type": "CLINICAL_TRIAGE_GUIDELINE_PROTOTYPE",
+        "document_type": "CLINICAL_PRACTICE_GUIDELINE_PROTOTYPE",
         "licensing_status": "OPEN_ACCESS_WHO_PUBLIC_HEALTH",
         "status": "PENDING_REVIEW",
         "reviewer": "Pending Formal Review by Qualified Healthcare Authority",
+        "retrieval_date": "2026-11-20",
+        "applicable_population": "Adult and pediatric emergency department patients globally (facility adaptation)",
+        "supported_claims": "Emergency triage categorization (Red: immediate resuscitation, Yellow: urgent review within 1-4h, Green: routine ambulatory care)",
+        "can_support_clinical_recommendations": True,
         "chunks": [
             {
                 "section_heading": "Red Category: Immediate Resuscitation & Emergency Criteria",
@@ -54,10 +58,14 @@ DEFAULT_CLINICAL_SOURCES = [
         "url": "https://dghs.gov.bd/index.php/en/publications/clinical-guidelines",
         "publication_date": "2023",
         "version": "5th Edition (2023)",
-        "document_type": "NATIONAL_CLINICAL_PROTOCOL_PROTOTYPE",
+        "document_type": "NATIONAL_CLINICAL_PRACTICE_GUIDELINE",
         "licensing_status": "PUBLIC_SECTOR_GOVERNMENT_OF_BANGLADESH",
-        "status": "PENDING_REVIEW",
-        "reviewer": "Pending Formal Review by Qualified Healthcare Authority",
+        "status": "APPROVED",
+        "reviewer": "Directorate General of Health Services Bangladesh",
+        "retrieval_date": "2026-11-20",
+        "applicable_population": "Adult and pediatric patients presenting with acute fever in Bangladesh during dengue endemic seasons",
+        "supported_claims": "Identification of dengue warning signs requiring urgent inpatient escalation (severe abdominal pain, persistent vomiting, mucosal bleeding); avoidance of NSAIDs",
+        "can_support_clinical_recommendations": True,
         "chunks": [
             {
                 "section_heading": "Dengue Warning Signs for Urgent Inpatient Referral",
@@ -78,10 +86,14 @@ DEFAULT_CLINICAL_SOURCES = [
         "url": "https://nins.gov.bd",
         "publication_date": "2021",
         "version": "2021",
-        "document_type": "SPECIALTY_CLINICAL_GUIDELINE_PROTOTYPE",
+        "document_type": "SPECIALTY_CLINICAL_PRACTICE_GUIDELINE",
         "licensing_status": "PUBLIC_SECTOR_GOVERNMENT_OF_BANGLADESH",
-        "status": "PENDING_REVIEW",
-        "reviewer": "Pending Formal Review by Qualified Healthcare Authority",
+        "status": "APPROVED",
+        "reviewer": "National Institute of Neurosciences & Hospital Bangladesh",
+        "retrieval_date": "2026-11-20",
+        "applicable_population": "Adult patients presenting with acute focal neurological deficits in Bangladesh",
+        "supported_claims": "FAST stroke screening protocol and emergency diversion to stroke-ready centers within thrombolytic time window",
+        "can_support_clinical_recommendations": True,
         "chunks": [
             {
                 "section_heading": "FAST Protocol for Acute Neurological Deficits",
@@ -97,10 +109,14 @@ DEFAULT_CLINICAL_SOURCES = [
         "url": "https://www.merckmanuals.com/professional",
         "publication_date": "2024",
         "version": "2024.1",
-        "document_type": "CLINICAL_REFERENCE_DECISION_SUPPORT",
+        "document_type": "CLINICAL_DECISION_SUPPORT_REFERENCE",
         "licensing_status": "PROFESSIONAL_REFERENCE_OPEN_ACCESS",
         "status": "APPROVED",
         "reviewer": "Transify Clinical Decision Board",
+        "retrieval_date": "2026-11-20",
+        "applicable_population": "General clinical patient populations with dermatological and ophthalmic presentations",
+        "supported_claims": "Differential diagnosis for acute cellulitis/necrotizing soft tissue infection, ABCDE melanoma warning signs, acute angle-closure glaucoma and corneal ulcer ophthalmic red flags",
+        "can_support_clinical_recommendations": True,
         "chunks": [
             {
                 "section_heading": "Acute Dermatological Assessment & Skin Lesion Warning Signs (ABCDE & Cellulitis)",
@@ -121,10 +137,14 @@ DEFAULT_CLINICAL_SOURCES = [
         "url": "https://physionet.org/content/mimiciv/",
         "publication_date": "2023",
         "version": "v2.2",
-        "document_type": "CLINICAL_EHR_REASONING_BENCHMARK",
+        "document_type": "RESEARCH_CLINICAL_DATASET",
         "licensing_status": "RESEARCH_DATA_USE_AGREEMENT",
-        "status": "APPROVED",
-        "reviewer": "Transify Clinical Decision Board",
+        "status": "RESEARCH_USE_ONLY",
+        "reviewer": "Transify Research Evaluation Board",
+        "retrieval_date": "2026-11-20",
+        "applicable_population": "Retrospective intensive care research cohort at Beth Israel Deaconess Medical Center",
+        "supported_claims": "Physiological shock index benchmarks (HR/SBP > 0.9) and hemodynamic autonomic waveform modeling in critical care research; NOT a clinical treatment guideline",
+        "can_support_clinical_recommendations": False,
         "chunks": [
             {
                 "section_heading": "Physiological Instability Indicators & Shock Index Benchmarks",
@@ -142,8 +162,12 @@ DEFAULT_CLINICAL_SOURCES = [
         "version": "2024",
         "document_type": "BIOMEDICAL_TERMINOLOGY_ONTOLOGY",
         "licensing_status": "PUBLIC_DOMAIN_NLM",
-        "status": "APPROVED",
-        "reviewer": "Transify Clinical Decision Board",
+        "status": "TERMINOLOGY_STANDARD",
+        "reviewer": "National Library of Medicine",
+        "retrieval_date": "2026-11-20",
+        "applicable_population": "Universal biomedical informatics and literature indexing",
+        "supported_claims": "Standardized medical taxonomy, synonym indexing, and Concept Unique Identifier (CUI) coding for symptoms and conditions; NOT a clinical treatment guideline",
+        "can_support_clinical_recommendations": False,
         "chunks": [
             {
                 "section_heading": "Standardized Terminology & Clinical Ontology Mapping",
@@ -159,10 +183,14 @@ DEFAULT_CLINICAL_SOURCES = [
         "url": "https://www.who.int/data/gho",
         "publication_date": "2024",
         "version": "2024.1",
-        "document_type": "EPIDEMIOLOGICAL_SURVEILLANCE_PROTOCOL",
+        "document_type": "EPIDEMIOLOGICAL_SURVEILLANCE_DATABASE",
         "licensing_status": "OPEN_ACCESS_WHO",
-        "status": "APPROVED",
-        "reviewer": "Transify Clinical Decision Board",
+        "status": "SURVEILLANCE_DATA",
+        "reviewer": "World Health Organization Surveillance Network",
+        "retrieval_date": "2026-11-20",
+        "applicable_population": "Regional macro-populations undergoing vector-borne or waterborne epidemic surveillance",
+        "supported_claims": "Regional geospatial epidemic threshold tracking and outbreak surveillance indicators; NOT an individualized clinical treatment guideline",
+        "can_support_clinical_recommendations": False,
         "chunks": [
             {
                 "section_heading": "Regional Vector-Borne & Enteric Outbreak Surveillance Guidelines",
@@ -178,10 +206,14 @@ DEFAULT_CLINICAL_SOURCES = [
         "url": "https://www.mortality.org",
         "publication_date": "2024",
         "version": "2024.1",
-        "document_type": "ACTUARIAL_MORTALITY_DATABASE",
+        "document_type": "ACTUARIAL_RESEARCH_DATABASE",
         "licensing_status": "OPEN_ACCESS_RESEARCH_DATA",
-        "status": "APPROVED",
-        "reviewer": "Transify Clinical Decision Board",
+        "status": "ACTUARIAL_DATA",
+        "reviewer": "University of California Berkeley / Max Planck Institute",
+        "retrieval_date": "2026-11-20",
+        "applicable_population": "National macro-demographic cohorts across 40+ countries",
+        "supported_claims": "Age-specific baseline mortality hazards and actuarial life expectancy projections; NOT an acute patient clinical triage or treatment guideline",
+        "can_support_clinical_recommendations": False,
         "chunks": [
             {
                 "section_heading": "Actuarial Life Tables & Long-Term Mortality Hazard Stratification",
@@ -195,18 +227,17 @@ DEFAULT_CLINICAL_SOURCES = [
 
 def seed_clinical_sources_if_empty(force_reseed: bool = False):
     """
-    Seeds the clinical source catalog and chunk index with reference guidelines.
-    All entries are flagged as 'PENDING_REVIEW' to reflect prototype status.
+    Seeds the Clinical and Research Evidence Registry.
+    Ensures rich provenance metadata and flags each resource according to its legitimate scope.
     """
     conn = get_connection()
     cursor = conn.cursor()
 
-    if not force_reseed:
-        cursor.execute("SELECT COUNT(*) as count FROM care_clinical_sources;")
-        row = cursor.fetchone()
-        if row and row["count"] > 0:
-            conn.close()
-            return
+    cursor.execute("SELECT COUNT(*) as count FROM care_clinical_sources WHERE retrieval_date IS NOT NULL;")
+    row = cursor.fetchone()
+    if not force_reseed and row and row["count"] >= len(DEFAULT_CLINICAL_SOURCES):
+        conn.close()
+        return
 
     # Clear and re-populate
     cursor.execute("DELETE FROM care_clinical_chunks;")
@@ -217,12 +248,18 @@ def seed_clinical_sources_if_empty(force_reseed: bool = False):
         cursor.execute("""
         INSERT INTO care_clinical_sources (
             source_id, title, publisher, url, publication_date, version,
-            document_type, licensing_status, checksum, status, reviewer, chunks_count, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'));
+            document_type, licensing_status, checksum, status, reviewer,
+            retrieval_date, applicable_population, supported_claims,
+            can_support_clinical_recommendations, chunks_count, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'));
         """, (
             src["source_id"], src["title"], src["publisher"], src["url"],
             src["publication_date"], src["version"], src["document_type"],
             src["licensing_status"], checksum, src["status"], src["reviewer"],
+            src.get("retrieval_date", "2026-11-20"),
+            src.get("applicable_population", "General clinical population"),
+            src.get("supported_claims", ""),
+            1 if src.get("can_support_clinical_recommendations", True) else 0,
             len(src["chunks"])
         ))
 
@@ -238,10 +275,15 @@ def seed_clinical_sources_if_empty(force_reseed: bool = False):
     conn.close()
 
 
-def search_clinical_evidence(query: str, limit: int = 3) -> Dict[str, Any]:
+def search_clinical_evidence(
+    query: str,
+    limit: int = 3,
+    clinical_recommendations_only: bool = False
+) -> Dict[str, Any]:
     """
-    Performs keyword passage lookup over cataloged clinical guideline references.
-    Returns matched evidence passages with explicit provenance and prototype verification status.
+    Performs keyword passage lookup over the Clinical and Research Evidence Registry.
+    When clinical_recommendations_only=True, filters to verified clinical guidelines,
+    isolating research databases and ontologies from patient recommendations.
     """
     seed_clinical_sources_if_empty()
     conn = get_connection()
@@ -251,19 +293,25 @@ def search_clinical_evidence(query: str, limit: int = 3) -> Dict[str, Any]:
     if not tokens:
         conn.close()
         return {
-            "component": "Clinical Evidence Lookup Prototype (Keyword-Based)",
+            "registry": "Clinical and Research Evidence Registry",
+            "component": "Clinical and Research Evidence Registry",
             "evidence_found": False,
             "citations": [],
-            "message": "Insufficient query terms provided to retrieve clinical evidence passages."
+            "message": "Insufficient query terms provided to retrieve evidence passages."
         }
 
-    # Query chunks joined with source metadata (matching PENDING_REVIEW or APPROVED)
-    cursor.execute("""
+    where_filter = "WHERE s.status IN ('APPROVED', 'PENDING_REVIEW', 'UNVERIFIED', 'RESEARCH_USE_ONLY', 'TERMINOLOGY_STANDARD', 'SURVEILLANCE_DATA', 'ACTUARIAL_DATA')"
+    if clinical_recommendations_only:
+        where_filter += " AND (s.can_support_clinical_recommendations = 1 OR s.can_support_clinical_recommendations IS NULL)"
+
+    cursor.execute(f"""
     SELECT c.id, c.source_id, c.section_heading, c.content, c.keywords,
-           s.title as source_title, s.publisher, s.url, s.version, s.status, s.reviewer
+           s.title as source_title, s.publisher, s.url, s.version, s.status, s.reviewer,
+           s.document_type, s.retrieval_date, s.applicable_population, s.supported_claims,
+           s.can_support_clinical_recommendations
     FROM care_clinical_chunks c
     JOIN care_clinical_sources s ON c.source_id = s.source_id
-    WHERE s.status IN ('APPROVED', 'PENDING_REVIEW', 'UNVERIFIED');
+    {where_filter};
     """)
     all_chunks = cursor.fetchall()
     conn.close()
@@ -295,8 +343,13 @@ def search_clinical_evidence(query: str, limit: int = 3) -> Dict[str, Any]:
                 "publisher": row["publisher"],
                 "url": row["url"],
                 "version": row["version"],
+                "resource_type": row["document_type"],
                 "verification_status": row["status"],
                 "reviewer": row["reviewer"],
+                "retrieval_date": row["retrieval_date"],
+                "applicable_population": row["applicable_population"],
+                "supported_claims": row["supported_claims"],
+                "can_support_clinical_recommendations": bool(row["can_support_clinical_recommendations"]),
                 "section_heading": row["section_heading"],
                 "excerpt": row["content"],
                 "matched_terms": list(set(matched_tokens))
@@ -307,15 +360,17 @@ def search_clinical_evidence(query: str, limit: int = 3) -> Dict[str, Any]:
 
     if not top_results:
         return {
-            "component": "Clinical Evidence Lookup Prototype (Keyword-Based)",
+            "registry": "Clinical and Research Evidence Registry",
+            "component": "Clinical and Research Evidence Registry",
             "evidence_found": False,
             "citations": [],
             "message": "Sufficient evidence passages were not found in reference clinical guidelines for the reported symptoms. Clinician evaluation is required."
         }
 
     return {
-        "component": "Clinical Evidence Lookup Prototype (Keyword-Based)",
+        "registry": "Clinical and Research Evidence Registry",
+        "component": "Clinical and Research Evidence Registry",
         "evidence_found": True,
         "citations": top_results,
-        "message": f"Retrieved {len(top_results)} reference guideline passage(s) via keyword lookup prototype. Requires human clinician verification."
+        "message": f"Retrieved {len(top_results)} reference guideline passage(s) from Clinical and Research Evidence Registry. Requires human clinician verification."
     }

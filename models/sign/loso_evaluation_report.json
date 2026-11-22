@@ -1,0 +1,2240 @@
+{
+  "evaluation_name": "BdSL Multi-Signer Leave-One-Signer-Out (LOSO) Cross-Validation & Production Verification",
+  "timestamp": "2026-11-22 11:08:47 UTC",
+  "manifest_path": "data/sign/annotations/dataset_master_manifest.csv",
+  "manifest_sha256": "6e4d71ca40bf69e2234d5accddd7c5cb2af719025f1a1e44f688ca37d3c8217f",
+  "random_seed": 42,
+  "total_signers": 8,
+  "signers": [
+    "S001",
+    "S002",
+    "S003",
+    "S004",
+    "S005",
+    "S006",
+    "S007",
+    "S008"
+  ],
+  "total_samples": 1200,
+  "samples_per_signer": 150,
+  "classes_evaluated": 10,
+  "feature_dimension": 972,
+  "champion_architecture": "Deep MLP (384-192-96, ReLU, Adam, Early Stopping, L2 Alpha=1e-4)",
+  "preprocessing_pipeline": "Fold-local Pipeline(StandardScaler -> Champion MLP Classifier)",
+  "calibration_configuration": "CalibratedClassifierCV(method='sigmoid', cv=StratifiedKFold(n_splits=3, shuffle=True, random_state=seed))",
+  "top_label_ece_methodology": "Equal-width 10-bin partitioning over maximum predicted class probability, weighted by bin frequency.",
+  "data_integrity_audit": {
+    "total_manifest_rows": 1200,
+    "unique_sample_ids": 1200,
+    "duplicate_sample_ids": 0,
+    "duplicate_video_paths": 0,
+    "duplicate_landmark_paths": 0,
+    "missing_landmark_files": 0,
+    "missing_raw_video_files": 1200,
+    "raw_video_provenance_status": "UNVERIFIED_IN_THIS_EXECUTION",
+    "raw_video_provenance_details": {
+      "audit_status": "UNVERIFIED_IN_THIS_EXECUTION",
+      "workspace_video_files_found": 0,
+      "missing_workspace_video_files": 1200,
+      "explanation": "Processed (30, 162) NumPy landmark files are fully committed in the repository (1,200/1,200 verified). The 1,200 raw MP4 source videos are archived in an offline storage vault not mounted in this execution environment. Because the raw storage vault is unmounted, raw video file readability, checksum hashes, recording metadata, and consent form documentation are UNVERIFIED in this execution environment.",
+      "distinction": "Missing workspace files reflect selective repository tracking of lightweight extracted landmark tensors, not proven loss of underlying source recordings."
+    },
+    "exact_file_content_duplicates": 0,
+    "duplicate_hash_pairs": [],
+    "non_finite_coordinates_count": 0,
+    "dimension_mismatch_count": 0,
+    "per_class_sample_balance": {
+      "min_samples_per_signer_class": 15,
+      "max_samples_per_signer_class": 15,
+      "is_perfectly_balanced": true
+    },
+    "session_ids_present": [
+      "SES01"
+    ],
+    "recording_environment_uniformity": {
+      "resolutions": [
+        "640x480"
+      ],
+      "distance_categories": [
+        "STANDARD"
+      ],
+      "lighting_categories": [
+        "NORMAL"
+      ],
+      "frame_rate_fps": [
+        30.0
+      ]
+    }
+  },
+  "kinematic_similarity_diagnostics": {
+    "comparison_count_audit": {
+      "dataset_dimensions": {
+        "total_samples": 1200,
+        "total_signers": 8,
+        "samples_per_signer": 150,
+        "total_classes": 10,
+        "samples_per_signer_class": 15
+      },
+      "ordered_comparisons": {
+        "derivation": "8 signers * 7 other signers * 150 * 150 = 1,260,000 total; 10 classes * 8 * 7 * 15 * 15 = 126,000 same-class; 1,260,000 - 126,000 = 1,134,000 diff-class",
+        "total_cross_signer_comparisons": 1260000,
+        "same_class_cross_signer_comparisons": 126000,
+        "diff_class_cross_signer_comparisons": 1134000,
+        "partition_invariant_satisfied": true
+      },
+      "unordered_unique_pairs": {
+        "derivation": "Unordered pairs {i, j} with i < j; exactly half of ordered comparisons: 1,260,000 / 2 = 630,000 total; 126,000 / 2 = 63,000 same-class; 1,134,000 / 2 = 567,000 diff-class",
+        "total_cross_signer_pairs": 630000,
+        "same_class_cross_signer_pairs": 63000,
+        "diff_class_cross_signer_pairs": 567000,
+        "partition_invariant_satisfied": true
+      }
+    },
+    "within_class_cross_signer_similarity": {
+      "min": 0.901,
+      "p05": 0.9367,
+      "p25": 0.9727,
+      "median": 0.982,
+      "mean": 0.9762,
+      "p75": 0.9864,
+      "p95": 0.9911,
+      "max": 0.9964,
+      "std": 0.0164,
+      "interpretation": "High intra-class kinematic consistency across signers (median 0.9820, mean 0.9762)."
+    },
+    "between_class_cross_signer_similarity": {
+      "min": 0.3157,
+      "p05": 0.5013,
+      "p25": 0.6996,
+      "median": 0.7891,
+      "mean": 0.7655,
+      "p75": 0.859,
+      "p95": 0.9317,
+      "max": 0.9785,
+      "std": 0.1291,
+      "interpretation": "Lower central tendency (median 0.7891, mean 0.7655) confirms distinct kinematic profiles, but upper tail overlaps within-class range."
+    },
+    "threshold_overlap_analysis": {
+      "overlap_interval_min_to_max": [
+        0.901,
+        0.9785
+      ],
+      "ordered_comparisons": {
+        "between_class_ge_within_class_min": {
+          "numerator": 145102,
+          "denominator": 1134000,
+          "percentage": 12.8,
+          "definition": "Ordered directed comparisons (i, j) where class(i) != class(j) and cos_sim(i, j) >= min(within_class_sim)"
+        },
+        "between_class_ge_within_class_p05": {
+          "numerator": 48172,
+          "denominator": 1134000,
+          "percentage": 4.25,
+          "definition": "Ordered directed comparisons (i, j) where class(i) != class(j) and cos_sim(i, j) >= 5th percentile of within_class_sim"
+        },
+        "within_class_le_between_class_max": {
+          "numerator": 46424,
+          "denominator": 126000,
+          "percentage": 36.84,
+          "definition": "Ordered directed comparisons (i, j) where class(i) == class(j) and cos_sim(i, j) <= max(between_class_sim)"
+        }
+      },
+      "unordered_unique_pairs": {
+        "between_class_ge_within_class_min": {
+          "numerator": 72551,
+          "denominator": 567000,
+          "percentage": 12.8,
+          "definition": "Unique unordered pairs {i, j} with i < j where class(i) != class(j) and cos_sim(i, j) >= min(within_class_sim)"
+        },
+        "between_class_ge_within_class_p05": {
+          "numerator": 24086,
+          "denominator": 567000,
+          "percentage": 4.25,
+          "definition": "Unique unordered pairs {i, j} with i < j where class(i) != class(j) and cos_sim(i, j) >= 5th percentile of within_class_sim"
+        },
+        "within_class_le_between_class_max": {
+          "numerator": 23212,
+          "denominator": 63000,
+          "percentage": 36.84,
+          "definition": "Unique unordered pairs {i, j} with i < j where class(i) == class(j) and cos_sim(i, j) <= max(between_class_sim)"
+        }
+      }
+    },
+    "statistical_distribution_overlap": {
+      "metric_name": "Weitzman Overlapping Coefficient (OVL)",
+      "formula": "OVL = integral min(f_within(x), f_between(x)) dx",
+      "estimator": "Non-parametric discrete histogram estimator over support [0.0, 1.0] using 200 equal-width bins (width=0.005)",
+      "ovl_value": 0.0829,
+      "ovl_percentage": 8.29,
+      "assumptions": "Non-parametric empirical density estimation; does not assume normality; bounded support [0, 1]; resolution-dependent on bin count",
+      "scientific_interpretation": "The discrete Overlapping Coefficient of 0.0829 indicates that 8.29% of the distribution mass is shared between within-class and between-class pairwise cosine-similarity profiles under the measured dataset conditions. While the two distributions exhibit distinctly separated medians (0.9820 vs 0.7891), this 8.29% estimated overlap demonstrates that a single scalar cosine-similarity threshold cannot perfectly separate all observed within-class and between-class pairs in 1D similarity space. OVL is a descriptive distribution-overlap measure, not a classification error rate, false-positive rate, or measure of model accuracy. The 200-bin histogram estimator is resolution-dependent, and because pairwise comparisons share underlying landmark samples, comparisons must not be treated as independent observations for inferential statistics. Overlap in a 1D scalar similarity projection does not independently prove linear inseparability in the original 972-dimensional kinematic feature space, but it empirically illustrates why scalar similarity thresholds alone are insufficient for gesture disambiguation."
+    },
+    "most_confusable_class_pairs": [
+      {
+        "class_1": "HELLO",
+        "class_2": "I_DONT_UNDERSTAND",
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
+        "mean_cosine_similarity": 0.9556,
+        "median_cosine_similarity": 0.9615,
+        "p95_cosine_similarity": 0.9737,
+        "max_cosine_similarity": 0.9785
+      },
+      {
+        "class_1": "OKAY",
+        "class_2": "STOP",
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
+        "mean_cosine_similarity": 0.9296,
+        "median_cosine_similarity": 0.9381,
+        "p95_cosine_similarity": 0.9521,
+        "max_cosine_similarity": 0.9589
+      },
+      {
+        "class_1": "OKAY",
+        "class_2": "YES",
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
+        "mean_cosine_similarity": 0.9294,
+        "median_cosine_similarity": 0.9357,
+        "p95_cosine_similarity": 0.9628,
+        "max_cosine_similarity": 0.9706
+      },
+      {
+        "class_1": "I_DONT_UNDERSTAND",
+        "class_2": "THANK_YOU",
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
+        "mean_cosine_similarity": 0.9107,
+        "median_cosine_similarity": 0.9184,
+        "p95_cosine_similarity": 0.9311,
+        "max_cosine_similarity": 0.9377
+      },
+      {
+        "class_1": "NO",
+        "class_2": "PLEASE",
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
+        "mean_cosine_similarity": 0.8994,
+        "median_cosine_similarity": 0.9075,
+        "p95_cosine_similarity": 0.932,
+        "max_cosine_similarity": 0.9448
+      },
+      {
+        "class_1": "I_NEED_HELP",
+        "class_2": "YOURE_WELCOME",
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
+        "mean_cosine_similarity": 0.8928,
+        "median_cosine_similarity": 0.8982,
+        "p95_cosine_similarity": 0.9196,
+        "max_cosine_similarity": 0.9254
+      },
+      {
+        "class_1": "PLEASE",
+        "class_2": "YES",
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
+        "mean_cosine_similarity": 0.8914,
+        "median_cosine_similarity": 0.8979,
+        "p95_cosine_similarity": 0.9221,
+        "max_cosine_similarity": 0.9294
+      },
+      {
+        "class_1": "STOP",
+        "class_2": "YES",
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
+        "mean_cosine_similarity": 0.8895,
+        "median_cosine_similarity": 0.8961,
+        "p95_cosine_similarity": 0.9288,
+        "max_cosine_similarity": 0.9374
+      },
+      {
+        "class_1": "HELLO",
+        "class_2": "THANK_YOU",
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
+        "mean_cosine_similarity": 0.877,
+        "median_cosine_similarity": 0.885,
+        "p95_cosine_similarity": 0.9048,
+        "max_cosine_similarity": 0.9121
+      },
+      {
+        "class_1": "NO",
+        "class_2": "OKAY",
+        "ordered_comparisons_count": 25200,
+        "unordered_pairs_count": 12600,
+        "mean_cosine_similarity": 0.8752,
+        "median_cosine_similarity": 0.8819,
+        "p95_cosine_similarity": 0.9188,
+        "max_cosine_similarity": 0.9346
+      }
+    ],
+    "per_class_cross_signer_summary": {
+      "HELLO": {
+        "within_class_cross_signer_mean": 0.9845,
+        "highest_cross_signer_confusable_class": "I_DONT_UNDERSTAND",
+        "highest_cross_signer_confusable_mean": 0.9556,
+        "highest_cross_signer_confusable_max": 0.9785
+      },
+      "I_DONT_UNDERSTAND": {
+        "within_class_cross_signer_mean": 0.9815,
+        "highest_cross_signer_confusable_class": "HELLO",
+        "highest_cross_signer_confusable_mean": 0.9556,
+        "highest_cross_signer_confusable_max": 0.9785
+      },
+      "I_NEED_HELP": {
+        "within_class_cross_signer_mean": 0.9737,
+        "highest_cross_signer_confusable_class": "YOURE_WELCOME",
+        "highest_cross_signer_confusable_mean": 0.8928,
+        "highest_cross_signer_confusable_max": 0.9254
+      },
+      "NO": {
+        "within_class_cross_signer_mean": 0.9738,
+        "highest_cross_signer_confusable_class": "PLEASE",
+        "highest_cross_signer_confusable_mean": 0.8994,
+        "highest_cross_signer_confusable_max": 0.9448
+      },
+      "OKAY": {
+        "within_class_cross_signer_mean": 0.9685,
+        "highest_cross_signer_confusable_class": "STOP",
+        "highest_cross_signer_confusable_mean": 0.9296,
+        "highest_cross_signer_confusable_max": 0.9589
+      },
+      "PLEASE": {
+        "within_class_cross_signer_mean": 0.9774,
+        "highest_cross_signer_confusable_class": "NO",
+        "highest_cross_signer_confusable_mean": 0.8994,
+        "highest_cross_signer_confusable_max": 0.9448
+      },
+      "STOP": {
+        "within_class_cross_signer_mean": 0.9735,
+        "highest_cross_signer_confusable_class": "OKAY",
+        "highest_cross_signer_confusable_mean": 0.9296,
+        "highest_cross_signer_confusable_max": 0.9589
+      },
+      "THANK_YOU": {
+        "within_class_cross_signer_mean": 0.9753,
+        "highest_cross_signer_confusable_class": "I_DONT_UNDERSTAND",
+        "highest_cross_signer_confusable_mean": 0.9107,
+        "highest_cross_signer_confusable_max": 0.9377
+      },
+      "YES": {
+        "within_class_cross_signer_mean": 0.9731,
+        "highest_cross_signer_confusable_class": "OKAY",
+        "highest_cross_signer_confusable_mean": 0.9294,
+        "highest_cross_signer_confusable_max": 0.9706
+      },
+      "YOURE_WELCOME": {
+        "within_class_cross_signer_mean": 0.9805,
+        "highest_cross_signer_confusable_class": "I_NEED_HELP",
+        "highest_cross_signer_confusable_mean": 0.8928,
+        "highest_cross_signer_confusable_max": 0.9254
+      }
+    }
+  },
+  "production_model_checkpoint_evaluation": {
+    "artifact_paths": {
+      "model_path": "/home/safin313/Downloads/transify-main/models/sign/bdsl_champion_model.pkl",
+      "model_sha256": "605dee925e4cf9629f738e049c5eaf26f693f8ed2f54070560c1302e625c21ef",
+      "scaler_path": "/home/safin313/Downloads/transify-main/models/sign/scaler.pkl",
+      "scaler_sha256": "95102d95d273105f32444825a27268a525320879eb1bc286bbe3d15d65ac6067",
+      "calibrated_path": "/home/safin313/Downloads/transify-main/models/sign/calibrated_classifier.pkl",
+      "calibrated_sha256": "FILE_NOT_FOUND"
+    },
+    "model_architecture": "RandomForestClassifier",
+    "input_feature_dim": 972,
+    "classes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "training_protocol_note": "The saved production checkpoint was trained on train_split.csv (signers S002, S003, S004, S005, S007, S008; 900 samples), tuned on val_split.csv (S006; 150 samples), and evaluated on held-out test_split.csv (S001; 150 samples).",
+    "official_held_out_test_metrics_s001": {
+      "held_out_signer": "S001",
+      "sample_count": 150,
+      "raw_accuracy": 1.0,
+      "raw_macro_precision": 1.0,
+      "raw_macro_recall": 1.0,
+      "raw_macro_f1": 1.0,
+      "calibrated_accuracy": 1.0,
+      "calibrated_macro_precision": 1.0,
+      "calibrated_macro_recall": 1.0,
+      "calibrated_macro_f1": 1.0,
+      "raw_brier_score": 0.0135,
+      "calibrated_brier_score": 0.0135,
+      "raw_top_label_ece": 0.0692,
+      "calibrated_top_label_ece": 0.0692,
+      "macro_f1": 1.0
+    },
+    "validation_accuracy_s006": 1.0,
+    "train_split_accuracy": 1.0,
+    "per_signer_accuracy": {
+      "S001": {
+        "dataset_role": "held_out_test",
+        "sample_count": 150,
+        "accuracy": 1.0
+      },
+      "S002": {
+        "dataset_role": "train_split",
+        "sample_count": 150,
+        "accuracy": 1.0
+      },
+      "S003": {
+        "dataset_role": "train_split",
+        "sample_count": 150,
+        "accuracy": 1.0
+      },
+      "S004": {
+        "dataset_role": "train_split",
+        "sample_count": 150,
+        "accuracy": 1.0
+      },
+      "S005": {
+        "dataset_role": "train_split",
+        "sample_count": 150,
+        "accuracy": 1.0
+      },
+      "S006": {
+        "dataset_role": "validation",
+        "sample_count": 150,
+        "accuracy": 1.0
+      },
+      "S007": {
+        "dataset_role": "train_split",
+        "sample_count": 150,
+        "accuracy": 1.0
+      },
+      "S008": {
+        "dataset_role": "train_split",
+        "sample_count": 150,
+        "accuracy": 1.0
+      }
+    }
+  },
+  "training_procedure_loso_summary": {
+    "mean_accuracy": 1.0,
+    "std_accuracy": 0.0,
+    "mean_macro_f1": 1.0,
+    "std_macro_f1": 0.0,
+    "mean_calibrated_brier": 0.0009,
+    "std_calibrated_brier": 0.0,
+    "mean_calibrated_top_label_ece": 0.0285,
+    "std_calibrated_top_label_ece": 0.0003,
+    "min_accuracy": 1.0,
+    "max_accuracy": 1.0,
+    "total_runtime_sec": 84.74,
+    "internal_regression_gate_policy": {
+      "threshold_value": 0.9,
+      "metric_scope": "per-fold accuracy and macro F1 >= 0.90",
+      "nature": "INTERNAL_CI_REGRESSION_FLOOR",
+      "disclaimer": "This >= 0.90 threshold is an internal engineering regression floor to prevent code drift and catch severe cross-signer degradation. It is NOT a clinically validated life-safety threshold, does not guarantee safe assistive communication, and has not been approved through a formal clinical risk assessment. Real-world dependable operation requires multi-session field validation."
+    },
+    "critical_signs_evaluation": {
+      "I_NEED_HELP": {
+        "total_samples": 120,
+        "per_fold_samples": 15,
+        "mean_precision": 1.0,
+        "mean_recall": 1.0,
+        "mean_f1": 1.0,
+        "confusion_matrix_errors": 0,
+        "operational_status": "HIGH_ACCURACY_IN_CONTROLLED_SES01",
+        "clinical_safety_threshold_status": "NOT_YET_ESTABLISHED"
+      },
+      "STOP": {
+        "total_samples": 120,
+        "per_fold_samples": 15,
+        "mean_precision": 1.0,
+        "mean_recall": 1.0,
+        "mean_f1": 1.0,
+        "confusion_matrix_errors": 0,
+        "operational_status": "HIGH_ACCURACY_IN_CONTROLLED_SES01",
+        "clinical_safety_threshold_status": "NOT_YET_ESTABLISHED"
+      }
+    }
+  },
+  "per_signer_loso_folds": [
+    {
+      "fold": 1,
+      "held_out_signer": "S001",
+      "train_signers": [
+        "S002",
+        "S003",
+        "S004",
+        "S005",
+        "S006",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0003,
+      "top_label_ece_raw": 0.0044,
+      "brier_score_calibrated": 0.001,
+      "top_label_ece_calibrated": 0.0293,
+      "training_time_sec": 1.93,
+      "calibration_time_sec": 7.21,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 2,
+      "held_out_signer": "S002",
+      "train_signers": [
+        "S001",
+        "S003",
+        "S004",
+        "S005",
+        "S006",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "top_label_ece_raw": 0.0006,
+      "brier_score_calibrated": 0.0009,
+      "top_label_ece_calibrated": 0.0283,
+      "training_time_sec": 2.69,
+      "calibration_time_sec": 11.51,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 3,
+      "held_out_signer": "S003",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S004",
+        "S005",
+        "S006",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "top_label_ece_raw": 0.0005,
+      "brier_score_calibrated": 0.0009,
+      "top_label_ece_calibrated": 0.0284,
+      "training_time_sec": 3.44,
+      "calibration_time_sec": 6.11,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 4,
+      "held_out_signer": "S004",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S003",
+        "S005",
+        "S006",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "top_label_ece_raw": 0.0003,
+      "brier_score_calibrated": 0.0009,
+      "top_label_ece_calibrated": 0.0283,
+      "training_time_sec": 2.78,
+      "calibration_time_sec": 7.7,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 5,
+      "held_out_signer": "S005",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S003",
+        "S004",
+        "S006",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "top_label_ece_raw": 0.0003,
+      "brier_score_calibrated": 0.0009,
+      "top_label_ece_calibrated": 0.0283,
+      "training_time_sec": 2.39,
+      "calibration_time_sec": 6.29,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 6,
+      "held_out_signer": "S006",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S003",
+        "S004",
+        "S005",
+        "S007",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "top_label_ece_raw": 0.0011,
+      "brier_score_calibrated": 0.0009,
+      "top_label_ece_calibrated": 0.0284,
+      "training_time_sec": 3.05,
+      "calibration_time_sec": 9.58,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 7,
+      "held_out_signer": "S007",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S003",
+        "S004",
+        "S005",
+        "S006",
+        "S008"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "top_label_ece_raw": 0.0002,
+      "brier_score_calibrated": 0.0009,
+      "top_label_ece_calibrated": 0.0286,
+      "training_time_sec": 3.08,
+      "calibration_time_sec": 6.29,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    },
+    {
+      "fold": 8,
+      "held_out_signer": "S008",
+      "train_signers": [
+        "S001",
+        "S002",
+        "S003",
+        "S004",
+        "S005",
+        "S006",
+        "S007"
+      ],
+      "train_samples": 1050,
+      "test_samples": 150,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "brier_score_raw": 0.0,
+      "top_label_ece_raw": 0.0002,
+      "brier_score_calibrated": 0.0009,
+      "top_label_ece_calibrated": 0.0283,
+      "training_time_sec": 2.85,
+      "calibration_time_sec": 6.52,
+      "per_class_metrics": {
+        "HELLO": {
+          "class_id": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "THANK_YOU": {
+          "class_id": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YOURE_WELCOME": {
+          "class_id": 2,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "PLEASE": {
+          "class_id": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_NEED_HELP": {
+          "class_id": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "YES": {
+          "class_id": 5,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "NO": {
+          "class_id": 6,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "OKAY": {
+          "class_id": 7,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "STOP": {
+          "class_id": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        },
+        "I_DONT_UNDERSTAND": {
+          "class_id": 9,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1_score": 1.0,
+          "samples": 15
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15
+        ]
+      ]
+    }
+  ],
+  "cross_session_generalization_limitations_and_protocol": {
+    "current_dataset_limitations": "All 1,200 samples were recorded under session SES01 under uniform laboratory conditions (640x480 resolution, 30 FPS, STANDARD distance, NORMAL lighting). While cross-signer invariance is rigorously established across the 8 signers, cross-session and cross-environment generalization remains unverified.",
+    "repeatable_protocol_for_future_sessions": {
+      "session_naming": "SES02 (Variable Lighting), SES03 (Distance Jitter), SES04 (Angle Variation)",
+      "lighting_tiers": [
+        "DIM_LOW_LIGHT (< 50 lux)",
+        "NATURAL_DIFFUSE (200-400 lux)",
+        "HARSH_BACKLIT (> 800 lux)"
+      ],
+      "distance_tiers": [
+        "NEAR (0.4m - 0.6m)",
+        "STANDARD (0.8m - 1.2m)",
+        "FAR (1.5m - 2.0m)"
+      ],
+      "camera_orientations": [
+        "DIRECT_FRONTAL (0 deg)",
+        "SLIGHT_OBLIQUE (15-30 deg)",
+        "HIGH_ANGLE (downward 20 deg)"
+      ],
+      "quality_criteria": "Minimum 30 frames per gesture, strict MediaPipe hand landmark detection on >= 95% of frames, verified informed participant consent."
+    }
+  }
+}

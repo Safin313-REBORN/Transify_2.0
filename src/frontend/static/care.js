@@ -51,8 +51,8 @@
       this.bindEvents();
       this.setupOfflineWatcher();
       this.updateOfflineBadge();
-      const token = localStorage.getItem('transify_auth_token');
-      if (token) {
+      const authUser = localStorage.getItem('transify_auth_user');
+      if (authUser) {
         this.loadDashboardStats();
         this.loadClinicianQueue();
       }
@@ -879,7 +879,10 @@
       const desc = document.getElementById('care-symptom-desc')?.value || complaint;
       const onset = document.getElementById('care-onset-duration')?.value || '';
       const traj = document.querySelector('input[name="care_symptom_trajectory"]:checked')?.value || document.querySelector('.traj-chip-btn.selected')?.getAttribute('data-traj') || 'stable';
-      const severity = parseInt(document.getElementById('care-severity-slider')?.value || '1', 10);
+      let severity = parseInt(document.getElementById('care-severity-slider')?.value || '5', 10);
+      if (isNaN(severity)) severity = 5;
+      if (severity > 10) severity = Math.min(10, Math.max(1, Math.round(severity / 10)));
+      if (severity < 1) severity = 1;
       const medContext = document.getElementById('care-medical-context')?.value || '';
       const allergies = document.getElementById('care-allergies-meds')?.value || '';
       const rawInput = document.getElementById('care-raw-input')?.value || '';
@@ -930,9 +933,12 @@
         submitBtn.textContent = 'Evaluating Triage...';
       }
 
+      const headers = { 'Content-Type': 'application/json' };
+
       fetch('/api/care/intake', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
+        credentials: 'include',
         body: JSON.stringify(payload)
       })
         .then(res => {
@@ -960,7 +966,11 @@
           }
           if (err.message && err.message.includes('Authentication required')) {
             alert(err.message);
-            window.location.href = '/login';
+            if (window.openAuthSheet) {
+              window.openAuthSheet('login');
+            } else if (window.TransifyApp && window.TransifyApp.openAuthSheet) {
+              window.TransifyApp.openAuthSheet('login');
+            }
             return;
           }
           if (self.isSyntheticDemoDraft(payload)) {
@@ -976,9 +986,11 @@
 
     renderTriageResult: function (data) {
       const container = document.getElementById('triage-assessment-output');
-      if (!container) return;
+      const visualContainer = document.getElementById('care-intake-result');
+      if (!container && !visualContainer) return;
 
-      clearElement(container);
+      if (container) clearElement(container);
+      if (visualContainer) clearElement(visualContainer);
 
       const level = data.urgency_level || 'REVIEW_REQUIRED';
       let cssClass = 'urgency-review-required';
@@ -1127,14 +1139,21 @@
         card.appendChild(citeBox);
       }
 
-      container.appendChild(card);
+      if (visualContainer) {
+        visualContainer.appendChild(card);
+      }
+      if (container) {
+        container.appendChild(visualContainer ? card.cloneNode(true) : card);
+      }
     },
 
     displayOfflineTriageResult: function (draft) {
       const container = document.getElementById('triage-assessment-output');
-      if (!container) return;
+      const visualContainer = document.getElementById('care-intake-result');
+      if (!container && !visualContainer) return;
 
-      clearElement(container);
+      if (container) clearElement(container);
+      if (visualContainer) clearElement(visualContainer);
 
       const isDemo = this.isSyntheticDemoDraft(draft);
 
@@ -1190,7 +1209,12 @@
         : 'Status: Submission deferred until authenticated connection is restored.';
       card.appendChild(advice);
 
-      container.appendChild(card);
+      if (visualContainer) {
+        visualContainer.appendChild(card);
+      }
+      if (container) {
+        container.appendChild(visualContainer ? card.cloneNode(true) : card);
+      }
     },
 
     speakTriageAssessment: function () {
@@ -1225,8 +1249,8 @@
       const tbody = document.getElementById('clinician-queue-tbody');
       if (!tbody) return;
 
-      const token = localStorage.getItem('transify_auth_token');
-      if (!token) {
+      const authUser = localStorage.getItem('transify_auth_user');
+      if (!authUser) {
         clearElement(tbody);
         const tr = document.createElement('tr');
         const td = document.createElement('td');
@@ -1243,7 +1267,7 @@
       let url = '/api/care/intakes?limit=50';
       if (filterStatus) url += `&status=${encodeURIComponent(filterStatus)}`;
 
-      fetch(url)
+      fetch(url, { credentials: 'include' })
         .then(res => {
           if (res.status === 401) {
             clearElement(tbody);
@@ -1482,9 +1506,12 @@
       };
 
       const self = this;
+      const headers = { 'Content-Type': 'application/json' };
+
       fetch(`/api/care/intake/${this.activeIntakeId}/review`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
+        credentials: 'include',
         body: JSON.stringify(payload)
       })
         .then(res => {
@@ -1521,9 +1548,12 @@
         container.appendChild(loading);
       }
 
+      const headers = { 'Content-Type': 'application/json' };
+
       fetch('/api/care/evidence/search', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
+        credentials: 'include',
         body: JSON.stringify({ query: query })
       })
         .then(res => {
@@ -1590,9 +1620,7 @@
     },
 
     loadDashboardStats: function () {
-      const token = localStorage.getItem('transify_auth_token');
-      if (!token) return;
-      fetch('/api/care/dashboard/stats')
+      fetch('/api/care/dashboard/stats', { credentials: 'include' })
         .then(res => {
           if (!res.ok) return null;
           return res.json();

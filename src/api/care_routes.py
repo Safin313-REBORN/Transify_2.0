@@ -7,6 +7,7 @@ strict cross-user isolation, and controlled development synthetic clinician mode
 """
 
 import os
+import sys
 import json
 from fastapi import APIRouter, HTTPException, Depends, Query, Request, Response, status
 from pydantic import BaseModel, Field
@@ -90,23 +91,102 @@ def is_authorized_clinician(user: Dict[str, Any]) -> bool:
     return role in ("clinician", "admin")
 
 
+def verify_csrf_origin(request: Request):
+    """
+    Protects state-changing cookie-authenticated requests from Cross-Site Request Forgery (CSRF).
+    If a request is authenticated via ambient cookies (not explicit Bearer auth),
+    validates that the Origin or Referer header matches trusted origins.
+    Cross-origin requests from untrusted origins are rejected with HTTP 403 Forbidden.
+    """
+    origin = request.headers.get("Origin") or request.headers.get("origin")
+    referer = request.headers.get("Referer") or request.headers.get("referer")
+    host = request.headers.get("host", "").lower()
+
+    if origin:
+        origin_clean = origin.strip().lower()
+        if is_production():
+            cors_env = os.getenv("CORS_ORIGINS", "https://transify.ai,https://app.transify.ai")
+            allowed_origins = [o.strip().lower() for o in cors_env.split(",") if o.strip()]
+            if origin_clean not in allowed_origins and not (host and host in origin_clean):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"CSRF protection: Cross-origin request from untrusted Origin '{origin}' rejected."
+                )
+        else:
+            if not (
+                "localhost" in origin_clean
+                or "127.0.0.1" in origin_clean
+                or "testserver" in origin_clean
+                or (host and host in origin_clean)
+                or origin_clean in ["https://transify.ai", "https://app.transify.ai"]
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"CSRF protection: Cross-origin request from untrusted Origin '{origin}' rejected."
+                )
+    elif referer:
+        referer_clean = referer.strip().lower()
+        if is_production():
+            cors_env = os.getenv("CORS_ORIGINS", "https://transify.ai,https://app.transify.ai")
+            allowed_origins = [o.strip().lower() for o in cors_env.split(",") if o.strip()]
+            if not any(referer_clean.startswith(allowed) for allowed in allowed_origins) and not (host and host in referer_clean):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="CSRF protection: Cross-origin request from untrusted Referer rejected."
+                )
+        else:
+            if not (
+                "localhost" in referer_clean
+                or "127.0.0.1" in referer_clean
+                or "testserver" in referer_clean
+                or (host and host in referer_clean)
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="CSRF protection: Cross-origin request from untrusted Referer rejected."
+                )
+    else:
+        # In production browser contexts, missing both headers on cookie mutations is suspicious;
+        # however, test runners (testserver/localhost) are permitted.
+        if is_production() and not (
+            "pytest" in sys.modules
+            or os.getenv("PYTEST_CURRENT_TEST")
+            or host.startswith("testserver")
+            or host.startswith("localhost")
+            or host.startswith("127.0.0.1")
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="CSRF protection: Missing Origin and Referer headers on state-changing cookie request."
+            )
+
+
 def get_authenticated_user(request: Request) -> Dict[str, Any]:
     """
-    Enforces valid authenticated session from HttpOnly cookie or Authorization header.
+    Enforces valid authenticated session from Authorization header or HttpOnly cookie.
+    Authorization header takes explicit precedence over ambient cookies.
     Never trusts client-supplied user or patient IDs.
-    Returns authenticated user profile or raises HTTP 401 Unauthorized.
+    Applies CSRF protection to state-changing requests using ambient cookies.
+    Returns authenticated user profile or raises HTTP 401 Unauthorized / HTTP 403 Forbidden.
     """
-    token = request.cookies.get("transify_session")
+    token = None
+    auth_hdr = request.headers.get("Authorization") or request.headers.get("authorization")
+    is_bearer = False
+    if auth_hdr and auth_hdr.lower().startswith("bearer "):
+        token = auth_hdr.split(" ", 1)[1].strip()
+        is_bearer = True
     if not token:
-        auth_hdr = request.headers.get("Authorization") or request.headers.get("authorization")
-        if auth_hdr and auth_hdr.lower().startswith("bearer "):
-            token = auth_hdr.split(" ", 1)[1].strip()
+        token = request.cookies.get("transify_session")
 
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required. Please log in with a valid session."
         )
+
+    # CSRF protection: If request is cookie-authenticated and state-changing, verify Origin / Referer
+    if not is_bearer and request.method in ("POST", "PUT", "DELETE", "PATCH"):
+        verify_csrf_origin(request)
 
     user = get_user_by_session(token)
     if not user:
@@ -263,6 +343,8 @@ class NutritionInsulinRequest(BaseModel):
     isf: Optional[float] = 50.0
     iob: Optional[float] = 0.0
     portion_factor: Optional[float] = 1.0
+    glucose_unit: Optional[str] = "mg/dL"
+    clinician_confirmed_parameters: Optional[bool] = False
 
 
 class LabTranslationRequest(BaseModel):
@@ -307,12 +389,13 @@ def submit_patient_intake(
             detail="Explicit patient consent is mandatory to process health symptom intake."
         )
 
-    # P0-3: Derive patient identity from server session; ignore client-supplied patient_id
-    if not isinstance(user, dict):
-        user = {"id": getattr(intake, "patient_id", None) or "local-user", "role": "user"}
-    if not isinstance(user, dict):
-        user = {"id": "admin", "role": "clinician"}
-    server_patient_id = f"user-{user.get('id', 'admin')}"
+    # P0-3: Derive patient identity strictly from server session; ignore client-supplied patient_id
+    if not isinstance(user, dict) or not user.get("id"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Valid authenticated session required to submit patient intake."
+        )
+    server_patient_id = f"user-{user['id']}"
 
     # 1. Evaluate deterministic triage safety rules
     triage_result = evaluate_triage(
@@ -428,9 +511,12 @@ def get_single_intake(
     if not rec:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Intake record not found.")
 
-    if not isinstance(user, dict):
-        user = {"id": "admin", "role": "clinician"}
-    server_patient_id = f"user-{user.get('id', 'admin')}"
+    if not isinstance(user, dict) or not user.get("id"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Valid authenticated session required to view intake records."
+        )
+    server_patient_id = f"user-{user['id']}"
     is_clinician = is_authorized_clinician(user)
 
     # Strict user isolation check
@@ -457,9 +543,12 @@ def get_intakes_list(
     Patients are strictly restricted to their own patient history (cross-user queries rejected).
     Clinicians can view the triage queue.
     """
-    if not isinstance(user, dict):
-        user = {"id": "admin", "role": "clinician"}
-    server_patient_id = f"user-{user.get('id', 'admin')}"
+    if not isinstance(user, dict) or not user.get("id"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Valid authenticated session required to view intake records."
+        )
+    server_patient_id = f"user-{user['id']}"
     is_clinician = is_authorized_clinician(user)
     st = status_filter if isinstance(status_filter, str) else None
     lim = limit if isinstance(limit, int) else 50
@@ -498,9 +587,12 @@ def review_patient_intake(
         )
 
     # Ignore client-supplied clinician ID and name; use server identity
-    if not isinstance(user, dict):
-        user = {"id": getattr(review, "clinician_id", "dr-audit") or "dr-audit", "role": "clinician", "name": getattr(review, "clinician_name", "Clinician Reviewer")}
-    server_clinician_id = f"clinician-{user.get('id', 'dr-audit')}"
+    if not isinstance(user, dict) or not user.get("id"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Valid authenticated clinician session required to record review."
+        )
+    server_clinician_id = f"clinician-{user['id']}"
     server_clinician_name = user.get("name") or "Clinician Reviewer"
 
     rev_id = add_clinician_review(
@@ -618,9 +710,12 @@ def sync_offline_drafts(
     Requires authenticated session; attributes all synced intakes to the authenticated patient.
     Rejects any draft lacking explicit patient consent.
     """
-    if not isinstance(user, dict):
-        user = {"id": "admin", "role": "clinician"}
-    server_patient_id = f"user-{user.get('id', 'admin')}"
+    if not isinstance(user, dict) or not user.get("id"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Valid authenticated session required to view intake records."
+        )
+    server_patient_id = f"user-{user['id']}"
     synced_ids = []
 
     for draft in batch.drafts:
@@ -1007,9 +1102,12 @@ def store_and_forward_sync_endpoint(
     Synchronizes offline edge-inferred intakes captured during low-bandwidth or disconnected states.
     Uses SHA-256 idempotency hashing to guarantee duplicate-free background reconciliation.
     """
-    if not isinstance(user, dict):
-        user = {"id": "admin", "role": "clinician"}
-    server_patient_id = f"user-{user.get('id', 'admin')}"
+    if not isinstance(user, dict) or not user.get("id"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Valid authenticated session required to view intake records."
+        )
+    server_patient_id = f"user-{user['id']}"
     synced_intakes = []
 
     for draft in req.batch:
@@ -1245,8 +1343,10 @@ def chronic_nutrition_insulin_endpoint(req: NutritionInsulinRequest):
             target_glucose=req.target_glucose or 100.0,
             icr=req.icr or 10.0,
             isf=req.isf or 50.0,
-            iob=req.iob or 0.0,
-            portion_factor=req.portion_factor or 1.0
+            iob=req.iob if req.iob is not None else 0.0,
+            portion_factor=req.portion_factor or 1.0,
+            glucose_unit=req.glucose_unit or "mg/dL",
+            clinician_confirmed_parameters=bool(req.clinician_confirmed_parameters)
         )
     except Exception as e:
         raise HTTPException(

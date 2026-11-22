@@ -1,0 +1,61 @@
+{
+  "project": "Transify",
+  "version": "V3-RC1.2",
+  "timestamp": "2026-11-22T11:32:00Z",
+  "adb_connectivity": {
+    "command": "adb devices -l",
+    "devices_found": 0,
+    "physical_device_attached": false,
+    "device_identifier": "NOT_VERIFIED_NO_PHYSICAL_HARDWARE",
+    "manufacturer": "N/A",
+    "model": "N/A",
+    "android_version": "N/A",
+    "api_level": "N/A",
+    "display_metrics": {
+      "resolution": "N/A",
+      "density_dpi": "N/A"
+    },
+    "soc_cpu": "N/A",
+    "ram_total_mb": "N/A",
+    "storage_available_mb": "N/A"
+  },
+  "camera_pipeline_benchmarks": {
+    "status": "HARDWARE_MEASUREMENT_PENDING_PHYSICAL_DEVICE",
+    "target_fps": 30.0,
+    "measured_physical_sensor_fps": "NOT_VERIFIED",
+    "frame_delivery_to_app_fps": "NOT_VERIFIED",
+    "ml_pipeline_processed_fps": "NOT_VERIFIED",
+    "e2e_recognition_latency_ms": "NOT_VERIFIED",
+    "offline_cpu_benchmark": {
+      "mean_inference_latency_ms": 24.87,
+      "p95_latency_ms": 26.68,
+      "cpu_throughput_fps": 40.2,
+      "engine": "MediaPipe LiteRT CPU Delegate"
+    }
+  },
+  "touchscreen_motion_metrics": {
+    "status": "HARDWARE_MEASUREMENT_PENDING_PHYSICAL_DEVICE",
+    "touch_interaction_latency_ms": "NOT_VERIFIED",
+    "motion_event_dropped_frames": "NOT_VERIFIED",
+    "automated_touch_tests": {
+      "perkins_braille_pad_bounds": "PASS",
+      "mobile_rail_navigation_targets_44px": "PASS",
+      "slide_out_drawer_touch_action": "PASS",
+      "modal_dialog_focus_and_tap": "PASS"
+    }
+  },
+  "audio_and_speech_metrics": {
+    "microphone_runtime_permission": "PASS (Manifest & ActivityResultHandler verified)",
+    "intentional_speech_capture_bridge": "PASS (TransifySpeechBridge verified)",
+    "zero_auto_audio_enforcement": "PASS (10/10 StrictNoAutoAudioPolicyTest)",
+    "ambient_noise_acoustic_capture": "PENDING_PHYSICAL_DEVICE"
+  },
+  "offline_and_network_recovery": {
+    "offline_detection": "PASS (NetworkMonitor.kt ConnectivityManager.NetworkCallback)",
+    "offline_retry_ui": "PASS (layout/activity_main.xml error container displayed)",
+    "offline_bdsl_inference": "PASS (Local ONNX/LiteRT model, zero network calls)",
+    "offline_braille_ocr": "PASS (Deterministic ICEB UEB Grade 1 table lookup)",
+    "connection_restoration_reload": "PASS (webView.reload() invoked on network recovery)",
+    "duplicate_submission_guard": "PASS (Client-side idempotency keys verified)"
+  }
+}

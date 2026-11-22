@@ -13,8 +13,10 @@
       nav_braille: "Braille",
       nav_voice: "Voice",
       nav_phrases: "Phrases",
+      nav_care: "Care",
       nav_chat: "AI Chat",
       nav_settings: "Settings",
+      nav_more: "More",
 
       // Cover & Welcome
       cover_title: "Signs to words, spoken aloud.",
@@ -95,8 +97,10 @@
       nav_braille: "ব্রেইল",
       nav_voice: "ভয়েস",
       nav_phrases: "বাক্য",
+      nav_care: "কেয়ার",
       nav_chat: "এআই চ্যাট",
       nav_settings: "সেটিংস",
+      nav_more: "আরও",
 
       // Cover & Welcome
       cover_title: "ইশারা থেকে কথা, সরাসরি শুনুন।",
@@ -208,10 +212,14 @@
     if (railVoice) railVoice.textContent = dict.nav_voice;
     const railPhrases = document.querySelector('#rail-btn-phrases span');
     if (railPhrases) railPhrases.textContent = dict.nav_phrases;
+    const railCare = document.querySelector('#rail-btn-care span');
+    if (railCare) railCare.textContent = dict.nav_care;
     const railChat = document.querySelector('#rail-btn-chat span');
     if (railChat) railChat.textContent = dict.nav_chat;
     const railSettings = document.querySelector('#rail-btn-settings span');
     if (railSettings) railSettings.textContent = dict.nav_settings;
+    const railMore = document.querySelector('#rail-btn-more span');
+    if (railMore) railMore.textContent = dict.nav_more;
 
     // 3. Home Screen Greeting & Headline
     const h = new Date().getHours();

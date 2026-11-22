@@ -71,6 +71,10 @@ def init_care_db():
         checksum TEXT,
         status TEXT NOT NULL,
         reviewer TEXT,
+        retrieval_date TEXT,
+        applicable_population TEXT,
+        supported_claims TEXT,
+        can_support_clinical_recommendations INTEGER DEFAULT 1,
         chunks_count INTEGER DEFAULT 0,
         created_at TEXT NOT NULL
     );
@@ -123,6 +127,19 @@ def init_care_db():
         cursor.execute("ALTER TABLE care_audit_logs ADD COLUMN prev_hash TEXT;")
     if "entry_hash" not in audit_cols:
         cursor.execute("ALTER TABLE care_audit_logs ADD COLUMN entry_hash TEXT;")
+
+    # Safe migration for care_clinical_sources (Clinical and Research Evidence Registry)
+    cursor.execute("PRAGMA table_info(care_clinical_sources);")
+    src_cols = [r["name"] for r in cursor.fetchall()]
+    new_src_cols = [
+        ("retrieval_date", "TEXT"),
+        ("applicable_population", "TEXT"),
+        ("supported_claims", "TEXT"),
+        ("can_support_clinical_recommendations", "INTEGER DEFAULT 1")
+    ]
+    for c_name, c_type in new_src_cols:
+        if c_name not in src_cols:
+            cursor.execute(f"ALTER TABLE care_clinical_sources ADD COLUMN {c_name} {c_type};")
 
     # Safe migration for existing care_patient_intakes tables (CareAnywhere features)
     cursor.execute("PRAGMA table_info(care_patient_intakes);")

@@ -106,6 +106,38 @@ GRADE2_STRONG_CONTRACTIONS: Dict[Tuple[int, ...], str] = {
     (0, 1, 1, 1, 1, 1): "with (⠾)",
 }
 
+GRADE2_SUPPORTED_CONTRACTIONS: List[str] = [
+    "and (dots 1-2-3-4-6 / ⠯)",
+    "for (dots 1-2-3-4-5-6 / ⠿)",
+    "of (dots 1-2-3-5-6 / ⠷)",
+    "the (dots 2-3-4-6 / ⠮)",
+    "with (dots 2-3-4-5-6 / ⠾)"
+]
+
+GRADE2_UNSUPPORTED_CONTRACTIONS: List[str] = [
+    "Shortform words (e.g., ab = about, af = after, al = also, b = but, c = can, d = do, e = every)",
+    "Two-cell initial-letter contractions (e.g., dot 5 + d = day, dot 5 + e = ever, dot 5 + f = father)",
+    "Final-letter groupsigns (e.g., dots 4-6 + e = ance, dots 5-6 + e = ence, dots 4-6 + n = sion)",
+    "Lower groupsigns and wordsigns (e.g., ea, bb, cc, ff, gg, be, con, dis, en, in)",
+    "Standing-alone word contractions (e.g., child, shall, still, this, which, out)"
+]
+
+# Bengali Bharati Braille Transliteration Scope & Limitations
+BENGALI_BHARATI_SUPPORTED_CHARS: List[str] = [
+    "অ", "আ", "ই", "ঈ", "উ", "ঊ", "এ", "ঐ", "ও", "ঔ",  # 10 basic vowels
+    "ক", "খ", "গ", "ঘ", "ঙ", "চ", "ছ", "জ", "ঝ", "ঞ",  # Consonants 1-10
+    "ট", "ঠ", "ড", "ঢ", "ণ", "ত", "থ", "দ", "ধ", "ন",  # Consonants 11-20
+    "প", "ফ", "ব", "ভ", "ম", "য", "র", "ল", "শ", "ষ", "স", "হ",  # Consonants 21-32
+    "।", ",", ";", ":", "?", "!"  # Punctuation
+]
+
+BENGALI_BHARATI_UNSUPPORTED_SEQUENCES: List[str] = [
+    "Complex conjunct ligatures / Juktoborno (e.g., ক্ত, ক্ষ, জ্ঞ, ঙ্গ, ঞ্চ, ণ্ড, ত্ত, ত্র, দ্ধ, ন্ধ, ণ্ট)",
+    "Contextual vowel sign diacritics / Kar-chinho (া, ি, ী, ু, ূ, ৃ, ে, ৈ, ো, ৌ) without explicit Bharati cell mapping",
+    "Hasant / Virama (্) ligature rendering in camera OCR",
+    "Nasalization Chandrabindu (ঁ), Anusvara (ং), Visarga (ঃ) in multi-cell OCR"
+]
+
 
 def vector_to_unicode(v: Tuple[int, ...]) -> str:
     """Converts 6-dot binary tuple into standard Unicode Braille symbol."""

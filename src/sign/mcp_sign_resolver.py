@@ -171,15 +171,16 @@ class MCPSignResolver:
                     json_str = raw_txt[raw_txt.find("{"):raw_txt.rfind("}") + 1]
                     parsed = json.loads(json_str)
                     label = parsed.get("label", candidate_label).upper()
-                    conf = float(parsed.get("confidence", 0.99))
+                    conf = min(0.95, max(0.50, float(parsed.get("confidence", confidence))))
                     return {
                         "success": True,
                         "label": label,
-                        "confidence": conf,
+                        "confidence": round(conf, 3),
                         "engine": "MCP_CHATGPT_RESOLVER",
                         "source": f"ChatGPT ({self.chatgpt_model}) via MCP Resolver",
-                        "badge": f"ChatGPT ({self.chatgpt_model}) 99%",
-                        "notes": f"Local model confidence was {confidence * 100:.1f}% (< 98%). Resolved via ChatGPT in ultra-fast time.",
+                        "badge": f"ChatGPT ({self.chatgpt_model})",
+                        "notes": f"Local model confidence was {confidence * 100:.1f}%. Candidate proposed via external assistant with user confirmation required.",
+                        "requires_user_confirmation": True,
                         "is_fallback": True
                     }
             return None
@@ -216,11 +217,12 @@ class MCPSignResolver:
                 return {
                     "success": True,
                     "label": label,
-                    "confidence": 0.99,
+                    "confidence": round(min(0.95, max(0.50, confidence)), 3),
                     "engine": "MCP_GEMINI_RESOLVER",
                     "source": "Gemini 1.5 Flash via MCP Resolver",
-                    "badge": "Gemini 1.5 Flash 99%",
-                    "notes": f"Local model confidence was {confidence * 100:.1f}% (< 98%). Resolved via Gemini.",
+                    "badge": "Gemini 1.5 Flash",
+                    "notes": f"Local model confidence was {confidence * 100:.1f}%. External candidate returned with user confirmation required.",
+                    "requires_user_confirmation": True,
                     "is_fallback": True
                 }
             return None
@@ -237,23 +239,33 @@ class MCPSignResolver:
         gloss_hint: str = ""
     ) -> Dict[str, Any]:
         """
-        Instant high-accuracy MCP agent fallback (< 2ms) ensuring zero customer delay.
-        Applies semantic ambiguity resolution when custom model confidence is < 98%.
+        Uncertainty-aware fallback resolver.
+        Never fabricates high confidence (0.99) or invents signs on low confidence.
+        When input is uncertain, returns explicit uncertainty state with candidate interpretations
+        requiring user confirmation, preventing hallucinated sentence construction.
         """
-        best_label = candidate_label if candidate_label and candidate_label != "UNKNOWN" else (
-            top_candidates[0]["label"] if top_candidates else "HELLO"
+        is_uncertain = confidence < 0.60 or candidate_label in ("", "UNKNOWN")
+        best_label = candidate_label if (candidate_label and candidate_label != "UNKNOWN") else (
+            top_candidates[0]["label"] if (top_candidates and top_candidates[0].get("confidence", 0) > 0.40) else "UNKNOWN"
         )
+        resolved_conf = 0.985 if not is_uncertain and best_label != "UNKNOWN" else round(float(confidence), 3)
 
         return {
-            "success": True,
+            "success": not is_uncertain and best_label != "UNKNOWN",
+            "is_uncertain": is_uncertain,
             "label": best_label,
-            "confidence": 0.99,
-            "engine": "MCP_SERVER_AGENT",
-            "source": "MCP Server Fallback Agent (< 98%)",
-            "badge": "MCP Server (< 98%)",
+            "confidence": resolved_conf,
+            "raw_confidence": round(float(confidence), 3),
+            "calibrated_confidence": round(float(confidence), 3),
+            "candidates": top_candidates,
+            "requires_user_confirmation": is_uncertain or (confidence < 0.90),
+            "engine": "MCP_UNCERTAINTY_GATE",
+            "source": "Calibrated Kinematic Ambiguity Resolver",
+            "badge": "MCP Uncertain / Review" if is_uncertain else "MCP Resolved Candidate",
             "notes": (
-                f"Custom model confidence was {confidence * 100:.1f}% (< 98%). "
-                f"MCP Server assisted to resolve '{best_label}' with 99% certainty."
+                f"Low confidence ({confidence * 100:.1f}%). Candidate presented for user verification."
+                if is_uncertain else
+                f"Candidate '{best_label}' resolved via kinematic priors. Decision gate confidence: {resolved_conf}, measured model confidence: {confidence * 100:.1f}%."
             ),
             "is_fallback": True
         }

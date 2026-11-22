@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-11-22T10:53:03Z",
+  "total_viewports": 15,
+  "passed_viewports": [
+    "mobile_320x568_iphone_se1",
+    "mobile_360x640_galaxy_s5",
+    "mobile_360x800_galaxy_a",
+    "mobile_375x667_iphone_se2",
+    "mobile_390x844_iphone_14",
+    "mobile_393x852_iphone_15_pro",
+    "mobile_412x915_pixel_8",
+    "mobile_430x932_iphone_15_promax",
+    "tablet_768x1024_ipad_portrait",
+    "tablet_820x1180_ipad_air_portrait",
+    "tablet_1024x768_ipad_landscape",
+    "desktop_1280x800_macbook",
+    "desktop_1366x768_hd_laptop",
+    "desktop_1440x900_wide_laptop",
+    "desktop_1920x1080_fhd_desktop"
+  ],
+  "failed_viewports": [],
+  "views_tested": [
+    "home",
+    "sign",
+    "braille",
+    "care",
+    "clinician",
+    "chat",
+    "settings"
+  ],
+  "checks": {
+    "zero_horizontal_overflow": true,
+    "touch_targets_accessible": true,
+    "mobile_bottom_nav_hierarchy": true,
+    "tablet_compact_rail": true,
+    "desktop_rail_visual_identity": true,
+    "bilingual_bn_en_stable": true,
+    "drawer_more_menu_functional": true
+  },
+  "issues": []
+}
