@@ -5726,6 +5726,22 @@ const EditorialController = {
       });
     });
 
+    // 6. Uiverse 3D Flip Card (by joe-watson-sbf) touch & keyboard support
+    document.querySelectorAll('.flip-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('a') && card.classList.contains('flipped')) return;
+        card.classList.toggle('flipped');
+      });
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          if (!e.target.closest('a')) {
+            e.preventDefault();
+            card.classList.toggle('flipped');
+          }
+        }
+      });
+    });
+
     // 5. Interface language toggle
     const enBtn = document.getElementById('home-lang-en');
     const bnBtn = document.getElementById('home-lang-bn');
