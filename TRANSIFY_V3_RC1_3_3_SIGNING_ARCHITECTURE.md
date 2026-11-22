@@ -75,7 +75,13 @@ jar verified.
 ```
 - **Signer Certificate:** `CN=Transify Release, OU=Transify Assistive Health, O=Safin313, L=Dhaka, ST=Dhaka, C=BD`
 - **Certificate Fingerprint:** `SHA-256: 63b8cecac17e061c1eef4dbcc13979b72e4ab23407a8daa6467504092550b12e`
-- **Upload Key Note:** The AAB is signed using the currently registered Google Play upload key. The replacement upload key (`9A:A3:EB...`) remains staged locally until Google Play Console confirms activation.
+- **Upload Key Note:** The AAB is reported as signed using the currently registered Google Play upload key. The replacement upload key remains staged locally until Google Play Console confirms activation.
+
+### Replacement Upload Certificate Fingerprint Reconciliation
+- The earlier RC1.3.2 report records a replacement certificate fingerprint beginning `9A:A3:EB:53:11:50:26...`.
+- The RC1.3.3 report records a different replacement certificate fingerprint beginning `9A:A3:EB:76:CD:6F:E9:7D...`.
+- These are different certificate fingerprints. The RC1.3.3 value is the latest reported value, but neither the private local keystore nor its exported PEM is accessible through this repository review.
+- **Status: NOT INDEPENDENTLY VERIFIED.** Before Play Console submission, run `keytool -exportcert -rfc` against the actual replacement keystore and compare the resulting certificate SHA-256 fingerprint with the PEM certificate using OpenSSL. Record the exact full fingerprint in the audit. Do not submit or use the replacement key until they match and Google Play confirms activation.
 
 ### 3.2 Bundletool Structure Validation
 ```bash
