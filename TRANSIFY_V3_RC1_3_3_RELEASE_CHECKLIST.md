@@ -25,16 +25,17 @@
   - Parent Directory: `~/.transify_release` (POSIX `0700`, `drwx------`)
   - Integrity: Byte-for-byte verified identical to original prior to rotation
 
-- [x] **Credential Rotation**
+- [x] **Credential Rotation (reported by local audit; not independently verified from GitHub)**
   - Tool: `keytool -storepasswd`
   - New Credential Entropy: High-entropy 32-character CSPRNG secret
-  - Certificate Invariance: Fingerprint verified strictly unchanged post-rotation
+  - Certificate Invariance: Reported unchanged; local keystore access and post-rotation verification evidence must be retained outside Git
 
 - [x] **Elimination of `-P` Command-Line Argument Lookups**
   - All calls to `project.findProperty("KEYSTORE_PASSWORD")` and `project.findProperty("KEY_PASSWORD")` completely excised from `android/app/build.gradle.kts`.
   - Credentials in `-P` command-line flags are strictly rejected / ignored.
 
 - [x] **Secure Credential Injection & Fail-Closed Guard**
+  - Gradle checks exact POSIX mode `0700` on the signing-properties parent directory and `0600` on the file before reading it. Actual local modes still require host verification.
   - Permitted Sources:
     1. Environment variables (`TRANSIFY_KEYSTORE_PASSWORD`, `TRANSIFY_KEY_PASSWORD`, etc.)
     2. Secure external file `~/.transify_release/release-signing.properties` (POSIX `0600` inside `0700` dir)
@@ -76,11 +77,11 @@
 
 - [x] **Compile SDK:** 36 (Android 16 Vanilla Ice Cream)
 - [x] **Target SDK:** 36
-- [x] **Min SDK:** 26 (Android 8.0 Oreo)
-- [x] **Android Gradle Plugin (AGP):** 8.9.0
-- [x] **Gradle Wrapper:** 8.13
-- [x] **Build-Tools:** 36.0.0
-- [x] **JDK:** 21.0.4 (Ubuntu openjdk-21-jdk)
+- [x] **Min SDK:** 24 (Android 7.0 Nougat), matching `android/app/build.gradle.kts`.
+- [x] **Android Gradle Plugin (AGP):** 8.9.1, matching `android/build.gradle.kts`.
+- [x] **Gradle Wrapper:** 8.11.1, matching `android/gradle/wrapper/gradle-wrapper.properties`.
+- [x] **Java/Kotlin compilation target:** Java 17 and Kotlin JVM target 17, matching `android/app/build.gradle.kts`.
+- [ ] **Runtime JDK / installed Build-Tools versions:** Confirm on the build host using `./gradlew -version` and `sdkmanager --list_installed`; repository configuration alone does not establish local installations.
 
 ---
 
@@ -97,7 +98,7 @@
 | **Subtotal Automated Test Cases** | **259** | **259** | **0** | **PASSED** |
 | **Responsive Viewports Matrix** | 15 | 15 | 0 | PASSED (Mobile, Tablet, Desktop) |
 | **Accessibility Audit Phases** | 8 | 8 | 0 | PASSED (WCAG 2.1 AA / Sec 508) |
-| **Grand Total Quality Checks** | **282** | **282** | **0** | **100% PASS** |
+| **Accounting note** | **Not aggregated** | — | — | Test cases, viewport configurations and accessibility phases are different units; report each separately. |
 
 ---
 
