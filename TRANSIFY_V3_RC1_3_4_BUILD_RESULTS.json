@@ -1,0 +1,191 @@
+{
+  "milestone": "RC1.3.4",
+  "project": "Transify V3",
+  "package": "com.abrarafick.transify",
+  "timestamp": "2026-11-22T20:47:00+06:00",
+  "synced_baseline_commit": "c199ad3cb08f8b9819c3294e3ae3d59f3c8a3b5e",
+  "branch": "fix/rc1.3.3-signing-pipeline",
+  "toolchain": {
+    "compile_sdk": 36,
+    "target_sdk": 36,
+    "min_sdk": 24,
+    "android_gradle_plugin": "8.9.1",
+    "gradle_wrapper": "8.11.1",
+    "java_source_compatibility": "17",
+    "kotlin_jvm_target": "17",
+    "launcher_jvm": "Oracle JDK 26.0.1+8-34",
+    "daemon_jvm": "OpenJDK 21.0.4 (/usr/lib/jvm/java-21-openjdk-amd64)",
+    "installed_build_tools": [
+      "34.0.0",
+      "35.0.0",
+      "36.0.0"
+    ]
+  },
+  "posix_permission_guard_verification": {
+    "directory_path": "~/.transify_release",
+    "directory_mode": "0700",
+    "properties_path": "~/.transify_release/release-signing.properties",
+    "properties_mode": "0600",
+    "positive_test_result": "PASSED",
+    "negative_test_insecure_file_0644": "PASSED (FAILED CLOSED WITH GRADLE EXCEPTION)",
+    "negative_test_insecure_dir_0755": "PASSED (FAILED CLOSED WITH GRADLE EXCEPTION)",
+    "post_test_restoration": "VERIFIED (0700 dir, 0600 properties file)"
+  },
+  "signing_assets_verification": {
+    "distribution_keystore": {
+      "path": "~/.transify_release/transify-release.keystore",
+      "format": "PKCS12",
+      "alias": "transify",
+      "rotated_password_opens_keystore": true,
+      "compromised_historical_password_fails": true,
+      "certificate_fingerprint_sha256": "63:B8:CE:CA:C1:7E:06:1C:1E:EF:4D:BC:C1:39:79:B7:2E:4A:B2:34:07:A8:DA:A6:46:75:04:09:25:50:B1:2E",
+      "certificate_identity_preserved": true,
+      "protected_backup": {
+        "path": "~/.transify_release/transify-release.keystore.bak",
+        "mode": "0600",
+        "intact": true,
+        "certificate_fingerprint_sha256": "63:B8:CE:CA:C1:7E:06:1C:1E:EF:4D:BC:C1:39:79:B7:2E:4A:B2:34:07:A8:DA:A6:46:75:04:09:25:50:B1:2E"
+      }
+    },
+    "replacement_upload_keystore": {
+      "path": "~/.transify_release/transify-upload-replacement.keystore",
+      "format": "PKCS12",
+      "alias": "transify-upload",
+      "pem_path": "~/.transify_release/transify_upload_replacement_cert.pem",
+      "exported_cert_matches_pem": true,
+      "real_sha256_fingerprint": "9A:A3:EB:53:11:50:26:1D:EB:7D:EC:AC:A2:A5:46:F4:13:B3:51:A4:02:13:81:38:37:4A:72:7D:B4:64:E7:6E",
+      "rc1_3_3_discrepancy_string": "9A:A3:EB:76:CD:6F:E9:7D:6B:42:DE:DE:D2:C3:FF:C4:6E:1D:95:97:D5:FF:AC:12:F6:41:81:4A:14:0E:98:98",
+      "discrepancy_resolution": "String 9A:A3:EB:76... was documented in error; actual generated keystore and PEM contain 9A:A3:EB:53... Real fingerprint is confirmed and verified.",
+      "staging_status": "STAGED_AWAITING_GOOGLE_PLAY_CONSOLE_CONFIRMATION"
+    }
+  },
+  "artifacts": {
+    "direct_apk": {
+      "path": "android/app/build/outputs/apk/direct/release/app-direct-release.apk",
+      "size_bytes": 1848431,
+      "sha256": "dcccbe201c9b2167ad56eb2e56cdf95fc3fcecd5ba6345e9dbce9394d4d5e6b5",
+      "apksigner_verification": "VERIFIED",
+      "scheme_v1": false,
+      "scheme_v2": true,
+      "scheme_v3": false,
+      "scheme_v4": false,
+      "signer_certificate_sha256": "63b8cecac17e061c1eef4dbcc13979b72e4ab23407a8daa6467504092550b12e"
+    },
+    "play_aab": {
+      "path": "android/app/build/outputs/bundle/playRelease/app-play-release.aab",
+      "size_bytes": 2591086,
+      "sha256": "5d2453e0184a3d5e0be19840bbcb6ab47d30bb2e6c74fcc9c2f6724022d3d338",
+      "jarsigner_verification": "jar verified.",
+      "bundletool_validation": "PASSED (Exit code 0)",
+      "signer_certificate_sha256": "63:B8:CE:CA:C1:7E:06:1C:1E:EF:4D:BC:C1:39:79:B7:2E:4A:B2:34:07:A8:DA:A6:46:75:04:09:25:50:B1:2E"
+    }
+  },
+  "test_evidence_disaggregated": {
+    "automated_test_cases": {
+      "backend_pytest": {
+        "command": ".venv/bin/python -m pytest tests/",
+        "test_cases_total": 178,
+        "passed": 178,
+        "failed": 0,
+        "execution_time_seconds": 15.16
+      },
+      "android_unit": {
+        "command": "./gradlew testDirectReleaseUnitTest",
+        "test_cases_total": 40,
+        "passed": 40,
+        "failed": 0,
+        "execution_time_seconds": 5.0,
+        "subsuites": {
+          "strict_no_auto_audio_policy": {
+            "test_class": "com.abrarafick.transify.StrictNoAutoAudioPolicyTest",
+            "test_cases": 10,
+            "passed": 10,
+            "failed": 0,
+            "accounting_status": "Integrated inside Android unit suite; never double-counted"
+          },
+          "file_provider_and_capture": {
+            "test_class": "com.abrarafick.transify.FileProviderAndCaptureTest",
+            "test_cases": 4,
+            "passed": 4,
+            "failed": 0
+          },
+          "full_workflow_integration": {
+            "test_class": "com.abrarafick.transify.FullWorkflowIntegrationTest",
+            "test_cases": 6,
+            "passed": 6,
+            "failed": 0
+          },
+          "navigation_and_security": {
+            "test_class": "com.abrarafick.transify.NavigationAndSecurityTest",
+            "test_cases": 3,
+            "passed": 3,
+            "failed": 0
+          },
+          "network_monitor_validation": {
+            "test_class": "com.abrarafick.transify.NetworkMonitorValidationTest",
+            "test_cases": 3,
+            "passed": 3,
+            "failed": 0
+          },
+          "tts_bridge_validation": {
+            "test_class": "com.abrarafick.transify.TTSBridgeValidationTest",
+            "test_cases": 7,
+            "passed": 7,
+            "failed": 0
+          },
+          "url_validation": {
+            "test_class": "com.abrarafick.transify.UrlValidationTest",
+            "test_cases": 7,
+            "passed": 7,
+            "failed": 0
+          }
+        }
+      },
+      "browser_e2e": {
+        "command": ".venv/bin/python scripts/test_all_features_deep.py",
+        "checks_total": 41,
+        "passed": 41,
+        "failed": 0,
+        "execution_time_seconds": 32.0
+      },
+      "subtotal_automated_cases_and_checks": 259
+    },
+    "responsive_viewports": {
+      "command": ".venv/bin/python scripts/verify_responsive_ui_matrix.py",
+      "total_viewports": 15,
+      "passed": 15,
+      "failed": 0,
+      "zero_horizontal_overflow": true,
+      "bilingual_stability_verified": true,
+      "execution_time_seconds": 81.0
+    },
+    "accessibility_audit": {
+      "command": ".venv/bin/python scripts/verify_accessibility_and_viewports.py",
+      "total_phases": 8,
+      "passed": 8,
+      "failed": 0,
+      "phases_detail": [
+        "Phase 8.1: Multi-Viewport Responsive Audit (15 viewports)",
+        "Phase 8.2: Keyboard Navigation & Focus State (8 interactive controls)",
+        "Phase 8.3: Modal Focus & Escape Key Trap/Close",
+        "Phase 8.4: Screen Reader ARIA Live Regions (49 regions detected)",
+        "Phase 8.5: High Contrast Mode Audit",
+        "Phase 8.6: Reduced Motion Media Query Audit",
+        "Phase 8.7: Perkins Braille Pad Touch & Key Accessibility",
+        "Phase 8.8: Triage Result Accessibility Synchronization"
+      ],
+      "execution_time_seconds": 33.0
+    }
+  },
+  "release_gates": {
+    "gate_1_bdsl_generalization": "CLOSED (8-Fold LOSO CV, 100% Macro F1, ECE=0.0285)",
+    "gate_2_clinical_safety": "CLOSED (11 Safety Rules, p99=14.8ms, Emergency Hotlines 16263/999/109)",
+    "gate_3_physical_android_hardware": "OPEN (DEFERRED to physical device lab provisioning; 0 physical devices attached)",
+    "google_play_upload_key_reset": "STAGED (Awaiting official Play Console confirmation of reset activation)",
+    "institutional_clinical_governance": "PENDING_PRE_DEPLOYMENT (IRB / BMRC / DGHS MIS formal approval requirements)"
+  },
+  "verdict": {
+    "decision": "CONDITIONALLY APPROVED",
+    "summary": "Local verification of RC1.3.4 confirmed that Gradle owner-only POSIX guards fail closed, keystore credentials rotate cleanly, upload certificate fingerprints match local PEM (9A:A3:EB:53...), toolchain is aligned (compileSdk 36, minSdk 24, AGP 8.9.1, Gradle 8.11.1), builds succeed, and all 259 automated test cases/checks, 15 viewports, and 8 accessibility phases pass without regressions. Gate 3 remains OPEN / DEFERRED to physical hardware testing."
+  }
+}
