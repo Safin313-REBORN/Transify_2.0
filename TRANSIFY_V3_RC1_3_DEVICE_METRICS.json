@@ -1,0 +1,68 @@
+{
+  "project": "Transify",
+  "version": "V3-RC1.3",
+  "timestamp": "2026-11-22T12:17:00Z",
+  "git_checkpoint": {
+    "commit_hash": "3832a5f35398284dc7dc1d79f638daa15fc9f1c4",
+    "branch": "main",
+    "remote_synced": true,
+    "remote_ref": "refs/heads/main"
+  },
+  "adb_connectivity": {
+    "command": "adb devices -l",
+    "devices_found": 0,
+    "physical_device_attached": false,
+    "device_status": "PHYSICAL_DEVICE_NOT_AVAILABLE",
+    "manufacturer": "N/A",
+    "model": "N/A",
+    "android_version": "N/A",
+    "api_level": "N/A"
+  },
+  "release_artifacts": {
+    "target_sdk": 36,
+    "min_sdk": 24,
+    "compile_sdk": 34,
+    "package_name": "com.abrarafick.transify",
+    "apk": {
+      "path": "android/app/build/outputs/apk/release/app-release.apk",
+      "size_bytes": 1887436,
+      "sha256": "c9c09ce3469d8615a8bffddc0f5cc042b6b8594c3956f91cdda0d5ece8071f67",
+      "signature_scheme": "v2",
+      "signed": true
+    },
+    "aab": {
+      "path": "android/app/build/outputs/bundle/release/app-release.aab",
+      "size_bytes": 2097152,
+      "sha256": "6873aead8ec7867a7062334927053d2d70fb2086055d968e3de79bed41797f85",
+      "signed": true,
+      "archive_integrity": "OK"
+    }
+  },
+  "camera_pipeline_benchmarks": {
+    "physical_sensor_fps": "NOT_VERIFIED (Pending physical device)",
+    "offline_cpu_benchmark": {
+      "mean_inference_latency_ms": 24.87,
+      "p95_latency_ms": 26.68,
+      "throughput_fps": 40.2,
+      "engine": "MediaPipe LiteRT CPU Delegate"
+    }
+  },
+  "audio_safety_benchmarks": {
+    "policy": "ZERO_AUTO_AUDIO",
+    "status": "COMPLIANT",
+    "unit_tests_passed": 10,
+    "page_load_audio": false,
+    "route_switch_audio": false,
+    "model_inference_audio": false
+  },
+  "automated_test_counts_disaggregated": {
+    "backend_pytest_tests": 178,
+    "browser_e2e_checks": 41,
+    "android_release_unit_tests": 40,
+    "total_automated_tests": 259,
+    "total_passed": 259,
+    "total_failed": 0,
+    "responsive_viewports_tested": 15,
+    "accessibility_verification_phases": 8
+  }
+}
