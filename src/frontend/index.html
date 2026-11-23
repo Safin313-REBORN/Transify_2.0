@@ -29,12 +29,20 @@
   <script>
     // Bulletproof routing & auth initialization
     window.openAuthSheet = function (mode) {
-      var sheet = document.getElementById('auth-sheet-container');
-      if (sheet) sheet.classList.add('active');
+      if (window.TransifyApp && window.TransifyApp.openAuthSheet) {
+        window.TransifyApp.openAuthSheet(mode);
+      } else {
+        var sheet = document.getElementById('auth-sheet-container');
+        if (sheet) sheet.classList.add('active');
+      }
     };
     window.closeAuthSheet = function () {
-      var sheet = document.getElementById('auth-sheet-container');
-      if (sheet) sheet.classList.remove('active');
+      if (window.TransifyApp && window.TransifyApp.closeAuthSheet) {
+        window.TransifyApp.closeAuthSheet();
+      } else {
+        var sheet = document.getElementById('auth-sheet-container');
+        if (sheet) sheet.classList.remove('active');
+      }
     };
     window.handleDirectLogin = function () {
       try {

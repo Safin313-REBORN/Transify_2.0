@@ -2,7 +2,7 @@
 
 **Project:** Transify V3  
 **Package:** `com.abrarafick.transify`  
-**Milestone:** RC1.4 Desktop Audit Correction & Evidence Reconciliation  
+**Milestone:** RC1.4 Desktop Final Audit Defect Fix & Release Gate Verification  
 **Date:** November 23, 2026  
 **Auditor:** Principal Mobile & Application Security Architect  
 **Evaluated Environment:** Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)  
@@ -10,79 +10,83 @@
 
 ---
 
-## 1. Executive Summary & Audit Scope
-
-This audit evaluates application security controls for Transify V3 across live production infrastructure (`https://transify20-production.up.railway.app`) and local desktop browser workstation environments.
+## 1. Executive Summary & Security Verdicts
 
 ```
 +======================================================================================================+
-| DESKTOP SECURITY AUDIT STATUS: RECONCILED WITH EMPIRICAL EVIDENCE                                    |
+| DESKTOP SECURITY AUDIT: SEPARATE WORKSTREAM VERDICTS                                                 |
 +======================================================================================================+
-| • Live Production Probe: HTTP/2 200 OK via Railway Hikari Edge Proxy                                 |
-| • Edge Security Headers: Missing Strict-Transport-Security (HSTS) and Content-Security-Policy (CSP)  |
-| • Script-Src CSP Directives: 'unsafe-inline' is functionally required due to index.html inline logic  |
-| • Authentication Token Transport: Dual emission (HttpOnly Cookie for Web + JSON token for Android)    |
-| • Native Bridge IPC Security: NOT APPLICABLE / NOT TESTED (No desktop wrapper implemented)           |
-| • Zero Auto-Audio Policy: VERIFIED ENFORCED (0 unprompted calls; explicit user click required)       |
+| • Server-Side Security Middleware:     VERIFIED (PASSED)
+| • Live Railway Production Edge:        FAILED / HARDENING PENDING
+| • Authentication Endpoint Structure:   VERIFIED (POST /api/auth/login)
+| • Dual-Token Architecture:             VERIFIED (HttpOnly transify_session cookie + JSON body token)
+| • Native Desktop Bridge IPC:           NOT APPLICABLE / NOT TESTED (No desktop wrapper)
+| • Zero Auto-Audio Policy:              VERIFIED ENFORCED (0 unprompted calls; explicit click required)
 +======================================================================================================+
 ```
 
 ---
 
-## 2. Live Production Infrastructure Probe
+## 2. Server-Side Security Headers Middleware (`src/api/server.py`)
 
-A live HTTP probe against the production URL (`https://transify20-production.up.railway.app/`) captured empirical edge headers:
+A dedicated security headers middleware was implemented in FastAPI to inject defense-in-depth protective headers on all server responses:
+- `X-Content-Type-Options: nosniff`: Enforces MIME-type protection against MIME confusion attacks.
+- `Referrer-Policy: strict-origin-when-cross-origin`: Restricts cross-origin referrer leakage.
+- `X-Frame-Options: SAMEORIGIN`: Prevents unauthorized third-party iframe embedding and clickjacking.
+- `Permissions-Policy: camera=(self), microphone=(self), geolocation=()`: Explicitly permits camera and microphone for same-origin BdSL sign recognition and speech capture while strictly forbidding third-party access.
+- `Content-Security-Policy`: Restricts asset origins while accommodating local offline fonts and assets.
+- `Strict-Transport-Security`: Enforces 1-year HSTS (`max-age=31536000; includeSubDomains`) when running in production HTTPS mode.
+
+---
+
+## 3. Live Production Infrastructure Probe (`https://transify20-production.up.railway.app`)
+
+A live probe using curl with protocol introspection captured the empirical edge response:
 
 ```http
 HTTP/2 200
 server: railway-hikari
 content-type: text/html; charset=utf-8
-date: Mon, 23 Nov 2026 06:28:04 GMT
+date: Mon, 23 Nov 2026 07:32:37 GMT
 vary: accept-encoding
-x-railway-request-id: T88RfmLZToKC3KZnlt7tkg
+x-railway-request-id: koCOr6_eS3KVSebhnPRhug
 x-railway-edge: sin1
 ```
 
-### Critical Security Findings on Edge Proxy:
-1. **Strict-Transport-Security (HSTS):** **ABSENT**. The Railway edge proxy terminates TLS but does not inject HSTS headers (`max-age=31536000; includeSubDomains; preload`). Previous reports claiming HSTS enforcement were inaccurate.
-2. **Content-Security-Policy (CSP):** **ABSENT** on production edge responses.
-3. **Missing Protective Headers:** strict-transport-security, content-security-policy, x-content-type-options, x-frame-options, referrer-policy, permissions-policy.
-4. **Remediation Recommendation:** Configure custom middleware in `src/api/server.py` or Railway edge routing rules to inject HSTS, CSP, `X-Content-Type-Options: nosniff`, and `X-Frame-Options: DENY`.
+### Live Production Edge Assessment: FAILED / HARDENING PENDING
+1. **Strict-Transport-Security (HSTS):** **ABSENT** on production edge proxy responses.
+2. **Content-Security-Policy (CSP):** **ABSENT** on production edge proxy responses.
+3. **Missing Security Headers on Edge:** strict-transport-security, content-security-policy, x-content-type-options, x-frame-options, referrer-policy, permissions-policy.
+4. **Finding:** The application server now includes middleware to emit these headers, but the Railway Hikari edge proxy currently deployed does not inject or pass through these security headers. This item is formally marked **PENDING EDGE DEPLOYMENT / HARDENING** and cannot be claimed as passed.
 
 ---
 
-## 3. Content Security Policy (CSP) & `unsafe-inline` Implications
+## 4. Content Security Policy & `'unsafe-inline'` Migration Plan
 
-- **Current Architecture Requirement:** Transify's frontend (`src/frontend/index.html`) relies on inline JavaScript blocks (lines 29–79 for auth modal open/close and routing helpers) and inline DOM event attributes (`onclick="event.stopPropagation()"`).
-- **Security Implications:** When CSP is enforced, the `script-src` directive must explicitly allow `'unsafe-inline'` unless these blocks are refactored into external bundled scripts or assigned cryptographic sha256 nonces.
-- **Risk Assessment:** While `'unsafe-inline'` broadens the theoretical XSS attack surface, all dynamic user text in Chat and Care is actively sanitized through DOMPurify and strictly escaped before DOM insertion. Refactoring inline scripts is logged as a Post-RC1 hardening item.
-
----
-
-## 4. Authentication Session Handling & Dual-Token Emission
-
-- **Dual-Token Architecture:** During user login (`POST /api/v1/auth/login`), the backend server executes two simultaneous actions:
-  1. Sets an `HttpOnly`, `SameSite=Lax`, `Secure` cookie named `transify_session`.
-  2. Returns the raw bearer token in the JSON response payload (`"token": "..."`).
-- **Architectural Rationale:**
-  - The `HttpOnly` cookie secures browser-based desktop sessions against JavaScript credential theft.
-  - The JSON response token is **strictly required for Android mobile client compatibility** (`MainActivity.kt` and OkHttp client), which operates in an isolated native network context where cookies are not automatically shared across Android WebView and native background services.
-- **Client Storage Hygiene:** Verified in `tests/test_care_security.py` that desktop browser code never stores the raw token in unencrypted persistent `localStorage`.
+- **Current Architecture:** Frontend (`src/frontend/index.html`) relies on inline script blocks (lines 29–79 for auth modal open/close and routing helpers) and inline event handlers (`onclick=...`).
+- **Immediate Control:** `'unsafe-inline'` is functionally required until these blocks are refactored into external bundled scripts or assigned cryptographic sha256 nonces.
+- **Risk Mitigation:** All user-supplied inputs in Chat and Care are actively sanitized with DOMPurify before DOM insertion.
+- **Migration Roadmap:**
+  1. Phase 1: Deploy CSP with `Content-Security-Policy-Report-Only` to observe any violations.
+  2. Phase 2: Refactor inline scripts and `onclick` attributes into `app.js` module event listeners.
+  3. Phase 3: Transition to strict nonce-based CSP (`script-src 'self' 'nonce-...'`).
 
 ---
 
-## 5. Native Desktop Bridge IPC Security
+## 5. Authentication Endpoint Verification & Dual-Token Rationale
+
+- **Verified Public Route:** `POST /api/auth/login` (Note: previous references to `/api/v1/auth/login` were inaccurate; no `/v1/` prefix exists in `src/api/server.py`).
+- **Dual-Token Architecture:**
+  1. Sets an `HttpOnly`, `SameSite=Lax`, `Secure` cookie (`transify_session`) for web browser sessions.
+  2. Returns the bearer token in the JSON response body (`"token": "..."`).
+- **Rationale & Mobile Compatibility:**
+  - Browser clients rely on the HttpOnly cookie to mitigate XSS-based token theft.
+  - The native Android client (`com.abrarafick.transify`) requires the token in the JSON body because Android native network services, OkHttp clients, and DownloadManager do not automatically share the WebView's webkit cookie jar. Removing the JSON token would break mobile authentication.
+  - Verified in `tests/test_care_security.py` that desktop browser code never stores the raw token in unencrypted persistent `localStorage`.
+
+---
+
+## 6. Native Desktop Bridge IPC Security
 
 - **Status:** **NOT APPLICABLE / NOT TESTED**.
-- **Evidence:** This repository does NOT contain an Electron main process (`ipcMain`/`ipcRenderer`), a Tauri Rust backend (`tauri::command`), a Windows WebView2 host object (`AddHostObjectToScript`), or a WebKitGTK extension.
-- Testing is strictly performed in standard Chromium desktop browser contexts. No native desktop operating system APIs (raw filesystem, child process execution) are exposed to the DOM.
-
----
-
-## 6. Zero Auto-Audio Policy Verification
-
-- **Empirical Test Result:** **PASSED**.
-- Unprompted audio playback attempts across all 10 views: **0**
-- Unprompted speech synthesis attempts across all 10 views: **0**
-- Explicit user button click speech attempts: **1**
-- Enforces clinical acoustic safety in hospital and office environments.
+- **Finding:** This repository does NOT contain an Electron main process (`ipcRenderer`/`ipcMain`), a Tauri Rust backend (`tauri::command`), or a Windows WebView2 host object (`AddHostObjectToScript`). No native operating system shell or filesystem APIs are exposed to the DOM.

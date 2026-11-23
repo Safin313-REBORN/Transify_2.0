@@ -1,8 +1,8 @@
-# TRANSIFY V3 — RC1.4 DESKTOP KEYBOARD ACCESSIBILITY REPORT
+# TRANSIFY V3 — RC1.4 DESKTOP KEYBOARD ACCESSIBILITY AUDIT REPORT
 
 **Project:** Transify V3  
 **Package:** `com.abrarafick.transify`  
-**Milestone:** RC1.4 Desktop Audit Correction & Evidence Reconciliation  
+**Milestone:** RC1.4 Desktop Final Audit Defect Fix & Release Gate Verification  
 **Date:** November 23, 2026  
 **Auditor:** Senior Accessibility Engineer & UI/UX QA Specialist  
 **Evaluated Environment:** Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)  
@@ -10,53 +10,51 @@
 
 ---
 
-## 1. Executive Summary
+## 1. Executive Summary & Audit Scope Notice
 
-Transify V3 was evaluated for desktop keyboard accessibility compliance (WCAG 2.1 AA) across sequential focus navigation, reverse tab traversal, modal focus trapping, Escape key dismissal, and keyboard route/tab activation.
+> [!IMPORTANT]
+> **SCOPE NOTICE:** This report documents a **Keyboard Accessibility Audit**, evaluating keyboard navigability, focus trapping, Escape dismissal, and keyboard activation. It does **NOT** constitute a full WCAG 2.1 AA certification, which requires broader independent evaluations including color contrast ratios, screen reader compatibility, ARIA semantics, text resize reflow, and cognitive accessibility.
 
 ```
 +======================================================================================================+
-| KEYBOARD ACCESSIBILITY AUDIT SUMMARY: FULLY OPERATIONAL                                              |
+| KEYBOARD ACCESSIBILITY AUDIT SUMMARY                                                                 |
 +======================================================================================================+
-| • Sequential Tab Traversal: PASSED (8 interactive elements focused sequentially)              |
-| • Reverse Shift+Tab Traversal: PASSED (Correctly returns to previous interactive element)            |
-| • Modal Focus Trapping: PASSED (Auth Sheet captures and cycles focus across inputs)                  |
-| • Escape Key Modal Dismissal: PASSED (Pressing Escape closes active modal dialog cleanly)             |
-| • Clinician Tab Keyboard Switching: PASSED (Enter/Space on tab button successfully reveals table)    |
-| • Zero Auto-Audio Enforcement: PASSED (Keyboard navigation generates 0 unprompted speech/audio events)|
+| • Sequential Tab Traversal:                PASS (8 elements focused)
+| • Exact Reverse Shift+Tab Destination:     PASS
+| • Enter Key Activation:                    PASS
+| • Space Key Activation:                    PASS
+| • Modal Opening & Initial Focus Entry:     PASS (Focus lands on #input-email)
+| • Tab Progression Across Modal Controls:   PASS
+| • Modal Focus Trapping:                    PASS (Tab cycles within dialog; Shift+Tab wraps)
+| • Modal Escape Key Dismissal:              PASS
+| • Focus Restoration to Modal Opener:       PASS
+| • Clinician Tab Switching (Enter & Space): PASS
+| • Hidden Content Focus Isolation:          PASS
+| • Computed Keyboard Accessibility Verdict: PASS
 +======================================================================================================+
 ```
 
 ---
 
-## 2. Sequential Keyboard Navigation (Tab & Shift+Tab)
+## 2. Detailed Keyboard Audit Verification
 
-Interactive elements were sequentially traversed using keyboard `Tab` and `Shift+Tab`:
-- **Focused Elements Sequence:** A#.skip-link, A#rail-logo-btn, BUTTON#rail-btn-home, BUTTON#rail-btn-sign, BUTTON#rail-btn-braille, BUTTON#rail-btn-voice, BUTTON#rail-btn-phrases, BUTTON#rail-btn-care.
-- **Focus Order:** Logical order follows DOM document flow from the navigation rail (`#rail-logo-btn`, `.rail-item`) into main dashboard actions.
-- **Reverse Traversal:** `Shift+Tab` successfully returned focus to preceding interactive elements without focus traps or skipped nodes.
+### A. Sequential Navigation & Reverse Traversal
+- **Traversed Elements:** A#.skip-link, BUTTON#welcome-lang-btn, BUTTON#.story, BUTTON#.story, BUTTON#.story, BUTTON#btn-explore-dashboard, BUTTON#btn-open-login, BUTTON#btn-demo-guest.
+- **Reverse Navigation:** Pressing `Shift+Tab` reliably reverses focus along the DOM flow without skipped interactive nodes.
+- **Hidden Elements:** Verified that elements with `display: none` or `visibility: hidden` are not focusable.
 
----
+### B. Modal Dialog Keyboard Accessibility (`#auth-sheet-container`)
+- **Opener Trigger:** `#btn-open-login` on `#view-welcome` was activated via keyboard `Enter`.
+- **Focus Entry:** Focus immediately entered the dialog and rested on the primary input (`#input-email`). Nonexistent legacy selectors (`#login-email`, `#login-password`) were discarded.
+- **Tab Progression:** Sequential Tab moved through `#input-email` -> `#input-password` -> `#eye-icon` -> `#remember-me` -> `#forgot-password-link` -> `#auth-submit-btn`.
+- **Focus Trapping:** When Tabbing past the final focusable element (`#switch-prompt-link`), focus looped back to the first interactive element (`button.btn-outline-dark` close button). When Shift+Tabbing backward from the close button, focus looped to the final element. No focus leaked into obscured background views.
+- **Escape Dismissal:** Pressing `Escape` immediately closed `#auth-sheet-container`.
+- **Focus Restoration:** Upon dialog dismissal, focus was cleanly restored to the opener element (`#btn-open-login`).
 
-## 3. Modal Dialog Accessibility (Auth Sheet)
-
-- **Focus Entry:** When the modal is activated (`window.openAuthSheet('login')`), focus is captured inside `#auth-sheet-container`.
-- **Keyboard Tab Cycling:** Tabbing inside the modal moves focus from `#login-email` to `#login-password` and submit actions. Focus does not leak into the obscured background page.
-- **Escape Key Dismissal:** Verified that pressing `Escape` immediately dismisses `#auth-sheet-container` and restores interactive access to the underlying application shell.
-
----
-
-## 4. Clinician Portal Keyboard Activation
-
-- **Navigation:** The Clinician Portal tab (`#care-tab-clinician-btn`) was focused via keyboard.
-- **Activation:** Pressing `Enter` successfully triggered the tab switch, activating `#slide-clinician-portal` and loading the 50-row triage patient queue table.
-
----
-
-## 5. Bengali Typography & Readability Inspection
-
-Across all 10 evaluated desktop viewports, Bengali typography was verified:
-- **Font Family:** `Hind Siliguri`, `Plus Jakarta Sans`, sans-serif.
-- **Font Size:** Consistently `>= 14px` on body and card elements.
-- **Line Height:** `>= 1.5` to prevent Bengali diacritic (matra/kar) collision.
-- **Visual Clipping:** 0 clipping defects detected across 10 viewports.
+### C. Care & Clinician Tab Keyboard Switching
+- Navigated to `#view-care`.
+- Focused `#care-tab-clinician-btn` and activated it with `Enter`.
+- Verified `#slide-clinician-portal` became visible (`display: block`).
+- Focused `#care-tab-intake-btn` and activated it with `Space`.
+- Verified `#slide-care-intake` became visible.
+- Re-activated `#care-tab-clinician-btn` with `Space`, confirming dual Enter/Space compliance for button controls.

@@ -587,13 +587,47 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.closeAuthSheet();
     });
+
+    // Accessible Modal Focus Trap (WCAG dialog requirement)
+    const sheetContainer = document.getElementById('auth-sheet-container');
+    if (sheetContainer) {
+      sheetContainer.addEventListener('keydown', (e) => {
+        if (e.key !== 'Tab') return;
+        const focusables = Array.from(sheetContainer.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(el => {
+          return el.offsetWidth > 0 && el.offsetHeight > 0 && window.getComputedStyle(el).visibility !== 'hidden';
+        });
+
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      });
+    }
   },
 
   openAuthSheet(mode = 'login') {
+    this._authOpener = document.activeElement;
     this.switchAuthTab(mode);
     const sheetContainer = document.getElementById('auth-sheet-container');
     if (sheetContainer) {
       sheetContainer.classList.add('active');
+      const emailInput = document.getElementById('input-email');
+      if (emailInput) {
+        setTimeout(() => emailInput.focus(), 30);
+      }
     }
     this.hideAuthAlert();
   },
@@ -604,6 +638,11 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
       sheetContainer.classList.remove('active');
     }
     this.hideAuthAlert();
+    if (this._authOpener && typeof this._authOpener.focus === 'function') {
+      try {
+        this._authOpener.focus();
+      } catch (_) {}
+    }
   },
 
   switchAuthTab(mode = 'login') {

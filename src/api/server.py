@@ -86,6 +86,47 @@ else:
     )
 
 
+@app.middleware("http")
+async def add_security_headers_middleware(request: Request, call_next):
+    """
+    Production-grade security headers middleware.
+    Safely enforces MIME-sniffing protection, referrer policy, frame isolation,
+    and scoped permissions policy while preserving BdSL camera/microphone access.
+    """
+    response = await call_next(request)
+
+    # 1. MIME-type sniffing protection
+    response.headers["X-Content-Type-Options"] = "nosniff"
+
+    # 2. Referrer policy
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+    # 3. Frame options: prevent clickjacking (SAMEORIGIN allows same-origin embedding if needed)
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+
+    # 4. Scoped Permissions-Policy: camera and microphone permitted for self (essential for sign translator & speech studio)
+    response.headers["Permissions-Policy"] = "camera=(self), microphone=(self), geolocation=()"
+
+    # 5. Content Security Policy: defense-in-depth with required font and media directives
+    csp_policy = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com data:; "
+        "img-src 'self' data: blob:; "
+        "media-src 'self' blob:; "
+        "connect-src 'self' https://transify20-production.up.railway.app; "
+        "frame-ancestors 'self';"
+    )
+    response.headers["Content-Security-Policy"] = csp_policy
+
+    # 6. Strict-Transport-Security (HSTS) only when confirmed running under production HTTPS
+    if is_production():
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+    return response
+
+
 def validate_production_configuration():
     """
     Mandatory startup validation ensuring fail-closed security.
