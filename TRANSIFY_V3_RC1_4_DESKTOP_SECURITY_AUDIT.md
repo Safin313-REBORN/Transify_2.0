@@ -2,69 +2,87 @@
 
 **Project:** Transify V3  
 **Package:** `com.abrarafick.transify`  
-**Milestone:** RC1.4 Desktop WebView Engineering  
+**Milestone:** RC1.4 Desktop Audit Correction & Evidence Reconciliation  
 **Date:** November 23, 2026  
-**Auditor:** Principal Mobile & Desktop Application Security Architect  
-**Evaluated Environment:** Desktop WebView & Browser Workstation Runtimes  
+**Auditor:** Principal Mobile & Application Security Architect  
+**Evaluated Environment:** Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)  
+**Data Provenance:** Extracted programmatically from `TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json`  
 
 ---
 
-## 1. Executive Summary
+## 1. Executive Summary & Audit Scope
 
-This audit evaluates the application security posture of Transify V3 when hosted within desktop WebView containers (Chromium Embedded Framework, WebKitGTK, Windows WebView2) and standard desktop browsers.
+This audit evaluates application security controls for Transify V3 across live production infrastructure (`https://transify20-production.up.railway.app`) and local desktop browser workstation environments.
 
 ```
 +======================================================================================================+
-| DESKTOP WEBVIEW SECURITY POSTURE: HARDENED & VERIFIED                                                |
+| DESKTOP SECURITY AUDIT STATUS: RECONCILED WITH EMPIRICAL EVIDENCE                                    |
 +======================================================================================================+
-| 1. Transport Security: HTTPS enforcement, HSTS headers, secure WebSocket/WSS protocols.              |
-| 2. Native Bridge Isolation: Zero unconstrained native desktop APIs exposed to JavaScript runtime.    |
-| 3. Origin Allowlisting: Strict same-origin API communication; external navigation sandboxed.          |
-| 4. Content Security Policy: Restrictive directives for script-src, style-src, connect-src.           |
-| 5. File Upload Protection: Image MIME-type whitelisting, image quality assessment (IQA) validation.  |
-| 6. Session & Token Safety: No persistent raw bearer tokens in LocalStorage; HttpOnly session cookies.|
-| 7. Zero Auto-Audio Policy: Strict user-gesture requirement for Web Speech API and HTMLAudioElement.  |
+| • Live Production Probe: HTTP/2 200 OK via Railway Hikari Edge Proxy                                 |
+| • Edge Security Headers: Missing Strict-Transport-Security (HSTS) and Content-Security-Policy (CSP)  |
+| • Script-Src CSP Directives: 'unsafe-inline' is functionally required due to index.html inline logic  |
+| • Authentication Token Transport: Dual emission (HttpOnly Cookie for Web + JSON token for Android)    |
+| • Native Bridge IPC Security: NOT APPLICABLE / NOT TESTED (No desktop wrapper implemented)           |
+| • Zero Auto-Audio Policy: VERIFIED ENFORCED (0 unprompted calls; explicit user click required)       |
 +======================================================================================================+
 ```
 
 ---
 
-## 2. Desktop WebView Security Controls
+## 2. Live Production Infrastructure Probe
 
-### A. Transport Security & TLS Enforcement
-- **Production Host:** `https://transify20-production.up.railway.app`
-- **TLS Protocol:** TLS 1.3 with strong cipher suites (`TLS_AES_128_GCM_SHA256`, `TLS_AES_256_GCM_SHA384`).
-- **Strict-Transport-Security (HSTS):** Enforces `max-age=31536000; includeSubDomains; preload` to prevent SSL stripping attacks.
+A live HTTP probe against the production URL (`https://transify20-production.up.railway.app/`) captured empirical edge headers:
 
-### B. JavaScript Bridge & IPC Isolation
-- **Evaluation:** Unlike the Android mobile wrapper which exposes `@JavascriptInterface` for TTS and native file choosers, the Desktop experience operates in a sandboxed WebView context.
-- **IPC Safety:** No native OS shell execution, Node.js integration, or raw filesystem access is exposed to the renderer process.
-- **Fail-Closed Design:** In the event that a desktop WebView container (e.g. WebView2 / CEF) is deployed, all host object bindings must strictly use typed message passing with schema validation.
+```http
+HTTP/2 200
+server: railway-hikari
+content-type: text/html; charset=utf-8
+date: Mon, 23 Nov 2026 06:28:04 GMT
+vary: accept-encoding
+x-railway-request-id: T88RfmLZToKC3KZnlt7tkg
+x-railway-edge: sin1
+```
 
-### C. Origin Allowlisting & External Navigation
-- **External Links:** All outbound links (such as the developer contact link to GitHub) strictly declare `target="_blank"` and `rel="noopener noreferrer"`. This prevents reverse tab-nabbing (`window.opener` manipulation) and isolates external browsing contexts.
-- **CORS Configuration:** Server middleware strictly restricts allowed origins to production and authorized local development origins. Wildcard origins (`*`) with credentials are categorically forbidden and tested fail-closed in `tests/test_care_security.py`.
+### Critical Security Findings on Edge Proxy:
+1. **Strict-Transport-Security (HSTS):** **ABSENT**. The Railway edge proxy terminates TLS but does not inject HSTS headers (`max-age=31536000; includeSubDomains; preload`). Previous reports claiming HSTS enforcement were inaccurate.
+2. **Content-Security-Policy (CSP):** **ABSENT** on production edge responses.
+3. **Missing Protective Headers:** strict-transport-security, content-security-policy, x-content-type-options, x-frame-options, referrer-policy, permissions-policy.
+4. **Remediation Recommendation:** Configure custom middleware in `src/api/server.py` or Railway edge routing rules to inject HSTS, CSP, `X-Content-Type-Options: nosniff`, and `X-Frame-Options: DENY`.
 
-### D. Content Security Policy (CSP)
-Transify V3 delivers defense-in-depth CSP headers on all served responses:
-- `default-src 'self'`: Restricts default asset loading to origin.
-- `script-src 'self' 'unsafe-inline'`: Executes verified bundled scripts (`app.js`, `care.js`, `i18n.js`).
-- `connect-src 'self' https://transify20-production.up.railway.app`: Restricts API and telemetry endpoints.
-- `img-src 'self' data: blob:`: Allows local asset rendering and blob previews from client-side vision processing.
-- `media-src 'self' blob:`: Restricts audio and camera video streams.
-- `frame-ancestors 'none'`: Prevents clickjacking attacks by forbidding iframe embedding on external domains.
+---
 
-### E. File Upload & Braille Image Processing Protection
-- **Input Validation:** Braille studio and clinical lesion image uploads enforce strict file-type whitelisting (`image/png`, `image/jpeg`, `image/webp`).
-- **Image Quality Assessment (IQA):** Degraded, corrupt, or malicious non-image payloads are rejected at the image decoding layer before model inference.
-- **Memory Safety:** Image data buffers are processed in isolated worker threads or backend endpoints with strict payload size limits (`10 MB`).
+## 3. Content Security Policy (CSP) & `unsafe-inline` Implications
 
-### F. Session Handling & Token Storage
-- **Token Storage Hygiene:** Verified in `tests/test_care_security.py::test_frontend_no_persistent_raw_bearer_token` that raw API tokens are never written into persistent unencrypted `localStorage`.
-- **Session Cookies:** Production authentication sessions utilize `HttpOnly`, `SameSite=Lax`, and `Secure` cookie attributes to prevent client-side JavaScript theft via Cross-Site Scripting (XSS).
-- **Cross-Site Request Forgery (CSRF):** Non-idempotent state mutations require CSRF token validation or origin verification.
+- **Current Architecture Requirement:** Transify's frontend (`src/frontend/index.html`) relies on inline JavaScript blocks (lines 29–79 for auth modal open/close and routing helpers) and inline DOM event attributes (`onclick="event.stopPropagation()"`).
+- **Security Implications:** When CSP is enforced, the `script-src` directive must explicitly allow `'unsafe-inline'` unless these blocks are refactored into external bundled scripts or assigned cryptographic sha256 nonces.
+- **Risk Assessment:** While `'unsafe-inline'` broadens the theoretical XSS attack surface, all dynamic user text in Chat and Care is actively sanitized through DOMPurify and strictly escaped before DOM insertion. Refactoring inline scripts is logged as a Post-RC1 hardening item.
 
-### G. Zero Auto-Audio Policy
-- Audited across all 10 desktop views.
-- No automatic speech synthesis, notification bells, or background audio plays upon route navigation or data refresh.
-- Mitigates acoustic disturbance in clinical wards and office desktop environments.
+---
+
+## 4. Authentication Session Handling & Dual-Token Emission
+
+- **Dual-Token Architecture:** During user login (`POST /api/v1/auth/login`), the backend server executes two simultaneous actions:
+  1. Sets an `HttpOnly`, `SameSite=Lax`, `Secure` cookie named `transify_session`.
+  2. Returns the raw bearer token in the JSON response payload (`"token": "..."`).
+- **Architectural Rationale:**
+  - The `HttpOnly` cookie secures browser-based desktop sessions against JavaScript credential theft.
+  - The JSON response token is **strictly required for Android mobile client compatibility** (`MainActivity.kt` and OkHttp client), which operates in an isolated native network context where cookies are not automatically shared across Android WebView and native background services.
+- **Client Storage Hygiene:** Verified in `tests/test_care_security.py` that desktop browser code never stores the raw token in unencrypted persistent `localStorage`.
+
+---
+
+## 5. Native Desktop Bridge IPC Security
+
+- **Status:** **NOT APPLICABLE / NOT TESTED**.
+- **Evidence:** This repository does NOT contain an Electron main process (`ipcMain`/`ipcRenderer`), a Tauri Rust backend (`tauri::command`), a Windows WebView2 host object (`AddHostObjectToScript`), or a WebKitGTK extension.
+- Testing is strictly performed in standard Chromium desktop browser contexts. No native desktop operating system APIs (raw filesystem, child process execution) are exposed to the DOM.
+
+---
+
+## 6. Zero Auto-Audio Policy Verification
+
+- **Empirical Test Result:** **PASSED**.
+- Unprompted audio playback attempts across all 10 views: **0**
+- Unprompted speech synthesis attempts across all 10 views: **0**
+- Explicit user button click speech attempts: **1**
+- Enforces clinical acoustic safety in hospital and office environments.

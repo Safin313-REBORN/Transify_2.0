@@ -1,6 +1,13 @@
 {
-  "timestamp": "2026-11-23T00:45:00+06:00",
-  "desktop_runtime": "Chromium Embedded Desktop WebView (Linux x86_64)",
+  "audit_metadata": {
+    "milestone": "RC1.4 Desktop Audit Correction & Evidence Reconciliation",
+    "timestamp": "2026-11-23T06:26:48.978630+00:00",
+    "target_package": "com.abrarafick.transify",
+    "evaluated_runtime": "Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)",
+    "native_desktop_webview_status": "NOT IMPLEMENTED / NOT TESTED (No Electron, Tauri, CEF, WebView2, or WebKitGTK wrapper exists in this repository)",
+    "host_os": "Linux 7.0.0-43-generic x86_64",
+    "single_source_of_truth": "TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json"
+  },
   "viewports_tested": [
     {
       "viewport_name": "desktop_1280x720_hd",
@@ -8,12 +15,19 @@
       "height": 720,
       "aspect_ratio": "16:9",
       "tier": "HD Laptop / Thin Client",
-      "initial_load_latency_ms": 1586.01,
+      "initial_load_latency_ms": 2998.6,
       "rail_width_px": 112,
       "content_width_px": 1168,
       "home_main_width_px": 884,
       "bento_width_px": 820,
       "zero_horizontal_overflow": true,
+      "card_clipping_issues_count": 0,
+      "bengali_typography": {
+        "fontFamily": "Outfit, \"Plus Jakarta Sans\", \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "fontSizePx": 28,
+        "lineHeight": "normal",
+        "isLegible": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_home.png",
@@ -27,12 +41,19 @@
       "height": 800,
       "aspect_ratio": "16:10",
       "tier": "WXGA MacBook / Monitor",
-      "initial_load_latency_ms": 1809.94,
+      "initial_load_latency_ms": 1837.87,
       "rail_width_px": 112,
       "content_width_px": 1168,
       "home_main_width_px": 884,
       "bento_width_px": 820,
       "zero_horizontal_overflow": true,
+      "card_clipping_issues_count": 0,
+      "bengali_typography": {
+        "fontFamily": "Outfit, \"Plus Jakarta Sans\", \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "fontSizePx": 28,
+        "lineHeight": "normal",
+        "isLegible": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_home.png",
@@ -46,12 +67,19 @@
       "height": 768,
       "aspect_ratio": "16:9",
       "tier": "Standard Budget Laptop",
-      "initial_load_latency_ms": 1667.9,
+      "initial_load_latency_ms": 1827.35,
       "rail_width_px": 112,
       "content_width_px": 1254,
       "home_main_width_px": 950,
       "bento_width_px": 882,
       "zero_horizontal_overflow": true,
+      "card_clipping_issues_count": 0,
+      "bengali_typography": {
+        "fontFamily": "Outfit, \"Plus Jakarta Sans\", \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "fontSizePx": 28,
+        "lineHeight": "normal",
+        "isLegible": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_home.png",
@@ -65,12 +93,19 @@
       "height": 900,
       "aspect_ratio": "16:10",
       "tier": "WXGA+ Display / Workstation",
-      "initial_load_latency_ms": 1502.96,
+      "initial_load_latency_ms": 1734.92,
       "rail_width_px": 112,
       "content_width_px": 1328,
       "home_main_width_px": 1008,
       "bento_width_px": 936,
       "zero_horizontal_overflow": true,
+      "card_clipping_issues_count": 0,
+      "bengali_typography": {
+        "fontFamily": "Outfit, \"Plus Jakarta Sans\", \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "fontSizePx": 28,
+        "lineHeight": "normal",
+        "isLegible": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_home.png",
@@ -84,12 +119,19 @@
       "height": 864,
       "aspect_ratio": "16:9",
       "tier": "Windows 125% Scaled FHD",
-      "initial_load_latency_ms": 1850.52,
+      "initial_load_latency_ms": 1828.06,
       "rail_width_px": 112,
       "content_width_px": 1424,
       "home_main_width_px": 1104,
       "bento_width_px": 1032,
       "zero_horizontal_overflow": true,
+      "card_clipping_issues_count": 0,
+      "bengali_typography": {
+        "fontFamily": "Outfit, \"Plus Jakarta Sans\", \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "fontSizePx": 28,
+        "lineHeight": "normal",
+        "isLegible": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_home.png",
@@ -103,12 +145,19 @@
       "height": 900,
       "aspect_ratio": "16:9",
       "tier": "HD+ Workstation Monitor",
-      "initial_load_latency_ms": 1692.77,
+      "initial_load_latency_ms": 1553.2,
       "rail_width_px": 112,
       "content_width_px": 1488,
       "home_main_width_px": 1168,
       "bento_width_px": 1096,
       "zero_horizontal_overflow": true,
+      "card_clipping_issues_count": 0,
+      "bengali_typography": {
+        "fontFamily": "Outfit, \"Plus Jakarta Sans\", \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "fontSizePx": 28,
+        "lineHeight": "normal",
+        "isLegible": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_home.png",
@@ -122,12 +171,19 @@
       "height": 1080,
       "aspect_ratio": "16:9",
       "tier": "Standard FHD Desktop Display",
-      "initial_load_latency_ms": 1548.76,
+      "initial_load_latency_ms": 1650.68,
       "rail_width_px": 112,
       "content_width_px": 1808,
       "home_main_width_px": 1488,
       "bento_width_px": 1416,
       "zero_horizontal_overflow": true,
+      "card_clipping_issues_count": 0,
+      "bengali_typography": {
+        "fontFamily": "Outfit, \"Plus Jakarta Sans\", \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "fontSizePx": 28,
+        "lineHeight": "normal",
+        "isLegible": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_home.png",
@@ -141,12 +197,19 @@
       "height": 1200,
       "aspect_ratio": "16:10",
       "tier": "WUXGA Professional Medical Display",
-      "initial_load_latency_ms": 1516.13,
+      "initial_load_latency_ms": 1996.19,
       "rail_width_px": 112,
       "content_width_px": 1808,
       "home_main_width_px": 1488,
       "bento_width_px": 1416,
       "zero_horizontal_overflow": true,
+      "card_clipping_issues_count": 0,
+      "bengali_typography": {
+        "fontFamily": "Outfit, \"Plus Jakarta Sans\", \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "fontSizePx": 28,
+        "lineHeight": "normal",
+        "isLegible": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_home.png",
@@ -160,12 +223,19 @@
       "height": 1440,
       "aspect_ratio": "16:9",
       "tier": "QHD / 2K Studio Monitor",
-      "initial_load_latency_ms": 1870.88,
+      "initial_load_latency_ms": 1876.67,
       "rail_width_px": 112,
       "content_width_px": 2448,
       "home_main_width_px": 1680,
       "bento_width_px": 1608,
       "zero_horizontal_overflow": true,
+      "card_clipping_issues_count": 0,
+      "bengali_typography": {
+        "fontFamily": "Outfit, \"Plus Jakarta Sans\", \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "fontSizePx": 28,
+        "lineHeight": "normal",
+        "isLegible": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_home.png",
@@ -179,12 +249,19 @@
       "height": 1440,
       "aspect_ratio": "21:9",
       "tier": "Ultra-Wide Panoramic Display",
-      "initial_load_latency_ms": 1676.33,
+      "initial_load_latency_ms": 1870.95,
       "rail_width_px": 112,
       "content_width_px": 3328,
       "home_main_width_px": 1680,
       "bento_width_px": 1608,
       "zero_horizontal_overflow": true,
+      "card_clipping_issues_count": 0,
+      "bengali_typography": {
+        "fontFamily": "Outfit, \"Plus Jakarta Sans\", \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "fontSizePx": 28,
+        "lineHeight": "normal",
+        "isLegible": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_home.png",
@@ -199,6 +276,7 @@
       "scale_factor": 1.0,
       "measured_dpr": 1,
       "zero_horizontal_overflow": true,
+      "test_method": "Browser Device Scale Factor Emulation (Physical monitor hardware scaling NOT TESTED)",
       "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_100pct_scale.png",
       "status": "PASS"
     },
@@ -207,6 +285,7 @@
       "scale_factor": 1.25,
       "measured_dpr": 1.25,
       "zero_horizontal_overflow": true,
+      "test_method": "Browser Device Scale Factor Emulation (Physical monitor hardware scaling NOT TESTED)",
       "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_125pct_scale.png",
       "status": "PASS"
     },
@@ -215,6 +294,7 @@
       "scale_factor": 1.5,
       "measured_dpr": 1.5,
       "zero_horizontal_overflow": true,
+      "test_method": "Browser Device Scale Factor Emulation (Physical monitor hardware scaling NOT TESTED)",
       "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_150pct_scale.png",
       "status": "PASS"
     },
@@ -223,59 +303,217 @@
       "scale_factor": 2.0,
       "measured_dpr": 2,
       "zero_horizontal_overflow": true,
+      "test_method": "Browser Device Scale Factor Emulation (Physical monitor hardware scaling NOT TESTED)",
       "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_200pct_scale.png",
       "status": "PASS"
     }
   ],
   "window_state_tests": [
     {
-      "state": "Restored Window (1280x720)",
+      "state": "Restored Viewport Simulation (1280x720)",
+      "width": 1280,
+      "height": 720,
       "zero_overflow": true,
+      "test_method": "Playwright Viewport Resize Simulation (Native OS window manager maximize/restore NOT TESTED)",
       "status": "PASS"
     },
     {
-      "state": "Maximized Window (1920x1080)",
+      "state": "Maximized Viewport Simulation (1920x1080)",
+      "width": 1920,
+      "height": 1080,
       "zero_overflow": true,
+      "test_method": "Playwright Viewport Resize Simulation (Native OS window manager maximize/restore NOT TESTED)",
       "status": "PASS"
     },
     {
-      "state": "Ultrawide Fullscreen (3440x1440)",
+      "state": "Ultrawide Panoramic Simulation (3440x1440)",
+      "width": 3440,
+      "height": 1440,
       "zero_overflow": true,
+      "test_method": "Playwright Viewport Resize Simulation (Native OS window manager maximize/restore NOT TESTED)",
       "status": "PASS"
     },
     {
-      "state": "Restored Back (1366x768)",
+      "state": "Restored Viewport Transition (1366x768)",
+      "width": 1366,
+      "height": 768,
       "zero_overflow": true,
+      "test_method": "Playwright Viewport Resize Simulation (Native OS window manager maximize/restore NOT TESTED)",
       "status": "PASS"
     }
   ],
   "keyboard_accessibility": {
-    "tab_navigation_working": true,
+    "tab_sequence_count": 8,
+    "tab_focused_tags": [
+      "A#.skip-link",
+      "A#rail-logo-btn",
+      "BUTTON#rail-btn-home",
+      "BUTTON#rail-btn-sign",
+      "BUTTON#rail-btn-braille",
+      "BUTTON#rail-btn-voice",
+      "BUTTON#rail-btn-phrases",
+      "BUTTON#rail-btn-care"
+    ],
     "shift_tab_reverse_working": true,
+    "modal_focus_accessible": true,
     "modal_escape_dismissal_working": true,
-    "chat_tuning_modal_working": true,
+    "clinician_tab_keyboard_activation": true,
     "status": "PASS"
   },
-  "zero_auto_audio_verified": true,
+  "zero_auto_audio_verified": {
+    "unprompted_audio_playback_attempts": 0,
+    "unprompted_speech_synthesis_attempts": 0,
+    "explicit_user_action_speech_attempts": 1,
+    "zero_auto_audio_preserved": true,
+    "explicit_speech_functional": true,
+    "status": "PASS"
+  },
   "performance_benchmarks": {
-    "initial_startup_ms": 1718.43,
-    "mean_route_transition_ms": 88.56,
+    "initial_startup_ms": 1836.54,
+    "mean_route_transition_ms": 78.79,
     "route_latencies_ms": {
-      "welcome": 35.57,
-      "home": 24.28,
-      "sign": 19.09,
-      "phrases": 50.1,
-      "braille": 20.46,
-      "voice": 19.98,
-      "chat": 18.17,
-      "care": 13.87,
-      "clinician": 651.51,
-      "settings": 32.62
+      "welcome": {
+        "dispatch_ms": 10.9,
+        "activation_ms": 10.9,
+        "first_frame_ms": 11.9,
+        "stable_readiness_ms": 11.9,
+        "total_latency_ms": 11.9
+      },
+      "home": {
+        "dispatch_ms": 11.9,
+        "activation_ms": 11.9,
+        "first_frame_ms": 15.5,
+        "stable_readiness_ms": 15.5,
+        "total_latency_ms": 15.5
+      },
+      "sign": {
+        "dispatch_ms": 22,
+        "activation_ms": 22,
+        "first_frame_ms": 47.5,
+        "stable_readiness_ms": 47.5,
+        "total_latency_ms": 47.5
+      },
+      "phrases": {
+        "dispatch_ms": 69.8,
+        "activation_ms": 69.8,
+        "first_frame_ms": 122.3,
+        "stable_readiness_ms": 122.3,
+        "total_latency_ms": 122.3
+      },
+      "braille": {
+        "dispatch_ms": 25.4,
+        "activation_ms": 25.4,
+        "first_frame_ms": 77.2,
+        "stable_readiness_ms": 77.2,
+        "total_latency_ms": 77.2
+      },
+      "voice": {
+        "dispatch_ms": 17.6,
+        "activation_ms": 17.6,
+        "first_frame_ms": 108.5,
+        "stable_readiness_ms": 108.5,
+        "total_latency_ms": 108.5
+      },
+      "chat": {
+        "dispatch_ms": 16.6,
+        "activation_ms": 16.6,
+        "first_frame_ms": 108.7,
+        "stable_readiness_ms": 108.7,
+        "total_latency_ms": 108.7
+      },
+      "care": {
+        "dispatch_ms": 10.6,
+        "activation_ms": 10.6,
+        "first_frame_ms": 105.2,
+        "stable_readiness_ms": 105.2,
+        "total_latency_ms": 105.2
+      },
+      "clinician": {
+        "dispatch_ms": 3.5,
+        "activation_ms": 3.5,
+        "first_frame_ms": 100.9,
+        "stable_readiness_ms": 100.9,
+        "total_latency_ms": 100.9
+      },
+      "settings": {
+        "dispatch_ms": 12.8,
+        "activation_ms": 12.8,
+        "first_frame_ms": 90.2,
+        "stable_readiness_ms": 90.2,
+        "total_latency_ms": 90.2
+      }
     },
-    "js_heap_memory": {
-      "usedHeapMB": "9.54",
-      "totalHeapMB": "9.54"
+    "animation_rendering": {
+      "measured_fps": 50.22,
+      "frames_captured": 101,
+      "duration_sec": 2.01,
+      "measurement_method": "requestAnimationFrame timestamp delta over active window (Linux Chromium headless)"
+    },
+    "cdp_heap_memory": {
+      "usedHeapMB": 1.56,
+      "totalHeapMB": 3.5,
+      "domNodes": 13068,
+      "jsEventListeners": 955,
+      "measurement_method": "Chrome DevTools Protocol (CDP) Performance.getMetrics (Real measurement, zero fallbacks)"
     }
+  },
+  "stability_50_cycles": {
+    "transitions_executed": 50,
+    "routes_cycled": [
+      "home",
+      "care",
+      "sign",
+      "braille",
+      "chat"
+    ],
+    "baseline_metrics": {
+      "usedHeapMB": 1.11,
+      "domNodes": 12943,
+      "listeners": 955
+    },
+    "post_test_metrics": {
+      "usedHeapMB": 1.27,
+      "domNodes": 13103,
+      "listeners": 955
+    },
+    "delta": {
+      "heap_delta_mb": 0.16,
+      "node_delta": 160,
+      "listener_delta": 0
+    },
+    "leak_detected": false,
+    "status": "PASS"
+  },
+  "production_security_probe": {
+    "target_url": "https://transify20-production.up.railway.app/",
+    "http_status": 200,
+    "protocol": "HTTP/2 (Railway Hikari edge)",
+    "live_headers": {
+      "content-type": "text/html; charset=utf-8",
+      "date": "Mon, 23 Nov 2026 06:28:04 GMT",
+      "server": "railway-hikari",
+      "vary": "accept-encoding",
+      "x-railway-request-id": "T88RfmLZToKC3KZnlt7tkg",
+      "content-length": "281657",
+      "x-hikari-trace": "sin1.hs0s",
+      "x-railway-edge": "sin1",
+      "connection": "close"
+    },
+    "missing_security_headers": [
+      "strict-transport-security",
+      "content-security-policy",
+      "x-content-type-options",
+      "x-frame-options",
+      "referrer-policy",
+      "permissions-policy"
+    ],
+    "hsts_present": false,
+    "csp_present": false,
+    "script_src_unsafe_inline_required": true,
+    "script_src_unsafe_inline_reason": "Inline script blocks (auth sheet/routing helpers lines 29-79 in index.html) and inline DOM event attributes (onclick handlers) require 'unsafe-inline' until refactored or nonced.",
+    "dual_token_emission_documented": true,
+    "dual_token_emission_reason": "POST /api/v1/auth/login sets an HttpOnly transify_session cookie for web browsers AND emits token in JSON response body for native Android WebView bridge (MainActivity.kt) compatibility.",
+    "native_bridge_ipc_security": "NOT APPLICABLE / NOT TESTED (No Electron, Tauri, or WebView2 host IPC bridge is implemented in this repository)"
   },
   "summary": {
     "viewports_evaluated": 10,
@@ -285,6 +523,7 @@
     "window_resizes_passed": true,
     "keyboard_accessibility_passed": true,
     "zero_auto_audio_passed": true,
-    "overall_workstream_b_status": "PASS"
+    "stability_50_cycles_passed": true,
+    "overall_status": "PASS"
   }
 }

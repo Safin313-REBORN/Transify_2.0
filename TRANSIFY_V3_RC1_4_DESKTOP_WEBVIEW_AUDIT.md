@@ -1,119 +1,97 @@
-# TRANSIFY V3 — RC1.4 DESKTOP WEBVIEW RESPONSIVE & FUNCTIONAL AUDIT
+# TRANSIFY V3 — RC1.4 DESKTOP WEB AUDIT (CORRECTED & RECONCILED)
 
 **Project:** Transify V3  
 **Package:** `com.abrarafick.transify`  
-**Milestone:** RC1.4 Desktop WebView Engineering  
+**Milestone:** RC1.4 Desktop Audit Correction & Evidence Reconciliation  
 **Date:** November 23, 2026  
-**Auditor:** Senior Desktop WebView Engineer, Responsive UI Architect & Desktop UX Specialist  
-**Operating System:** Linux 7.0.0-43-generic x86_64  
-**Evaluated Runtime:** Embedded Chromium Desktop WebView / Modern Desktop Web Environment  
+**Auditors:** Principal Software Architect, Desktop QA Engineer, Application Security Engineer, Release Verification Lead  
+**Evaluated Environment:** Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)  
+**Data Provenance:** Extracted programmatically from `TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json`  
 
 ---
 
-## 1. Executive Summary & Dual Workstream Verdict
+## 1. Executive Summary & Architecture Clarification
 
-Transify V3 RC1.4 establishes two distinct, independently audited release workstreams. In compliance with governance rules, **neither workstream is approved based on evidence from the other**.
+This report corrects and supersedes preliminary desktop audit notes. It reconciles all performance measurements, security headers, memory metrics, and responsive viewport tests with direct empirical data.
+
+### Architectural Reality
+- **Evaluated Desktop Runtime:** **Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)**.
+- **Native Embedded Desktop WebViews:** **NOT IMPLEMENTED / NOT TESTED IN THIS REPOSITORY**.
+  - There is NO Electron runtime (`main.js`, `package.json` electron dependency).
+  - There is NO Tauri runtime (`src-tauri/`, `Cargo.toml`).
+  - There is NO Windows WebView2 runtime (`Microsoft.Web.WebView2`).
+  - There is NO WebKitGTK wrapper (`webkit2gtk`).
+  - Claims implying native embedded desktop WebViews were evaluated have been formally rescinded. Testing reflects browser-based desktop workstation experiences.
 
 ```
 +======================================================================================================+
-| TRANSIFY V3 — RC1.4 DUAL WORKSTREAM RELEASE VERDICT                                                  |
+| RC1.4 AUDIT CORRECTION & EVIDENCE RECONCILIATION MATRIX                                              |
 +======================================================================================================+
-| WORKSTREAM A — ANDROID (Physical Handset & Mobile Hardware):                                          |
-| • Status: CONDITIONALLY APPROVED (DEFERRED TO PHYSICAL DEVICE STAGING)                               |
-| • Justification: Android SDK 36 toolchain, APK/AAB signing, and Robolectric/unit suites are          |
-|   100% verified. Physical camera feed, microphone buffer, and touchscreen gesture validation remain   |
-|   deferred to a physical handset testing lab (Gate 3).                                               |
-+------------------------------------------------------------------------------------------------------+
-| WORKSTREAM B — DESKTOP (Desktop WebView & Browser-Based Workstation Experience):                     |
-| • Status: FULLY APPROVED                                                                             |
-| • Justification: 10 desktop viewports (1280x720 to 3440x1440 ultrawide) achieve 100% zero-overflow.  |
-|   High-DPI display scaling (100% to 200%), window resize/restore cycles, full keyboard accessibility,|
-|   sub-100ms route transitions, and strict Zero Auto-Audio policy are empirically validated.          |
+| 1. Viewport Matrix (10 Tiers):   10 / 10 PASSED (0 horizontal overflow, 0 card clipping)             |
+| 2. High-DPI Scaling (4 Tiers):   4 / 4 PASSED (DPR 1.0x to 2.0x emulated; physical displays N/T)    |
+| 3. Responsive Resize:            PASSED (Viewport simulation; native OS maximize/restore N/T)        |
+| 4. Keyboard Accessibility:       PASSED (Tab, Shift+Tab, focus trap, Escape dismissal, tab switch)   |
+| 5. Zero Auto-Audio Policy:       PASSED (0 unprompted audio/speech calls; explicit click required)    |
+| 6. Route Latencies:              PASSED (Mean 78.79 ms; 100% reconciled with JSON matrix)        |
+| 7. Memory & Stability (CDP):     PASSED (1.56 MB heap; 50-cycle delta +0.16 MB, 0 leaks)       |
+| 8. Live Production Security:     RECONCILED (Railway edge lacks HSTS/CSP; documented unsafe-inline)  |
+| 9. Physical Android Gate 3:      REMAINS OPEN / DEFERRED (0 physical Android handsets attached)      |
 +======================================================================================================+
 ```
 
 ---
 
-## 2. Desktop Architecture Identification
+## 2. 10 Desktop Viewport Audit
 
-An exhaustive repository inspection was performed to identify the desktop runtime wrapper:
-- **Electron:** None present (`package.json`, electron main scripts absent).
-- **Tauri:** None present (`src-tauri/`, `tauri.conf.json` absent).
-- **WebView2 / Native Wrapper:** No dedicated native C++/C#/Rust desktop wrapper exists in the repository. The mobile runtime is isolated in `android/`.
-- **Target Desktop Architecture:** Modern Browser-Based Desktop Application and Embedded Desktop WebView (Chromium Embedded Framework, WebKitGTK, or Windows WebView2 host environments).
-- **Architecture Decision:** Consistent with instructions ("*Do not introduce a new desktop runtime unnecessarily. If no native desktop wrapper exists, report that fact and validate the browser-based desktop experience separately*"), the desktop experience was evaluated using the authoritative embedded Chromium engine on Linux x86_64.
-
----
-
-## 3. Desktop Viewport Matrix (10 Standard & Ultra-Wide Resolutions)
-
-Every viewport was audited with live full-page rendering, zero-overflow measurements, and screenshot capture:
-
-| Resolution | Aspect Ratio | Form Factor / Tier | Rail Width | Content Width | Home Main Width | Horizontal Overflow | Audit Status |
-|---|---|---|---|---|---|---|---|
-| **1280 × 720** | 16:9 | HD Laptop / Thin Client | 112 px | 1168 px | 884 px | **None (False)** | **PASS** |
-| **1280 × 800** | 16:10 | WXGA MacBook / Monitor | 112 px | 1168 px | 884 px | **None (False)** | **PASS** |
-| **1366 × 768** | 16:9 | Standard Budget Laptop | 112 px | 1254 px | 950 px | **None (False)** | **PASS** |
-| **1440 × 900** | 16:10 | WXGA+ Workstation Display | 112 px | 1328 px | 1008 px | **None (False)** | **PASS** |
-| **1536 × 864** | 16:9 | Windows 125% Scaled FHD | 112 px | 1424 px | 1104 px | **None (False)** | **PASS** |
-| **1600 × 900** | 16:9 | HD+ Desktop Monitor | 112 px | 1488 px | 1168 px | **None (False)** | **PASS** |
-| **1920 × 1080** | 16:9 | Standard FHD Desktop | 112 px | 1808 px | 1488 px | **None (False)** | **PASS** |
-| **1920 × 1200** | 16:10 | WUXGA Medical Display | 112 px | 1808 px | 1488 px | **None (False)** | **PASS** |
-| **2560 × 1440** | 16:9 | QHD / 2K Studio Monitor | 112 px | 2448 px | 1680 px (Capped) | **None (False)** | **PASS** |
-| **3440 × 1440** | 21:9 | Ultra-Wide Panoramic Display | 112 px | 3328 px | 1680 px (Capped) | **None (False)** | **PASS** |
-
-### Ultra-Wide & High-DPI Optimization Pass
-To eliminate awkward card stretching across 2560px and 3440px panoramic displays, an ultra-wide desktop media query was engineered into `src/frontend/static/styles.css`:
-- `.home-main`: Width capped at `1680px` and centered with `margin: 0 auto;`.
-- `.chat-main-card`: Width capped at `1440px` and centered with `margin: 0 auto;` to preserve chat conversational readability.
-- `.welcome-aside`: Width capped at `600px`.
-- High-DPI subpixel antialiasing and text rendering optimizations enabled (`-webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;`).
+| Viewport Name | Resolution | Aspect Ratio | Target Tier | Rail Width | Content Width | Home Max-Width | Horizontal Overflow | Clipping Issues | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| `desktop_1280x720_hd` | 1280x720 | 16:9 | HD Laptop / Thin Client | 112px | 1168px | 884px | **None** | **0** | **PASS** |
+| `desktop_1280x800_wxga` | 1280x800 | 16:10 | WXGA MacBook / Monitor | 112px | 1168px | 884px | **None** | **0** | **PASS** |
+| `desktop_1366x768_laptop` | 1366x768 | 16:9 | Standard Budget Laptop | 112px | 1254px | 950px | **None** | **0** | **PASS** |
+| `desktop_1440x900_wxga_plus` | 1440x900 | 16:10 | WXGA+ Display / Workstation | 112px | 1328px | 1008px | **None** | **0** | **PASS** |
+| `desktop_1536x864_scaled_fhd` | 1536x864 | 16:9 | Windows 125% Scaled FHD | 112px | 1424px | 1104px | **None** | **0** | **PASS** |
+| `desktop_1600x900_hd_plus` | 1600x900 | 16:9 | HD+ Workstation Monitor | 112px | 1488px | 1168px | **None** | **0** | **PASS** |
+| `desktop_1920x1080_fhd` | 1920x1080 | 16:9 | Standard FHD Desktop Display | 112px | 1808px | 1488px | **None** | **0** | **PASS** |
+| `desktop_1920x1200_wuxga` | 1920x1200 | 16:10 | WUXGA Professional Medical Display | 112px | 1808px | 1488px | **None** | **0** | **PASS** |
+| `desktop_2560x1440_qhd` | 2560x1440 | 16:9 | QHD / 2K Studio Monitor | 112px | 2448px | 1680px | **None** | **0** | **PASS** |
+| `desktop_3440x1440_ultrawide` | 3440x1440 | 21:9 | Ultra-Wide Panoramic Display | 112px | 3328px | 1680px | **None** | **0** | **PASS** |
 
 ---
 
-## 4. Desktop UI/UX Inspection Across Core Workspaces
+## 3. High-DPI Display Scaling & Viewport Resizing
 
-1. **Desktop Navigation Rail (112px):** Fixed left navigation rail persists across all desktop resolutions. All 9 primary destinations (Home, Sign, Braille, Voice, Phrases, Care, AI Chat, Settings, Contact) feature high-visibility SVGs, centered labels, and keyboard focus outlines.
-2. **Main Application Content Frame:** Occupies `calc(100vw - var(--rail-w))`. Seamlessly contains child views with zero document-level horizontal scrollbar blowout.
-3. **Dashboard Card Arrangement:** Bento grid on Home maintains an asymmetrical 2-column layout (`minmax(0, 1.45fr) minmax(0, 1fr)`) with interactive hover transforms and responsive typography.
-4. **Sign Language Translator Workspace:** Full-viewport dark camera stage (`#171420`) with top scrim, ROI center focus mode, and status chips.
-5. **Braille Studio Workspace:** Centered `1180px` max-width container with dual mode tabs (Camera Scanner, Perkins 6-Dot Input, Text-to-Braille Generator, Grade 2 Reference).
-6. **Voice Hub:** Centered `1180px` layout featuring TTS voice persona selects, playback speed controls, and interactive Web Speech studio.
-7. **AI Chat Interface:** Full-height card container capped at `1440px` with chat header, streaming conversation viewport, prompt chips, and training modal.
-8. **Transify Care Dashboard:** Centered `1180px` layout with clinical triage symptom intake form, quick presets, and live urgency output.
-9. **Clinician Portal:** 50-row clinician review table with sorting, urgency badges (RED, YELLOW, GREEN), and case inspector dialog.
-10. **Settings & Profile Modals:** Centered `1280px` tabbed interface (Profile, Account, Appearance, Accessibility, Privacy, Contact) with modal dialogs closing reliably on Escape key press.
+- **Display Scaling (DPR Emulation):** Evaluated at 100% (1.0x), 125% (1.25x), 150% (1.50x), and 200% (2.0x). All tiers maintain zero horizontal overflow.
+- **Physical Display Limitation:** Physical high-DPI monitors and native OS display scaling are marked **NOT TESTED** (testing utilized Playwright `device_scale_factor` emulation).
+- **Viewport Resizing:** Evaluated across transitions from 1280x720 up to 3440x1440. All views reflow cleanly without broken layouts. Native OS window manager maximize/restore events are marked **NOT TESTED**.
 
 ---
 
-## 5. Desktop Input & Accessibility Verification
+## 4. Performance & Memory Integrity
 
-- **Keyboard Tab Order:** Logical sequential tab order through skip link, rail navigation items, interactive header controls, and form inputs.
-- **Shift+Tab Reverse Navigation:** Traverses controls in exact reverse order without focus trapping.
-- **Modal Focus Management:** Modal dialogs (`auth-sheet-container`, `chat-training-modal`) trap focus when active and dismiss instantly upon pressing the `Escape` key.
-- **Display Scaling & Zoom (100% to 200%):**
-  - `100%` Native Scaling: DPR = 1.0 (Zero overflow)
-  - `125%` Windows Scaling: DPR = 1.25 (Zero overflow)
-  - `150%` High-DPI Scaling: DPR = 1.50 (Zero overflow)
-  - `200%` Retina / 4K Scaling: DPR = 2.0 (Zero overflow)
-- **High-Contrast Theme:** High-contrast pure black background (`#000000`) with high-visibility cyan focus indicators (`#00f2fe`) and yellow text accents.
-- **Bilingual Readability:** Bengali text rendered with enhanced `1.35` line-height to prevent conjunct clipping across all desktop resolutions.
+- **Initial Cold Startup:** `1836.54 ms` (network idle).
+- **Mean Route Transition Latency:** `78.79 ms`.
+- **Clinician Portal Latency:** `100.9 ms` (matches JSON matrix exactly; includes 50-row table loading).
+- **Animation Frame Rate:** `50.22 FPS` (101 frames over 2.01s).
+- **Active JS Heap Memory (CDP):** `1.56 MB` used / `3.5 MB` allocated.
+- **50-Cycle Navigation Stability:** Tested over 50 view transitions. Heap delta: `+0.16 MB` (well within standard V8 allocation bounds; zero cumulative memory leaks).
 
 ---
 
-## 6. Strict Zero Auto-Audio Policy Verification
+## 5. Security Audit Reconciliation
 
-Automated monitoring injected into the desktop WebView verified that navigating through all application routes (`welcome`, `home`, `sign`, `phrases`, `braille`, `voice`, `care`, `chat`, `settings`) results in **zero unprompted audio playback**:
-- Unprompted `HTMLAudioElement.prototype.play()` calls: **0**
-- Unprompted `window.speechSynthesis.speak()` calls: **0**
-- Explicit user interaction (clicking "Speak" or "Play") remains mandatory for any audio or speech output.
+1. **Live Production Edge Response (`https://transify20-production.up.railway.app`):** Returns HTTP/2 200 via Railway Hikari edge. However, the edge proxy does **NOT** currently inject `Strict-Transport-Security` (HSTS) or `Content-Security-Policy` (CSP) headers. Previous claims of active HSTS headers have been corrected.
+2. **`unsafe-inline` Requirement:** The application currently requires `'unsafe-inline'` in `script-src` due to inline scripts and event handlers in `src/frontend/index.html`. All user-supplied inputs are sanitized with DOMPurify.
+3. **Dual-Token Emission:** `login_user` issues both an HttpOnly cookie (for browser web clients) and a JSON response body token (for native Android client compatibility).
+4. **Native Bridge IPC Security:** **NOT APPLICABLE / NOT TESTED** (no native desktop container exists).
 
 ---
 
-## 7. Deliverables & Documentation Created
+## 6. Release Gates & Sign-Off Status
 
-- Audit Report: [`TRANSIFY_V3_RC1_4_DESKTOP_WEBVIEW_AUDIT.md`](file:///home/safin313/Downloads/transify-main/TRANSIFY_V3_RC1_4_DESKTOP_WEBVIEW_AUDIT.md)
-- Viewport Matrix JSON: [`TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json`](file:///home/safin313/Downloads/transify-main/TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json)
-- Security Audit: [`TRANSIFY_V3_RC1_4_DESKTOP_SECURITY_AUDIT.md`](file:///home/safin313/Downloads/transify-main/TRANSIFY_V3_RC1_4_DESKTOP_SECURITY_AUDIT.md)
-- Performance Report: [`TRANSIFY_V3_RC1_4_DESKTOP_PERFORMANCE_REPORT.md`](file:///home/safin313/Downloads/transify-main/TRANSIFY_V3_RC1_4_DESKTOP_PERFORMANCE_REPORT.md)
-- Audit Screenshot Matrix: [`TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/`](file:///home/safin313/Downloads/transify-main/TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/)
+| Release Dimension | Status | Empirical Evidence |
+|---|---|---|
+| **GATE 1 — Multi-Signer Generalization** | **CLOSED (VERIFIED)** | 8-Fold LOSO CV, 100% Macro F1, ECE=0.0285 |
+| **GATE 2 — Clinical Governance** | **CLOSED (VERIFIED)** | 11 Deterministic Triage Rules, Hotlines, Pilot Protocol |
+| **GATE 3 — Physical Android Hardware** | **OPEN (DEFERRED)** | 0 Physical USB devices attached; build is hardware-ready |
+| **WORKSTREAM B — Desktop Web Verification** | **CLOSED (VERIFIED)** | 10 Viewports, DPR scaling, Keyboard A11y, Zero Auto-Audio, 50 Cycles |
+| **OVERALL MILESTONE RATING** | **CONDITIONALLY APPROVED** | Ready for Desktop & Tablet Web Workstations; Mobile Android deferred to physical staging |
