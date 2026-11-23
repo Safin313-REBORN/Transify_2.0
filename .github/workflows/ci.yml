@@ -30,7 +30,7 @@ jobs:
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt playwright
+          python -m pip install -r requirements.txt playwright
 
       - name: Cache Playwright Chromium
         id: playwright-cache
@@ -43,14 +43,14 @@ jobs:
 
       - name: Install Playwright Chromium with System Dependencies
         run: |
-          playwright install chromium --with-deps
+          python -m playwright install chromium --with-deps
 
       - name: Run Backend & Browser Regression Test Suite
         env:
           TRANSIFY_ENV: testing
           PYTHONPATH: .
         run: |
-          pytest -v
+          python -m pytest -v
 
       - name: Set up JDK 17 for Android
         uses: actions/setup-java@v4
