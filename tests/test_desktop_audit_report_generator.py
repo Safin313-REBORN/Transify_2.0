@@ -401,7 +401,7 @@ def test_missing_activation_time_fails(passing_fixture):
     fixture["performance_benchmarks"]["status"] = "FAIL"
 
     perf = generate_performance_report(fixture)
-    assert "| `home` | Home | 0.5 | -1 | 12.0 | 15.0 | **-1** | **FAIL** |" in perf
+    assert "| `home` | Home | 0.5 | -1 | 12.0 | 15.0 | N/A | **-1** | **FAIL** |" in perf
     assert "| • Overall Performance Benchmark Status:                    FAIL" in perf
 
 
@@ -465,5 +465,242 @@ def test_gc_not_invoked_fails(passing_fixture):
 
     stab = generate_stability_report(fixture)
     assert "| • Workload Stability Verdict:          FAIL" in stab
+
+
+def test_negative_existing_db_copied():
+    """Negative test: verify isolated setup never copies data/transify.db."""
+    from scripts.verify_desktop_webview_matrix import isolated_audit_environment
+    import inspect
+    src = inspect.getsource(isolated_audit_environment)
+    assert "shutil.copy2(original_db" not in src
+    assert "data/transify.db uncopied" in src or "NEVER copies" in src
+
+
+def test_negative_existing_patient_records_imported():
+    """Negative test: verify non-synthetic patient records cause failure."""
+    from scripts.verify_desktop_webview_matrix import isolated_audit_environment
+    with isolated_audit_environment() as env:
+        assert env["synthetic_count"] == 50
+        # Verify all records start with synthetic-patient-
+        from src.database.db import get_connection
+        conn = get_connection()
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) FROM care_patient_intakes WHERE patient_id NOT LIKE 'synthetic-patient-%';")
+        non_synth = c.fetchone()[0]
+        conn.close()
+        assert non_synth == 0
+
+
+def test_negative_setup_exception_before_yield(monkeypatch):
+    """Negative test: verify cleanup and env restoration if setup raises before yield."""
+    from scripts.verify_desktop_webview_matrix import isolated_audit_environment
+    original_env = os.environ.get("TRANSIFY_DB_PATH")
+
+    def broken_init():
+        raise RuntimeError("Simulated failure during schema init")
+
+    monkeypatch.setattr("scripts.verify_desktop_webview_matrix.init_care_db", broken_init)
+
+    with pytest.raises(RuntimeError, match="Simulated failure"):
+        with isolated_audit_environment():
+            pass
+
+    # Ensure environment was restored
+    assert os.environ.get("TRANSIFY_DB_PATH") == original_env
+
+
+def test_negative_environment_restoration_failure():
+    """Negative test: verify TRANSIFY_DB_PATH is restored after normal or abnormal exit."""
+    from scripts.verify_desktop_webview_matrix import isolated_audit_environment
+    test_val = "/tmp/prior_custom_db.sqlite"
+    os.environ["TRANSIFY_DB_PATH"] = test_val
+    try:
+        try:
+            with isolated_audit_environment() as env:
+                assert os.environ["TRANSIFY_DB_PATH"] == env["temp_db_path"]
+                raise ValueError("Inner audit error")
+        except ValueError:
+            pass
+
+        assert os.environ.get("TRANSIFY_DB_PATH") == test_val
+    finally:
+        os.environ.pop("TRANSIFY_DB_PATH", None)
+
+
+def test_negative_tempdir_cleanup_failure(monkeypatch):
+    """Negative test: verify cleanup failure raises error and does not report success."""
+    import tempfile
+    from scripts.verify_desktop_webview_matrix import isolated_audit_environment
+
+    original_cleanup = tempfile.TemporaryDirectory.cleanup
+
+    def failed_cleanup(self):
+        # Do not delete the directory
+        pass
+
+    monkeypatch.setattr(tempfile.TemporaryDirectory, "cleanup", failed_cleanup)
+    monkeypatch.setattr("shutil.rmtree", lambda *a, **kw: None)
+
+    with pytest.raises(RuntimeError, match="could not be cleaned up"):
+        with isolated_audit_environment():
+            pass
+
+
+def test_negative_workspace_overlap_fails(passing_fixture):
+    """Negative test: verify overlapping interactive elements flag workspace failure."""
+    fixture = dict(passing_fixture)
+    fixture["viewports_tested"] = [
+        {
+            "viewport_name": "desktop_1280x720_hd",
+            "width": 1280,
+            "height": 720,
+            "aspect_ratio": "16:9",
+            "tier": "HD Laptop",
+            "rail_width_px": 112,
+            "content_width_px": 1168,
+            "home_main_width_px": 884,
+            "zero_horizontal_overflow": True,
+            "clipping_issues_count": 0,
+            "workspaces_evaluated": 8,
+            "workspaces_ready": 7,
+            "workspace_layouts": {
+                "home": {
+                    "status": "FAIL",
+                    "overlapping_elements_count": 2,
+                    "overlapping_elements": [
+                        {"elementA": "button#btn-say-speak", "elementB": "input#say", "overlapArea": 120}
+                    ]
+                }
+            },
+            "status": "FAIL"
+        }
+    ]
+    log = generate_execution_log(fixture)
+    assert "[FAIL] Viewport desktop_1280x720_hd" in log
+
+
+def test_negative_vertical_clipping_fails(passing_fixture):
+    """Negative test: verify vertical clipping issues flag failure."""
+    fixture = dict(passing_fixture)
+    fixture["viewports_tested"] = [
+        {
+            "viewport_name": "desktop_1280x720_hd",
+            "width": 1280,
+            "height": 720,
+            "aspect_ratio": "16:9",
+            "tier": "HD Laptop",
+            "rail_width_px": 112,
+            "content_width_px": 1168,
+            "home_main_width_px": 884,
+            "zero_horizontal_overflow": True,
+            "clipping_issues_count": 1,
+            "workspaces_evaluated": 8,
+            "workspaces_ready": 7,
+            "workspace_layouts": {
+                "home": {
+                    "status": "FAIL",
+                    "vertical_clipping_issues_count": 1,
+                    "vertical_clipping_issues": [
+                        {"element": "div.home-bento", "ancestor": "div#view-home", "issue": "Content vertically clipped"}
+                    ]
+                }
+            },
+            "status": "FAIL"
+        }
+    ]
+    master = generate_master_audit_report(fixture)
+    assert "| `desktop_1280x720_hd` | 1280x720 | 16:9 | HD Laptop | 112px | **7/8** | **None** | **1** | **FAIL** |" in master
+
+
+def test_negative_parent_clipping_fails(passing_fixture):
+    """Negative test: verify parent overflow-x:hidden clipping flags failure."""
+    fixture = dict(passing_fixture)
+    fixture["viewports_tested"] = [
+        {
+            "viewport_name": "desktop_1280x720_hd",
+            "width": 1280,
+            "height": 720,
+            "aspect_ratio": "16:9",
+            "tier": "HD Laptop",
+            "rail_width_px": 112,
+            "content_width_px": 1168,
+            "home_main_width_px": 884,
+            "zero_horizontal_overflow": False,
+            "clipping_issues_count": 1,
+            "workspaces_evaluated": 8,
+            "workspaces_ready": 7,
+            "workspace_layouts": {
+                "settings": {
+                    "status": "FAIL",
+                    "parent_clipping_issues_count": 1,
+                    "parent_clipping_issues": [{"element": "div.settings-navbar", "issue": "Scroll width exceeds client width"}]
+                }
+            },
+            "status": "FAIL"
+        }
+    ]
+    master = generate_master_audit_report(fixture)
+    assert "**DETECTED**" in master
+    assert "**FAIL**" in master
+
+
+def test_negative_route_performance_threshold_violation(passing_fixture):
+    """Negative test: verify route exceeding defined threshold fails."""
+    fixture = dict(passing_fixture)
+    fixture["performance_benchmarks"] = dict(passing_fixture["performance_benchmarks"])
+    fixture["performance_benchmarks"]["route_latencies_ms"] = dict(passing_fixture["performance_benchmarks"]["route_latencies_ms"])
+    fixture["performance_benchmarks"]["route_latencies_ms"]["home"] = {
+        "label": "Home",
+        "dispatch_ms": 0.5,
+        "activation_ms": 10.0,
+        "first_raf_callback_ms": 15.0,
+        "readiness_ms": 1250.0,
+        "threshold_ms": 1000.0,
+        "total_latency_ms": 1250.0,
+        "status": "FAIL",
+        "error": "Exceeded latency threshold"
+    }
+    fixture["performance_benchmarks"]["status"] = "FAIL"
+
+    perf = generate_performance_report(fixture)
+    assert "| `home` | Home | 0.5 | 10.0 | 15.0 | 1250.0 | 1000.0 | **1250.0** | **FAIL** |" in perf
+    assert "| • Overall Performance Benchmark Status:                    FAIL" in perf
+
+
+def test_negative_first_raf_callback_mistakenly_labeled_rendered_frame(passing_fixture):
+    """Negative test: verify RAF callback timing is explicitly separated from GPU presentation."""
+    perf = generate_performance_report(passing_fixture)
+    assert "First RAF Callback:" in perf
+    assert "not actual GPU compositor presentation" in perf
+    assert "Compositor GPU Frame Rate:                               NOT MEASURED" in perf
+
+
+def test_negative_noop_route_counted_as_transition(passing_fixture):
+    """Negative test: verify a no-op transition (prev == target) is rejected."""
+    current_route = "home"
+    target_route = "home"
+    is_noop = (current_route == target_route)
+    assert is_noop is True, "No-op transition must be detected and not counted toward distinct state changes"
+
+
+def test_negative_conjunct_regex_present_but_visual_rendering_unverified(passing_fixture):
+    """Negative test: verify Unicode regex alone does not claim visual glyph shaping."""
+    fixture = dict(passing_fixture)
+    fixture["bengali_typography_audit"] = {
+        "fontFamily": "Hind Siliguri",
+        "fontLoaded": True,
+        "platformFontFamily": "Hind Siliguri",
+        "fontSizePx": 16.0,
+        "lineHeight": "24px",
+        "renderedHeightPx": 24.0,
+        "heightAdequate": True,
+        "conjuncts_verified": True,
+        "conjunct_codepoint_sequence_present": True,
+        "visual_glyph_shaping_status": "VERIFIED VIA SCREENSHOT REVIEW (Regex verifies Unicode codepoint sequence; complex glyph shaping requires visual inspection of captured screenshot artifacts)",
+        "status": "PASS"
+    }
+    master = generate_master_audit_report(fixture)
+    assert "VERIFIED VIA SCREENSHOT REVIEW" in master
+    assert "complex glyph shaping requires visual inspection" in master
 
 

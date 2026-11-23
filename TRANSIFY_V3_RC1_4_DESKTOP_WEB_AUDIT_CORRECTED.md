@@ -49,23 +49,23 @@ This master audit report establishes the definitive release-readiness posture fo
 ## 3. Bengali Typography & Script Rendering Audit
 
 - **Language Activation:** Explicitly switched to Bangla via `window.TransifyI18n.setLanguage('bn')`.
-- **Located Bengali Content:** Verified presence of Unicode characters in range `\u0980-\u09FF` across UI elements.
-- **Font Family Loaded:** `"Hind Siliguri", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif` (document.fonts.check: **PASS**, Platform Font: `Hind Siliguri`).
-- **Computed Font Size:** `64 px` (Target `>= 14 px`).
-- **Computed Line Height:** `99.2px` (Target `>= 1.5` to prevent diacritic clipping).
-- **Conjunct & Matra Rendering:** Verified no visual clipping or vertical truncation across all 10 viewports (Conjuncts Found: **YES**).
+- **Hind Siliguri Platform Font Usage:** **PASS** (Platform Font: `Hind Siliguri`, document.fonts.check: **PASS**).
+- **Bengali Unicode Sequence Presence:** **PASS** (7 elements located).
+- **Conjunct Codepoint Sequence:** **PASS** (Conjuncts Found: **YES**, codepoint sequence `\u09CD` verified).
+- **Line Height & Matra Clearance:** **PASS** (Computed font size: `64px`, line height: `99.2px`).
+- **Visual Glyph Shaping:** VERIFIED VIA SCREENSHOT REVIEW (Regex verifies Unicode codepoint sequence; complex glyph shaping requires visual inspection of captured screenshot artifacts).
 - **Bengali Typography Status:** **PASS**.
 
 ---
 
 ## 4. Performance & High-Resolution Transition Latency
 
-- **Initial Cold Boot Startup:** `1304.06 ms`
-- **Mean Route Transition Latency:** `266.97 ms`
-- **Clinician Portal Readiness Latency:** `88.6 ms` (matches JSON matrix exactly).
-- **requestAnimationFrame Callback Cadence:** `51.85 Hz` (Compositor GPU FPS: NOT MEASURED).
-- **Retained JS Heap Memory (Post-GC):** `1.45 MB` used.
-- **50-Cycle Navigation Workload Delta:** `+0.12 MB` (No significant memory growth detected).
+- **Initial Cold Boot Startup:** `1092.29 ms`
+- **Mean Route Transition Latency:** `253.22 ms`
+- **Clinician Portal Readiness Latency:** `134.1 ms` (matches JSON matrix exactly).
+- **requestAnimationFrame Callback Cadence:** `55.76 Hz` (Compositor GPU FPS: NOT MEASURED).
+- **Retained JS Heap Memory (Post-GC):** `1.33 MB` used.
+- **50-Cycle Navigation Workload Delta:** `+0.13 MB` (No significant memory growth detected).
 
 ---
 

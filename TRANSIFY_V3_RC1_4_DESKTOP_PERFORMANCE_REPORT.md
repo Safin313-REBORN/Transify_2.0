@@ -18,13 +18,13 @@ All route transition latencies and memory metrics were captured using high-resol
 +======================================================================================================+
 | DESKTOP PERFORMANCE BENCHMARK SUMMARY (EMPIRICAL CDP & HIGH-RES MONOTONIC TIMERS)                    |
 +======================================================================================================+
-| • Cold Boot to NetworkIdle:                                1304.06 ms
-| • Mean Route Transition Latency (10 Core Views):           266.97 ms
-| • requestAnimationFrame Callback Cadence:                  51.85 Hz (104 frames / 2.01s)
+| • Cold Boot to NetworkIdle:                                1092.29 ms
+| • Mean Route Transition Latency (10 Core Views):           253.22 ms
+| • requestAnimationFrame Callback Cadence:                  55.76 Hz (112 frames / 2.01s)
 | • Compositor GPU Frame Rate:                               NOT MEASURED (Requires OS Compositor GPU Profiler)
-| • Active Retained JS Heap Memory (Post-GC via CDP):        1.45 MB used / 2.5 MB allocated
+| • Active Retained JS Heap Memory (Post-GC via CDP):        1.33 MB used / 2.5 MB allocated
 | • Active DOM Node Count & Event Listeners:                 13730 Nodes / 1002 Listeners
-| • 50-Cycle Navigation Workload Retained Heap Delta:        +0.12 MB (No significant growth detected)
+| • 50-Cycle Navigation Workload Retained Heap Delta:        +0.13 MB (No significant growth detected)
 | • Overall Performance Benchmark Status:                    PASS
 +======================================================================================================+
 ```
@@ -35,27 +35,27 @@ All route transition latencies and memory metrics were captured using high-resol
 
 Every destination was evaluated across four distinct phases:
 1. **Dispatch:** Time to trigger route navigation via `window.routeTo()`.
-2. **Confirmed Activation:** Verified destination container receives active state, computed `display !== 'none'`, computed `visibility !== 'hidden'`, opacity > 0, and valid positive dimensions.
-3. **First Rendered Frame:** Monitored via `requestAnimationFrame`.
+2. **Confirmed Activation:** Verified destination container receives active state, computed `display !== 'none'`, computed `visibility !== 'hidden'`, opacity > 0, and valid positive dimensions (instrumented with DOM MutationObserver).
+3. **First RAF Callback:** Monitored via `requestAnimationFrame` callback invocation (not actual GPU compositor presentation).
 4. **Content Readiness:** Verified destination controls and data are fully populated (e.g. Clinician patient table populated with rows; Care intake form ready; Sign workspace ready).
 
-| View Identifier | Screen Description | Dispatch (ms) | Activation (ms) | First Frame (ms) | Content Readiness (ms) | Total Transition (ms) | Status |
-|---|---|---|---|---|---|---|---|
-| `welcome` | Neural Boot & Welcome Screen | 1.1 | 2.6 | 1.8 | 2.6 | **2.6** | **PASS** |
-| `home` | Main Assistive Dashboard & Bento Grid | 37.3 | 658.2 | 209.1 | 658.2 | **658.2** | **PASS** |
-| `sign` | Sign Language Translator Workspace | 13 | 356.6 | 81 | 356.6 | **356.6** | **PASS** |
-| `phrases` | Phrases & AAC Communication Board | 39.9 | 395.1 | 129.9 | 395.1 | **395.1** | **PASS** |
-| `braille` | Braille Studio Image Workspace | 16.3 | 152.8 | 19.7 | 152.8 | **152.8** | **PASS** |
-| `voice` | Voice Hub & Speech Studio | 13.5 | 352.6 | 86.2 | 352.6 | **352.6** | **PASS** |
-| `chat` | AI Chatbot & Clinical Assistant | 10.7 | 202.6 | 79.5 | 202.6 | **202.6** | **PASS** |
-| `care` | Transify Care & ChronicCare Triage | 10.4 | 342.1 | 84.2 | 342.1 | **342.1** | **PASS** |
-| `clinician` | Clinician Portal & Patient Queue | 1.8 | 88.5 | 81.5 | 88.6 | **88.6** | **PASS** |
-| `settings` | Settings & Accessibility Preferences | 13.9 | 118.5 | 15.8 | 118.5 | **118.5** | **PASS** |
+| View Identifier | Screen Description | Dispatch (ms) | Activation (ms) | First RAF Callback (ms) | Content Readiness (ms) | Threshold (ms) | Total Transition (ms) | Status |
+|---|---|---|---|---|---|---|---|---|
+| `welcome` | Neural Boot & Welcome Screen | 1.3 | 0.1 | 17.2 | 18 | 500 | **18** | **PASS** |
+| `home` | Main Assistive Dashboard & Bento Grid | 58.3 | 165.8 | 61.6 | 165.8 | 1000 | **165.8** | **PASS** |
+| `sign` | Sign Language Translator Workspace | 24.2 | 549.3 | 95.2 | 549.3 | 1000 | **549.3** | **PASS** |
+| `phrases` | Phrases & AAC Communication Board | 57.7 | 403.7 | 133.9 | 403.7 | 1000 | **403.7** | **PASS** |
+| `braille` | Braille Studio Image Workspace | 18.6 | 301.2 | 94.1 | 301.2 | 1000 | **301.2** | **PASS** |
+| `voice` | Voice Hub & Speech Studio | 16 | 271.4 | 116.3 | 271.4 | 1000 | **271.4** | **PASS** |
+| `chat` | AI Chatbot & Clinical Assistant | 22.8 | 277.7 | 144 | 277.7 | 1000 | **277.7** | **PASS** |
+| `care` | Transify Care & ChronicCare Triage | 10.9 | 179.7 | 36.3 | 179.7 | 1000 | **179.7** | **PASS** |
+| `clinician` | Clinician Portal & Patient Queue | 3.3 | 13.5 | 133.4 | 134.1 | 1500 | **134.1** | **PASS** |
+| `settings` | Settings & Accessibility Preferences | 17.4 | 231.3 | 108.1 | 231.3 | 1000 | **231.3** | **PASS** |
 
-**Mean Transition Latency:** **266.97 ms** (All 10 views transitioned within acceptable responsiveness bounds).
+**Mean Transition Latency:** **253.22 ms** (All valid routes satisfied declared performance thresholds; Historical RC1.4.2 Baseline: **266.97 ms**).
 
 > [!NOTE]
-> Clinician Portal (`clinician`) transition latency is **88.6 ms**, which includes dynamic rendering and mounting of the patient triage queue table. This matches the authoritative JSON matrix exactly.
+> Clinician Portal (`clinician`) transition latency is **134.1 ms**, which includes dynamic rendering and mounting of the patient triage queue table. This matches the authoritative JSON matrix exactly.
 
 ---
 
@@ -63,23 +63,23 @@ Every destination was evaluated across four distinct phases:
 
 ### Retained Heap & DOM Analysis
 - **V8 Garbage Collection:** Explicitly invoked before measurement via `HeapProfiler.collectGarbage`.
-- **Active Retained Heap Used:** `1.45 MB`
+- **Active Retained Heap Used:** `1.33 MB`
 - **Total Heap Allocated:** `2.5 MB`
 - **Active DOM Nodes:** `13730`
 - **Active Event Listeners:** `1002`
 
 ### 50-Cycle Navigation Stability Assessment
 - Workload: 50 continuous navigation transitions through `home` -> `care` -> `sign` -> `braille` -> `chat`.
-- Baseline Heap (Post-GC): `1.07 MB` (12939 nodes)
-- Post-50 Cycles Heap (Post-GC): `1.19 MB` (12959 nodes)
-- Net Retained Heap Delta: `+0.12 MB`
-- Net DOM Node Delta: `+20` nodes
+- Baseline Heap (Post-GC): `1.07 MB` (12934 nodes)
+- Post-50 Cycles Heap (Post-GC): `1.2 MB` (12959 nodes)
+- Net Retained Heap Delta: `+0.13 MB`
+- Net DOM Node Delta: `+25` nodes
 - **Verdict:** **PASS** (No significant memory growth detected within the tested 50-cycle workload).
 
 ---
 
 ## 4. Animation & Compositor Performance
 
-- **requestAnimationFrame Callback Cadence:** `51.85 Hz`
+- **requestAnimationFrame Callback Cadence:** `55.76 Hz`
 - **Measurement Scope:** Measures JavaScript RAF callback timer dispatch frequency over a 2.0-second active window in Linux Chromium headless mode.
 - **Compositor GPU Rendering FPS:** Marked **NOT MEASURED** as headless execution lacks hardware GPU vsync profiling.

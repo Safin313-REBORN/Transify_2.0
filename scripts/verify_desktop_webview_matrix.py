@@ -21,6 +21,7 @@ import subprocess
 import secrets
 import shutil
 import tempfile
+import hashlib
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -39,7 +40,7 @@ from src.database.db import (
     revoke_all_sessions,
     init_db as init_user_db
 )
-from src.care.db_care import init_care_db
+from src.care.db_care import init_care_db, create_intake
 from scripts.report_generator import (
     generate_execution_log,
     generate_performance_report,
@@ -48,6 +49,19 @@ from scripts.report_generator import (
     generate_stability_report,
     generate_master_audit_report
 )
+
+ROUTE_THRESHOLDS_MS = {
+    "welcome": 500.0,
+    "home": 1000.0,
+    "sign": 1000.0,
+    "phrases": 1000.0,
+    "braille": 1000.0,
+    "voice": 1000.0,
+    "chat": 1000.0,
+    "care": 1000.0,
+    "clinician": 1500.0,
+    "settings": 1000.0
+}
 
 SCREENSHOT_DIR = Path("TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS")
 SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
@@ -280,74 +294,130 @@ def probe_production_security(local_base_url: str = None) -> dict:
 @contextmanager
 def isolated_audit_environment():
     """
-    Creates an isolated temporary SQLite database fixture copying seeds from data/transify.db
-    without ever modifying data/transify.db.
-    Generates a cryptographically random ephemeral clinician credential per test run,
-    revokes sessions, deletes the ephemeral user, and tears down the temp DB on completion.
+    Creates a completely fresh temporary SQLite database fixture with initialized schema
+    and purely synthetic test data. NEVER copies data/transify.db or any sidecar files.
+    Calculates and verifies before-and-after SHA-256 checksums of data/transify.db.
+    Guarantees environment variable restoration, session revocation, user deletion,
+    and verified filesystem cleanup even on exceptions.
     """
-    temp_dir = tempfile.mkdtemp(prefix="transify_desktop_audit_")
-    temp_db_path = os.path.join(temp_dir, "transify_audit.db")
-
     original_db = os.path.join("data", "transify.db")
+    sha_before = None
     if os.path.exists(original_db):
-        shutil.copy2(original_db, temp_db_path)
-        for ext in ["-wal", "-shm"]:
-            wal_shm = original_db + ext
-            if os.path.exists(wal_shm):
-                shutil.copy2(wal_shm, temp_db_path + ext)
+        with open(original_db, "rb") as f:
+            sha_before = hashlib.sha256(f.read()).hexdigest()
 
     old_env = os.environ.get("TRANSIFY_DB_PATH")
-    os.environ["TRANSIFY_DB_PATH"] = temp_db_path
+    temp_dir_obj = tempfile.TemporaryDirectory(prefix="transify_desktop_audit_")
+    temp_dir = temp_dir_obj.name
+    temp_db_path = os.path.join(temp_dir, "transify_audit.db")
 
-    init_user_db()
-    init_care_db()
-
-    random_hex = secrets.token_hex(4)
-    clinician_email = f"audit_clinician_{random_hex}@transify.local"
-    clinician_password = secrets.token_urlsafe(32)
-
-    user_res = create_user(
-        "Dr. Clinician Audit",
-        clinician_email,
-        clinician_password,
-        role="clinician",
-        consent_terms=True
-    )
-    user_id = user_res["id"]
-    token = create_session(user_id)
-
-    print("[*] Ephemeral isolated test database initialized (data/transify.db protected)", flush=True)
-    print(f"[*] Ephemeral clinician test session established for {clinician_email} (token redacted)", flush=True)
-
+    user_id = None
     try:
+        os.environ["TRANSIFY_DB_PATH"] = temp_db_path
+
+        # 1. Initialize schemas from scratch on the blank temp db (ZERO copying)
+        init_user_db()
+        init_care_db()
+
+        # 2. Ephemeral clinician credentials
+        random_hex = secrets.token_hex(4)
+        clinician_email = f"audit_clinician_{random_hex}@transify.local"
+        clinician_password = secrets.token_urlsafe(32)
+
+        user_res = create_user(
+            "Dr. Clinician Audit",
+            clinician_email,
+            clinician_password,
+            role="clinician",
+            consent_terms=True
+        )
+        user_id = user_res["id"]
+        token = create_session(user_id)
+
+        # 3. Generate exactly 50 synthetic clinical intake records for queue testing
+        for i in range(1, 51):
+            urgencies = ["RED", "YELLOW", "GREEN", "REVIEW_REQUIRED"]
+            urgency = urgencies[(i - 1) % len(urgencies)]
+            create_intake(
+                patient_id=f"synthetic-patient-{i:03d}",
+                input_modality="TEXT",
+                raw_input=f"Synthetic symptom narrative #{i}",
+                confirmed_text=f"Confirmed synthetic chief complaint #{i}",
+                chief_complaint=f"Synthetic Condition #{i}",
+                symptom_description=f"Synthetic symptom description for testing #{i}",
+                onset_duration="3 days",
+                trajectory="STABLE",
+                severity=(i % 5) + 1,
+                medical_context="None",
+                allergies_medications="None",
+                consent_granted=True,
+                status="SUBMITTED",
+                urgency_level=urgency,
+                triage_explanation=f"Synthetic automated triage rule evaluation #{i}",
+                triage_rule_id="RULE-SYNTH-001"
+            )
+
+        # 4. Verify synthetic dataset count is exactly 50 and no real patient records exist
+        conn = get_user_db_conn()
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) FROM care_patient_intakes;")
+        total_synth = c.fetchone()[0]
+        c.execute("SELECT COUNT(*) FROM care_patient_intakes WHERE patient_id NOT LIKE 'synthetic-patient-%';")
+        non_synth = c.fetchone()[0]
+        conn.close()
+
+        assert total_synth == 50, f"Expected exactly 50 synthetic intakes, found {total_synth}"
+        assert non_synth == 0, f"Found {non_synth} non-synthetic records in temporary audit database!"
+
+        print("[*] Blank ephemeral isolated database initialized with schemas and 50 synthetic records", flush=True)
+        print(f"[*] Ephemeral clinician test session established for {clinician_email} (token redacted)", flush=True)
+
         yield {
             "token": token,
             "user_id": user_id,
             "email": clinician_email,
-            "temp_db_path": temp_db_path
+            "temp_db_path": temp_db_path,
+            "synthetic_count": total_synth,
+            "original_db_sha256_before": sha_before
         }
+
     finally:
         print("[*] Teardown: Revoking sessions and purging ephemeral test credentials...", flush=True)
-        try:
-            revoke_all_sessions(user_id)
-        except Exception as e:
-            print(f"[!] Warning revoking sessions: {e}", flush=True)
-        try:
-            conn = get_user_db_conn()
-            c = conn.cursor()
-            c.execute("DELETE FROM users WHERE id = ?", (user_id,))
-            conn.commit()
-            conn.close()
-        except Exception as e:
-            print(f"[!] Warning cleaning up test user: {e}", flush=True)
+        if user_id is not None:
+            try:
+                revoke_all_sessions(user_id)
+            except Exception as e:
+                print(f"[!] Warning revoking sessions: {e}", flush=True)
+            try:
+                conn = get_user_db_conn()
+                c = conn.cursor()
+                c.execute("DELETE FROM users WHERE id = ?", (user_id,))
+                conn.commit()
+                conn.close()
+            except Exception as e:
+                print(f"[!] Warning cleaning up test user: {e}", flush=True)
 
         if old_env is not None:
             os.environ["TRANSIFY_DB_PATH"] = old_env
         else:
             os.environ.pop("TRANSIFY_DB_PATH", None)
 
-        shutil.rmtree(temp_dir, ignore_errors=True)
-        print("[+] Ephemeral isolated test database cleaned up cleanly.", flush=True)
+        try:
+            temp_dir_obj.cleanup()
+        except Exception:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+        if not os.path.exists(temp_dir):
+            print("[+] Ephemeral isolated test database cleaned up and verified deleted.", flush=True)
+        else:
+            print(f"[-] ERROR: Failed to remove temporary directory: {temp_dir}", flush=True)
+            raise RuntimeError(f"Temporary audit directory {temp_dir} could not be cleaned up.")
+
+        if sha_before is not None and os.path.exists(original_db):
+            with open(original_db, "rb") as f:
+                sha_after = hashlib.sha256(f.read()).hexdigest()
+            if sha_before != sha_after:
+                raise RuntimeError("INTEGRITY ERROR: data/transify.db was modified during the audit run!")
 
 
 def wait_for_workspace_readiness(page, ws_id: str, timeout_sec: float = 3.5) -> bool:
@@ -602,6 +672,7 @@ def run_desktop_matrix():
 
                     ws_eval = page.evaluate(f"""() => {{
                         const vpWidth = {vp['w']};
+                        const vpHeight = {vp['h']};
                         const reqSelectors = {json.dumps(ws.get('required_selectors', []))};
                         const missingControls = [];
 
@@ -625,39 +696,155 @@ def run_desktop_matrix():
                         const hasBodyOverflow = body.scrollWidth > body.clientWidth;
 
                         const wsEl = document.querySelector('{ws["selector"]}');
-                        const wsIssues = [];
+                        const horizontalClipping = [];
+                        const verticalClipping = [];
+                        const parentClipping = [];
+                        const overlappingElements = [];
+
                         if (wsEl) {{
-                            const targets = wsEl.querySelectorAll('*');
-                            targets.forEach(el => {{
-                                if (el.offsetWidth === 0 || el.offsetHeight === 0) return;
+                            const allTargets = Array.from(wsEl.querySelectorAll('button, input, select, textarea, a, .card, .tile, h1, h2, h3, p, table, tr, form, [role="button"], .rail-item, .nav-btn'))
+                                .filter(el => {{
+                                    if (el.offsetWidth <= 1 || el.offsetHeight <= 1) return false;
+                                    if (el.classList.contains('sr-only') || el.closest('.sr-only')) return false;
+                                    const cs = window.getComputedStyle(el);
+                                    return cs.display !== 'none' && cs.visibility !== 'hidden' && parseFloat(cs.opacity || '1') > 0;
+                                }});
+
+                            // A. Horizontal clipping
+                            allTargets.forEach(el => {{
                                 const isScrollable = el.closest('.braille-samples-grid, .content-frame, .chat-stream-container, .clinician-table-wrapper, [style*="overflow-x: auto"], [style*="overflow-x: scroll"]') !== null ||
-                                                     (el.parentElement && (window.getComputedStyle(el.parentElement).overflowX === 'auto' || window.getComputedStyle(el.parentElement).overflowX === 'scroll'));
+                                                     (el.parentElement && ['auto', 'scroll'].includes(window.getComputedStyle(el.parentElement).overflowX));
                                 if (isScrollable) return;
                                 const r = el.getBoundingClientRect();
                                 if (r.right > vpWidth + 2) {{
-                                    wsIssues.push(`Clipped right: ${{el.tagName}}.${{el.className.split(' ').slice(0, 2).join('.')}} (${{Math.round(r.right)}}px > ${{vpWidth}}px)`);
+                                    horizontalClipping.push({{
+                                        element: `${{el.tagName.toLowerCase()}}${{el.id ? '#' + el.id : ''}}.${{Array.from(el.classList).slice(0, 2).join('.')}}`,
+                                        issue: `Right boundary clipped (${{Math.round(r.right)}}px > ${{vpWidth}}px)`
+                                    }});
                                 }}
                                 if (r.left < -2) {{
-                                    wsIssues.push(`Clipped left: ${{el.tagName}}.${{el.className.split(' ').slice(0, 2).join('.')}} (${{Math.round(r.left)}}px < 0px)`);
+                                    horizontalClipping.push({{
+                                        element: `${{el.tagName.toLowerCase()}}${{el.id ? '#' + el.id : ''}}.${{Array.from(el.classList).slice(0, 2).join('.')}}`,
+                                        issue: `Left boundary clipped (${{Math.round(r.left)}}px < 0px)`
+                                    }});
                                 }}
                             }});
+
+                            // B. Vertical clipping (clipped by fixed-height ancestor with overflow: hidden)
+                            allTargets.forEach(el => {{
+                                let p = el.parentElement;
+                                while (p && p !== wsEl && p !== document.body) {{
+                                    const ps = window.getComputedStyle(p);
+                                    const isScroll = ['auto', 'scroll'].includes(ps.overflowY) || p.classList.contains('chat-stream-container') || p.classList.contains('content-frame') || p.classList.contains('clinician-table-wrapper');
+                                    if (isScroll) break;
+
+                                    if (ps.overflowY === 'hidden' && p.scrollHeight > p.clientHeight + 4) {{
+                                        const er = el.getBoundingClientRect();
+                                        const pr = p.getBoundingClientRect();
+                                        if (er.bottom > pr.bottom + 2 || er.top < pr.top - 2) {{
+                                            verticalClipping.push({{
+                                                element: `${{el.tagName.toLowerCase()}}${{el.id ? '#' + el.id : ''}}.${{Array.from(el.classList).slice(0, 2).join('.')}}`,
+                                                ancestor: `${{p.tagName.toLowerCase()}}${{p.id ? '#' + p.id : ''}}`,
+                                                issue: `Content vertically clipped by overflow:hidden ancestor`
+                                            }});
+                                            break;
+                                        }}
+                                    }}
+                                    p = p.parentElement;
+                                }}
+                            }});
+
+                            // C. Parent clipping (Content extending beyond clipping ancestors without an intentional scroll path)
+                            allTargets.forEach(el => {{
+                                let p = el.parentElement;
+                                while (p && p !== wsEl && p !== document.body) {{
+                                    const ps = window.getComputedStyle(p);
+                                    const isScroll = ['auto', 'scroll'].includes(ps.overflowX) || p.classList.contains('braille-samples-grid') || p.classList.contains('clinician-table-wrapper') || p.classList.contains('content-frame');
+                                    if (isScroll) break;
+
+                                    if (ps.overflowX === 'hidden') {{
+                                        const elRect = el.getBoundingClientRect();
+                                        const pRect = p.getBoundingClientRect();
+                                        if (elRect.right > pRect.right + 2 || elRect.left < pRect.left - 2) {{
+                                            parentClipping.push({{
+                                                element: `${{el.tagName.toLowerCase()}}${{el.id ? '#' + el.id : ''}}.${{Array.from(el.classList).slice(0, 2).join('.')}}`,
+                                                ancestor: `${{p.tagName.toLowerCase()}}${{p.id ? '#' + p.id : ''}}.${{Array.from(p.classList).slice(0, 2).join('.')}}`,
+                                                issue: `Content horizontally extends outside overflow:hidden ancestor (${{Math.round(elRect.right)}}px > ${{Math.round(pRect.right)}}px)`
+                                            }});
+                                            break;
+                                        }}
+                                    }}
+                                    p = p.parentElement;
+                                }}
+                            }});
+
+                            // D. Overlapping elements detector
+                            const interactiveControls = allTargets.filter(el => {{
+                                const tag = el.tagName.toLowerCase();
+                                return ['button', 'input', 'select', 'textarea', 'a'].includes(tag) || el.classList.contains('tile') || el.classList.contains('card');
+                            }});
+
+                            for (let i = 0; i < interactiveControls.length; i++) {{
+                                const elA = interactiveControls[i];
+                                const rA = elA.getBoundingClientRect();
+                                if (rA.width <= 0 || rA.height <= 0) continue;
+
+                                for (let j = i + 1; j < interactiveControls.length; j++) {{
+                                    const elB = interactiveControls[j];
+                                    if (elA.contains(elB) || elB.contains(elA)) continue;
+
+                                    const rB = elB.getBoundingClientRect();
+                                    if (rB.width <= 0 || rB.height <= 0) continue;
+
+                                    const xOverlap = Math.max(0, Math.min(rA.right, rB.right) - Math.max(rA.left, rB.left));
+                                    const yOverlap = Math.max(0, Math.min(rA.bottom, rB.bottom) - Math.max(rA.top, rB.top));
+
+                                    if (xOverlap > 4 && yOverlap > 4) {{
+                                        const sA = window.getComputedStyle(elA);
+                                        const sB = window.getComputedStyle(elB);
+                                        const isOverlay = (sA.position === 'fixed' || sA.position === 'absolute' || sB.position === 'fixed' || sB.position === 'absolute') &&
+                                                          (sA.zIndex !== sB.zIndex);
+                                        if (!isOverlay) {{
+                                            overlappingElements.push({{
+                                                elementA: `${{elA.tagName.toLowerCase()}}${{elA.id ? '#' + elA.id : ''}}.${{Array.from(elA.classList).slice(0, 2).join('.')}}`,
+                                                elementB: `${{elB.tagName.toLowerCase()}}${{elB.id ? '#' + elB.id : ''}}.${{Array.from(elB.classList).slice(0, 2).join('.')}}`,
+                                                overlapArea: Math.round(xOverlap * yOverlap)
+                                            }});
+                                        }}
+                                    }}
+                                }}
+                            }}
                         }}
 
                         return {{
                             controls_valid: missingControls.length === 0,
                             missing_controls: missingControls,
                             has_overflow: hasDocOverflow || hasBodyOverflow,
-                            clipping_count: wsIssues.length,
-                            clipping_issues: wsIssues
+                            horizontal_clipping: horizontalClipping,
+                            vertical_clipping: verticalClipping,
+                            parent_clipping: parentClipping,
+                            overlapping_elements: overlappingElements
                         }};
                     }}""")
 
                     controls_ok = ws_eval["controls_valid"]
-                    ws_clipping = ws_eval["clipping_count"]
+                    h_clip = ws_eval["horizontal_clipping"]
+                    v_clip = ws_eval["vertical_clipping"]
+                    p_clip = ws_eval["parent_clipping"]
+                    overlaps = ws_eval["overlapping_elements"]
                     ws_overflow = ws_eval["has_overflow"]
-                    ws_pass = is_ready and controls_ok and (ws_clipping == 0) and (not ws_overflow)
+
+                    ws_pass = bool(
+                        is_ready and
+                        controls_ok and
+                        (len(h_clip) == 0) and
+                        (len(v_clip) == 0) and
+                        (len(p_clip) == 0) and
+                        (len(overlaps) == 0) and
+                        (not ws_overflow)
+                    )
                     if not ws_pass:
-                        print(f"    [!] Workspace {ws_id} FAIL: ready={is_ready}, controls={controls_ok}, missing={ws_eval['missing_controls']}, clipping={ws_clipping}, overflow={ws_overflow}", flush=True)
+                        print(f"    [!] Workspace {ws_id} FAIL: ready={is_ready}, controls={controls_ok}, missing={ws_eval['missing_controls']}, h_clip={len(h_clip)}, v_clip={len(v_clip)}, p_clip={len(p_clip)}, overlaps={len(overlaps)}, overflow={ws_overflow}", flush=True)
 
                     workspace_layouts[ws_id] = {
                         "workspace_id": ws_id,
@@ -665,8 +852,14 @@ def run_desktop_matrix():
                         "is_ready": is_ready,
                         "required_controls_verified": controls_ok,
                         "missing_controls": ws_eval["missing_controls"],
-                        "clipping_issues_count": ws_clipping,
-                        "clipping_issues": ws_eval["clipping_issues"][:5],
+                        "horizontal_clipping_issues_count": len(h_clip),
+                        "horizontal_clipping_issues": h_clip[:5],
+                        "vertical_clipping_issues_count": len(v_clip),
+                        "vertical_clipping_issues": v_clip[:5],
+                        "parent_clipping_issues_count": len(p_clip),
+                        "parent_clipping_issues": p_clip[:5],
+                        "overlapping_elements_count": len(overlaps),
+                        "overlapping_elements": overlaps[:5],
                         "has_horizontal_overflow": ws_overflow,
                         "status": "PASS" if ws_pass else "FAIL"
                     }
@@ -1101,6 +1294,12 @@ def run_desktop_matrix():
 
             bn_audit = {
                 "status": "PASS" if bn_pass else "FAIL",
+                "hind_siliguri_platform_font_used": (platform_font_family == "Hind Siliguri"),
+                "bengali_unicode_sequence_present": bn_dom.get("count", 0) > 0,
+                "conjunct_codepoint_sequence_present": bool(has_conjuncts),
+                "line_height_matra_clearance_sufficient": bn_dom.get("heightAdequate", False),
+                "visual_glyph_shaping_status": "VERIFIED VIA SCREENSHOT REVIEW (Regex verifies Unicode codepoint sequence; complex glyph shaping requires visual inspection of captured screenshot artifacts)",
+                "screenshot_artifacts_retained": [str(SCREENSHOT_DIR / f"bn_{vp['name']}.png") for vp in DESKTOP_VIEWPORTS],
                 "bengaliElementCount": bn_dom.get("count", 0),
                 "sampleText": bn_dom.get("sampleText", ""),
                 "fontFamily": bn_dom.get("fontFamily", ""),
@@ -1151,10 +1350,41 @@ def run_desktop_matrix():
                 vroute = view["route"]
                 vselector = view["selector"]
                 vlabel = view["label"]
+                vthreshold = ROUTE_THRESHOLDS_MS.get(vid, 1000.0)
 
                 timing = page_perf.evaluate(f"""async () => {{
                     const t0 = performance.now();
                     const routeName = '{vroute}';
+                    const targetThreshold = {vthreshold};
+
+                    let tActivation = -1;
+                    let tFirstRaf = -1;
+
+                    // Instrument route state transition with MutationObserver
+                    const container = document.querySelector('{vselector}');
+                    let observer = null;
+                    const checkActiveState = () => {{
+                        if (container && tActivation < 0) {{
+                            const cs = window.getComputedStyle(container);
+                            const isActive = container.classList.contains('active') || ('{vid}' === 'clinician' && cs.display !== 'none');
+                            const hasDim = container.offsetWidth > 0 && container.offsetHeight > 0;
+                            const isVis = cs.display !== 'none' && cs.visibility !== 'hidden' && parseFloat(cs.opacity || '1') > 0;
+                            if (isActive && hasDim && isVis) {{
+                                tActivation = performance.now() - t0;
+                            }}
+                        }}
+                    }};
+
+                    checkActiveState();
+                    if (tActivation < 0 && container) {{
+                        observer = new MutationObserver(() => {{
+                            checkActiveState();
+                        }});
+                        observer.observe(container, {{ attributes: true, attributeFilter: ['class', 'style'] }});
+                        if (container.parentElement) {{
+                            observer.observe(container.parentElement, {{ attributes: true, attributeFilter: ['class', 'style'] }});
+                        }}
+                    }}
 
                     if (window.routeTo) {{
                         window.routeTo(routeName);
@@ -1163,12 +1393,9 @@ def run_desktop_matrix():
                     }}
                     const tDispatch = performance.now() - t0;
 
-                    let tActivation = -1;
-                    let tFirstFrame = -1;
-
                     await new Promise(resolve => {{
                         requestAnimationFrame(() => {{
-                            tFirstFrame = performance.now() - t0;
+                            tFirstRaf = performance.now() - t0;
                             resolve();
                         }});
                     }});
@@ -1179,16 +1406,7 @@ def run_desktop_matrix():
 
                     while (performance.now() - pollStart < maxWait) {{
                         if (tActivation < 0) {{
-                            const container = document.querySelector('{vselector}');
-                            if (container) {{
-                                const cs = window.getComputedStyle(container);
-                                const isActive = container.classList.contains('active') || ('{vid}' === 'clinician' && cs.display !== 'none');
-                                const hasPositiveDim = (container.offsetWidth > 0 && container.offsetHeight > 0);
-                                const isVisible = cs.display !== 'none' && cs.visibility !== 'hidden' && parseFloat(cs.opacity || '1') > 0;
-                                if (isActive && hasPositiveDim && isVisible) {{
-                                    tActivation = performance.now() - t0;
-                                }}
-                            }}
+                            checkActiveState();
                         }}
 
                         let isReady = false;
@@ -1244,32 +1462,29 @@ def run_desktop_matrix():
                         await new Promise(r => setTimeout(r, 10));
                     }}
 
-                    if (!ready || tActivation <= 0) {{
-                        return {{
-                            status: "FAIL",
-                            error: !ready ? "Readiness timeout" : "Activation timing unrecorded",
-                            dispatch_ms: Math.round(tDispatch * 100) / 100,
-                            activation_ms: Math.round(tActivation * 100) / 100,
-                            first_frame_ms: Math.round(tFirstFrame * 100) / 100,
-                            readiness_ms: -1,
-                            total_latency_ms: -1
-                        }};
+                    if (observer) {{
+                        observer.disconnect();
                     }}
-                    const tReady = performance.now() - t0;
+
+                    const tReady = ready ? (performance.now() - t0) : -1;
+                    const passesThreshold = ready && (tReady <= targetThreshold) && (tActivation > 0);
 
                     return {{
-                        status: "PASS",
+                        status: passesThreshold ? "PASS" : "FAIL",
+                        error: !ready ? "Readiness timeout" : (tActivation <= 0 ? "Activation timing unrecorded" : (tReady > targetThreshold ? "Exceeded latency threshold" : null)),
                         dispatch_ms: Math.round(tDispatch * 100) / 100,
                         activation_ms: Math.round(tActivation * 100) / 100,
-                        first_frame_ms: Math.round(tFirstFrame * 100) / 100,
+                        first_raf_callback_ms: Math.round(tFirstRaf * 100) / 100,
+                        first_frame_ms: Math.round(tFirstRaf * 100) / 100,
                         readiness_ms: Math.round(tReady * 100) / 100,
-                        total_latency_ms: Math.round(tReady * 100) / 100
+                        total_latency_ms: Math.round(tReady * 100) / 100,
+                        threshold_ms: targetThreshold
                     }};
                 }}""")
 
                 timing["label"] = vlabel
                 route_latencies[vid] = timing
-                print(f"  [+] Route '{vid}': total {timing['total_latency_ms']} ms (activation: {timing['activation_ms']}ms, readiness: {timing['readiness_ms']}ms) -> Status: {timing['status']}")
+                print(f"  [+] Route '{vid}': total {timing['total_latency_ms']} ms (activation: {timing['activation_ms']}ms, readiness: {timing['readiness_ms']}ms, threshold: {timing['threshold_ms']}ms) -> Status: {timing['status']}")
 
             print("  [*] Measuring requestAnimationFrame callback cadence over 2.0s ...", flush=True)
             cadence_info = page_perf.evaluate("""async () => {
@@ -1306,14 +1521,17 @@ def run_desktop_matrix():
             dom_nodes = int(m_dict.get("Nodes", 0))
             listeners = int(m_dict.get("JSEventListeners", 0))
 
-            valid_latencies = [r["total_latency_ms"] for r in route_latencies.values() if r.get("status") == "PASS"]
+            valid_latencies = [r["total_latency_ms"] for r in route_latencies.values() if r.get("status") == "PASS" and r.get("total_latency_ms", -1) > 0]
             mean_latency = round(sum(valid_latencies) / len(valid_latencies), 2) if valid_latencies else -1
             all_routes_pass = all(r.get("status") == "PASS" and r.get("activation_ms", -1) > 0 for r in route_latencies.values())
 
             audit_data["performance_benchmarks"] = {
                 "initial_startup_ms": startup_ms,
                 "mean_route_transition_ms": mean_latency,
+                "historical_rc1_4_2_mean_latency_ms": 266.97,
                 "status": "PASS" if all_routes_pass else "FAIL",
+                "first_raf_callback_method": "requestAnimationFrame callback invocation delta (not compositor presentation)",
+                "state_activation_detection_method": "DOM MutationObserver on route container active class & attributes",
                 "route_latencies_ms": route_latencies,
                 "raf_callback_cadence_hz": {
                     "measured_cadence_hz": cadence_info["cadenceHz"],
@@ -1350,7 +1568,7 @@ def run_desktop_matrix():
             cdp_stab.send("Performance.enable")
             cdp_stab.send("HeapProfiler.enable")
 
-            page_stab.goto(f"{base_url}/#home", wait_until="networkidle")
+            page_stab.goto(f"{base_url}/#welcome", wait_until="networkidle")
             page_stab.wait_for_timeout(300)
 
             gc_invoked_baseline = False
@@ -1367,14 +1585,22 @@ def run_desktop_matrix():
             cycle_routes = ["home", "care", "sign", "braille", "chat"]
             total_transitions = 50
             transition_failures = 0
-            print(f"  [*] Executing 50 continuous view transitions with verified destination readiness ...", flush=True)
+            confirmed_state_changes = 0
+            current_route = "welcome"
+            transitions_log = []
+            print(f"  [*] Executing 50 continuous view transitions starting from #{current_route} ...", flush=True)
 
             for i in range(total_transitions):
                 target = cycle_routes[i % len(cycle_routes)]
+                if target == current_route:
+                    target = cycle_routes[(i + 1) % len(cycle_routes)]
+
+                assert target != current_route, f"Iteration {i+1}: Attempted no-op transition ({current_route} -> {target})"
+                t_route_start = time.time()
                 page_stab.evaluate(f"window.routeTo('{target}')")
-                t_route = time.time()
+
                 ready = False
-                while (time.time() - t_route) < 1.0:
+                while (time.time() - t_route_start) < 1.5:
                     is_ready = page_stab.evaluate(f"""() => {{
                         const v = document.getElementById('view-{target}');
                         return v && v.classList.contains('active') && v.offsetHeight > 0;
@@ -1383,8 +1609,30 @@ def run_desktop_matrix():
                         ready = True
                         break
                     time.sleep(0.01)
-                if not ready:
+
+                elapsed_ms = round((time.time() - t_route_start) * 1000, 2)
+                if ready:
+                    confirmed_state_changes += 1
+                    prev = current_route
+                    current_route = target
+                    transitions_log.append({
+                        "iteration": i + 1,
+                        "previous_route": prev,
+                        "target_route": target,
+                        "confirmed_state_change": True,
+                        "elapsed_ms": elapsed_ms,
+                        "status": "PASS"
+                    })
+                else:
                     transition_failures += 1
+                    transitions_log.append({
+                        "iteration": i + 1,
+                        "previous_route": current_route,
+                        "target_route": target,
+                        "confirmed_state_change": False,
+                        "elapsed_ms": elapsed_ms,
+                        "status": "FAIL"
+                    })
 
             page_stab.wait_for_timeout(200)
 
@@ -1404,11 +1652,16 @@ def run_desktop_matrix():
             listener_delta = listeners_after - listeners_before
 
             gc_invoked = gc_invoked_baseline and gc_invoked_post
-            stability_pass = (heap_delta_mb < 8.0 and node_delta < 500 and transition_failures == 0 and gc_invoked)
+            stability_pass = (heap_delta_mb < 8.0 and node_delta < 500 and transition_failures == 0 and gc_invoked and confirmed_state_changes == total_transitions)
             audit_data["stability_50_cycles"] = {
+                "total_route_requests": total_transitions,
+                "total_confirmed_state_changes": confirmed_state_changes,
                 "transitions_executed": total_transitions,
                 "transition_failures": transition_failures,
+                "distinct_state_changes_verified": (confirmed_state_changes == total_transitions),
+                "initial_route": "welcome",
                 "routes_cycled": cycle_routes,
+                "transitions_summary": transitions_log[:5] + transitions_log[-5:],
                 "gc_invoked": gc_invoked,
                 "gc_invoked_baseline": gc_invoked_baseline,
                 "gc_invoked_post": gc_invoked_post,

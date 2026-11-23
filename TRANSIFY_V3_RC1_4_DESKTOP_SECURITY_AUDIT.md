@@ -47,9 +47,9 @@ A live probe using curl with protocol introspection captured the empirical edge 
 HTTP/2 200
 server: railway-hikari
 content-type: text/html; charset=utf-8
-date: Mon, 23 Nov 2026 12:51:48 GMT
+date: Mon, 23 Nov 2026 13:30:42 GMT
 vary: accept-encoding
-x-railway-request-id: rEXY19ywRLWAaYsGljLL4A
+x-railway-request-id: w9zwbURVTquW0GF59I3ezw
 x-railway-edge: sin1
 ```
 
