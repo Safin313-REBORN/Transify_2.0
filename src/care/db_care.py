@@ -12,12 +12,13 @@ from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 
 DB_DIR = "data"
-DB_PATH = os.path.join(DB_DIR, "transify.db")
+DB_PATH = os.getenv("TRANSIFY_DB_PATH", os.path.join(DB_DIR, "transify.db"))
 
 
 def get_connection() -> sqlite3.Connection:
-    os.makedirs(DB_DIR, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH, timeout=30.0)
+    db_file = os.getenv("TRANSIFY_DB_PATH", DB_PATH)
+    os.makedirs(os.path.dirname(db_file) or ".", exist_ok=True)
+    conn = sqlite3.connect(db_file, timeout=30.0)
     conn.row_factory = sqlite3.Row
     try:
         conn.execute("PRAGMA journal_mode=WAL;")

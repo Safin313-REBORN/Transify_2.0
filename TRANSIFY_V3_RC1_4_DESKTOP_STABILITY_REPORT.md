@@ -45,4 +45,4 @@ The test harness executed 10 full loops of 5 core views (50 transitions):
 ### Findings:
 - Full garbage collection was triggered via Chrome DevTools Protocol (`HeapProfiler.collectGarbage`) before sampling both baseline and post-test metrics.
 - The net retained heap growth of **+0.12 MB** and **+20 DOM nodes** is attributed to expected in-memory caching of route templates and i18n string dictionaries.
-- Wording Standard: Based on empirical data, no significant memory growth or unbounded detached DOM accumulation was detected within the tested 50-cycle workload.
+- Wording Standard: Based on empirical data, no significant memory growth detected within the measured workload.

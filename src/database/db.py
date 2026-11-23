@@ -29,7 +29,7 @@ except ImportError:
     HAS_ARGON2 = False
 
 DB_DIR = "data"
-DB_PATH = os.path.join(DB_DIR, "transify.db")
+DB_PATH = os.getenv("TRANSIFY_DB_PATH", os.path.join(DB_DIR, "transify.db"))
 
 
 def is_production() -> bool:
@@ -100,8 +100,9 @@ def is_demo_mode_enabled() -> bool:
 
 def get_connection() -> sqlite3.Connection:
     """Creates and returns a connection to the SQLite database with WAL mode and busy timeout."""
-    os.makedirs(DB_DIR, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH, timeout=30.0)
+    db_file = os.getenv("TRANSIFY_DB_PATH", DB_PATH)
+    os.makedirs(os.path.dirname(db_file) or ".", exist_ok=True)
+    conn = sqlite3.connect(db_file, timeout=30.0)
     conn.row_factory = sqlite3.Row
     try:
         conn.execute("PRAGMA journal_mode=WAL;")

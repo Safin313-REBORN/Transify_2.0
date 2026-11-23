@@ -383,3 +383,87 @@ def test_detached_dom_unverified_not_claimed_as_pass(passing_fixture):
     assert "| • Detached DOM Reference Audit:        NOT MEASURED (CDP Heap Snapshot Required)" in stab
     assert "PASSED (No runaway detached DOM trees detected)" not in stab
 
+
+def test_missing_activation_time_fails(passing_fixture):
+    fixture = dict(passing_fixture)
+    fixture["performance_benchmarks"] = dict(passing_fixture["performance_benchmarks"])
+    fixture["performance_benchmarks"]["route_latencies_ms"] = dict(passing_fixture["performance_benchmarks"]["route_latencies_ms"])
+    fixture["performance_benchmarks"]["route_latencies_ms"]["home"] = {
+        "label": "Home",
+        "dispatch_ms": 0.5,
+        "activation_ms": -1,
+        "first_frame_ms": 12.0,
+        "readiness_ms": 15.0,
+        "total_latency_ms": -1,
+        "status": "FAIL",
+        "error": "Activation timing unrecorded"
+    }
+    fixture["performance_benchmarks"]["status"] = "FAIL"
+
+    perf = generate_performance_report(fixture)
+    assert "| `home` | Home | 0.5 | -1 | 12.0 | 15.0 | **-1** | **FAIL** |" in perf
+    assert "| • Overall Performance Benchmark Status:                    FAIL" in perf
+
+
+def test_workspace_layout_missing_control_fails(passing_fixture):
+    fixture = dict(passing_fixture)
+    fixture["viewports_tested"] = [
+        {
+            "viewport_name": "desktop_1280x720_hd",
+            "width": 1280,
+            "height": 720,
+            "aspect_ratio": "16:9",
+            "tier": "HD Laptop",
+            "rail_width_px": 112,
+            "content_width_px": 1168,
+            "home_main_width_px": 884,
+            "zero_horizontal_overflow": True,
+            "clipping_issues_count": 0,
+            "workspaces_evaluated": 8,
+            "workspaces_ready": 7,
+            "workspace_layouts": {
+                "home": {"status": "PASS"},
+                "sign": {
+                    "status": "FAIL",
+                    "missing_controls": ["#sign-camera-stage: no element has positive dimensions"]
+                }
+            },
+            "status": "FAIL"
+        }
+    ]
+    log = generate_execution_log(fixture)
+    assert "[FAIL] Viewport desktop_1280x720_hd" in log
+    assert "Workspaces: 7/8" in log
+
+    master = generate_master_audit_report(fixture)
+    assert "| `desktop_1280x720_hd` | 1280x720 | 16:9 | HD Laptop | 112px | **7/8** | **None** | **0** | **FAIL** |" in master
+
+
+def test_bengali_missing_conjuncts_fails(passing_fixture):
+    fixture = dict(passing_fixture)
+    fixture["bengali_typography_audit"] = {
+        "fontFamily": "Hind Siliguri",
+        "fontLoaded": True,
+        "platformFontFamily": "Hind Siliguri",
+        "fontSizePx": 16.0,
+        "lineHeight": "24px",
+        "renderedHeightPx": 24.0,
+        "heightAdequate": True,
+        "conjuncts_verified": False,
+        "status": "FAIL"
+    }
+    master = generate_master_audit_report(fixture)
+    assert "Conjuncts Found: **NO**" in master
+    assert "**Bengali Typography Status:** **FAIL**" in master
+
+
+def test_gc_not_invoked_fails(passing_fixture):
+    fixture = dict(passing_fixture)
+    fixture["stability_50_cycles"] = dict(passing_fixture["stability_50_cycles"])
+    fixture["stability_50_cycles"]["gc_invoked"] = False
+    fixture["stability_50_cycles"]["status"] = "FAIL"
+
+    stab = generate_stability_report(fixture)
+    assert "| • Workload Stability Verdict:          FAIL" in stab
+
+

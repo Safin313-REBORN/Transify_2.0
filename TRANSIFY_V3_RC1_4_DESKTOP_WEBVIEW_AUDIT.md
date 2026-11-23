@@ -29,20 +29,20 @@ This master audit report establishes the definitive release-readiness posture fo
 
 ---
 
-## 2. 10 Desktop Viewport & Deep Layout Audit
+## 2. 10 Desktop Viewport & Deep Layout Audit (80 Workspace Audits)
 
-| Viewport Identifier | Dimensions | Aspect Ratio | Target Display Tier | Rail Width | Content Width | Home Width | Horizontal Overflow | Clipping Issues | Status |
-|---|---|---|---|---|---|---|---|---|---|
-| `desktop_1280x720_hd` | 1280x720 | 16:9 | HD Laptop / Thin Client | 112px | 1168px | 884px | **None** | **0** | **PASS** |
-| `desktop_1280x800_wxga` | 1280x800 | 16:10 | WXGA MacBook / Monitor | 112px | 1168px | 884px | **None** | **0** | **PASS** |
-| `desktop_1366x768_laptop` | 1366x768 | 16:9 | Standard Budget Laptop | 112px | 1254px | 950px | **None** | **0** | **PASS** |
-| `desktop_1440x900_wxga_plus` | 1440x900 | 16:10 | WXGA+ Display / Workstation | 112px | 1328px | 1008px | **None** | **0** | **PASS** |
-| `desktop_1536x864_scaled_fhd` | 1536x864 | 16:9 | Windows 125% Scaled FHD | 112px | 1424px | 1104px | **None** | **0** | **PASS** |
-| `desktop_1600x900_hd_plus` | 1600x900 | 16:9 | HD+ Workstation Monitor | 112px | 1488px | 1168px | **None** | **0** | **PASS** |
-| `desktop_1920x1080_fhd` | 1920x1080 | 16:9 | Standard FHD Desktop Display | 112px | 1808px | 1488px | **None** | **0** | **PASS** |
-| `desktop_1920x1200_wuxga` | 1920x1200 | 16:10 | WUXGA Professional Medical Display | 112px | 1808px | 1488px | **None** | **0** | **PASS** |
-| `desktop_2560x1440_qhd` | 2560x1440 | 16:9 | QHD / 2K Studio Monitor | 112px | 2448px | 1680px | **None** | **0** | **PASS** |
-| `desktop_3440x1440_ultrawide` | 3440x1440 | 21:9 | Ultra-Wide Panoramic Display | 112px | 3328px | 1680px | **None** | **0** | **PASS** |
+| Viewport Identifier | Dimensions | Aspect Ratio | Target Display Tier | Rail Width | Workspaces (8/8) | Horizontal Overflow | Clipping Issues | Status |
+|---|---|---|---|---|---|---|---|---|
+| `desktop_1280x720_hd` | 1280x720 | 16:9 | HD Laptop / Thin Client | 112px | **8/8** | **None** | **0** | **PASS** |
+| `desktop_1280x800_wxga` | 1280x800 | 16:10 | WXGA MacBook / Monitor | 112px | **8/8** | **None** | **0** | **PASS** |
+| `desktop_1366x768_laptop` | 1366x768 | 16:9 | Standard Budget Laptop | 112px | **8/8** | **None** | **0** | **PASS** |
+| `desktop_1440x900_wxga_plus` | 1440x900 | 16:10 | WXGA+ Display / Workstation | 112px | **8/8** | **None** | **0** | **PASS** |
+| `desktop_1536x864_scaled_fhd` | 1536x864 | 16:9 | Windows 125% Scaled FHD | 112px | **8/8** | **None** | **0** | **PASS** |
+| `desktop_1600x900_hd_plus` | 1600x900 | 16:9 | HD+ Workstation Monitor | 112px | **8/8** | **None** | **0** | **PASS** |
+| `desktop_1920x1080_fhd` | 1920x1080 | 16:9 | Standard FHD Desktop Display | 112px | **8/8** | **None** | **0** | **PASS** |
+| `desktop_1920x1200_wuxga` | 1920x1200 | 16:10 | WUXGA Professional Medical Display | 112px | **8/8** | **None** | **0** | **PASS** |
+| `desktop_2560x1440_qhd` | 2560x1440 | 16:9 | QHD / 2K Studio Monitor | 112px | **8/8** | **None** | **0** | **PASS** |
+| `desktop_3440x1440_ultrawide` | 3440x1440 | 21:9 | Ultra-Wide Panoramic Display | 112px | **8/8** | **None** | **0** | **PASS** |
 
 ---
 
@@ -53,18 +53,18 @@ This master audit report establishes the definitive release-readiness posture fo
 - **Font Family Loaded:** `"Hind Siliguri", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif` (document.fonts.check: **PASS**, Platform Font: `Hind Siliguri`).
 - **Computed Font Size:** `64 px` (Target `>= 14 px`).
 - **Computed Line Height:** `99.2px` (Target `>= 1.5` to prevent diacritic clipping).
-- **Conjunct & Matra Rendering:** Verified no visual clipping or vertical truncation across all 10 viewports.
+- **Conjunct & Matra Rendering:** Verified no visual clipping or vertical truncation across all 10 viewports (Conjuncts Found: **YES**).
 - **Bengali Typography Status:** **PASS**.
 
 ---
 
 ## 4. Performance & High-Resolution Transition Latency
 
-- **Initial Cold Boot Startup:** `1263.89 ms`
-- **Mean Route Transition Latency:** `106.16 ms`
-- **Clinician Portal Readiness Latency:** `83.2 ms` (matches JSON matrix exactly).
-- **requestAnimationFrame Callback Cadence:** `50.31 Hz` (Compositor GPU FPS: NOT MEASURED).
-- **Retained JS Heap Memory (Post-GC):** `1.49 MB` used.
+- **Initial Cold Boot Startup:** `1304.06 ms`
+- **Mean Route Transition Latency:** `266.97 ms`
+- **Clinician Portal Readiness Latency:** `88.6 ms` (matches JSON matrix exactly).
+- **requestAnimationFrame Callback Cadence:** `51.85 Hz` (Compositor GPU FPS: NOT MEASURED).
+- **Retained JS Heap Memory (Post-GC):** `1.45 MB` used.
 - **50-Cycle Navigation Workload Delta:** `+0.12 MB` (No significant memory growth detected).
 
 ---

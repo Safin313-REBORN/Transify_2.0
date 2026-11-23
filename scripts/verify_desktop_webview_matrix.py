@@ -1,5 +1,5 @@
 """
-Transify V3 — RC1.4.1 Comprehensive Desktop Verification & Audit Harness.
+Transify V3 — RC1.4.2 Comprehensive Desktop Verification & Audit Harness.
 Independent, evidence-driven audit of desktop responsive layout, deep clipping,
 Bengali typography, performance, 50-cycle stability, keyboard accessibility,
 Zero Auto-Audio policy, and production security.
@@ -18,6 +18,10 @@ import threading
 import json
 import urllib.request
 import subprocess
+import secrets
+import shutil
+import tempfile
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -32,6 +36,7 @@ from src.database.db import (
     get_connection as get_user_db_conn,
     create_user,
     create_session,
+    revoke_all_sessions,
     init_db as init_user_db
 )
 from src.care.db_care import init_care_db
@@ -61,14 +66,97 @@ DESKTOP_VIEWPORTS = [
 ]
 
 DESKTOP_WORKSPACES = [
-    {"id": "home", "label": "Home", "route": "home", "selector": "#view-home"},
-    {"id": "sign", "label": "Sign Translator", "route": "sign", "selector": "#view-sign"},
-    {"id": "braille", "label": "Braille Studio", "route": "braille", "selector": "#view-braille"},
-    {"id": "voice", "label": "Voice Hub", "route": "voice", "selector": "#view-voice"},
-    {"id": "chat", "label": "AI Chatbot", "route": "chat", "selector": "#view-chat"},
-    {"id": "care_intake", "label": "Care Intake", "route": "care", "tab": "intake", "selector": "#slide-care-intake"},
-    {"id": "clinician_portal", "label": "Clinician Portal", "route": "care", "tab": "clinician", "selector": "#slide-clinician-portal"},
-    {"id": "settings", "label": "Settings", "route": "settings", "selector": "#view-settings"}
+    {
+        "id": "home",
+        "label": "Home",
+        "route": "home",
+        "selector": "#view-home",
+        "required_selectors": [
+            {"selector": ".home-bento", "min_count": 1, "check_dim": True},
+            {"selector": ".home-bento .tile", "min_count": 3, "exact_count": 3, "check_dim": True},
+            {"selector": "#say", "min_count": 1, "check_dim": True},
+            {"selector": "#btn-say-speak", "min_count": 1, "check_dim": True}
+        ]
+    },
+    {
+        "id": "sign",
+        "label": "Sign Translator",
+        "route": "sign",
+        "selector": "#view-sign",
+        "required_selectors": [
+            {"selector": "#sign-stage-container", "min_count": 1, "check_dim": True},
+            {"selector": "#sign-canvas", "min_count": 1, "check_dim": True},
+            {"selector": "#toggle-camera-btn", "min_count": 1, "check_dim": True}
+        ]
+    },
+    {
+        "id": "braille",
+        "label": "Braille Studio",
+        "route": "braille",
+        "selector": "#view-braille",
+        "required_selectors": [
+            {"selector": "#braille-dropzone", "min_count": 1, "check_dim": True},
+            {"selector": "#braille-file-input", "min_count": 1, "check_dim": False},
+            {"selector": ".braille-mode-tabs", "min_count": 1, "check_dim": True}
+        ]
+    },
+    {
+        "id": "voice",
+        "label": "Voice Hub",
+        "route": "voice",
+        "selector": "#view-voice",
+        "required_selectors": [
+            {"selector": ".voice-container", "min_count": 1, "check_dim": True},
+            {"selector": "#voice-tab-studio", "min_count": 1, "check_dim": True},
+            {"selector": "#voice-tab-bridge", "min_count": 1, "check_dim": True}
+        ]
+    },
+    {
+        "id": "chat",
+        "label": "AI Chatbot",
+        "route": "chat",
+        "selector": "#view-chat",
+        "required_selectors": [
+            {"selector": ".chat-layout-wrapper", "min_count": 1, "check_dim": True},
+            {"selector": "#chat-stream-container", "min_count": 1, "check_dim": True},
+            {"selector": "#btn-open-training-modal", "min_count": 1, "check_dim": True}
+        ]
+    },
+    {
+        "id": "care_intake",
+        "label": "Care Intake",
+        "route": "care",
+        "tab": "intake",
+        "selector": "#slide-care-intake",
+        "required_selectors": [
+            {"selector": "#slide-care-intake", "min_count": 1, "check_dim": True},
+            {"selector": "#care-chief-complaint", "min_count": 1, "check_dim": True},
+            {"selector": "#care-submit-intake-btn", "min_count": 1, "check_dim": True}
+        ]
+    },
+    {
+        "id": "clinician_portal",
+        "label": "Clinician Portal",
+        "route": "care",
+        "tab": "clinician",
+        "selector": "#slide-clinician-portal",
+        "required_selectors": [
+            {"selector": "#slide-clinician-portal", "min_count": 1, "check_dim": True},
+            {"selector": "#clinician-queue-tbody", "min_count": 1, "check_dim": True},
+            {"selector": "#clinician-queue-tbody tr", "min_count": 50, "exact_count": 50, "check_dim": True}
+        ]
+    },
+    {
+        "id": "settings",
+        "label": "Settings",
+        "route": "settings",
+        "selector": "#view-settings",
+        "required_selectors": [
+            {"selector": ".settings-container", "min_count": 1, "check_dim": True},
+            {"selector": ".settings-navbar", "min_count": 1, "check_dim": True},
+            {"selector": "#btn-settings-reset-defaults", "min_count": 1, "check_dim": True}
+        ]
+    }
 ]
 
 DPI_SCALING_TIERS = [
@@ -155,7 +243,6 @@ def probe_production_security(local_base_url: str = None) -> dict:
     csp_ok = "content-security-policy" in headers_dict
     edge_status = "PASS" if (hsts_ok and csp_ok and len(missing_headers) == 0) else "FAIL"
 
-    # Dynamically verify local middleware headers on the live test server
     local_middleware_verified = False
     if local_base_url:
         try:
@@ -190,20 +277,77 @@ def probe_production_security(local_base_url: str = None) -> dict:
     }
 
 
-def ensure_clinician_auth_session():
+@contextmanager
+def isolated_audit_environment():
+    """
+    Creates an isolated temporary SQLite database fixture copying seeds from data/transify.db
+    without ever modifying data/transify.db.
+    Generates a cryptographically random ephemeral clinician credential per test run,
+    revokes sessions, deletes the ephemeral user, and tears down the temp DB on completion.
+    """
+    temp_dir = tempfile.mkdtemp(prefix="transify_desktop_audit_")
+    temp_db_path = os.path.join(temp_dir, "transify_audit.db")
+
+    original_db = os.path.join("data", "transify.db")
+    if os.path.exists(original_db):
+        shutil.copy2(original_db, temp_db_path)
+        for ext in ["-wal", "-shm"]:
+            wal_shm = original_db + ext
+            if os.path.exists(wal_shm):
+                shutil.copy2(wal_shm, temp_db_path + ext)
+
+    old_env = os.environ.get("TRANSIFY_DB_PATH")
+    os.environ["TRANSIFY_DB_PATH"] = temp_db_path
+
     init_user_db()
     init_care_db()
-    conn = get_user_db_conn()
-    c = conn.cursor()
-    c.execute("SELECT id FROM users WHERE email = 'clinician@transify.ai';")
-    row = c.fetchone()
-    if not row:
-        res = create_user("Dr. Clinician", "clinician@transify.ai", "DoctorPassword2026!#Safe", role="clinician", consent_terms=True)
-        uid = res["id"]
-    else:
-        uid = row[0]
-    token = create_session(uid)
-    return token
+
+    random_hex = secrets.token_hex(4)
+    clinician_email = f"audit_clinician_{random_hex}@transify.local"
+    clinician_password = secrets.token_urlsafe(32)
+
+    user_res = create_user(
+        "Dr. Clinician Audit",
+        clinician_email,
+        clinician_password,
+        role="clinician",
+        consent_terms=True
+    )
+    user_id = user_res["id"]
+    token = create_session(user_id)
+
+    print("[*] Ephemeral isolated test database initialized (data/transify.db protected)", flush=True)
+    print(f"[*] Ephemeral clinician test session established for {clinician_email} (token redacted)", flush=True)
+
+    try:
+        yield {
+            "token": token,
+            "user_id": user_id,
+            "email": clinician_email,
+            "temp_db_path": temp_db_path
+        }
+    finally:
+        print("[*] Teardown: Revoking sessions and purging ephemeral test credentials...", flush=True)
+        try:
+            revoke_all_sessions(user_id)
+        except Exception as e:
+            print(f"[!] Warning revoking sessions: {e}", flush=True)
+        try:
+            conn = get_user_db_conn()
+            c = conn.cursor()
+            c.execute("DELETE FROM users WHERE id = ?", (user_id,))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"[!] Warning cleaning up test user: {e}", flush=True)
+
+        if old_env is not None:
+            os.environ["TRANSIFY_DB_PATH"] = old_env
+        else:
+            os.environ.pop("TRANSIFY_DB_PATH", None)
+
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        print("[+] Ephemeral isolated test database cleaned up cleanly.", flush=True)
 
 
 def wait_for_workspace_readiness(page, ws_id: str, timeout_sec: float = 3.5) -> bool:
@@ -212,36 +356,78 @@ def wait_for_workspace_readiness(page, ws_id: str, timeout_sec: float = 3.5) -> 
         is_ready = page.evaluate(f"""() => {{
             const wsId = '{ws_id}';
             if (wsId === 'clinician_portal') {{
+                const careView = document.getElementById('view-care');
                 const portal = document.getElementById('slide-clinician-portal');
                 const tbody = document.getElementById('clinician-queue-tbody');
                 const rowCount = tbody ? tbody.querySelectorAll('tr').length : 0;
-                return portal && window.getComputedStyle(portal).display !== 'none' && rowCount === 50;
+                return careView && careView.classList.contains('active') &&
+                       portal && window.getComputedStyle(portal).display !== 'none' &&
+                       portal.offsetHeight > 0 && rowCount === 50;
             }} else if (wsId === 'care_intake') {{
+                const careView = document.getElementById('view-care');
                 const intake = document.getElementById('slide-care-intake');
-                return intake && window.getComputedStyle(intake).display !== 'none' && intake.offsetHeight > 0;
+                const complaint = document.getElementById('care-chief-complaint');
+                const submitBtn = document.getElementById('care-submit-intake-btn');
+                return careView && careView.classList.contains('active') &&
+                       intake && window.getComputedStyle(intake).display !== 'none' &&
+                       intake.offsetHeight > 0 && complaint && complaint.offsetHeight > 0 &&
+                       submitBtn && submitBtn.offsetHeight > 0;
             }} else if (wsId === 'sign') {{
                 const view = document.getElementById('view-sign');
-                const stage = document.querySelector('.camera-box, .sign-stage, #sign-camera-stage, .sign-camera-container') || view;
-                return view && view.classList.contains('active') && stage.offsetHeight > 0;
+                const stage = document.getElementById('sign-stage-container');
+                const canvas = document.getElementById('sign-canvas');
+                const btn = document.getElementById('toggle-camera-btn');
+                return view && view.classList.contains('active') &&
+                       stage && stage.offsetHeight > 0 &&
+                       canvas && canvas.offsetHeight > 0 &&
+                       btn && btn.offsetHeight > 0;
             }} else if (wsId === 'braille') {{
                 const view = document.getElementById('view-braille');
-                const ws = document.querySelector('.braille-workspace, #braille-canvas, .braille-container') || view;
-                return view && view.classList.contains('active') && ws.offsetHeight > 0;
+                const dropzone = document.getElementById('braille-dropzone');
+                const fileInput = document.getElementById('braille-file-input');
+                const tabs = document.querySelector('.braille-mode-tabs');
+                return view && view.classList.contains('active') &&
+                       dropzone && dropzone.offsetHeight > 0 &&
+                       fileInput !== null &&
+                       tabs && tabs.offsetHeight > 0;
             }} else if (wsId === 'voice') {{
                 const view = document.getElementById('view-voice');
-                const vs = view ? (view.querySelector('.voice-container, .voice-stage') || view) : null;
-                return view && view.classList.contains('active') && vs && vs.offsetHeight > 0;
+                const cont = view ? view.querySelector('.voice-container') : null;
+                const tabStudio = document.getElementById('voice-tab-studio');
+                const tabBridge = document.getElementById('voice-tab-bridge');
+                return view && view.classList.contains('active') &&
+                       cont && cont.offsetHeight > 0 &&
+                       tabStudio && tabStudio.offsetHeight > 0 &&
+                       tabBridge && tabBridge.offsetHeight > 0;
             }} else if (wsId === 'chat') {{
                 const view = document.getElementById('view-chat');
-                const cm = document.querySelector('#chat-messages, .chat-thread-frame') || view;
-                return view && view.classList.contains('active') && cm.offsetHeight > 0;
+                const wrap = view ? view.querySelector('.chat-layout-wrapper') : null;
+                const stream = document.getElementById('chat-stream-container');
+                const btnTrain = document.getElementById('btn-open-training-modal');
+                return view && view.classList.contains('active') &&
+                       wrap && wrap.offsetHeight > 0 &&
+                       stream && stream.offsetHeight > 0 &&
+                       btnTrain && btnTrain.offsetHeight > 0;
             }} else if (wsId === 'settings') {{
                 const view = document.getElementById('view-settings');
-                return view && view.classList.contains('active') && view.offsetHeight > 0;
+                const cont = view ? view.querySelector('.settings-container') : null;
+                const nav = view ? view.querySelector('.settings-navbar') : null;
+                const btnReset = document.getElementById('btn-settings-reset-defaults');
+                return view && view.classList.contains('active') &&
+                       cont && cont.offsetHeight > 0 &&
+                       nav && nav.offsetHeight > 0 &&
+                       btnReset && btnReset.offsetHeight > 0;
             }} else {{
                 const view = document.getElementById('view-home');
-                const bento = document.querySelector('.home-bento') || view;
-                return view && view.classList.contains('active') && bento.offsetHeight > 0;
+                const bento = view ? view.querySelector('.home-bento') : null;
+                const cards = view ? view.querySelectorAll('.home-bento .tile') : [];
+                const inp = document.getElementById('say');
+                const btn = document.getElementById('btn-say-speak');
+                return view && view.classList.contains('active') &&
+                       bento && bento.offsetHeight > 0 &&
+                       cards.length === 3 &&
+                       inp && inp.offsetHeight > 0 &&
+                       btn && btn.offsetHeight > 0;
             }}
         }}""")
         if is_ready:
@@ -252,1021 +438,1097 @@ def wait_for_workspace_readiness(page, ws_id: str, timeout_sec: float = 3.5) -> 
 
 def run_desktop_matrix():
     print("=" * 70)
-    print("TRANSIFY V3 — RC1.4.1 COMPREHENSIVE DESKTOP AUDIT HARNESS")
+    print("TRANSIFY V3 — RC1.4.2 COMPREHENSIVE DESKTOP AUDIT HARNESS")
     print("=" * 70, flush=True)
 
-    clinician_session_token = ensure_clinician_auth_session()
-    print(f"[*] Clinician Session Authenticated: {clinician_session_token[:10]}...", flush=True)
+    with isolated_audit_environment() as audit_env:
+        clinician_session_token = audit_env["token"]
+        clinician_email = audit_env["email"]
 
-    port = get_free_port()
-    config = uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning")
-    server = uvicorn.Server(config)
-    thread = threading.Thread(target=server.run, daemon=True)
-    thread.start()
+        port = get_free_port()
+        config = uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning")
+        server = uvicorn.Server(config)
+        thread = threading.Thread(target=server.run, daemon=True)
+        thread.start()
 
-    base_url = f"http://127.0.0.1:{port}"
-    start_time = time.time()
-    while time.time() - start_time < 10.0:
-        try:
-            with socket.create_connection(("127.0.0.1", port), timeout=0.2):
-                break
-        except OSError:
-            time.sleep(0.05)
+        base_url = f"http://127.0.0.1:{port}"
+        start_time = time.time()
+        while time.time() - start_time < 10.0:
+            try:
+                with socket.create_connection(("127.0.0.1", port), timeout=0.2):
+                    break
+            except OSError:
+                time.sleep(0.05)
 
-    print(f"[*] Live Desktop Test Server up at {base_url}", flush=True)
+        print(f"[*] Live Desktop Test Server up at {base_url}", flush=True)
 
-    audit_data = {
-        "audit_metadata": {
-            "target_package": "com.abrarafick.transify",
-            "milestone": "RC1.4.1 Desktop Audit Correction & Release Verification",
-            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            "evaluated_runtime": "Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)",
-            "single_source_of_truth": "TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json",
-            "host_os": "Linux 7.0.0-43-generic x86_64"
-        },
-        "viewports_tested": [],
-        "dpi_scaling_tested": [],
-        "window_state_tests": [],
-        "keyboard_accessibility": {},
-        "zero_auto_audio_verified": {},
-        "bengali_typography_audit": {},
-        "performance_benchmarks": {},
-        "stability_50_cycles": {},
-        "production_security_probe": {},
-        "summary": {}
-    }
+        audit_data = {
+            "audit_metadata": {
+                "target_package": "com.abrarafick.transify",
+                "milestone": "RC1.4.2 Desktop Audit Finalization & Verification",
+                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                "evaluated_runtime": "Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)",
+                "single_source_of_truth": "TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json",
+                "host_os": "Linux 7.0.0-43-generic x86_64"
+            },
+            "viewports_tested": [],
+            "dpi_scaling_tested": [],
+            "window_state_tests": [],
+            "keyboard_accessibility": {},
+            "zero_auto_audio_verified": {},
+            "bengali_typography_audit": {},
+            "performance_benchmarks": {},
+            "stability_50_cycles": {},
+            "production_security_probe": {},
+            "summary": {}
+        }
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
 
-        # -------------------------------------------------------------
-        # PHASE 10.A: 10 DESKTOP VIEWPORTS ACROSS ALL 8 WORKSPACES
-        # -------------------------------------------------------------
-        print("\n" + "=" * 60)
-        print("PHASE 10.A: EVALUATING 10 DESKTOP VIEWPORTS ACROSS 8 WORKSPACES")
-        print("=" * 60, flush=True)
+            # -------------------------------------------------------------
+            # PHASE 10.A: 10 DESKTOP VIEWPORTS ACROSS ALL 8 WORKSPACES
+            # -------------------------------------------------------------
+            print("\n" + "=" * 60)
+            print("PHASE 10.A: EVALUATING 10 DESKTOP VIEWPORTS ACROSS 8 WORKSPACES (80 AUDITS)")
+            print("=" * 60, flush=True)
 
-        for vp in DESKTOP_VIEWPORTS:
-            print(f"\n[*] Testing Viewport: {vp['name']} ({vp['w']}x{vp['h']}, Aspect: {vp['aspect']}) - {vp['tier']}")
-            ctx = browser.new_context(viewport={"width": vp["w"], "height": vp["h"]})
-            ctx.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
-            ctx.add_init_script("""
-                try {
-                    localStorage.setItem('transify_auth_user', JSON.stringify({
-                        name: 'Dr. Clinician',
-                        email: 'clinician@transify.ai',
-                        role: 'clinician'
-                    }));
-                    localStorage.setItem('transify.welcomed', '1');
-                } catch (e) {}
-            """)
+            for vp in DESKTOP_VIEWPORTS:
+                print(f"\n[*] Testing Viewport: {vp['name']} ({vp['w']}x{vp['h']}, Aspect: {vp['aspect']}) - {vp['tier']}")
+                ctx = browser.new_context(viewport={"width": vp["w"], "height": vp["h"]})
+                ctx.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
+                ctx.add_init_script(f"""
+                    try {{
+                        localStorage.setItem('transify_auth_user', JSON.stringify({{
+                            name: 'Dr. Clinician Audit',
+                            email: '{clinician_email}',
+                            role: 'clinician'
+                        }}));
+                        localStorage.setItem('transify.welcomed', '1');
+                    }} catch (e) {{}}
+                """)
 
-            page = ctx.new_page()
-            t0 = time.time()
-            page.goto(f"{base_url}/#home", wait_until="networkidle")
-            load_ms = round((time.time() - t0) * 1000, 2)
-            page.wait_for_timeout(250)
+                page = ctx.new_page()
+                t0 = time.time()
+                page.goto(f"{base_url}/#home", wait_until="networkidle")
+                load_ms = round((time.time() - t0) * 1000, 2)
+                page.wait_for_timeout(250)
 
-            # Deep Layout, Overflow, Clipping Inspection Helper
-            deep_metrics = page.evaluate(f"""() => {{
-                const vpWidth = {vp['w']};
-                const doc = document.documentElement;
-                const body = document.body;
-                const rail = document.getElementById('app-rail');
-                const content = document.querySelector('.content-frame');
-                const homeMain = document.querySelector('.home-main');
-                const bento = document.querySelector('.home-bento');
+                deep_metrics = page.evaluate(f"""() => {{
+                    const vpWidth = {vp['w']};
+                    const doc = document.documentElement;
+                    const body = document.body;
+                    const rail = document.getElementById('app-rail');
+                    const content = document.querySelector('.content-frame');
+                    const homeMain = document.querySelector('.home-main');
+                    const bento = document.querySelector('.home-bento');
 
-                const issues = [];
-                const intentionalScroll = new Set(['content-frame', 'clinician-table-wrapper', 'chat-messages', 'care-queue-container']);
+                    const issues = [];
+                    const intentionalScroll = new Set(['content-frame', 'clinician-table-wrapper', 'chat-messages', 'care-queue-container', 'chat-stream-container']);
 
-                if (doc.scrollWidth > doc.clientWidth) {{
-                    issues.push(`Document scrollWidth (${{doc.scrollWidth}}px) exceeds clientWidth (${{doc.clientWidth}}px)`);
-                }}
-                if (body.scrollWidth > body.clientWidth) {{
-                    issues.push(`Body scrollWidth (${{body.scrollWidth}}px) exceeds clientWidth (${{body.clientWidth}}px)`);
-                }}
-
-                if (rail && rail.offsetWidth !== 112) {{
-                    issues.push(`Rail width is ${{rail.offsetWidth}}px, expected 112px`);
-                }}
-
-                const targets = [
-                    '.home-main', '.home-bento', '.bento-card', '.content-frame',
-                    '.care-card', '#slide-clinician-portal', 'table',
-                    '.auth-text-input', '.care-input', '.say-input',
-                    'button.rail-item', '.auth-sheet-card'
-                ];
-                document.querySelectorAll(targets.join(', ')).forEach((el) => {{
-                    if (el.offsetWidth === 0 || el.offsetHeight === 0) return;
-                    const r = el.getBoundingClientRect();
-                    if (r.right > vpWidth + 2) {{
-                        issues.push(`Element ${{el.tagName}}.${{el.className.split(' ').join('.')}} clipped right (${{Math.round(r.right)}}px > ${{vpWidth}}px)`);
+                    if (doc.scrollWidth > doc.clientWidth) {{
+                        issues.push(`Document scrollWidth (${{doc.scrollWidth}}px) exceeds clientWidth (${{doc.clientWidth}}px)`);
                     }}
-                    if (r.left < -2) {{
-                        issues.push(`Element ${{el.tagName}}.${{el.className.split(' ').join('.')}} clipped left (${{Math.round(r.left)}}px < 0px)`);
+                    if (body.scrollWidth > body.clientWidth) {{
+                        issues.push(`Body scrollWidth (${{body.scrollWidth}}px) exceeds clientWidth (${{body.clientWidth}}px)`);
                     }}
 
-                    const isScrollable = Array.from(intentionalScroll).some(cls => el.classList.contains(cls) || el.id === cls);
-                    if (!isScrollable && el.scrollWidth > el.clientWidth + 6) {{
-                        const cs = window.getComputedStyle(el);
-                        if (cs.overflowX === 'hidden' && cs.textOverflow !== 'ellipsis') {{
-                            const text = (el.textContent || '').trim();
-                            if (text.length > 0 && el.children.length === 0) {{
-                                issues.push(`Text clipping on ${{el.tagName}}: scrollWidth ${{el.scrollWidth}} > clientWidth ${{el.clientWidth}}`);
+                    if (rail && rail.offsetWidth !== 112) {{
+                        issues.push(`Rail width is ${{rail.offsetWidth}}px, expected 112px`);
+                    }}
+
+                    const targets = [
+                        '.home-main', '.home-bento', '.bento-card', '.content-frame',
+                        '.care-card', '#slide-clinician-portal', 'table',
+                        '.auth-text-input', '.care-input', '.say-input',
+                        'button.rail-item', '.auth-sheet-card'
+                    ];
+                    document.querySelectorAll(targets.join(', ')).forEach((el) => {{
+                        if (el.offsetWidth === 0 || el.offsetHeight === 0) return;
+                        const r = el.getBoundingClientRect();
+                        if (r.right > vpWidth + 2) {{
+                            issues.push(`Element ${{el.tagName}}.${{el.className.split(' ').join('.')}} clipped right (${{Math.round(r.right)}}px > ${{vpWidth}}px)`);
+                        }}
+                        if (r.left < -2) {{
+                            issues.push(`Element ${{el.tagName}}.${{el.className.split(' ').join('.')}} clipped left (${{Math.round(r.left)}}px < 0px)`);
+                        }}
+
+                        const isScrollable = Array.from(intentionalScroll).some(cls => el.classList.contains(cls) || el.id === cls);
+                        if (!isScrollable && el.scrollWidth > el.clientWidth + 6) {{
+                            const cs = window.getComputedStyle(el);
+                            if (cs.overflowX === 'hidden' && cs.textOverflow !== 'ellipsis') {{
+                                const text = (el.textContent || '').trim();
+                                if (text.length > 0 && el.children.length === 0) {{
+                                    issues.push(`Text clipping on ${{el.tagName}}: scrollWidth ${{el.scrollWidth}} > clientWidth ${{el.clientWidth}}`);
+                                }}
                             }}
                         }}
-                    }}
-                }});
-
-                return {{
-                    docScrollW: doc.scrollWidth,
-                    docClientW: doc.clientWidth,
-                    bodyScrollW: body.scrollWidth,
-                    bodyClientW: body.clientWidth,
-                    railWidth: rail ? rail.offsetWidth : 0,
-                    contentWidth: content ? content.offsetWidth : 0,
-                    homeMainWidth: homeMain ? homeMain.offsetWidth : 0,
-                    bentoWidth: bento ? bento.offsetWidth : 0,
-                    hasDocHorizontalOverflow: doc.scrollWidth > doc.clientWidth,
-                    hasBodyHorizontalOverflow: body.scrollWidth > body.clientWidth,
-                    clippingIssuesCount: issues.length,
-                    clippingIssues: issues
-                }};
-            }}""")
-
-            workspace_screenshots = {}
-            workspace_readiness = {}
-
-            # Audit all 8 workspaces sequentially at this viewport
-            for ws in DESKTOP_WORKSPACES:
-                ws_id = ws["id"]
-                if ws_id in ("care_intake", "clinician_portal"):
-                    page.evaluate("window.routeTo('care')")
-                    if ws.get("tab") == "intake":
-                        page.evaluate("() => { if (window.TransifyCare && window.TransifyCare.switchTab) window.TransifyCare.switchTab('intake'); else document.getElementById('care-tab-intake-btn')?.click(); }")
-                    else:
-                        page.evaluate("() => { if (window.TransifyCare && window.TransifyCare.switchTab) window.TransifyCare.switchTab('clinician'); else document.getElementById('care-tab-clinician-btn')?.click(); }")
-                else:
-                    page.evaluate(f"window.routeTo('{ws['route']}')")
-
-                is_ready = wait_for_workspace_readiness(page, ws_id)
-                workspace_readiness[ws_id] = is_ready
-                ss_file = SCREENSHOT_DIR / f"{vp['name']}_{ws_id}.png"
-                page.screenshot(path=str(ss_file), full_page=False)
-                workspace_screenshots[ws_id] = str(ss_file)
-
-            # Test Bengali language switch and screenshot at this viewport
-            page.evaluate("window.TransifyI18n ? window.TransifyI18n.setLanguage('bn') : null")
-            page.wait_for_timeout(200)
-            ss_bn_path = SCREENSHOT_DIR / f"bn_{vp['name']}.png"
-            page.screenshot(path=str(ss_bn_path), full_page=False)
-            page.evaluate("window.TransifyI18n ? window.TransifyI18n.setLanguage('en') : null")
-
-            no_overflow = (not deep_metrics["hasDocHorizontalOverflow"] and not deep_metrics["hasBodyHorizontalOverflow"])
-            rail_ok = (deep_metrics["railWidth"] == 112)
-            no_clipping = (deep_metrics["clippingIssuesCount"] == 0)
-            all_ws_ready = all(workspace_readiness.values())
-            vp_pass = no_overflow and rail_ok and no_clipping and all_ws_ready
-
-            vp_record = {
-                "viewport_name": vp["name"],
-                "width": vp["w"],
-                "height": vp["h"],
-                "aspect_ratio": vp["aspect"],
-                "tier": vp["tier"],
-                "initial_load_latency_ms": load_ms,
-                "rail_width_px": deep_metrics["railWidth"],
-                "content_width_px": deep_metrics["contentWidth"],
-                "home_main_width_px": deep_metrics["homeMainWidth"],
-                "bento_width_px": deep_metrics["bentoWidth"],
-                "zero_horizontal_overflow": no_overflow,
-                "card_clipping_issues_count": deep_metrics["clippingIssuesCount"],
-                "clipping_issues_count": deep_metrics["clippingIssuesCount"],
-                "clipping_issues_details": deep_metrics["clippingIssues"],
-                "workspaces_evaluated": len(DESKTOP_WORKSPACES),
-                "workspaces_ready": sum(1 for v in workspace_readiness.values() if v),
-                "workspaces_readiness_details": workspace_readiness,
-                "status": "PASS" if vp_pass else "FAIL",
-                "screenshots": {
-                    **workspace_screenshots,
-                    "bengali": str(ss_bn_path)
-                }
-            }
-            audit_data["viewports_tested"].append(vp_record)
-            print(f"  [+] Rail: {deep_metrics['railWidth']}px | Overflow: {deep_metrics['hasDocHorizontalOverflow']} | Clipping: {deep_metrics['clippingIssuesCount']} | Workspaces Ready: {vp_record['workspaces_ready']}/8 | Status: {vp_record['status']}")
-            ctx.close()
-
-        # -------------------------------------------------------------
-        # PHASE 10.B: HIGH-DPI SCALING (DPR EMULATION)
-        # -------------------------------------------------------------
-        print("\n" + "=" * 60)
-        print("PHASE 10.B: HIGH-DPI SCALING VERIFICATION (DPR EMULATION)")
-        print("=" * 60, flush=True)
-
-        for dpi in DPI_SCALING_TIERS:
-            ctx_dpi = browser.new_context(
-                viewport={"width": dpi["w"], "height": dpi["h"]},
-                device_scale_factor=dpi["scale"]
-            )
-            ctx_dpi.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
-            ctx_dpi.add_init_script("""
-                try {
-                    localStorage.setItem('transify_auth_user', JSON.stringify({ name: 'Dr. Clinician', email: 'clinician@transify.ai', role: 'clinician' }));
-                    localStorage.setItem('transify.welcomed', '1');
-                } catch (e) {}
-            """)
-            page_dpi = ctx_dpi.new_page()
-            page_dpi.goto(f"{base_url}/#home", wait_until="networkidle")
-            page_dpi.wait_for_timeout(200)
-
-            dpr_eval = page_dpi.evaluate("""() => {
-                const doc = document.documentElement;
-                const body = document.body;
-                return {
-                    dpr: window.devicePixelRatio,
-                    hasDocOverflow: doc.scrollWidth > doc.clientWidth,
-                    hasBodyOverflow: body.scrollWidth > body.clientWidth
-                };
-            }""")
-
-            ss_dpi_path = SCREENSHOT_DIR / f"dpi_{int(dpi['scale']*100)}.png"
-            page_dpi.screenshot(path=str(ss_dpi_path), full_page=False)
-
-            dpi_record = {
-                "name": dpi["name"],
-                "scale_factor": dpi["scale"],
-                "emulated_width": dpi["w"],
-                "emulated_height": dpi["h"],
-                "measured_dpr": dpr_eval["dpr"],
-                "zero_horizontal_overflow": not dpr_eval["hasDocOverflow"] and not dpr_eval["hasBodyOverflow"],
-                "status": "PASS" if (not dpr_eval["hasDocOverflow"] and not dpr_eval["hasBodyOverflow"]) else "FAIL",
-                "screenshot": str(ss_dpi_path)
-            }
-            audit_data["dpi_scaling_tested"].append(dpi_record)
-            print(f"  [+] Scale Factor {dpi['scale']}x (DPR {dpr_eval['dpr']}): Zero Overflow = {dpi_record['zero_horizontal_overflow']} -> Status: {dpi_record['status']}")
-            ctx_dpi.close()
-
-        # -------------------------------------------------------------
-        # PHASE 10.C: WINDOW RESIZE & STATE SIMULATION
-        # -------------------------------------------------------------
-        print("\n" + "=" * 60)
-        print("PHASE 10.C: WINDOW RESIZE & STATE SIMULATION")
-        print("=" * 60, flush=True)
-
-        ctx_win = browser.new_context(viewport={"width": 1920, "height": 1080})
-        ctx_win.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
-        ctx_win.add_init_script("""
-            try {
-                localStorage.setItem('transify_auth_user', JSON.stringify({ name: 'Dr. Clinician', email: 'clinician@transify.ai', role: 'clinician' }));
-                localStorage.setItem('transify.welcomed', '1');
-            } catch (e) {}
-        """)
-        page_win = ctx_win.new_page()
-        page_win.goto(f"{base_url}/#home", wait_until="networkidle")
-        page_win.wait_for_timeout(200)
-
-        window_states = [
-            {"state": "Restored Viewport Simulation (1280x720)", "w": 1280, "h": 720},
-            {"state": "Maximized Viewport Simulation (1920x1080)", "w": 1920, "h": 1080},
-            {"state": "Fullscreen Viewport Simulation (2560x1440)", "w": 2560, "h": 1440},
-            {"state": "Narrow Viewport Simulation (1024x768)", "w": 1024, "h": 768}
-        ]
-
-        for ws_sim in window_states:
-            page_win.set_viewport_size({"width": ws_sim["w"], "height": ws_sim["h"]})
-            page_win.wait_for_timeout(150)
-            res_eval = page_win.evaluate("""() => {
-                const doc = document.documentElement;
-                const body = document.body;
-                return {
-                    docOverflow: doc.scrollWidth > doc.clientWidth,
-                    bodyOverflow: body.scrollWidth > body.clientWidth
-                };
-            }""")
-            win_record = {
-                "state": ws_sim["state"],
-                "width": ws_sim["w"],
-                "height": ws_sim["h"],
-                "zero_overflow": not res_eval["docOverflow"] and not res_eval["bodyOverflow"],
-                "status": "PASS" if (not res_eval["docOverflow"] and not res_eval["bodyOverflow"]) else "FAIL"
-            }
-            audit_data["window_state_tests"].append(win_record)
-            print(f"  [+] State: {ws_sim['state']} -> Zero Overflow = {win_record['zero_overflow']} (Status: {win_record['status']})")
-
-        ctx_win.close()
-
-        # -------------------------------------------------------------
-        # PHASE 10.D: KEYBOARD ACCESSIBILITY AUDIT
-        # -------------------------------------------------------------
-        print("\n" + "=" * 60)
-        print("PHASE 10.D: KEYBOARD ACCESSIBILITY AUDIT")
-        print("=" * 60, flush=True)
-
-        ctx_kb = browser.new_context(viewport={"width": 1920, "height": 1080})
-        page_kb = ctx_kb.new_page()
-        page_kb.goto(f"{base_url}/#welcome", wait_until="networkidle")
-        page_kb.wait_for_timeout(300)
-
-        # 1. Sequential tab traversal on welcome screen
-        focused_sequence = []
-        for _ in range(8):
-            page_kb.keyboard.press("Tab")
-            info = page_kb.evaluate("""() => {
-                const el = document.activeElement;
-                if (!el || el === document.body) return null;
-                const cs = window.getComputedStyle(el);
-                return {
-                    id: el.id,
-                    tag: el.tagName,
-                    cls: el.className,
-                    isVisible: el.offsetWidth > 0 && el.offsetHeight > 0 && cs.display !== 'none' && cs.visibility !== 'hidden'
-                };
-            }""")
-            if info:
-                focused_sequence.append(info)
-
-        # 2. Reverse Shift+Tab traversal
-        page_kb.keyboard.press("Shift+Tab")
-        shift_back_tag = page_kb.evaluate("() => document.activeElement?.tagName")
-        shift_back_id = page_kb.evaluate("() => document.activeElement?.id")
-
-        # 3. Focus opener explicitly and press Enter
-        page_kb.evaluate("() => document.getElementById('btn-open-login')?.focus()")
-        opener_focused = page_kb.evaluate("() => document.activeElement?.id === 'btn-open-login'")
-        page_kb.keyboard.press("Enter")
-        page_kb.wait_for_timeout(300)
-
-        # 4. Modal Opening and focus entry strictly on input-email
-        modal_opened = page_kb.evaluate("() => document.getElementById('auth-sheet-container')?.classList.contains('active')")
-        focus_landed_email = page_kb.evaluate("() => document.activeElement?.id === 'input-email'")
-
-        # 5. Modal focus trapping check (verify forward Tab wraps from last to first, and Shift+Tab wraps from first to last)
-        sheet_focusables = page_kb.evaluate("""() => {
-            const sheet = document.getElementById('auth-sheet-container');
-            const focusables = Array.from(sheet.querySelectorAll(
-                'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-            )).filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 && window.getComputedStyle(el).visibility !== 'hidden');
-            return {
-                count: focusables.length,
-                firstTag: focusables[0]?.tagName,
-                firstId: focusables[0]?.id,
-                lastTag: focusables[focusables.length - 1]?.tagName,
-                lastId: focusables[focusables.length - 1]?.id
-            };
-        }""")
-
-        # Test forward wrap: focus last element and press Tab
-        page_kb.evaluate("""() => {
-            const sheet = document.getElementById('auth-sheet-container');
-            const focusables = Array.from(sheet.querySelectorAll(
-                'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-            )).filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 && window.getComputedStyle(el).visibility !== 'hidden');
-            focusables[focusables.length - 1].focus();
-        }""")
-        page_kb.keyboard.press("Tab")
-        active_after_forward_wrap = page_kb.evaluate("() => document.activeElement?.tagName")
-        active_after_forward_wrap_id = page_kb.evaluate("() => document.activeElement?.id")
-        forward_wrap_ok = (active_after_forward_wrap == sheet_focusables["firstTag"] or active_after_forward_wrap_id == sheet_focusables["firstId"])
-
-        # Test reverse wrap: focus first element and press Shift+Tab
-        page_kb.evaluate("""() => {
-            const sheet = document.getElementById('auth-sheet-container');
-            const focusables = Array.from(sheet.querySelectorAll(
-                'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-            )).filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 && window.getComputedStyle(el).visibility !== 'hidden');
-            focusables[0].focus();
-        }""")
-        page_kb.keyboard.press("Shift+Tab")
-        active_after_reverse_wrap = page_kb.evaluate("() => document.activeElement?.tagName")
-        active_after_reverse_wrap_id = page_kb.evaluate("() => document.activeElement?.id")
-        reverse_wrap_ok = (active_after_reverse_wrap == sheet_focusables["lastTag"] or active_after_reverse_wrap_id == sheet_focusables["lastId"])
-
-        focus_trapped_ok = bool(sheet_focusables["count"] >= 3 and forward_wrap_ok and reverse_wrap_ok)
-
-        # 6. Modal Escape dismissal & exact focus restoration to opener
-        page_kb.keyboard.press("Escape")
-        page_kb.wait_for_timeout(250)
-        modal_closed = page_kb.evaluate("() => !document.getElementById('auth-sheet-container')?.classList.contains('active')")
-        focus_restored_to_opener = page_kb.evaluate("() => document.activeElement?.id === 'btn-open-login'")
-
-        # 7. Space activation test on Welcome Continue as Guest button
-        page_kb.evaluate("() => document.getElementById('btn-demo-guest')?.focus()")
-        page_kb.keyboard.press("Space")
-        page_kb.wait_for_timeout(300)
-        home_activated_via_space = page_kb.evaluate("() => document.getElementById('view-home')?.classList.contains('active')")
-
-        # 8. Care & Clinician Tab Switching via Enter and Space
-        page_kb.evaluate("window.routeTo('care')")
-        page_kb.wait_for_timeout(200)
-
-        # Switch to Clinician tab using Enter
-        page_kb.evaluate("() => document.getElementById('care-tab-clinician-btn')?.focus()")
-        page_kb.keyboard.press("Enter")
-        page_kb.wait_for_timeout(250)
-        clinician_active_enter = page_kb.evaluate("() => document.getElementById('slide-clinician-portal')?.style.display !== 'none'")
-
-        # Switch to Intake tab using Space
-        page_kb.evaluate("() => document.getElementById('care-tab-intake-btn')?.focus()")
-        page_kb.keyboard.press("Space")
-        page_kb.wait_for_timeout(250)
-        intake_active_space = page_kb.evaluate("() => document.getElementById('slide-care-intake')?.style.display !== 'none'")
-
-        # Switch back to Clinician tab using Space
-        page_kb.evaluate("() => document.getElementById('care-tab-clinician-btn')?.focus()")
-        page_kb.keyboard.press("Space")
-        page_kb.wait_for_timeout(250)
-        clinician_active_space = page_kb.evaluate("() => document.getElementById('slide-clinician-portal')?.style.display !== 'none'")
-
-        # Switch to Intake tab using Enter
-        page_kb.evaluate("() => document.getElementById('care-tab-intake-btn')?.focus()")
-        page_kb.keyboard.press("Enter")
-        page_kb.wait_for_timeout(250)
-        intake_active_enter = page_kb.evaluate("() => document.getElementById('slide-care-intake')?.style.display !== 'none'")
-
-        clinician_tab_ok = bool(clinician_active_enter and intake_active_space and clinician_active_space and intake_active_enter)
-
-        # 9. Check no focus on hidden content
-        hidden_focus_ok = all(item.get("isVisible", False) for item in focused_sequence)
-
-        kb_all_pass = bool(
-            len(focused_sequence) >= 6 and
-            shift_back_tag in ['A', 'BUTTON', 'INPUT'] and
-            opener_focused and modal_opened and focus_landed_email and
-            focus_trapped_ok and modal_closed and focus_restored_to_opener and
-            clinician_tab_ok and home_activated_via_space and hidden_focus_ok
-        )
-
-        audit_data["keyboard_accessibility"] = {
-            "tab_sequence_count": len(focused_sequence),
-            "tab_focused_tags": [f"{item['tag']}#{item['id'] or '.' + item['cls'][:15]}" for item in focused_sequence],
-            "shift_tab_reverse_working": shift_back_tag in ['A', 'BUTTON', 'INPUT'],
-            "enter_activation_working": opener_focused and modal_opened,
-            "space_activation_working": home_activated_via_space,
-            "modal_focus_accessible": modal_opened and focus_landed_email,
-            "modal_focus_trapped": focus_trapped_ok,
-            "modal_escape_dismissal_working": modal_closed,
-            "focus_restoration_working": focus_restored_to_opener,
-            "clinician_tab_keyboard_activation": clinician_tab_ok,
-            "no_focus_on_hidden_content": hidden_focus_ok,
-            "status": "PASS" if kb_all_pass else "FAIL"
-        }
-        print(f"  [+] Tab traversal: {len(focused_sequence)} elements | Shift+Tab back: {shift_back_tag}")
-        print(f"  [+] Modal focus entry: {focus_landed_email} | Trapped: {focus_trapped_ok} | Escape: {modal_closed} | Restored: {focus_restored_to_opener}")
-        print(f"  [+] Clinician tab switching via Enter & Space: {clinician_tab_ok} | Hidden isolation: {hidden_focus_ok}")
-        print(f"  [+] Computed Keyboard Accessibility Status: {audit_data['keyboard_accessibility']['status']}")
-        ctx_kb.close()
-
-        # -------------------------------------------------------------
-        # PHASE 10.E: ZERO AUTO-AUDIO POLICY VERIFICATION
-        # -------------------------------------------------------------
-        print("\n" + "=" * 60)
-        print("PHASE 10.E: ZERO AUTO-AUDIO POLICY VERIFICATION")
-        print("=" * 60, flush=True)
-
-        ctx_audio = browser.new_context(viewport={"width": 1920, "height": 1080})
-        page_audio = ctx_audio.new_page()
-
-        page_audio.add_init_script("""
-            window.__audioPlayAttempts = 0;
-            window.__speechSpeakAttempts = 0;
-            const origPlay = HTMLAudioElement.prototype.play;
-            HTMLAudioElement.prototype.play = function() {
-                window.__audioPlayAttempts++;
-                return origPlay.apply(this, arguments);
-            };
-            if (window.speechSynthesis) {
-                const origSpeak = window.speechSynthesis.speak;
-                window.speechSynthesis.speak = function(u) {
-                    window.__speechSpeakAttempts++;
-                    return origSpeak.apply(window.speechSynthesis, arguments);
-                };
-            }
-        """)
-
-        # Navigate across all 10 views without user audio gesture
-        page_audio.goto(f"{base_url}/#welcome", wait_until="networkidle")
-        for v in CORE_DESKTOP_VIEWS:
-            page_audio.evaluate(f"window.routeTo('{v['route']}')")
-            page_audio.wait_for_timeout(100)
-
-        unprompted = page_audio.evaluate("() => ({ audio: window.__audioPlayAttempts, speech: window.__speechSpeakAttempts })")
-
-        # Now test explicit user action
-        page_audio.evaluate("window.routeTo('home')")
-        page_audio.wait_for_timeout(150)
-        page_audio.evaluate("""() => {
-            const inp = document.getElementById('say');
-            if (inp) inp.value = 'Transify audio test';
-            const btn = document.getElementById('btn-say-speak');
-            if (btn) btn.click();
-        }""")
-        page_audio.wait_for_timeout(200)
-
-        after_click = page_audio.evaluate("() => ({ audio: window.__audioPlayAttempts, speech: window.__speechSpeakAttempts })")
-
-        zero_audio_pass = (unprompted["audio"] == 0 and unprompted["speech"] == 0 and after_click["speech"] >= 1)
-        audit_data["zero_auto_audio_verified"] = {
-            "unprompted_audio_playback_attempts": unprompted["audio"],
-            "unprompted_speech_synthesis_attempts": unprompted["speech"],
-            "explicit_user_action_speech_attempts": after_click["speech"],
-            "zero_auto_audio_preserved": (unprompted["audio"] == 0 and unprompted["speech"] == 0),
-            "explicit_speech_functional": after_click["speech"] >= 1,
-            "status": "PASS" if zero_audio_pass else "FAIL"
-        }
-        print(f"  [+] Unprompted audio playback attempts: {unprompted['audio']}")
-        print(f"  [+] Unprompted speech synthesis attempts: {unprompted['speech']}")
-        print(f"  [+] Explicit user action speech attempts: {after_click['speech']}")
-        print(f"  [+] Zero Auto-Audio Policy Verified: {audit_data['zero_auto_audio_verified']['status']}")
-        ctx_audio.close()
-
-        # -------------------------------------------------------------
-        # PHASE 10.F: BENGALI TYPOGRAPHY & SCRIPT AUDIT
-        # -------------------------------------------------------------
-        print("\n" + "=" * 60)
-        print("PHASE 10.F: BENGALI TYPOGRAPHY & SCRIPT VERIFICATION")
-        print("=" * 60, flush=True)
-
-        ctx_bn = browser.new_context(viewport={"width": 1920, "height": 1080})
-        ctx_bn.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
-        page_bn = ctx_bn.new_page()
-        page_bn.goto(f"{base_url}/#welcome", wait_until="networkidle")
-
-        # Explicitly switch language to Bengali
-        page_bn.evaluate("window.TransifyI18n ? window.TransifyI18n.setLanguage('bn') : null")
-
-        # Load Hind Siliguri font and await ready
-        page_bn.evaluate("""async () => {
-            if (document.fonts) {
-                await document.fonts.load("16px 'Hind Siliguri'");
-                await document.fonts.ready;
-            }
-        }""")
-        page_bn.wait_for_timeout(300)
-
-        font_loaded = page_bn.evaluate("() => document.fonts ? document.fonts.check(\"16px 'Hind Siliguri'\") : false")
-
-        bn_dom = page_bn.evaluate("""() => {
-            const bnRegex = /[\\u0980-\\u09FF]/;
-            const allElements = Array.from(document.querySelectorAll('*'));
-            const bnElements = allElements.filter(el => {
-                if (el.children.length > 0) return false;
-                const text = (el.textContent || '').trim();
-                const cs = window.getComputedStyle(el);
-                return bnRegex.test(text) && cs.display !== 'none' && cs.visibility !== 'hidden' && el.offsetHeight > 0;
-            });
-
-            if (bnElements.length === 0) {
-                return { count: 0 };
-            }
-
-            const sample = bnElements[0];
-            sample.id = 'cdp-bengali-sample-node';
-            const cs = window.getComputedStyle(sample);
-            const fontSize = parseFloat(cs.fontSize) || 16;
-            const r = sample.getBoundingClientRect();
-            const heightAdequate = r.height >= fontSize * 1.15;
-
-            return {
-                count: bnElements.length,
-                sampleText: sample.textContent.trim().slice(0, 40),
-                fontFamily: cs.fontFamily,
-                fontSizePx: fontSize,
-                lineHeight: cs.lineHeight,
-                renderedHeightPx: r.height,
-                heightAdequate: heightAdequate
-            };
-        }""")
-
-        # Inspect actual rendered platform font using CDP
-        cdp_bn = ctx_bn.new_cdp_session(page_bn)
-        cdp_bn.send("DOM.enable")
-        cdp_bn.send("CSS.enable")
-        doc_bn = cdp_bn.send("DOM.getDocument")
-        root_id = doc_bn["root"]["nodeId"]
-        node_res = cdp_bn.send("DOM.querySelector", {"nodeId": root_id, "selector": "#cdp-bengali-sample-node"})
-        platform_font_family = "Unknown"
-        if node_res.get("nodeId"):
-            pf_res = cdp_bn.send("CSS.getPlatformFontsForNode", {"nodeId": node_res["nodeId"]})
-            fonts_list = pf_res.get("fonts", [])
-            if fonts_list:
-                platform_font_family = fonts_list[0].get("familyName", "Unknown")
-
-        bn_pass = bool(
-            font_loaded and
-            (platform_font_family == "Hind Siliguri") and
-            bn_dom.get("count", 0) > 0 and
-            bn_dom.get("heightAdequate", False)
-        )
-
-        bn_audit = {
-            "status": "PASS" if bn_pass else "FAIL",
-            "bengaliElementCount": bn_dom.get("count", 0),
-            "sampleText": bn_dom.get("sampleText", ""),
-            "fontFamily": bn_dom.get("fontFamily", ""),
-            "platformFontFamily": platform_font_family,
-            "fontLoaded": font_loaded,
-            "fontSizePx": bn_dom.get("fontSizePx", 0),
-            "lineHeight": bn_dom.get("lineHeight", ""),
-            "renderedHeightPx": bn_dom.get("renderedHeightPx", 0),
-            "heightAdequate": bn_dom.get("heightAdequate", False),
-            "conjuncts_verified": True
-        }
-
-        audit_data["bengali_typography_audit"] = bn_audit
-        print(f"  [+] Bengali Elements Located: {bn_audit['bengaliElementCount']} (Sample: '{bn_audit['sampleText']}')")
-        print(f"  [+] Computed Font Family: {bn_audit['fontFamily']} | Platform Font: {bn_audit['platformFontFamily']}")
-        print(f"  [+] Font Loaded (document.fonts.check): {bn_audit['fontLoaded']} | Matra Clearance: {bn_audit['heightAdequate']} | Status: {bn_audit['status']}")
-        ctx_bn.close()
-
-        # -------------------------------------------------------------
-        # PHASE 10.G: HIGH-RESOLUTION PERFORMANCE & CDP BENCHMARK
-        # -------------------------------------------------------------
-        print("\n" + "=" * 60)
-        print("PHASE 10.G: HIGH-RESOLUTION PERFORMANCE & CDP BENCHMARK")
-        print("=" * 60, flush=True)
-
-        ctx_perf = browser.new_context(viewport={"width": 1920, "height": 1080})
-        ctx_perf.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
-        ctx_perf.add_init_script("""
-            try {
-                localStorage.setItem('transify_auth_user', JSON.stringify({ name: 'Dr. Clinician', email: 'clinician@transify.ai', role: 'clinician' }));
-                localStorage.setItem('transify.welcomed', '1');
-            } catch (e) {}
-        """)
-
-        page_perf = ctx_perf.new_page()
-        cdp = ctx_perf.new_cdp_session(page_perf)
-        cdp.send("Performance.enable")
-        cdp.send("HeapProfiler.enable")
-
-        t_start = time.time()
-        page_perf.goto(f"{base_url}/#welcome", wait_until="networkidle")
-        startup_ms = round((time.time() - t_start) * 1000, 2)
-        page_perf.wait_for_timeout(400)
-
-        route_latencies = {}
-        for view in CORE_DESKTOP_VIEWS:
-            vid = view["id"]
-            vroute = view["route"]
-            vselector = view["selector"]
-            vlabel = view["label"]
-
-            timing = page_perf.evaluate(f"""async () => {{
-                const t0 = performance.now();
-                const routeName = '{vroute}';
-
-                if (window.routeTo) {{
-                    window.routeTo(routeName);
-                }} else {{
-                    window.location.hash = '#' + routeName;
-                }}
-                const tDispatch = performance.now() - t0;
-
-                let tActivation = -1;
-                let tFirstFrame = -1;
-
-                await new Promise(resolve => {{
-                    requestAnimationFrame(() => {{
-                        tFirstFrame = performance.now() - t0;
-                        resolve();
                     }});
-                }});
 
-                let ready = false;
-                const maxWait = 3500;
-                const pollStart = performance.now();
+                    return {{
+                        docScrollW: doc.scrollWidth,
+                        docClientW: doc.clientWidth,
+                        bodyScrollW: body.scrollWidth,
+                        bodyClientW: body.clientWidth,
+                        railWidth: rail ? rail.offsetWidth : 0,
+                        contentWidth: content ? content.offsetWidth : 0,
+                        homeMainWidth: homeMain ? homeMain.offsetWidth : 0,
+                        bentoWidth: bento ? bento.offsetWidth : 0,
+                        hasDocHorizontalOverflow: doc.scrollWidth > doc.clientWidth,
+                        hasBodyHorizontalOverflow: body.scrollWidth > body.clientWidth,
+                        clippingIssuesCount: issues.length,
+                        clippingIssues: issues
+                    }};
+                }}""")
 
-                while (performance.now() - pollStart < maxWait) {{
-                    if (tActivation < 0) {{
-                        const container = document.querySelector('{vselector}');
-                        if (container) {{
-                            const cs = window.getComputedStyle(container);
-                            const hasPositiveDim = (container.offsetWidth > 0 && container.offsetHeight > 0);
-                            const isVisible = cs.display !== 'none' && cs.visibility !== 'hidden' && parseFloat(cs.opacity || '1') > 0;
-                            if (hasPositiveDim && isVisible) {{
-                                tActivation = performance.now() - t0;
+                workspace_screenshots = {}
+                workspace_layouts = {}
+
+                for ws in DESKTOP_WORKSPACES:
+                    ws_id = ws["id"]
+                    if ws_id in ("care_intake", "clinician_portal"):
+                        page.evaluate("window.routeTo('care')")
+                        if ws.get("tab") == "intake":
+                            page.evaluate("() => { if (window.TransifyCare && window.TransifyCare.switchTab) window.TransifyCare.switchTab('intake'); else document.getElementById('care-tab-intake-btn')?.click(); }")
+                        else:
+                            page.evaluate("() => { if (window.TransifyCare && window.TransifyCare.switchTab) window.TransifyCare.switchTab('clinician'); else document.getElementById('care-tab-clinician-btn')?.click(); }")
+                    else:
+                        page.evaluate(f"window.routeTo('{ws['route']}')")
+
+                    is_ready = wait_for_workspace_readiness(page, ws_id)
+                    ss_file = SCREENSHOT_DIR / f"{vp['name']}_{ws_id}.png"
+                    page.screenshot(path=str(ss_file), full_page=False)
+                    workspace_screenshots[ws_id] = str(ss_file)
+
+                    ws_eval = page.evaluate(f"""() => {{
+                        const vpWidth = {vp['w']};
+                        const reqSelectors = {json.dumps(ws.get('required_selectors', []))};
+                        const missingControls = [];
+
+                        for (const req of reqSelectors) {{
+                            const els = document.querySelectorAll(req.selector);
+                            if (req.exact_count !== undefined && els.length !== req.exact_count) {{
+                                missingControls.push(`${{req.selector}}: expected ${{req.exact_count}}, found ${{els.length}}`);
+                            }} else if (els.length < (req.min_count || 1)) {{
+                                missingControls.push(`${{req.selector}}: expected >= ${{req.min_count || 1}}, found ${{els.length}}`);
+                            }} else if (req.check_dim !== false) {{
+                                const visibleCount = Array.from(els).filter(el => el.offsetWidth > 0 && el.offsetHeight > 0).length;
+                                if (visibleCount === 0) {{
+                                    missingControls.push(`${{req.selector}}: no element has positive dimensions`);
+                                }}
                             }}
                         }}
-                    }}
 
-                    let isReady = false;
-                    if ('{vid}' === 'clinician') {{
-                        const portal = document.getElementById('slide-clinician-portal');
-                        const tabBtn = document.getElementById('care-tab-clinician-btn');
-                        const tabActive = tabBtn ? tabBtn.classList.contains('active') : true;
-                        const tbody = document.getElementById('clinician-queue-tbody');
-                        const rows = tbody ? tbody.querySelectorAll('tr') : [];
-                        const portalVis = portal && window.getComputedStyle(portal).display !== 'none' && portal.offsetHeight > 0;
-                        const rowsPopulated = rows && rows.length === 50;
-                        isReady = tabActive && portalVis && rowsPopulated;
-                    }} else if ('{vid}' === 'care') {{
-                        const careView = document.getElementById('view-care');
-                        const intake = document.getElementById('slide-care-intake') || document.querySelector('.care-container');
-                        isReady = careView && careView.classList.contains('active') && careView.offsetHeight > 0 && (!intake || intake.offsetHeight > 0);
-                    }} else if ('{vid}' === 'sign') {{
-                        const signView = document.getElementById('view-sign');
-                        const stage = document.querySelector('.sign-stage, #sign-camera-stage, .camera-container, .camera-box') || signView;
-                        isReady = signView && signView.classList.contains('active') && stage.offsetHeight > 0;
-                    }} else if ('{vid}' === 'braille') {{
-                        const brailleView = document.getElementById('view-braille');
-                        const ws = document.querySelector('.braille-upload-box, #braille-canvas, .braille-workspace') || brailleView;
-                        isReady = brailleView && brailleView.classList.contains('active') && ws.offsetHeight > 0;
-                    }} else if ('{vid}' === 'chat') {{
-                        const chatView = document.getElementById('view-chat');
-                        const tf = document.querySelector('.chat-thread-frame, #chat-messages') || chatView;
-                        isReady = chatView && chatView.classList.contains('active') && tf.offsetHeight > 0;
-                    }} else if ('{vid}' === 'voice') {{
-                        const voiceView = document.getElementById('view-voice');
-                        const vs = voiceView ? (voiceView.querySelector('.voice-container, .voice-stage') || voiceView) : null;
-                        isReady = voiceView && voiceView.classList.contains('active') && vs && vs.offsetHeight > 0;
-                    }} else {{
-                        const vEl = document.querySelector('{vselector}');
-                        isReady = vEl && vEl.offsetHeight > 0;
-                    }}
+                        const doc = document.documentElement;
+                        const body = document.body;
+                        const hasDocOverflow = doc.scrollWidth > doc.clientWidth;
+                        const hasBodyOverflow = body.scrollWidth > body.clientWidth;
 
-                    if (isReady) {{
-                        ready = true;
-                        break;
-                    }}
-                    await new Promise(r => setTimeout(r, 10));
-                }}
+                        const wsEl = document.querySelector('{ws["selector"]}');
+                        const wsIssues = [];
+                        if (wsEl) {{
+                            const targets = wsEl.querySelectorAll('*');
+                            targets.forEach(el => {{
+                                if (el.offsetWidth === 0 || el.offsetHeight === 0) return;
+                                const isScrollable = el.closest('.braille-samples-grid, .content-frame, .chat-stream-container, .clinician-table-wrapper, [style*="overflow-x: auto"], [style*="overflow-x: scroll"]') !== null ||
+                                                     (el.parentElement && (window.getComputedStyle(el.parentElement).overflowX === 'auto' || window.getComputedStyle(el.parentElement).overflowX === 'scroll'));
+                                if (isScrollable) return;
+                                const r = el.getBoundingClientRect();
+                                if (r.right > vpWidth + 2) {{
+                                    wsIssues.push(`Clipped right: ${{el.tagName}}.${{el.className.split(' ').slice(0, 2).join('.')}} (${{Math.round(r.right)}}px > ${{vpWidth}}px)`);
+                                }}
+                                if (r.left < -2) {{
+                                    wsIssues.push(`Clipped left: ${{el.tagName}}.${{el.className.split(' ').slice(0, 2).join('.')}} (${{Math.round(r.left)}}px < 0px)`);
+                                }}
+                            }});
+                        }}
 
-                if (!ready) {{
-                    return {{ status: "FAIL", error: "Readiness timeout", dispatch_ms: Math.round(tDispatch * 100) / 100, activation_ms: Math.round(tActivation * 100) / 100, first_frame_ms: Math.round(tFirstFrame * 100) / 100, readiness_ms: -1, total_latency_ms: -1 }};
-                }}
-                const tReady = performance.now() - t0;
+                        return {{
+                            controls_valid: missingControls.length === 0,
+                            missing_controls: missingControls,
+                            has_overflow: hasDocOverflow || hasBodyOverflow,
+                            clipping_count: wsIssues.length,
+                            clipping_issues: wsIssues
+                        }};
+                    }}""")
 
-                return {{
-                    status: "PASS",
-                    dispatch_ms: Math.round(tDispatch * 100) / 100,
-                    activation_ms: Math.round(tActivation * 100) / 100,
-                    first_frame_ms: Math.round(tFirstFrame * 100) / 100,
-                    readiness_ms: Math.round(tReady * 100) / 100,
-                    total_latency_ms: Math.round(tReady * 100) / 100
-                }};
-            }}""")
+                    controls_ok = ws_eval["controls_valid"]
+                    ws_clipping = ws_eval["clipping_count"]
+                    ws_overflow = ws_eval["has_overflow"]
+                    ws_pass = is_ready and controls_ok and (ws_clipping == 0) and (not ws_overflow)
+                    if not ws_pass:
+                        print(f"    [!] Workspace {ws_id} FAIL: ready={is_ready}, controls={controls_ok}, missing={ws_eval['missing_controls']}, clipping={ws_clipping}, overflow={ws_overflow}", flush=True)
 
-            timing["label"] = vlabel
-            route_latencies[vid] = timing
-            print(f"  [+] Route '{vid}': total {timing['total_latency_ms']} ms (activation: {timing['activation_ms']}ms, readiness: {timing['readiness_ms']}ms) -> Status: {timing['status']}")
+                    workspace_layouts[ws_id] = {
+                        "workspace_id": ws_id,
+                        "label": ws["label"],
+                        "is_ready": is_ready,
+                        "required_controls_verified": controls_ok,
+                        "missing_controls": ws_eval["missing_controls"],
+                        "clipping_issues_count": ws_clipping,
+                        "clipping_issues": ws_eval["clipping_issues"][:5],
+                        "has_horizontal_overflow": ws_overflow,
+                        "status": "PASS" if ws_pass else "FAIL"
+                    }
 
-        # Measure requestAnimationFrame callback cadence over 2.0s
-        print("  [*] Measuring requestAnimationFrame callback cadence over 2.0s ...", flush=True)
-        cadence_info = page_perf.evaluate("""async () => {
-            let frames = 0;
-            const start = performance.now();
-            return new Promise(resolve => {
-                function step() {
-                    frames++;
-                    if (performance.now() - start < 2000) {
-                        requestAnimationFrame(step);
-                    } else {
-                        const elapsedSec = (performance.now() - start) / 1000;
-                        resolve({
-                            cadenceHz: Math.round((frames / elapsedSec) * 100) / 100,
-                            framesCaptured: frames,
-                            durationSec: Math.round(elapsedSec * 100) / 100
-                        });
+                page.evaluate("window.TransifyI18n ? window.TransifyI18n.setLanguage('bn') : null")
+                page.wait_for_timeout(200)
+                ss_bn_path = SCREENSHOT_DIR / f"bn_{vp['name']}.png"
+                page.screenshot(path=str(ss_bn_path), full_page=False)
+                page.evaluate("window.TransifyI18n ? window.TransifyI18n.setLanguage('en') : null")
+
+                no_overflow = (not deep_metrics["hasDocHorizontalOverflow"] and not deep_metrics["hasBodyHorizontalOverflow"])
+                rail_ok = (deep_metrics["railWidth"] == 112)
+                no_clipping = (deep_metrics["clippingIssuesCount"] == 0)
+                all_ws_pass = all(w["status"] == "PASS" for w in workspace_layouts.values())
+                vp_pass = no_overflow and rail_ok and no_clipping and all_ws_pass
+
+                vp_record = {
+                    "viewport_name": vp["name"],
+                    "width": vp["w"],
+                    "height": vp["h"],
+                    "aspect_ratio": vp["aspect"],
+                    "tier": vp["tier"],
+                    "initial_load_latency_ms": load_ms,
+                    "rail_width_px": deep_metrics["railWidth"],
+                    "content_width_px": deep_metrics["contentWidth"],
+                    "home_main_width_px": deep_metrics["homeMainWidth"],
+                    "bento_width_px": deep_metrics["bentoWidth"],
+                    "zero_horizontal_overflow": no_overflow,
+                    "card_clipping_issues_count": deep_metrics["clippingIssuesCount"],
+                    "clipping_issues_count": deep_metrics["clippingIssuesCount"],
+                    "clipping_issues_details": deep_metrics["clippingIssues"],
+                    "workspaces_evaluated": len(DESKTOP_WORKSPACES),
+                    "workspaces_ready": sum(1 for w in workspace_layouts.values() if w["status"] == "PASS"),
+                    "workspaces_readiness_details": {k: v["status"] == "PASS" for k, v in workspace_layouts.items()},
+                    "workspace_layouts": workspace_layouts,
+                    "status": "PASS" if vp_pass else "FAIL",
+                    "screenshots": {
+                        **workspace_screenshots,
+                        "bengali": str(ss_bn_path)
                     }
                 }
-                requestAnimationFrame(step);
-            });
-        }""")
+                audit_data["viewports_tested"].append(vp_record)
+                print(f"  [+] Rail: {deep_metrics['railWidth']}px | Overflow: {deep_metrics['hasDocHorizontalOverflow']} | Clipping: {deep_metrics['clippingIssuesCount']} | Workspaces Ready: {vp_record['workspaces_ready']}/8 | Status: {vp_record['status']}")
+                ctx.close()
 
-        # Trigger explicit GC before measuring retained memory
-        try:
-            cdp.send("HeapProfiler.collectGarbage")
-        except Exception:
-            pass
+            # -------------------------------------------------------------
+            # PHASE 10.B: HIGH-DPI SCALING (DPR EMULATION)
+            # -------------------------------------------------------------
+            print("\n" + "=" * 60)
+            print("PHASE 10.B: HIGH-DPI SCALING VERIFICATION (DPR EMULATION)")
+            print("=" * 60, flush=True)
 
-        # Get empirical CDP metrics
-        cdp_metrics_raw = cdp.send("Performance.getMetrics")
-        m_dict = {m["name"]: m["value"] for m in cdp_metrics_raw["metrics"]}
+            for dpi in DPI_SCALING_TIERS:
+                ctx_dpi = browser.new_context(
+                    viewport={"width": dpi["w"], "height": dpi["h"]},
+                    device_scale_factor=dpi["scale"]
+                )
+                ctx_dpi.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
+                ctx_dpi.add_init_script(f"""
+                    try {{
+                        localStorage.setItem('transify_auth_user', JSON.stringify({{ name: 'Dr. Clinician Audit', email: '{clinician_email}', role: 'clinician' }}));
+                        localStorage.setItem('transify.welcomed', '1');
+                    }} catch (e) {{}}
+                """)
+                page_dpi = ctx_dpi.new_page()
+                page_dpi.goto(f"{base_url}/#home", wait_until="networkidle")
+                page_dpi.wait_for_timeout(200)
 
-        used_heap_mb = round(m_dict.get("JSHeapUsedSize", 0) / (1024 * 1024), 2)
-        total_heap_mb = round(m_dict.get("JSHeapTotalSize", 0) / (1024 * 1024), 2)
-        dom_nodes = int(m_dict.get("Nodes", 0))
-        listeners = int(m_dict.get("JSEventListeners", 0))
+                dpr_eval = page_dpi.evaluate("""() => {
+                    const doc = document.documentElement;
+                    const body = document.body;
+                    return {
+                        dpr: window.devicePixelRatio,
+                        hasDocOverflow: doc.scrollWidth > doc.clientWidth,
+                        hasBodyOverflow: body.scrollWidth > body.clientWidth
+                    };
+                }""")
 
-        valid_latencies = [r["total_latency_ms"] for r in route_latencies.values() if r.get("status") == "PASS"]
-        mean_latency = round(sum(valid_latencies) / len(valid_latencies), 2) if valid_latencies else -1
-        all_routes_pass = all(r.get("status") == "PASS" for r in route_latencies.values())
+                ss_dpi_path = SCREENSHOT_DIR / f"dpi_{int(dpi['scale']*100)}.png"
+                page_dpi.screenshot(path=str(ss_dpi_path), full_page=False)
 
-        audit_data["performance_benchmarks"] = {
-            "initial_startup_ms": startup_ms,
-            "mean_route_transition_ms": mean_latency,
-            "status": "PASS" if all_routes_pass else "FAIL",
-            "route_latencies_ms": route_latencies,
-            "raf_callback_cadence_hz": {
-                "measured_cadence_hz": cadence_info["cadenceHz"],
-                "frames_captured": cadence_info["framesCaptured"],
-                "duration_sec": cadence_info["durationSec"],
-                "measurement_method": "requestAnimationFrame timestamp delta over active window (Linux Chromium headless)"
-            },
-            "cdp_heap_memory": {
-                "usedHeapMB": used_heap_mb,
-                "totalHeapMB": total_heap_mb,
-                "domNodes": dom_nodes,
-                "jsEventListeners": listeners,
-                "measurement_method": "Chrome DevTools Protocol (CDP) Performance.getMetrics after HeapProfiler.collectGarbage"
+                dpi_record = {
+                    "name": dpi["name"],
+                    "scale_factor": dpi["scale"],
+                    "emulated_width": dpi["w"],
+                    "emulated_height": dpi["h"],
+                    "measured_dpr": dpr_eval["dpr"],
+                    "zero_horizontal_overflow": not dpr_eval["hasDocOverflow"] and not dpr_eval["hasBodyOverflow"],
+                    "status": "PASS" if (not dpr_eval["hasDocOverflow"] and not dpr_eval["hasBodyOverflow"]) else "FAIL",
+                    "screenshot": str(ss_dpi_path)
+                }
+                audit_data["dpi_scaling_tested"].append(dpi_record)
+                print(f"  [+] Scale Factor {dpi['scale']}x (DPR {dpr_eval['dpr']}): Zero Overflow = {dpi_record['zero_horizontal_overflow']} -> Status: {dpi_record['status']}")
+                ctx_dpi.close()
+
+            # -------------------------------------------------------------
+            # PHASE 10.C: WINDOW RESIZE & STATE SIMULATION
+            # -------------------------------------------------------------
+            print("\n" + "=" * 60)
+            print("PHASE 10.C: WINDOW RESIZE & STATE SIMULATION")
+            print("=" * 60, flush=True)
+
+            ctx_win = browser.new_context(viewport={"width": 1920, "height": 1080})
+            ctx_win.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
+            ctx_win.add_init_script(f"""
+                try {{
+                    localStorage.setItem('transify_auth_user', JSON.stringify({{ name: 'Dr. Clinician Audit', email: '{clinician_email}', role: 'clinician' }}));
+                    localStorage.setItem('transify.welcomed', '1');
+                }} catch (e) {{}}
+            """)
+            page_win = ctx_win.new_page()
+            page_win.goto(f"{base_url}/#home", wait_until="networkidle")
+            page_win.wait_for_timeout(200)
+
+            window_states = [
+                {"state": "Restored Viewport Simulation (1280x720)", "w": 1280, "h": 720},
+                {"state": "Maximized Viewport Simulation (1920x1080)", "w": 1920, "h": 1080},
+                {"state": "Fullscreen Viewport Simulation (2560x1440)", "w": 2560, "h": 1440},
+                {"state": "Narrow Viewport Simulation (1024x768)", "w": 1024, "h": 768}
+            ]
+
+            for ws_sim in window_states:
+                page_win.set_viewport_size({"width": ws_sim["w"], "height": ws_sim["h"]})
+                page_win.wait_for_timeout(150)
+                res_eval = page_win.evaluate("""() => {
+                    const doc = document.documentElement;
+                    const body = document.body;
+                    return {
+                        docOverflow: doc.scrollWidth > doc.clientWidth,
+                        bodyOverflow: body.scrollWidth > body.clientWidth
+                    };
+                }""")
+                win_record = {
+                    "state": ws_sim["state"],
+                    "width": ws_sim["w"],
+                    "height": ws_sim["h"],
+                    "zero_overflow": not res_eval["docOverflow"] and not res_eval["bodyOverflow"],
+                    "status": "PASS" if (not res_eval["docOverflow"] and not res_eval["bodyOverflow"]) else "FAIL"
+                }
+                audit_data["window_state_tests"].append(win_record)
+                print(f"  [+] State: {ws_sim['state']} -> Zero Overflow = {win_record['zero_overflow']} (Status: {win_record['status']})")
+
+            ctx_win.close()
+
+            # -------------------------------------------------------------
+            # PHASE 10.D: KEYBOARD ACCESSIBILITY AUDIT
+            # -------------------------------------------------------------
+            print("\n" + "=" * 60)
+            print("PHASE 10.D: KEYBOARD ACCESSIBILITY AUDIT")
+            print("=" * 60, flush=True)
+
+            ctx_kb = browser.new_context(viewport={"width": 1920, "height": 1080})
+            page_kb = ctx_kb.new_page()
+            page_kb.goto(f"{base_url}/#welcome", wait_until="networkidle")
+            page_kb.wait_for_timeout(300)
+
+            focused_sequence = []
+            for _ in range(8):
+                page_kb.keyboard.press("Tab")
+                info = page_kb.evaluate("""() => {
+                    const el = document.activeElement;
+                    if (!el || el === document.body) return null;
+                    const cs = window.getComputedStyle(el);
+                    return {
+                        id: el.id,
+                        tag: el.tagName,
+                        cls: el.className,
+                        isVisible: el.offsetWidth > 0 && el.offsetHeight > 0 && cs.display !== 'none' && cs.visibility !== 'hidden'
+                    };
+                }""")
+                if info:
+                    focused_sequence.append(info)
+
+            page_kb.keyboard.press("Shift+Tab")
+            shift_back_tag = page_kb.evaluate("() => document.activeElement?.tagName")
+            shift_back_id = page_kb.evaluate("() => document.activeElement?.id")
+
+            page_kb.evaluate("() => document.getElementById('btn-open-login')?.focus()")
+            opener_focused = page_kb.evaluate("() => document.activeElement?.id === 'btn-open-login'")
+            page_kb.keyboard.press("Enter")
+            page_kb.wait_for_timeout(300)
+
+            modal_opened = page_kb.evaluate("() => document.getElementById('auth-sheet-container')?.classList.contains('active')")
+            focus_landed_email = page_kb.evaluate("() => document.activeElement?.id === 'input-email'")
+
+            sheet_focusables = page_kb.evaluate("""() => {
+                const sheet = document.getElementById('auth-sheet-container');
+                const focusables = Array.from(sheet.querySelectorAll(
+                    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                )).filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 && window.getComputedStyle(el).visibility !== 'hidden');
+                return {
+                    count: focusables.length,
+                    firstTag: focusables[0]?.tagName,
+                    firstId: focusables[0]?.id,
+                    lastTag: focusables[focusables.length - 1]?.tagName,
+                    lastId: focusables[focusables.length - 1]?.id
+                };
+            }""")
+
+            page_kb.evaluate("""() => {
+                const sheet = document.getElementById('auth-sheet-container');
+                const focusables = Array.from(sheet.querySelectorAll(
+                    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                )).filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 && window.getComputedStyle(el).visibility !== 'hidden');
+                focusables[focusables.length - 1].focus();
+            }""")
+            page_kb.keyboard.press("Tab")
+            active_after_forward_wrap = page_kb.evaluate("() => document.activeElement?.tagName")
+            active_after_forward_wrap_id = page_kb.evaluate("() => document.activeElement?.id")
+            forward_wrap_ok = (active_after_forward_wrap == sheet_focusables["firstTag"] or active_after_forward_wrap_id == sheet_focusables["firstId"])
+
+            page_kb.evaluate("""() => {
+                const sheet = document.getElementById('auth-sheet-container');
+                const focusables = Array.from(sheet.querySelectorAll(
+                    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                )).filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 && window.getComputedStyle(el).visibility !== 'hidden');
+                focusables[0].focus();
+            }""")
+            page_kb.keyboard.press("Shift+Tab")
+            active_after_reverse_wrap = page_kb.evaluate("() => document.activeElement?.tagName")
+            active_after_reverse_wrap_id = page_kb.evaluate("() => document.activeElement?.id")
+            reverse_wrap_ok = (active_after_reverse_wrap == sheet_focusables["lastTag"] or active_after_reverse_wrap_id == sheet_focusables["lastId"])
+
+            focus_trapped_ok = bool(sheet_focusables["count"] >= 3 and forward_wrap_ok and reverse_wrap_ok)
+
+            page_kb.keyboard.press("Escape")
+            page_kb.wait_for_timeout(250)
+            modal_closed = page_kb.evaluate("() => !document.getElementById('auth-sheet-container')?.classList.contains('active')")
+            focus_restored_to_opener = page_kb.evaluate("() => document.activeElement?.id === 'btn-open-login'")
+
+            page_kb.evaluate("() => document.getElementById('btn-demo-guest')?.focus()")
+            page_kb.keyboard.press("Space")
+            page_kb.wait_for_timeout(300)
+            home_activated_via_space = page_kb.evaluate("() => document.getElementById('view-home')?.classList.contains('active')")
+
+            page_kb.evaluate("window.routeTo('care')")
+            page_kb.wait_for_timeout(200)
+
+            page_kb.evaluate("() => document.getElementById('care-tab-clinician-btn')?.focus()")
+            page_kb.keyboard.press("Enter")
+            page_kb.wait_for_timeout(250)
+            clinician_active_enter = page_kb.evaluate("() => document.getElementById('slide-clinician-portal')?.style.display !== 'none'")
+
+            page_kb.evaluate("() => document.getElementById('care-tab-intake-btn')?.focus()")
+            page_kb.keyboard.press("Space")
+            page_kb.wait_for_timeout(250)
+            intake_active_space = page_kb.evaluate("() => document.getElementById('slide-care-intake')?.style.display !== 'none'")
+
+            page_kb.evaluate("() => document.getElementById('care-tab-clinician-btn')?.focus()")
+            page_kb.keyboard.press("Space")
+            page_kb.wait_for_timeout(250)
+            clinician_active_space = page_kb.evaluate("() => document.getElementById('slide-clinician-portal')?.style.display !== 'none'")
+
+            page_kb.evaluate("() => document.getElementById('care-tab-intake-btn')?.focus()")
+            page_kb.keyboard.press("Enter")
+            page_kb.wait_for_timeout(250)
+            intake_active_enter = page_kb.evaluate("() => document.getElementById('slide-care-intake')?.style.display !== 'none'")
+
+            clinician_tab_ok = bool(clinician_active_enter and intake_active_space and clinician_active_space and intake_active_enter)
+            hidden_focus_ok = all(item.get("isVisible", False) for item in focused_sequence)
+
+            kb_all_pass = bool(
+                len(focused_sequence) >= 6 and
+                shift_back_tag in ['A', 'BUTTON', 'INPUT'] and
+                opener_focused and modal_opened and focus_landed_email and
+                focus_trapped_ok and modal_closed and focus_restored_to_opener and
+                clinician_tab_ok and home_activated_via_space and hidden_focus_ok
+            )
+
+            audit_data["keyboard_accessibility"] = {
+                "tab_sequence_count": len(focused_sequence),
+                "tab_focused_tags": [f"{item['tag']}#{item['id'] or '.' + item['cls'][:15]}" for item in focused_sequence],
+                "shift_tab_reverse_working": shift_back_tag in ['A', 'BUTTON', 'INPUT'],
+                "enter_activation_working": opener_focused and modal_opened,
+                "space_activation_working": home_activated_via_space,
+                "modal_focus_accessible": modal_opened and focus_landed_email,
+                "modal_focus_trapped": focus_trapped_ok,
+                "modal_escape_dismissal_working": modal_closed,
+                "focus_restoration_working": focus_restored_to_opener,
+                "clinician_tab_keyboard_activation": clinician_tab_ok,
+                "no_focus_on_hidden_content": hidden_focus_ok,
+                "status": "PASS" if kb_all_pass else "FAIL"
             }
-        }
-        print(f"  [+] Initial Cold Startup: {startup_ms} ms")
-        print(f"  [+] Mean Route Latency: {mean_latency} ms (Across {len(valid_latencies)} routes)")
-        print(f"  [+] RAF Callback Cadence: {cadence_info['cadenceHz']} Hz ({cadence_info['framesCaptured']} frames / {cadence_info['durationSec']}s) [Compositor GPU FPS: NOT MEASURED]")
-        print(f"  [+] Retained CDP Heap Footprint (Post-GC): {used_heap_mb} MB used / {total_heap_mb} MB allocated (Nodes: {dom_nodes}, Listeners: {listeners})")
+            print(f"  [+] Tab traversal: {len(focused_sequence)} elements | Shift+Tab back: {shift_back_tag}")
+            print(f"  [+] Modal focus entry: {focus_landed_email} | Trapped: {focus_trapped_ok} | Escape: {modal_closed} | Restored: {focus_restored_to_opener}")
+            print(f"  [+] Clinician tab switching via Enter & Space: {clinician_tab_ok} | Hidden isolation: {hidden_focus_ok}")
+            print(f"  [+] Computed Keyboard Accessibility Status: {audit_data['keyboard_accessibility']['status']}")
+            ctx_kb.close()
 
-        ctx_perf.close()
+            # -------------------------------------------------------------
+            # PHASE 10.E: ZERO AUTO-AUDIO POLICY VERIFICATION
+            # -------------------------------------------------------------
+            print("\n" + "=" * 60)
+            print("PHASE 10.E: ZERO AUTO-AUDIO POLICY VERIFICATION")
+            print("=" * 60, flush=True)
+
+            ctx_audio = browser.new_context(viewport={"width": 1920, "height": 1080})
+            page_audio = ctx_audio.new_page()
+
+            page_audio.add_init_script("""
+                window.__audioPlayAttempts = 0;
+                window.__speechSpeakAttempts = 0;
+                const origPlay = HTMLAudioElement.prototype.play;
+                HTMLAudioElement.prototype.play = function() {
+                    window.__audioPlayAttempts++;
+                    return origPlay.apply(this, arguments);
+                };
+                if (window.speechSynthesis) {
+                    const origSpeak = window.speechSynthesis.speak;
+                    window.speechSynthesis.speak = function(u) {
+                        window.__speechSpeakAttempts++;
+                        return origSpeak.apply(window.speechSynthesis, arguments);
+                    };
+                }
+            """)
+
+            page_audio.goto(f"{base_url}/#welcome", wait_until="networkidle")
+            for v in CORE_DESKTOP_VIEWS:
+                page_audio.evaluate(f"window.routeTo('{v['route']}')")
+                page_audio.wait_for_timeout(100)
+
+            unprompted = page_audio.evaluate("() => ({ audio: window.__audioPlayAttempts, speech: window.__speechSpeakAttempts })")
+
+            page_audio.evaluate("window.routeTo('home')")
+            page_audio.wait_for_timeout(150)
+            page_audio.evaluate("""() => {
+                const inp = document.getElementById('say');
+                if (inp) inp.value = 'Transify audio test';
+                const btn = document.getElementById('btn-say-speak');
+                if (btn) btn.click();
+            }""")
+            page_audio.wait_for_timeout(200)
+
+            after_click = page_audio.evaluate("() => ({ audio: window.__audioPlayAttempts, speech: window.__speechSpeakAttempts })")
+
+            zero_audio_pass = (unprompted["audio"] == 0 and unprompted["speech"] == 0 and after_click["speech"] >= 1)
+            audit_data["zero_auto_audio_verified"] = {
+                "unprompted_audio_playback_attempts": unprompted["audio"],
+                "unprompted_speech_synthesis_attempts": unprompted["speech"],
+                "explicit_user_action_speech_attempts": after_click["speech"],
+                "zero_auto_audio_preserved": (unprompted["audio"] == 0 and unprompted["speech"] == 0),
+                "explicit_speech_functional": after_click["speech"] >= 1,
+                "status": "PASS" if zero_audio_pass else "FAIL"
+            }
+            print(f"  [+] Unprompted audio playback attempts: {unprompted['audio']}")
+            print(f"  [+] Unprompted speech synthesis attempts: {unprompted['speech']}")
+            print(f"  [+] Explicit user action speech attempts: {after_click['speech']}")
+            print(f"  [+] Zero Auto-Audio Policy Verified: {audit_data['zero_auto_audio_verified']['status']}")
+            ctx_audio.close()
+
+            # -------------------------------------------------------------
+            # PHASE 10.F: BENGALI TYPOGRAPHY & SCRIPT AUDIT
+            # -------------------------------------------------------------
+            print("\n" + "=" * 60)
+            print("PHASE 10.F: BENGALI TYPOGRAPHY & SCRIPT VERIFICATION")
+            print("=" * 60, flush=True)
+
+            ctx_bn = browser.new_context(viewport={"width": 1920, "height": 1080})
+            ctx_bn.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
+            page_bn = ctx_bn.new_page()
+            page_bn.goto(f"{base_url}/#welcome", wait_until="networkidle")
+
+            page_bn.evaluate("window.TransifyI18n ? window.TransifyI18n.setLanguage('bn') : null")
+
+            page_bn.evaluate("""async () => {
+                if (document.fonts) {
+                    await document.fonts.load("16px 'Hind Siliguri'");
+                    await document.fonts.ready;
+                }
+            }""")
+            page_bn.wait_for_timeout(300)
+
+            font_loaded = page_bn.evaluate("() => document.fonts ? document.fonts.check(\"16px 'Hind Siliguri'\") : false")
+
+            bn_dom = page_bn.evaluate("""() => {
+                const bnRegex = /[\\u0980-\\u09FF]/;
+                const allElements = Array.from(document.querySelectorAll('*'));
+                const bnElements = allElements.filter(el => {
+                    if (el.children.length > 0) return false;
+                    const text = (el.textContent || '').trim();
+                    const cs = window.getComputedStyle(el);
+                    return bnRegex.test(text) && cs.display !== 'none' && cs.visibility !== 'hidden' && el.offsetHeight > 0;
+                });
+
+                if (bnElements.length === 0) {
+                    return { count: 0 };
+                }
+
+                const sample = bnElements[0];
+                sample.id = 'cdp-bengali-sample-node';
+                const cs = window.getComputedStyle(sample);
+                const fontSize = parseFloat(cs.fontSize) || 16;
+                const r = sample.getBoundingClientRect();
+                const heightAdequate = r.height >= fontSize * 1.15;
+
+                return {
+                    count: bnElements.length,
+                    sampleText: sample.textContent.trim().slice(0, 40),
+                    fontFamily: cs.fontFamily,
+                    fontSizePx: fontSize,
+                    lineHeight: cs.lineHeight,
+                    renderedHeightPx: r.height,
+                    heightAdequate: heightAdequate
+                };
+            }""")
+
+            cdp_bn = ctx_bn.new_cdp_session(page_bn)
+            cdp_bn.send("DOM.enable")
+            cdp_bn.send("CSS.enable")
+            doc_bn = cdp_bn.send("DOM.getDocument")
+            root_id = doc_bn["root"]["nodeId"]
+            node_res = cdp_bn.send("DOM.querySelector", {"nodeId": root_id, "selector": "#cdp-bengali-sample-node"})
+            platform_font_family = "Unknown"
+            if node_res.get("nodeId"):
+                pf_res = cdp_bn.send("CSS.getPlatformFontsForNode", {"nodeId": node_res["nodeId"]})
+                fonts_list = pf_res.get("fonts", [])
+                if fonts_list:
+                    platform_font_family = fonts_list[0].get("familyName", "Unknown")
+
+            has_conjuncts = page_bn.evaluate("""() => {
+                const conjunctRegex = /[\\u0980-\\u09FF]\\u09CD[\\u0980-\\u09FF]/;
+                return conjunctRegex.test(document.body.innerText || '');
+            }""")
+
+            bn_pass = bool(
+                font_loaded and
+                (platform_font_family == "Hind Siliguri") and
+                bn_dom.get("count", 0) > 0 and
+                bn_dom.get("heightAdequate", False) and
+                has_conjuncts
+            )
+
+            bn_audit = {
+                "status": "PASS" if bn_pass else "FAIL",
+                "bengaliElementCount": bn_dom.get("count", 0),
+                "sampleText": bn_dom.get("sampleText", ""),
+                "fontFamily": bn_dom.get("fontFamily", ""),
+                "platformFontFamily": platform_font_family,
+                "fontLoaded": font_loaded,
+                "fontSizePx": bn_dom.get("fontSizePx", 0),
+                "lineHeight": bn_dom.get("lineHeight", ""),
+                "renderedHeightPx": bn_dom.get("renderedHeightPx", 0),
+                "heightAdequate": bn_dom.get("heightAdequate", False),
+                "conjuncts_verified": bool(has_conjuncts)
+            }
+
+            audit_data["bengali_typography_audit"] = bn_audit
+            print(f"  [+] Bengali Elements Located: {bn_audit['bengaliElementCount']} (Sample: '{bn_audit['sampleText']}')")
+            print(f"  [+] Computed Font Family: {bn_audit['fontFamily']} | Platform Font: {bn_audit['platformFontFamily']}")
+            print(f"  [+] Font Loaded (document.fonts.check): {bn_audit['fontLoaded']} | Matra Clearance: {bn_audit['heightAdequate']} | Conjuncts Found: {bn_audit['conjuncts_verified']} | Status: {bn_audit['status']}")
+            ctx_bn.close()
+
+            # -------------------------------------------------------------
+            # PHASE 10.G: HIGH-RESOLUTION PERFORMANCE & CDP BENCHMARK
+            # -------------------------------------------------------------
+            print("\n" + "=" * 60)
+            print("PHASE 10.G: HIGH-RESOLUTION PERFORMANCE & CDP BENCHMARK")
+            print("=" * 60, flush=True)
+
+            ctx_perf = browser.new_context(viewport={"width": 1920, "height": 1080})
+            ctx_perf.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
+            ctx_perf.add_init_script(f"""
+                try {{
+                    localStorage.setItem('transify_auth_user', JSON.stringify({{ name: 'Dr. Clinician Audit', email: '{clinician_email}', role: 'clinician' }}));
+                    localStorage.setItem('transify.welcomed', '1');
+                }} catch (e) {{}}
+            """)
+
+            page_perf = ctx_perf.new_page()
+            cdp = ctx_perf.new_cdp_session(page_perf)
+            cdp.send("Performance.enable")
+            cdp.send("HeapProfiler.enable")
+
+            t_start = time.time()
+            page_perf.goto(f"{base_url}/#welcome", wait_until="networkidle")
+            startup_ms = round((time.time() - t_start) * 1000, 2)
+            page_perf.wait_for_timeout(400)
+
+            route_latencies = {}
+            for view in CORE_DESKTOP_VIEWS:
+                vid = view["id"]
+                vroute = view["route"]
+                vselector = view["selector"]
+                vlabel = view["label"]
+
+                timing = page_perf.evaluate(f"""async () => {{
+                    const t0 = performance.now();
+                    const routeName = '{vroute}';
+
+                    if (window.routeTo) {{
+                        window.routeTo(routeName);
+                    }} else {{
+                        window.location.hash = '#' + routeName;
+                    }}
+                    const tDispatch = performance.now() - t0;
+
+                    let tActivation = -1;
+                    let tFirstFrame = -1;
+
+                    await new Promise(resolve => {{
+                        requestAnimationFrame(() => {{
+                            tFirstFrame = performance.now() - t0;
+                            resolve();
+                        }});
+                    }});
+
+                    let ready = false;
+                    const maxWait = 3500;
+                    const pollStart = performance.now();
+
+                    while (performance.now() - pollStart < maxWait) {{
+                        if (tActivation < 0) {{
+                            const container = document.querySelector('{vselector}');
+                            if (container) {{
+                                const cs = window.getComputedStyle(container);
+                                const isActive = container.classList.contains('active') || ('{vid}' === 'clinician' && cs.display !== 'none');
+                                const hasPositiveDim = (container.offsetWidth > 0 && container.offsetHeight > 0);
+                                const isVisible = cs.display !== 'none' && cs.visibility !== 'hidden' && parseFloat(cs.opacity || '1') > 0;
+                                if (isActive && hasPositiveDim && isVisible) {{
+                                    tActivation = performance.now() - t0;
+                                }}
+                            }}
+                        }}
+
+                        let isReady = false;
+                        if ('{vid}' === 'clinician') {{
+                            const portal = document.getElementById('slide-clinician-portal');
+                            const tabBtn = document.getElementById('care-tab-clinician-btn');
+                            const tabActive = tabBtn ? tabBtn.classList.contains('active') : true;
+                            const tbody = document.getElementById('clinician-queue-tbody');
+                            const rows = tbody ? tbody.querySelectorAll('tr') : [];
+                            const portalVis = portal && window.getComputedStyle(portal).display !== 'none' && portal.offsetHeight > 0;
+                            const rowsPopulated = rows && rows.length === 50;
+                            isReady = tabActive && portalVis && rowsPopulated;
+                        }} else if ('{vid}' === 'care') {{
+                            const careView = document.getElementById('view-care');
+                            const intake = document.getElementById('slide-care-intake');
+                            isReady = careView && careView.classList.contains('active') && careView.offsetHeight > 0 && (!intake || intake.offsetHeight > 0);
+                        }} else if ('{vid}' === 'sign') {{
+                            const signView = document.getElementById('view-sign');
+                            const stage = document.getElementById('sign-stage-container');
+                            isReady = signView && signView.classList.contains('active') && stage && stage.offsetHeight > 0;
+                        }} else if ('{vid}' === 'braille') {{
+                            const brailleView = document.getElementById('view-braille');
+                            const ws = document.getElementById('braille-dropzone');
+                            isReady = brailleView && brailleView.classList.contains('active') && ws && ws.offsetHeight > 0;
+                        }} else if ('{vid}' === 'chat') {{
+                            const chatView = document.getElementById('view-chat');
+                            const stream = document.getElementById('chat-stream-container');
+                            isReady = chatView && chatView.classList.contains('active') && stream && stream.offsetHeight > 0;
+                        }} else if ('{vid}' === 'voice') {{
+                            const voiceView = document.getElementById('view-voice');
+                            const vs = voiceView ? voiceView.querySelector('.voice-container') : null;
+                            isReady = voiceView && voiceView.classList.contains('active') && vs && vs.offsetHeight > 0;
+                        }} else if ('{vid}' === 'settings') {{
+                            const setView = document.getElementById('view-settings');
+                            const cont = setView ? setView.querySelector('.settings-container') : null;
+                            isReady = setView && setView.classList.contains('active') && cont && cont.offsetHeight > 0;
+                        }} else if ('{vid}' === 'phrases') {{
+                            const phrasesView = document.getElementById('view-phrases');
+                            isReady = phrasesView && phrasesView.classList.contains('active') && phrasesView.offsetHeight > 0;
+                        }} else if ('{vid}' === 'welcome') {{
+                            const welView = document.getElementById('view-welcome');
+                            const btn = document.getElementById('btn-open-login');
+                            isReady = welView && welView.classList.contains('active') && btn && btn.offsetHeight > 0;
+                        }} else {{
+                            const vEl = document.querySelector('{vselector}');
+                            isReady = vEl && vEl.classList.contains('active') && vEl.offsetHeight > 0;
+                        }}
+
+                        if (tActivation >= 0 && isReady) {{
+                            ready = true;
+                            break;
+                        }}
+                        await new Promise(r => setTimeout(r, 10));
+                    }}
+
+                    if (!ready || tActivation <= 0) {{
+                        return {{
+                            status: "FAIL",
+                            error: !ready ? "Readiness timeout" : "Activation timing unrecorded",
+                            dispatch_ms: Math.round(tDispatch * 100) / 100,
+                            activation_ms: Math.round(tActivation * 100) / 100,
+                            first_frame_ms: Math.round(tFirstFrame * 100) / 100,
+                            readiness_ms: -1,
+                            total_latency_ms: -1
+                        }};
+                    }}
+                    const tReady = performance.now() - t0;
+
+                    return {{
+                        status: "PASS",
+                        dispatch_ms: Math.round(tDispatch * 100) / 100,
+                        activation_ms: Math.round(tActivation * 100) / 100,
+                        first_frame_ms: Math.round(tFirstFrame * 100) / 100,
+                        readiness_ms: Math.round(tReady * 100) / 100,
+                        total_latency_ms: Math.round(tReady * 100) / 100
+                    }};
+                }}""")
+
+                timing["label"] = vlabel
+                route_latencies[vid] = timing
+                print(f"  [+] Route '{vid}': total {timing['total_latency_ms']} ms (activation: {timing['activation_ms']}ms, readiness: {timing['readiness_ms']}ms) -> Status: {timing['status']}")
+
+            print("  [*] Measuring requestAnimationFrame callback cadence over 2.0s ...", flush=True)
+            cadence_info = page_perf.evaluate("""async () => {
+                let frames = 0;
+                const start = performance.now();
+                return new Promise(resolve => {
+                    function step() {
+                        frames++;
+                        if (performance.now() - start < 2000) {
+                            requestAnimationFrame(step);
+                        } else {
+                            const elapsedSec = (performance.now() - start) / 1000;
+                            resolve({
+                                cadenceHz: Math.round((frames / elapsedSec) * 100) / 100,
+                                framesCaptured: frames,
+                                durationSec: Math.round(elapsedSec * 100) / 100
+                            });
+                        }
+                    }
+                    requestAnimationFrame(step);
+                });
+            }""")
+
+            try:
+                cdp.send("HeapProfiler.collectGarbage")
+            except Exception:
+                pass
+
+            cdp_metrics_raw = cdp.send("Performance.getMetrics")
+            m_dict = {m["name"]: m["value"] for m in cdp_metrics_raw["metrics"]}
+
+            used_heap_mb = round(m_dict.get("JSHeapUsedSize", 0) / (1024 * 1024), 2)
+            total_heap_mb = round(m_dict.get("JSHeapTotalSize", 0) / (1024 * 1024), 2)
+            dom_nodes = int(m_dict.get("Nodes", 0))
+            listeners = int(m_dict.get("JSEventListeners", 0))
+
+            valid_latencies = [r["total_latency_ms"] for r in route_latencies.values() if r.get("status") == "PASS"]
+            mean_latency = round(sum(valid_latencies) / len(valid_latencies), 2) if valid_latencies else -1
+            all_routes_pass = all(r.get("status") == "PASS" and r.get("activation_ms", -1) > 0 for r in route_latencies.values())
+
+            audit_data["performance_benchmarks"] = {
+                "initial_startup_ms": startup_ms,
+                "mean_route_transition_ms": mean_latency,
+                "status": "PASS" if all_routes_pass else "FAIL",
+                "route_latencies_ms": route_latencies,
+                "raf_callback_cadence_hz": {
+                    "measured_cadence_hz": cadence_info["cadenceHz"],
+                    "frames_captured": cadence_info["framesCaptured"],
+                    "duration_sec": cadence_info["durationSec"],
+                    "measurement_method": "requestAnimationFrame timestamp delta over active window (Linux Chromium headless)"
+                },
+                "cdp_heap_memory": {
+                    "usedHeapMB": used_heap_mb,
+                    "totalHeapMB": total_heap_mb,
+                    "domNodes": dom_nodes,
+                    "jsEventListeners": listeners,
+                    "measurement_method": "Chrome DevTools Protocol (CDP) Performance.getMetrics after HeapProfiler.collectGarbage"
+                }
+            }
+            print(f"  [+] Initial Cold Startup: {startup_ms} ms")
+            print(f"  [+] Mean Route Latency: {mean_latency} ms (Across {len(valid_latencies)} routes)")
+            print(f"  [+] RAF Callback Cadence: {cadence_info['cadenceHz']} Hz ({cadence_info['framesCaptured']} frames / {cadence_info['durationSec']}s) [Compositor GPU FPS: NOT MEASURED]")
+            print(f"  [+] Retained CDP Heap Footprint (Post-GC): {used_heap_mb} MB used / {total_heap_mb} MB allocated (Nodes: {dom_nodes}, Listeners: {listeners})")
+
+            ctx_perf.close()
+
+            # -------------------------------------------------------------
+            # PHASE 10.H: 50-CYCLE NAVIGATION STABILITY & MEMORY AUDIT
+            # -------------------------------------------------------------
+            print("\n" + "=" * 60)
+            print("PHASE 10.H: 50-CYCLE NAVIGATION STABILITY & MEMORY AUDIT")
+            print("=" * 60, flush=True)
+
+            ctx_stab = browser.new_context(viewport={"width": 1920, "height": 1080})
+            ctx_stab.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
+            page_stab = ctx_stab.new_page()
+            cdp_stab = ctx_stab.new_cdp_session(page_stab)
+            cdp_stab.send("Performance.enable")
+            cdp_stab.send("HeapProfiler.enable")
+
+            page_stab.goto(f"{base_url}/#home", wait_until="networkidle")
+            page_stab.wait_for_timeout(300)
+
+            gc_invoked_baseline = False
+            try:
+                cdp_stab.send("HeapProfiler.collectGarbage")
+                gc_invoked_baseline = True
+            except Exception:
+                pass
+            m_before = {m["name"]: m["value"] for m in cdp_stab.send("Performance.getMetrics")["metrics"]}
+            used_before_mb = round(m_before.get("JSHeapUsedSize", 0) / (1024 * 1024), 2)
+            nodes_before = int(m_before.get("Nodes", 0))
+            listeners_before = int(m_before.get("JSEventListeners", 0))
+
+            cycle_routes = ["home", "care", "sign", "braille", "chat"]
+            total_transitions = 50
+            transition_failures = 0
+            print(f"  [*] Executing 50 continuous view transitions with verified destination readiness ...", flush=True)
+
+            for i in range(total_transitions):
+                target = cycle_routes[i % len(cycle_routes)]
+                page_stab.evaluate(f"window.routeTo('{target}')")
+                t_route = time.time()
+                ready = False
+                while (time.time() - t_route) < 1.0:
+                    is_ready = page_stab.evaluate(f"""() => {{
+                        const v = document.getElementById('view-{target}');
+                        return v && v.classList.contains('active') && v.offsetHeight > 0;
+                    }}""")
+                    if is_ready:
+                        ready = True
+                        break
+                    time.sleep(0.01)
+                if not ready:
+                    transition_failures += 1
+
+            page_stab.wait_for_timeout(200)
+
+            gc_invoked_post = False
+            try:
+                cdp_stab.send("HeapProfiler.collectGarbage")
+                gc_invoked_post = True
+            except Exception:
+                pass
+            m_after = {m["name"]: m["value"] for m in cdp_stab.send("Performance.getMetrics")["metrics"]}
+            used_after_mb = round(m_after.get("JSHeapUsedSize", 0) / (1024 * 1024), 2)
+            nodes_after = int(m_after.get("Nodes", 0))
+            listeners_after = int(m_after.get("JSEventListeners", 0))
+
+            heap_delta_mb = round(used_after_mb - used_before_mb, 2)
+            node_delta = nodes_after - nodes_before
+            listener_delta = listeners_after - listeners_before
+
+            gc_invoked = gc_invoked_baseline and gc_invoked_post
+            stability_pass = (heap_delta_mb < 8.0 and node_delta < 500 and transition_failures == 0 and gc_invoked)
+            audit_data["stability_50_cycles"] = {
+                "transitions_executed": total_transitions,
+                "transition_failures": transition_failures,
+                "routes_cycled": cycle_routes,
+                "gc_invoked": gc_invoked,
+                "gc_invoked_baseline": gc_invoked_baseline,
+                "gc_invoked_post": gc_invoked_post,
+                "detached_dom_status": "NOT MEASURED (CDP Heap Snapshot Required)",
+                "baseline_metrics": {
+                    "usedHeapMB": used_before_mb,
+                    "domNodes": nodes_before,
+                    "listeners": listeners_before
+                },
+                "post_test_metrics": {
+                    "usedHeapMB": used_after_mb,
+                    "domNodes": nodes_after,
+                    "listeners": listeners_after
+                },
+                "delta": {
+                    "heap_delta_mb": heap_delta_mb,
+                    "node_delta": node_delta,
+                    "listener_delta": listener_delta
+                },
+                "leak_detected": not stability_pass,
+                "status": "PASS" if stability_pass else "FAIL"
+            }
+            print(f"  [+] Baseline Retained Heap: {used_before_mb} MB | Post-50 Cycles Retained Heap: {used_after_mb} MB (Delta: +{heap_delta_mb} MB)")
+            print(f"  [+] Baseline Nodes: {nodes_before} | Post-50 Cycles Nodes: {nodes_after} (Delta: +{node_delta})")
+            print(f"  [+] Transition Failures: {transition_failures} | 50-Cycle Workload Stability Status: {audit_data['stability_50_cycles']['status']}")
+
+            ctx_stab.close()
+            browser.close()
 
         # -------------------------------------------------------------
-        # PHASE 10.H: 50-CYCLE NAVIGATION STABILITY & MEMORY AUDIT
+        # PHASE 10.I: PRODUCTION SECURITY PROBE (LIVE RAILWAY AUDIT)
         # -------------------------------------------------------------
         print("\n" + "=" * 60)
-        print("PHASE 10.H: 50-CYCLE NAVIGATION STABILITY & MEMORY AUDIT")
+        print("PHASE 10.I: LIVE PRODUCTION SECURITY RECONCILIATION")
         print("=" * 60, flush=True)
 
-        ctx_stab = browser.new_context(viewport={"width": 1920, "height": 1080})
-        ctx_stab.add_cookies([{"name": "transify_session", "value": clinician_session_token, "domain": "127.0.0.1", "path": "/"}])
-        page_stab = ctx_stab.new_page()
-        cdp_stab = ctx_stab.new_cdp_session(page_stab)
-        cdp_stab.send("Performance.enable")
-        cdp_stab.send("HeapProfiler.enable")
+        sec_probe = probe_production_security(local_base_url=base_url)
+        audit_data["production_security_probe"] = sec_probe
+        print(f"  [+] Target URL: {sec_probe['target_url']}")
+        print(f"  [+] Observed Protocol: {sec_probe['protocol']} (Status: {sec_probe['http_status']})")
+        print(f"  [+] Server Header: {sec_probe['live_headers'].get('server', 'N/A')}")
+        print(f"  [+] Strict-Transport-Security Present on Edge: {sec_probe['hsts_present']}")
+        print(f"  [+] Content-Security-Policy Present on Edge: {sec_probe['csp_present']}")
+        print(f"  [+] Missing Security Headers on Edge: {sec_probe['missing_security_headers']}")
+        print(f"  [+] Local Server Middleware Verified: {sec_probe['local_middleware_verified']}")
+        print(f"  [+] Production Edge Security Status: {sec_probe['status']}")
 
-        page_stab.goto(f"{base_url}/#home", wait_until="networkidle")
-        page_stab.wait_for_timeout(300)
+        server.should_exit = True
+        thread.join(timeout=1.0)
 
-        # Baseline metrics before 50 cycles (following GC)
-        gc_invoked = False
-        try:
-            cdp_stab.send("HeapProfiler.collectGarbage")
-            gc_invoked = True
-        except Exception:
-            pass
-        m_before = {m["name"]: m["value"] for m in cdp_stab.send("Performance.getMetrics")["metrics"]}
-        used_before_mb = round(m_before.get("JSHeapUsedSize", 0) / (1024 * 1024), 2)
-        nodes_before = int(m_before.get("Nodes", 0))
-        listeners_before = int(m_before.get("JSEventListeners", 0))
+        # Overall Release Summary
+        all_vp_pass = all(v["status"] == "PASS" for v in audit_data["viewports_tested"])
+        all_dpi_pass = all(d["status"] == "PASS" for d in audit_data["dpi_scaling_tested"])
+        all_win_pass = all(w["status"] == "PASS" for w in audit_data["window_state_tests"])
+        kb_pass = audit_data["keyboard_accessibility"]["status"] == "PASS"
+        zero_audio_pass = audit_data["zero_auto_audio_verified"]["status"] == "PASS"
+        bn_pass = audit_data["bengali_typography_audit"]["status"] == "PASS"
+        perf_pass = audit_data["performance_benchmarks"]["status"] == "PASS"
+        stab_pass = audit_data["stability_50_cycles"]["status"] == "PASS"
 
-        cycle_routes = ["home", "care", "sign", "braille", "chat"]
-        total_transitions = 50
-        transition_failures = 0
-        print(f"  [*] Executing 50 continuous view transitions with verified destination readiness ...", flush=True)
+        browser_desktop_pass = (all_vp_pass and all_dpi_pass and all_win_pass and kb_pass and zero_audio_pass and bn_pass and perf_pass and stab_pass)
+        edge_sec_status = "FAILED (EDGE HARDENING PENDING)" if sec_probe["status"] == "FAIL" else "VERIFIED"
 
-        for i in range(total_transitions):
-            target = cycle_routes[i % len(cycle_routes)]
-            page_stab.evaluate(f"window.routeTo('{target}')")
-            t_route = time.time()
-            ready = False
-            while (time.time() - t_route) < 1.0:
-                is_ready = page_stab.evaluate(f"""() => {{
-                    const v = document.getElementById('view-{target}');
-                    return v && v.classList.contains('active') && v.offsetHeight > 0;
-                }}""")
-                if is_ready:
-                    ready = True
-                    break
-                time.sleep(0.01)
-            if not ready:
-                transition_failures += 1
-
-        page_stab.wait_for_timeout(200)
-
-        # Post-test metrics (following GC)
-        try:
-            cdp_stab.send("HeapProfiler.collectGarbage")
-        except Exception:
-            pass
-        m_after = {m["name"]: m["value"] for m in cdp_stab.send("Performance.getMetrics")["metrics"]}
-        used_after_mb = round(m_after.get("JSHeapUsedSize", 0) / (1024 * 1024), 2)
-        nodes_after = int(m_after.get("Nodes", 0))
-        listeners_after = int(m_after.get("JSEventListeners", 0))
-
-        heap_delta_mb = round(used_after_mb - used_before_mb, 2)
-        node_delta = nodes_after - nodes_before
-        listener_delta = listeners_after - listeners_before
-
-        stability_pass = (heap_delta_mb < 8.0 and node_delta < 500 and transition_failures == 0 and gc_invoked)
-        audit_data["stability_50_cycles"] = {
-            "transitions_executed": total_transitions,
-            "transition_failures": transition_failures,
-            "routes_cycled": cycle_routes,
-            "gc_invoked": gc_invoked,
-            "detached_dom_status": "NOT MEASURED (CDP Heap Snapshot Required)",
-            "baseline_metrics": {
-                "usedHeapMB": used_before_mb,
-                "domNodes": nodes_before,
-                "listeners": listeners_before
-            },
-            "post_test_metrics": {
-                "usedHeapMB": used_after_mb,
-                "domNodes": nodes_after,
-                "listeners": listeners_after
-            },
-            "delta": {
-                "heap_delta_mb": heap_delta_mb,
-                "node_delta": node_delta,
-                "listener_delta": listener_delta
-            },
-            "leak_detected": not stability_pass,
-            "status": "PASS" if stability_pass else "FAIL"
+        audit_data["summary"] = {
+            "viewports_evaluated": len(audit_data["viewports_tested"]),
+            "viewports_passed": sum(1 for v in audit_data["viewports_tested"] if v["status"] == "PASS"),
+            "workspaces_evaluated_total": len(audit_data["viewports_tested"]) * len(DESKTOP_WORKSPACES),
+            "workspaces_passed_total": sum(v["workspaces_ready"] for v in audit_data["viewports_tested"]),
+            "dpi_tiers_evaluated": len(audit_data["dpi_scaling_tested"]),
+            "dpi_tiers_passed": sum(1 for d in audit_data["dpi_scaling_tested"] if d["status"] == "PASS"),
+            "window_resizes_passed": all_win_pass,
+            "keyboard_accessibility_passed": kb_pass,
+            "zero_auto_audio_passed": zero_audio_pass,
+            "bengali_typography_passed": bn_pass,
+            "performance_passed": perf_pass,
+            "stability_50_cycles_passed": stab_pass,
+            "browser_desktop_functionality_status": "PASSED (VERIFIED)" if browser_desktop_pass else "FAILED",
+            "desktop_production_security_status": edge_sec_status,
+            "native_embedded_desktop_status": "NOT IMPLEMENTED / NOT TESTED",
+            "gate_3_physical_android_status": "OPEN / DEFERRED",
+            "gate_2_clinical_governance_status": "PENDING PRE-DEPLOYMENT",
+            "overall_status": "CONDITIONALLY APPROVED (Web Pilot Workstations Only)" if browser_desktop_pass else "FAIL"
         }
-        print(f"  [+] Baseline Retained Heap: {used_before_mb} MB | Post-50 Cycles Retained Heap: {used_after_mb} MB (Delta: +{heap_delta_mb} MB)")
-        print(f"  [+] Baseline Nodes: {nodes_before} | Post-50 Cycles Nodes: {nodes_after} (Delta: +{node_delta})")
-        print(f"  [+] Transition Failures: {transition_failures} | 50-Cycle Workload Stability Status: {audit_data['stability_50_cycles']['status']}")
 
-        ctx_stab.close()
-        browser.close()
+        # Save to Single Source of Truth: TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json
+        json_path = Path("TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json")
+        with open(json_path, "w") as f:
+            json.dump(audit_data, f, indent=2)
 
-    # -------------------------------------------------------------
-    # PHASE 10.I: PRODUCTION SECURITY PROBE (LIVE RAILWAY AUDIT)
-    # -------------------------------------------------------------
-    print("\n" + "=" * 60)
-    print("PHASE 10.I: LIVE PRODUCTION SECURITY RECONCILIATION")
-    print("=" * 60, flush=True)
+        print("\n" + "=" * 60)
+        print("SAVED AUDIT DATA TO SINGLE SOURCE OF TRUTH:")
+        print(f"  {json_path.resolve()}")
+        print("=" * 60, flush=True)
 
-    sec_probe = probe_production_security(local_base_url=base_url)
-    audit_data["production_security_probe"] = sec_probe
-    print(f"  [+] Target URL: {sec_probe['target_url']}")
-    print(f"  [+] Observed Protocol: {sec_probe['protocol']} (Status: {sec_probe['http_status']})")
-    print(f"  [+] Server Header: {sec_probe['live_headers'].get('server', 'N/A')}")
-    print(f"  [+] Strict-Transport-Security Present on Edge: {sec_probe['hsts_present']}")
-    print(f"  [+] Content-Security-Policy Present on Edge: {sec_probe['csp_present']}")
-    print(f"  [+] Missing Security Headers on Edge: {sec_probe['missing_security_headers']}")
-    print(f"  [+] Local Server Middleware Verified: {sec_probe['local_middleware_verified']}")
-    print(f"  [+] Production Edge Security Status: {sec_probe['status']}")
+        # Programmatically write all 6 Markdown reports using status-driven generator
+        print("\n[*] Writing all Markdown deliverables via report_generator ...", flush=True)
 
-    server.should_exit = True
-    thread.join(timeout=1.0)
+        with open("TRANSIFY_V3_RC1_4_DESKTOP_TEST_EXECUTION_LOG.md", "w") as f:
+            f.write(generate_execution_log(audit_data))
 
-    # Overall Release Summary
-    all_vp_pass = all(v["status"] == "PASS" for v in audit_data["viewports_tested"])
-    all_dpi_pass = all(d["status"] == "PASS" for d in audit_data["dpi_scaling_tested"])
-    all_win_pass = all(w["status"] == "PASS" for w in audit_data["window_state_tests"])
-    kb_pass = audit_data["keyboard_accessibility"]["status"] == "PASS"
-    zero_audio_pass = audit_data["zero_auto_audio_verified"]["status"] == "PASS"
-    bn_pass = audit_data["bengali_typography_audit"]["status"] == "PASS"
-    perf_pass = audit_data["performance_benchmarks"]["status"] == "PASS"
-    stab_pass = audit_data["stability_50_cycles"]["status"] == "PASS"
+        with open("TRANSIFY_V3_RC1_4_DESKTOP_PERFORMANCE_REPORT.md", "w") as f:
+            f.write(generate_performance_report(audit_data))
 
-    browser_desktop_pass = (all_vp_pass and all_dpi_pass and all_win_pass and kb_pass and zero_audio_pass and bn_pass and perf_pass and stab_pass)
-    edge_sec_status = "FAILED (EDGE HARDENING PENDING)" if sec_probe["status"] == "FAIL" else "VERIFIED"
+        with open("TRANSIFY_V3_RC1_4_DESKTOP_SECURITY_AUDIT.md", "w") as f:
+            f.write(generate_security_report(audit_data))
 
-    audit_data["summary"] = {
-        "viewports_evaluated": len(audit_data["viewports_tested"]),
-        "viewports_passed": sum(1 for v in audit_data["viewports_tested"] if v["status"] == "PASS"),
-        "dpi_tiers_evaluated": len(audit_data["dpi_scaling_tested"]),
-        "dpi_tiers_passed": sum(1 for d in audit_data["dpi_scaling_tested"] if d["status"] == "PASS"),
-        "window_resizes_passed": all_win_pass,
-        "keyboard_accessibility_passed": kb_pass,
-        "zero_auto_audio_passed": zero_audio_pass,
-        "bengali_typography_passed": bn_pass,
-        "performance_passed": perf_pass,
-        "stability_50_cycles_passed": stab_pass,
-        "browser_desktop_functionality_status": "PASSED (VERIFIED)" if browser_desktop_pass else "FAILED",
-        "desktop_production_security_status": edge_sec_status,
-        "native_embedded_desktop_status": "NOT IMPLEMENTED / NOT TESTED",
-        "gate_3_physical_android_status": "OPEN / DEFERRED",
-        "gate_2_clinical_governance_status": "PENDING PRE-DEPLOYMENT",
-        "overall_status": "CONDITIONALLY APPROVED (Web Pilot Workstations Only)" if browser_desktop_pass else "FAIL"
-    }
+        with open("TRANSIFY_V3_RC1_4_DESKTOP_ACCESSIBILITY_REPORT.md", "w") as f:
+            f.write(generate_accessibility_report(audit_data))
 
-    # Save to Single Source of Truth: TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json
-    json_path = Path("TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json")
-    with open(json_path, "w") as f:
-        json.dump(audit_data, f, indent=2)
+        with open("TRANSIFY_V3_RC1_4_DESKTOP_STABILITY_REPORT.md", "w") as f:
+            f.write(generate_stability_report(audit_data))
 
-    print("\n" + "=" * 60)
-    print("SAVED AUDIT DATA TO SINGLE SOURCE OF TRUTH:")
-    print(f"  {json_path.resolve()}")
-    print("=" * 60, flush=True)
+        master_md = generate_master_audit_report(audit_data)
+        with open("TRANSIFY_V3_RC1_4_DESKTOP_WEB_AUDIT_CORRECTED.md", "w") as f:
+            f.write(master_md)
+        with open("TRANSIFY_V3_RC1_4_DESKTOP_WEBVIEW_AUDIT.md", "w") as f:
+            f.write(master_md)
 
-    # Programmatically write all 6 Markdown reports using status-driven generator
-    print("\n[*] Writing all Markdown deliverables via report_generator ...", flush=True)
-
-    with open("TRANSIFY_V3_RC1_4_DESKTOP_TEST_EXECUTION_LOG.md", "w") as f:
-        f.write(generate_execution_log(audit_data))
-
-    with open("TRANSIFY_V3_RC1_4_DESKTOP_PERFORMANCE_REPORT.md", "w") as f:
-        f.write(generate_performance_report(audit_data))
-
-    with open("TRANSIFY_V3_RC1_4_DESKTOP_SECURITY_AUDIT.md", "w") as f:
-        f.write(generate_security_report(audit_data))
-
-    with open("TRANSIFY_V3_RC1_4_DESKTOP_ACCESSIBILITY_REPORT.md", "w") as f:
-        f.write(generate_accessibility_report(audit_data))
-
-    with open("TRANSIFY_V3_RC1_4_DESKTOP_STABILITY_REPORT.md", "w") as f:
-        f.write(generate_stability_report(audit_data))
-
-    master_md = generate_master_audit_report(audit_data)
-    with open("TRANSIFY_V3_RC1_4_DESKTOP_WEB_AUDIT_CORRECTED.md", "w") as f:
-        f.write(master_md)
-    with open("TRANSIFY_V3_RC1_4_DESKTOP_WEBVIEW_AUDIT.md", "w") as f:
-        f.write(master_md)
-
-    print("[+] Successfully generated all RC1.4 audit reports!", flush=True)
-    return browser_desktop_pass
+        print("[+] Successfully generated all RC1.4 audit reports!", flush=True)
+        return browser_desktop_pass
 
 
 if __name__ == "__main__":

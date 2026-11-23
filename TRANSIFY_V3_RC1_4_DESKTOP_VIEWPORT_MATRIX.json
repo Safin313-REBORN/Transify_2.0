@@ -1,8 +1,8 @@
 {
   "audit_metadata": {
     "target_package": "com.abrarafick.transify",
-    "milestone": "RC1.4.1 Desktop Audit Correction & Release Verification",
-    "timestamp_utc": "2026-11-23T08:48:41.131293+00:00",
+    "milestone": "RC1.4.2 Desktop Audit Finalization & Verification",
+    "timestamp_utc": "2026-11-23T12:50:23.073418+00:00",
     "evaluated_runtime": "Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)",
     "single_source_of_truth": "TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json",
     "host_os": "Linux 7.0.0-43-generic x86_64"
@@ -14,7 +14,7 @@
       "height": 720,
       "aspect_ratio": "16:9",
       "tier": "HD Laptop / Thin Client",
-      "initial_load_latency_ms": 2166.73,
+      "initial_load_latency_ms": 2137.09,
       "rail_width_px": 112,
       "content_width_px": 1168,
       "home_main_width_px": 884,
@@ -34,6 +34,96 @@
         "care_intake": true,
         "clinician_portal": true,
         "settings": true
+      },
+      "workspace_layouts": {
+        "home": {
+          "workspace_id": "home",
+          "label": "Home",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "sign": {
+          "workspace_id": "sign",
+          "label": "Sign Translator",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "braille": {
+          "workspace_id": "braille",
+          "label": "Braille Studio",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "voice": {
+          "workspace_id": "voice",
+          "label": "Voice Hub",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "chat": {
+          "workspace_id": "chat",
+          "label": "AI Chatbot",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "care_intake": {
+          "workspace_id": "care_intake",
+          "label": "Care Intake",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "clinician_portal": {
+          "workspace_id": "clinician_portal",
+          "label": "Clinician Portal",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "settings": {
+          "workspace_id": "settings",
+          "label": "Settings",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        }
       },
       "status": "PASS",
       "screenshots": {
@@ -54,7 +144,7 @@
       "height": 800,
       "aspect_ratio": "16:10",
       "tier": "WXGA MacBook / Monitor",
-      "initial_load_latency_ms": 1828.08,
+      "initial_load_latency_ms": 1786.26,
       "rail_width_px": 112,
       "content_width_px": 1168,
       "home_main_width_px": 884,
@@ -75,6 +165,96 @@
         "clinician_portal": true,
         "settings": true
       },
+      "workspace_layouts": {
+        "home": {
+          "workspace_id": "home",
+          "label": "Home",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "sign": {
+          "workspace_id": "sign",
+          "label": "Sign Translator",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "braille": {
+          "workspace_id": "braille",
+          "label": "Braille Studio",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "voice": {
+          "workspace_id": "voice",
+          "label": "Voice Hub",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "chat": {
+          "workspace_id": "chat",
+          "label": "AI Chatbot",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "care_intake": {
+          "workspace_id": "care_intake",
+          "label": "Care Intake",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "clinician_portal": {
+          "workspace_id": "clinician_portal",
+          "label": "Clinician Portal",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "settings": {
+          "workspace_id": "settings",
+          "label": "Settings",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        }
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_home.png",
@@ -94,7 +274,7 @@
       "height": 768,
       "aspect_ratio": "16:9",
       "tier": "Standard Budget Laptop",
-      "initial_load_latency_ms": 1697.53,
+      "initial_load_latency_ms": 1794.65,
       "rail_width_px": 112,
       "content_width_px": 1254,
       "home_main_width_px": 950,
@@ -115,6 +295,96 @@
         "clinician_portal": true,
         "settings": true
       },
+      "workspace_layouts": {
+        "home": {
+          "workspace_id": "home",
+          "label": "Home",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "sign": {
+          "workspace_id": "sign",
+          "label": "Sign Translator",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "braille": {
+          "workspace_id": "braille",
+          "label": "Braille Studio",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "voice": {
+          "workspace_id": "voice",
+          "label": "Voice Hub",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "chat": {
+          "workspace_id": "chat",
+          "label": "AI Chatbot",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "care_intake": {
+          "workspace_id": "care_intake",
+          "label": "Care Intake",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "clinician_portal": {
+          "workspace_id": "clinician_portal",
+          "label": "Clinician Portal",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "settings": {
+          "workspace_id": "settings",
+          "label": "Settings",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        }
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_home.png",
@@ -134,7 +404,7 @@
       "height": 900,
       "aspect_ratio": "16:10",
       "tier": "WXGA+ Display / Workstation",
-      "initial_load_latency_ms": 1782.03,
+      "initial_load_latency_ms": 1768.74,
       "rail_width_px": 112,
       "content_width_px": 1328,
       "home_main_width_px": 1008,
@@ -155,6 +425,96 @@
         "clinician_portal": true,
         "settings": true
       },
+      "workspace_layouts": {
+        "home": {
+          "workspace_id": "home",
+          "label": "Home",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "sign": {
+          "workspace_id": "sign",
+          "label": "Sign Translator",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "braille": {
+          "workspace_id": "braille",
+          "label": "Braille Studio",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "voice": {
+          "workspace_id": "voice",
+          "label": "Voice Hub",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "chat": {
+          "workspace_id": "chat",
+          "label": "AI Chatbot",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "care_intake": {
+          "workspace_id": "care_intake",
+          "label": "Care Intake",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "clinician_portal": {
+          "workspace_id": "clinician_portal",
+          "label": "Clinician Portal",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "settings": {
+          "workspace_id": "settings",
+          "label": "Settings",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        }
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_home.png",
@@ -174,7 +534,7 @@
       "height": 864,
       "aspect_ratio": "16:9",
       "tier": "Windows 125% Scaled FHD",
-      "initial_load_latency_ms": 1814.92,
+      "initial_load_latency_ms": 1875.85,
       "rail_width_px": 112,
       "content_width_px": 1424,
       "home_main_width_px": 1104,
@@ -195,6 +555,96 @@
         "clinician_portal": true,
         "settings": true
       },
+      "workspace_layouts": {
+        "home": {
+          "workspace_id": "home",
+          "label": "Home",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "sign": {
+          "workspace_id": "sign",
+          "label": "Sign Translator",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "braille": {
+          "workspace_id": "braille",
+          "label": "Braille Studio",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "voice": {
+          "workspace_id": "voice",
+          "label": "Voice Hub",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "chat": {
+          "workspace_id": "chat",
+          "label": "AI Chatbot",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "care_intake": {
+          "workspace_id": "care_intake",
+          "label": "Care Intake",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "clinician_portal": {
+          "workspace_id": "clinician_portal",
+          "label": "Clinician Portal",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "settings": {
+          "workspace_id": "settings",
+          "label": "Settings",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        }
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_home.png",
@@ -214,7 +664,7 @@
       "height": 900,
       "aspect_ratio": "16:9",
       "tier": "HD+ Workstation Monitor",
-      "initial_load_latency_ms": 1572.22,
+      "initial_load_latency_ms": 1625.29,
       "rail_width_px": 112,
       "content_width_px": 1488,
       "home_main_width_px": 1168,
@@ -235,6 +685,96 @@
         "clinician_portal": true,
         "settings": true
       },
+      "workspace_layouts": {
+        "home": {
+          "workspace_id": "home",
+          "label": "Home",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "sign": {
+          "workspace_id": "sign",
+          "label": "Sign Translator",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "braille": {
+          "workspace_id": "braille",
+          "label": "Braille Studio",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "voice": {
+          "workspace_id": "voice",
+          "label": "Voice Hub",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "chat": {
+          "workspace_id": "chat",
+          "label": "AI Chatbot",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "care_intake": {
+          "workspace_id": "care_intake",
+          "label": "Care Intake",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "clinician_portal": {
+          "workspace_id": "clinician_portal",
+          "label": "Clinician Portal",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "settings": {
+          "workspace_id": "settings",
+          "label": "Settings",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        }
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_home.png",
@@ -254,7 +794,7 @@
       "height": 1080,
       "aspect_ratio": "16:9",
       "tier": "Standard FHD Desktop Display",
-      "initial_load_latency_ms": 1676.14,
+      "initial_load_latency_ms": 1578.11,
       "rail_width_px": 112,
       "content_width_px": 1808,
       "home_main_width_px": 1488,
@@ -274,6 +814,96 @@
         "care_intake": true,
         "clinician_portal": true,
         "settings": true
+      },
+      "workspace_layouts": {
+        "home": {
+          "workspace_id": "home",
+          "label": "Home",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "sign": {
+          "workspace_id": "sign",
+          "label": "Sign Translator",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "braille": {
+          "workspace_id": "braille",
+          "label": "Braille Studio",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "voice": {
+          "workspace_id": "voice",
+          "label": "Voice Hub",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "chat": {
+          "workspace_id": "chat",
+          "label": "AI Chatbot",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "care_intake": {
+          "workspace_id": "care_intake",
+          "label": "Care Intake",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "clinician_portal": {
+          "workspace_id": "clinician_portal",
+          "label": "Clinician Portal",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "settings": {
+          "workspace_id": "settings",
+          "label": "Settings",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        }
       },
       "status": "PASS",
       "screenshots": {
@@ -294,7 +924,7 @@
       "height": 1200,
       "aspect_ratio": "16:10",
       "tier": "WUXGA Professional Medical Display",
-      "initial_load_latency_ms": 1624.18,
+      "initial_load_latency_ms": 1615.72,
       "rail_width_px": 112,
       "content_width_px": 1808,
       "home_main_width_px": 1488,
@@ -315,6 +945,96 @@
         "clinician_portal": true,
         "settings": true
       },
+      "workspace_layouts": {
+        "home": {
+          "workspace_id": "home",
+          "label": "Home",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "sign": {
+          "workspace_id": "sign",
+          "label": "Sign Translator",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "braille": {
+          "workspace_id": "braille",
+          "label": "Braille Studio",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "voice": {
+          "workspace_id": "voice",
+          "label": "Voice Hub",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "chat": {
+          "workspace_id": "chat",
+          "label": "AI Chatbot",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "care_intake": {
+          "workspace_id": "care_intake",
+          "label": "Care Intake",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "clinician_portal": {
+          "workspace_id": "clinician_portal",
+          "label": "Clinician Portal",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "settings": {
+          "workspace_id": "settings",
+          "label": "Settings",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        }
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_home.png",
@@ -334,7 +1054,7 @@
       "height": 1440,
       "aspect_ratio": "16:9",
       "tier": "QHD / 2K Studio Monitor",
-      "initial_load_latency_ms": 1618.1,
+      "initial_load_latency_ms": 1939.09,
       "rail_width_px": 112,
       "content_width_px": 2448,
       "home_main_width_px": 1680,
@@ -355,6 +1075,96 @@
         "clinician_portal": true,
         "settings": true
       },
+      "workspace_layouts": {
+        "home": {
+          "workspace_id": "home",
+          "label": "Home",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "sign": {
+          "workspace_id": "sign",
+          "label": "Sign Translator",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "braille": {
+          "workspace_id": "braille",
+          "label": "Braille Studio",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "voice": {
+          "workspace_id": "voice",
+          "label": "Voice Hub",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "chat": {
+          "workspace_id": "chat",
+          "label": "AI Chatbot",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "care_intake": {
+          "workspace_id": "care_intake",
+          "label": "Care Intake",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "clinician_portal": {
+          "workspace_id": "clinician_portal",
+          "label": "Clinician Portal",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "settings": {
+          "workspace_id": "settings",
+          "label": "Settings",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        }
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_home.png",
@@ -374,7 +1184,7 @@
       "height": 1440,
       "aspect_ratio": "21:9",
       "tier": "Ultra-Wide Panoramic Display",
-      "initial_load_latency_ms": 1839.31,
+      "initial_load_latency_ms": 1874.36,
       "rail_width_px": 112,
       "content_width_px": 3328,
       "home_main_width_px": 1680,
@@ -394,6 +1204,96 @@
         "care_intake": true,
         "clinician_portal": true,
         "settings": true
+      },
+      "workspace_layouts": {
+        "home": {
+          "workspace_id": "home",
+          "label": "Home",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "sign": {
+          "workspace_id": "sign",
+          "label": "Sign Translator",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "braille": {
+          "workspace_id": "braille",
+          "label": "Braille Studio",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "voice": {
+          "workspace_id": "voice",
+          "label": "Voice Hub",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "chat": {
+          "workspace_id": "chat",
+          "label": "AI Chatbot",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "care_intake": {
+          "workspace_id": "care_intake",
+          "label": "Care Intake",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "clinician_portal": {
+          "workspace_id": "clinician_portal",
+          "label": "Clinician Portal",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        },
+        "settings": {
+          "workspace_id": "settings",
+          "label": "Settings",
+          "is_ready": true,
+          "required_controls_verified": true,
+          "missing_controls": [],
+          "clipping_issues_count": 0,
+          "clipping_issues": [],
+          "has_horizontal_overflow": false,
+          "status": "PASS"
+        }
       },
       "status": "PASS",
       "screenshots": {
@@ -526,110 +1426,110 @@
     "conjuncts_verified": true
   },
   "performance_benchmarks": {
-    "initial_startup_ms": 1263.89,
-    "mean_route_transition_ms": 106.16,
+    "initial_startup_ms": 1304.06,
+    "mean_route_transition_ms": 266.97,
     "status": "PASS",
     "route_latencies_ms": {
       "welcome": {
         "status": "PASS",
-        "dispatch_ms": 0.9,
-        "activation_ms": 139.8,
-        "first_frame_ms": 139.4,
-        "readiness_ms": 139.8,
-        "total_latency_ms": 139.8,
+        "dispatch_ms": 1.1,
+        "activation_ms": 2.6,
+        "first_frame_ms": 1.8,
+        "readiness_ms": 2.6,
+        "total_latency_ms": 2.6,
         "label": "Neural Boot & Welcome Screen"
       },
       "home": {
         "status": "PASS",
-        "dispatch_ms": 31.4,
-        "activation_ms": -1,
-        "first_frame_ms": 149,
-        "readiness_ms": 149.1,
-        "total_latency_ms": 149.1,
+        "dispatch_ms": 37.3,
+        "activation_ms": 658.2,
+        "first_frame_ms": 209.1,
+        "readiness_ms": 658.2,
+        "total_latency_ms": 658.2,
         "label": "Main Assistive Dashboard & Bento Grid"
       },
       "sign": {
         "status": "PASS",
-        "dispatch_ms": 13.2,
-        "activation_ms": -1,
-        "first_frame_ms": 147,
-        "readiness_ms": 147,
-        "total_latency_ms": 147,
+        "dispatch_ms": 13,
+        "activation_ms": 356.6,
+        "first_frame_ms": 81,
+        "readiness_ms": 356.6,
+        "total_latency_ms": 356.6,
         "label": "Sign Language Translator Workspace"
       },
       "phrases": {
         "status": "PASS",
-        "dispatch_ms": 45.6,
-        "activation_ms": -1,
-        "first_frame_ms": 160.7,
-        "readiness_ms": 160.9,
-        "total_latency_ms": 160.9,
+        "dispatch_ms": 39.9,
+        "activation_ms": 395.1,
+        "first_frame_ms": 129.9,
+        "readiness_ms": 395.1,
+        "total_latency_ms": 395.1,
         "label": "Phrases & AAC Communication Board"
       },
       "braille": {
         "status": "PASS",
-        "dispatch_ms": 15.6,
-        "activation_ms": -1,
-        "first_frame_ms": 64.2,
-        "readiness_ms": 64.8,
-        "total_latency_ms": 64.8,
+        "dispatch_ms": 16.3,
+        "activation_ms": 152.8,
+        "first_frame_ms": 19.7,
+        "readiness_ms": 152.8,
+        "total_latency_ms": 152.8,
         "label": "Braille Studio Image Workspace"
       },
       "voice": {
         "status": "PASS",
-        "dispatch_ms": 15.4,
-        "activation_ms": -1,
-        "first_frame_ms": 92,
-        "readiness_ms": 92.3,
-        "total_latency_ms": 92.3,
+        "dispatch_ms": 13.5,
+        "activation_ms": 352.6,
+        "first_frame_ms": 86.2,
+        "readiness_ms": 352.6,
+        "total_latency_ms": 352.6,
         "label": "Voice Hub & Speech Studio"
       },
       "chat": {
         "status": "PASS",
-        "dispatch_ms": 11.1,
-        "activation_ms": -1,
-        "first_frame_ms": 77.9,
-        "readiness_ms": 78.5,
-        "total_latency_ms": 78.5,
+        "dispatch_ms": 10.7,
+        "activation_ms": 202.6,
+        "first_frame_ms": 79.5,
+        "readiness_ms": 202.6,
+        "total_latency_ms": 202.6,
         "label": "AI Chatbot & Clinical Assistant"
       },
       "care": {
         "status": "PASS",
-        "dispatch_ms": 6.6,
-        "activation_ms": -1,
-        "first_frame_ms": 75.7,
-        "readiness_ms": 75.9,
-        "total_latency_ms": 75.9,
+        "dispatch_ms": 10.4,
+        "activation_ms": 342.1,
+        "first_frame_ms": 84.2,
+        "readiness_ms": 342.1,
+        "total_latency_ms": 342.1,
         "label": "Transify Care & ChronicCare Triage"
       },
       "clinician": {
         "status": "PASS",
-        "dispatch_ms": 1.9,
-        "activation_ms": 83.2,
-        "first_frame_ms": 83.1,
-        "readiness_ms": 83.2,
-        "total_latency_ms": 83.2,
+        "dispatch_ms": 1.8,
+        "activation_ms": 88.5,
+        "first_frame_ms": 81.5,
+        "readiness_ms": 88.6,
+        "total_latency_ms": 88.6,
         "label": "Clinician Portal & Patient Queue"
       },
       "settings": {
         "status": "PASS",
-        "dispatch_ms": 11.6,
-        "activation_ms": -1,
-        "first_frame_ms": 69.8,
-        "readiness_ms": 70.1,
-        "total_latency_ms": 70.1,
+        "dispatch_ms": 13.9,
+        "activation_ms": 118.5,
+        "first_frame_ms": 15.8,
+        "readiness_ms": 118.5,
+        "total_latency_ms": 118.5,
         "label": "Settings & Accessibility Preferences"
       }
     },
     "raf_callback_cadence_hz": {
-      "measured_cadence_hz": 50.31,
-      "frames_captured": 101,
+      "measured_cadence_hz": 51.85,
+      "frames_captured": 104,
       "duration_sec": 2.01,
       "measurement_method": "requestAnimationFrame timestamp delta over active window (Linux Chromium headless)"
     },
     "cdp_heap_memory": {
-      "usedHeapMB": 1.49,
-      "totalHeapMB": 2.75,
+      "usedHeapMB": 1.45,
+      "totalHeapMB": 2.5,
       "domNodes": 13730,
       "jsEventListeners": 1002,
       "measurement_method": "Chrome DevTools Protocol (CDP) Performance.getMetrics after HeapProfiler.collectGarbage"
@@ -646,6 +1546,8 @@
       "chat"
     ],
     "gc_invoked": true,
+    "gc_invoked_baseline": true,
+    "gc_invoked_post": true,
     "detached_dom_status": "NOT MEASURED (CDP Heap Snapshot Required)",
     "baseline_metrics": {
       "usedHeapMB": 1.07,
@@ -672,12 +1574,12 @@
     "ssl_verify_result": "0",
     "live_headers": {
       "content-type": "text/html; charset=utf-8",
-      "date": "Mon, 23 Nov 2026 08:49:56 GMT",
+      "date": "Mon, 23 Nov 2026 12:51:48 GMT",
       "server": "railway-hikari",
       "vary": "accept-encoding",
-      "x-railway-request-id": "VZloH3kKRPKibK0ELPU1MQ",
+      "x-railway-request-id": "rEXY19ywRLWAaYsGljLL4A",
       "content-length": "281657",
-      "x-hikari-trace": "sin1.462z",
+      "x-hikari-trace": "sin1.nzn2",
       "x-railway-edge": "sin1"
     },
     "missing_security_headers": [
@@ -701,6 +1603,8 @@
   "summary": {
     "viewports_evaluated": 10,
     "viewports_passed": 10,
+    "workspaces_evaluated_total": 80,
+    "workspaces_passed_total": 80,
     "dpi_tiers_evaluated": 4,
     "dpi_tiers_passed": 4,
     "window_resizes_passed": true,
