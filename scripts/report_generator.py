@@ -98,9 +98,11 @@ def generate_execution_log(data: Dict[str, Any]) -> str:
     stab_st = stab.get("status", "FAIL")
     h_delta = stab.get("delta", {}).get("heap_delta_mb", -1)
     n_delta = stab.get("delta", {}).get("node_delta", -1)
+    h_st = "PASS" if (isinstance(h_delta, (int, float)) and h_delta < 8.0 and h_delta >= 0) else "FAIL"
+    n_st = "PASS" if (isinstance(n_delta, int) and n_delta < 500 and n_delta >= 0) else "FAIL"
     lines.append(f"[{stab_st}] 50 View Transitions Executed ({stab.get('transitions_executed', 0)} cycles)")
-    lines.append(f"[{stab_st}] Heap Growth: +{h_delta} MB (Retained memory after explicit V8 GC)")
-    lines.append(f"[{stab_st}] Node Growth: +{n_delta} DOM nodes")
+    lines.append(f"[{h_st}] Heap Growth: +{h_delta} MB ({'No significant retained growth detected within the measured workload' if h_st == 'PASS' else 'Significant heap growth detected'})")
+    lines.append(f"[{n_st}] Node Growth: +{n_delta} DOM nodes")
 
     lines.append("")
     lines.append("PHASE 10.H: PRODUCTION SECURITY PROBE (LIVE RAILWAY AUDIT)")
@@ -115,8 +117,8 @@ def generate_execution_log(data: Dict[str, Any]) -> str:
     lines.append(f"[{sec_st}] Production Edge Security Verdict: {sec_st}")
 
     lines.append("")
-    overall_pass = summary.get("overall_status") == "PASS"
-    if overall_pass:
+    browser_desktop_pass = summary.get("browser_desktop_functionality_status") == "PASSED (VERIFIED)" or summary.get("overall_status") in ("PASS", "CONDITIONALLY APPROVED (Web Pilot Workstations Only)")
+    if browser_desktop_pass:
         lines.append("[CONCLUSION] ALL REQUIRED BROWSER DESKTOP FUNCTIONALITY CHECKS PASSED EMPIRICALLY.")
     else:
         lines.append(f"[CONCLUSION] AUDIT IDENTIFIED DEFECTS / BLOCKED GATES (Overall Status: {summary.get('overall_status', 'FAIL')}).")
@@ -214,7 +216,7 @@ def generate_performance_report(data: Dict[str, Any]) -> str:
         f"- Post-50 Cycles Heap (Post-GC): `{stab.get('post_test_metrics', {}).get('usedHeapMB', 'N/A')} MB` ({stab.get('post_test_metrics', {}).get('domNodes', 'N/A')} nodes)",
         f"- Net Retained Heap Delta: `+{stab.get('delta', {}).get('heap_delta_mb', 'N/A')} MB`",
         f"- Net DOM Node Delta: `+{stab.get('delta', {}).get('node_delta', 'N/A')}` nodes",
-        f"- **Verdict:** **PASSED** (No significant memory growth detected within the tested 50-cycle workload).",
+        f"- **Verdict:** **{stab.get('status', 'FAIL')}** ({'No significant memory growth detected within the tested 50-cycle workload' if stab.get('status') == 'PASS' else 'Significant memory growth or transition failures detected'}).",
         "",
         "---",
         "",
@@ -429,8 +431,8 @@ def generate_stability_report(data: Dict[str, Any]) -> str:
         f"| • Net Retained Heap Growth:            +{stab.get('delta', {}).get('heap_delta_mb', 'N/A')} MB",
         f"| • Net Retained DOM Node Growth:        +{stab.get('delta', {}).get('node_delta', 'N/A')} nodes",
         f"| • Net Listener Delta:                  +{stab.get('delta', {}).get('listener_delta', 'N/A')} listeners",
-        f"| • Detached DOM Reference Audit:        PASSED (No runaway detached DOM trees detected)",
-        f"| • Workload Stability Verdict:          {stab.get('status', 'FAIL')} (No significant growth detected within workload)",
+        f"| • Detached DOM Reference Audit:        {stab.get('detached_dom_status', 'NOT MEASURED (CDP Heap Snapshot Required)')}",
+        f"| • Workload Stability Verdict:          {stab.get('status', 'FAIL')} ({'No significant growth detected within workload' if stab.get('status') == 'PASS' else 'Stability defect detected'})",
         "+======================================================================================================+",
         "```",
         "",
@@ -443,9 +445,9 @@ def generate_stability_report(data: Dict[str, Any]) -> str:
         "",
         "| Measurement Dimension | Baseline (Pre-Test, Post-GC) | Post-50 Cycles (Post-GC) | Net Delta | Evaluation Threshold | Status |",
         "|---|---|---|---|---|---|",
-        f"| **Retained JS Heap Used** | {stab.get('baseline_metrics', {}).get('usedHeapMB', 'N/A')} MB | {stab.get('post_test_metrics', {}).get('usedHeapMB', 'N/A')} MB | **+{stab.get('delta', {}).get('heap_delta_mb', 'N/A')} MB** | `< 8.00 MB` | **PASS** |",
-        f"| **DOM Node Count** | {stab.get('baseline_metrics', {}).get('domNodes', 'N/A')} | {stab.get('post_test_metrics', {}).get('domNodes', 'N/A')} | **+{stab.get('delta', {}).get('node_delta', 'N/A')}** | `< 500 nodes` | **PASS** |",
-        f"| **Event Listeners** | {stab.get('baseline_metrics', {}).get('listeners', 'N/A')} | {stab.get('post_test_metrics', {}).get('listeners', 'N/A')} | **+{stab.get('delta', {}).get('listener_delta', 'N/A')}** | `< 100 listeners` | **PASS** |",
+        f"| **Retained JS Heap Used** | {stab.get('baseline_metrics', {}).get('usedHeapMB', 'N/A')} MB | {stab.get('post_test_metrics', {}).get('usedHeapMB', 'N/A')} MB | **+{stab.get('delta', {}).get('heap_delta_mb', 'N/A')} MB** | `< 8.00 MB` | **{'PASS' if (stab.get('delta', {}).get('heap_delta_mb', 999) < 8.0 and stab.get('delta', {}).get('heap_delta_mb', -1) >= 0) else 'FAIL'}** |",
+        f"| **DOM Node Count** | {stab.get('baseline_metrics', {}).get('domNodes', 'N/A')} | {stab.get('post_test_metrics', {}).get('domNodes', 'N/A')} | **+{stab.get('delta', {}).get('node_delta', 'N/A')}** | `< 500 nodes` | **{'PASS' if (stab.get('delta', {}).get('node_delta', 999) < 500 and stab.get('delta', {}).get('node_delta', -1) >= 0) else 'FAIL'}** |",
+        f"| **Event Listeners** | {stab.get('baseline_metrics', {}).get('listeners', 'N/A')} | {stab.get('post_test_metrics', {}).get('listeners', 'N/A')} | **+{stab.get('delta', {}).get('listener_delta', 'N/A')}** | `< 100 listeners` | **{'PASS' if (stab.get('delta', {}).get('listener_delta', 999) < 100 and stab.get('delta', {}).get('listener_delta', -1) >= 0) else 'FAIL'}** |",
         "",
         "### Findings:",
         "- Full garbage collection was triggered via Chrome DevTools Protocol (`HeapProfiler.collectGarbage`) before sampling both baseline and post-test metrics.",
@@ -492,7 +494,7 @@ def generate_master_audit_report(data: Dict[str, Any]) -> str:
         f"| C. NATIVE EMBEDDED DESKTOP WEBVIEW:    NOT IMPLEMENTED / NOT TESTED (No Electron/Tauri wrapper)",
         f"| D. GATE 3 — ANDROID PHYSICAL HARDWARE: OPEN / DEFERRED (0 Physical USB Handsets Attached)",
         f"| E. GATE 2 — CLINICAL GOVERNANCE:       PENDING PRE-DEPLOYMENT (IRB / BMRC / DGHS MIS Approvals Pending)",
-        f"| • OVERALL RELEASE RECOMMENDATION:      CONDITIONALLY APPROVED (Web Pilot Workstations Only)",
+        f"| • OVERALL RELEASE RECOMMENDATION:      {summary.get('overall_status', 'FAIL')}",
         "+======================================================================================================+",
         "```",
         "",
@@ -518,7 +520,7 @@ def generate_master_audit_report(data: Dict[str, Any]) -> str:
         "",
         f"- **Language Activation:** Explicitly switched to Bangla via `window.TransifyI18n.setLanguage('bn')`.",
         f"- **Located Bengali Content:** Verified presence of Unicode characters in range `\\u0980-\\u09FF` across UI elements.",
-        f"- **Font Family Loaded:** `{bn.get('fontFamily', 'Hind Siliguri')}` (Verified via `document.fonts.check`).",
+        f"- **Font Family Loaded:** `{bn.get('fontFamily', 'Hind Siliguri')}` (document.fonts.check: **{'PASS' if bn.get('fontLoaded') else 'FAIL'}**, Platform Font: `{bn.get('platformFontFamily', 'Unknown')}`).",
         f"- **Computed Font Size:** `{bn.get('fontSizePx', 0)} px` (Target `>= 14 px`).",
         f"- **Computed Line Height:** `{bn.get('lineHeight', 'normal')}` (Target `>= 1.5` to prevent diacritic clipping).",
         f"- **Conjunct & Matra Rendering:** Verified no visual clipping or vertical truncation across all 10 viewports.",

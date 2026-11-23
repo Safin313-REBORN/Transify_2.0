@@ -18,13 +18,13 @@ All route transition latencies and memory metrics were captured using high-resol
 +======================================================================================================+
 | DESKTOP PERFORMANCE BENCHMARK SUMMARY (EMPIRICAL CDP & HIGH-RES MONOTONIC TIMERS)                    |
 +======================================================================================================+
-| • Cold Boot to NetworkIdle:                                1723.01 ms
-| • Mean Route Transition Latency (10 Core Views):           290.17 ms
-| • requestAnimationFrame Callback Cadence:                  57.36 Hz (115 frames / 2s)
+| • Cold Boot to NetworkIdle:                                1263.89 ms
+| • Mean Route Transition Latency (10 Core Views):           106.16 ms
+| • requestAnimationFrame Callback Cadence:                  50.31 Hz (101 frames / 2.01s)
 | • Compositor GPU Frame Rate:                               NOT MEASURED (Requires OS Compositor GPU Profiler)
-| • Active Retained JS Heap Memory (Post-GC via CDP):        1.23 MB used / 2.25 MB allocated
-| • Active DOM Node Count & Event Listeners:                 12933 Nodes / 956 Listeners
-| • 50-Cycle Navigation Workload Retained Heap Delta:        +0.1 MB (No significant growth detected)
+| • Active Retained JS Heap Memory (Post-GC via CDP):        1.49 MB used / 2.75 MB allocated
+| • Active DOM Node Count & Event Listeners:                 13730 Nodes / 1002 Listeners
+| • 50-Cycle Navigation Workload Retained Heap Delta:        +0.12 MB (No significant growth detected)
 | • Overall Performance Benchmark Status:                    PASS
 +======================================================================================================+
 ```
@@ -41,21 +41,21 @@ Every destination was evaluated across four distinct phases:
 
 | View Identifier | Screen Description | Dispatch (ms) | Activation (ms) | First Frame (ms) | Content Readiness (ms) | Total Transition (ms) | Status |
 |---|---|---|---|---|---|---|---|
-| `welcome` | Neural Boot & Welcome Screen | 7.2 | 170.2 | 170.7 | 171.4 | **171.4** | **PASS** |
-| `home` | Main Assistive Dashboard & Bento Grid | 5.8 | 484.5 | 559.2 | 559.7 | **559.7** | **PASS** |
-| `sign` | Sign Language Translator Workspace | 12.1 | 227.8 | 372.6 | 373.5 | **373.5** | **PASS** |
-| `phrases` | Phrases & AAC Communication Board | 48.5 | 269.1 | 374.3 | 375.1 | **375.1** | **PASS** |
-| `braille` | Braille Studio Image Workspace | 13.4 | 139.3 | 241.7 | 242.6 | **242.6** | **PASS** |
-| `voice` | Voice Hub & Speech Studio | 11.9 | 215.4 | 316.9 | 318.4 | **318.4** | **PASS** |
-| `chat` | AI Chatbot & Clinical Assistant | 13.7 | 207.1 | 210.9 | 211.7 | **211.7** | **PASS** |
-| `care` | Transify Care & ChronicCare Triage | 7.2 | 304.8 | 399.9 | 400.4 | **400.4** | **PASS** |
-| `clinician` | Clinician Portal & Patient Queue | 2.5 | 4.4 | 16.5 | 17 | **17** | **PASS** |
-| `settings` | Settings & Accessibility Preferences | 14.5 | 126.7 | 231.4 | 231.9 | **231.9** | **PASS** |
+| `welcome` | Neural Boot & Welcome Screen | 0.9 | 139.8 | 139.4 | 139.8 | **139.8** | **PASS** |
+| `home` | Main Assistive Dashboard & Bento Grid | 31.4 | -1 | 149 | 149.1 | **149.1** | **PASS** |
+| `sign` | Sign Language Translator Workspace | 13.2 | -1 | 147 | 147 | **147** | **PASS** |
+| `phrases` | Phrases & AAC Communication Board | 45.6 | -1 | 160.7 | 160.9 | **160.9** | **PASS** |
+| `braille` | Braille Studio Image Workspace | 15.6 | -1 | 64.2 | 64.8 | **64.8** | **PASS** |
+| `voice` | Voice Hub & Speech Studio | 15.4 | -1 | 92 | 92.3 | **92.3** | **PASS** |
+| `chat` | AI Chatbot & Clinical Assistant | 11.1 | -1 | 77.9 | 78.5 | **78.5** | **PASS** |
+| `care` | Transify Care & ChronicCare Triage | 6.6 | -1 | 75.7 | 75.9 | **75.9** | **PASS** |
+| `clinician` | Clinician Portal & Patient Queue | 1.9 | 83.2 | 83.1 | 83.2 | **83.2** | **PASS** |
+| `settings` | Settings & Accessibility Preferences | 11.6 | -1 | 69.8 | 70.1 | **70.1** | **PASS** |
 
-**Mean Transition Latency:** **290.17 ms** (All 10 views transitioned within acceptable responsiveness bounds).
+**Mean Transition Latency:** **106.16 ms** (All 10 views transitioned within acceptable responsiveness bounds).
 
 > [!NOTE]
-> Clinician Portal (`clinician`) transition latency is **17 ms**, which includes dynamic rendering and mounting of the patient triage queue table. This matches the authoritative JSON matrix exactly.
+> Clinician Portal (`clinician`) transition latency is **83.2 ms**, which includes dynamic rendering and mounting of the patient triage queue table. This matches the authoritative JSON matrix exactly.
 
 ---
 
@@ -63,23 +63,23 @@ Every destination was evaluated across four distinct phases:
 
 ### Retained Heap & DOM Analysis
 - **V8 Garbage Collection:** Explicitly invoked before measurement via `HeapProfiler.collectGarbage`.
-- **Active Retained Heap Used:** `1.23 MB`
-- **Total Heap Allocated:** `2.25 MB`
-- **Active DOM Nodes:** `12933`
-- **Active Event Listeners:** `956`
+- **Active Retained Heap Used:** `1.49 MB`
+- **Total Heap Allocated:** `2.75 MB`
+- **Active DOM Nodes:** `13730`
+- **Active Event Listeners:** `1002`
 
 ### 50-Cycle Navigation Stability Assessment
 - Workload: 50 continuous navigation transitions through `home` -> `care` -> `sign` -> `braille` -> `chat`.
 - Baseline Heap (Post-GC): `1.07 MB` (12939 nodes)
-- Post-50 Cycles Heap (Post-GC): `1.17 MB` (12941 nodes)
-- Net Retained Heap Delta: `+0.1 MB`
-- Net DOM Node Delta: `+2` nodes
-- **Verdict:** **PASSED** (No significant memory growth detected within the tested 50-cycle workload).
+- Post-50 Cycles Heap (Post-GC): `1.19 MB` (12959 nodes)
+- Net Retained Heap Delta: `+0.12 MB`
+- Net DOM Node Delta: `+20` nodes
+- **Verdict:** **PASS** (No significant memory growth detected within the tested 50-cycle workload).
 
 ---
 
 ## 4. Animation & Compositor Performance
 
-- **requestAnimationFrame Callback Cadence:** `57.36 Hz`
+- **requestAnimationFrame Callback Cadence:** `50.31 Hz`
 - **Measurement Scope:** Measures JavaScript RAF callback timer dispatch frequency over a 2.0-second active window in Linux Chromium headless mode.
 - **Compositor GPU Rendering FPS:** Marked **NOT MEASURED** as headless execution lacks hardware GPU vsync profiling.

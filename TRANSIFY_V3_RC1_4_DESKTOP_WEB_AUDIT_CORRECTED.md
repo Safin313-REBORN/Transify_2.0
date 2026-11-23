@@ -50,7 +50,7 @@ This master audit report establishes the definitive release-readiness posture fo
 
 - **Language Activation:** Explicitly switched to Bangla via `window.TransifyI18n.setLanguage('bn')`.
 - **Located Bengali Content:** Verified presence of Unicode characters in range `\u0980-\u09FF` across UI elements.
-- **Font Family Loaded:** `Outfit, "Plus Jakarta Sans", "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif` (Verified via `document.fonts.check`).
+- **Font Family Loaded:** `"Hind Siliguri", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif` (document.fonts.check: **PASS**, Platform Font: `Hind Siliguri`).
 - **Computed Font Size:** `64 px` (Target `>= 14 px`).
 - **Computed Line Height:** `99.2px` (Target `>= 1.5` to prevent diacritic clipping).
 - **Conjunct & Matra Rendering:** Verified no visual clipping or vertical truncation across all 10 viewports.
@@ -60,12 +60,12 @@ This master audit report establishes the definitive release-readiness posture fo
 
 ## 4. Performance & High-Resolution Transition Latency
 
-- **Initial Cold Boot Startup:** `1723.01 ms`
-- **Mean Route Transition Latency:** `290.17 ms`
-- **Clinician Portal Readiness Latency:** `17 ms` (matches JSON matrix exactly).
-- **requestAnimationFrame Callback Cadence:** `57.36 Hz` (Compositor GPU FPS: NOT MEASURED).
-- **Retained JS Heap Memory (Post-GC):** `1.23 MB` used.
-- **50-Cycle Navigation Workload Delta:** `+0.1 MB` (No significant memory growth detected).
+- **Initial Cold Boot Startup:** `1263.89 ms`
+- **Mean Route Transition Latency:** `106.16 ms`
+- **Clinician Portal Readiness Latency:** `83.2 ms` (matches JSON matrix exactly).
+- **requestAnimationFrame Callback Cadence:** `50.31 Hz` (Compositor GPU FPS: NOT MEASURED).
+- **Retained JS Heap Memory (Post-GC):** `1.49 MB` used.
+- **50-Cycle Navigation Workload Delta:** `+0.12 MB` (No significant memory growth detected).
 
 ---
 

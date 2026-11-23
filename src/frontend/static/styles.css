@@ -62,6 +62,42 @@
   --rail-w: 112px;
 }
 
+/* ==========================================================================
+   Bengali Typography & Script Enforcement
+   Directs primary font to Hind Siliguri for Bengali language content
+   ========================================================================== */
+html[lang="bn"] {
+  --font-display: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-ui: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+html[lang="bn"],
+html[lang="bn"] body,
+html[lang="bn"] h1,
+html[lang="bn"] h2,
+html[lang="bn"] h3,
+html[lang="bn"] h4,
+html[lang="bn"] h5,
+html[lang="bn"] h6,
+html[lang="bn"] p,
+html[lang="bn"] span,
+html[lang="bn"] a,
+html[lang="bn"] button,
+html[lang="bn"] input,
+html[lang="bn"] textarea,
+html[lang="bn"] select,
+html[lang="bn"] label,
+html[lang="bn"] td,
+html[lang="bn"] th,
+html[lang="bn"] div,
+[lang="bn"],
+.bn-text {
+  font-family: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  line-height: 1.5;
+}
+
 /* -------------------------------------------------------------
    2. Reset & Global Primitives
    ------------------------------------------------------------- */

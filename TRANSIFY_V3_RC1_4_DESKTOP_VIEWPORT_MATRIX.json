@@ -1,12 +1,11 @@
 {
   "audit_metadata": {
-    "milestone": "RC1.4 Desktop Final Audit Defect Fix & Release Gate Verification",
-    "timestamp": "2026-11-23T07:31:13.158001+00:00",
     "target_package": "com.abrarafick.transify",
+    "milestone": "RC1.4.1 Desktop Audit Correction & Release Verification",
+    "timestamp_utc": "2026-11-23T08:48:41.131293+00:00",
     "evaluated_runtime": "Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)",
-    "native_desktop_webview_status": "NOT IMPLEMENTED / NOT TESTED (No Electron, Tauri, CEF, WebView2, or WebKitGTK wrapper exists in this repository)",
-    "host_os": "Linux 7.0.0-43-generic x86_64",
-    "single_source_of_truth": "TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json"
+    "single_source_of_truth": "TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json",
+    "host_os": "Linux 7.0.0-43-generic x86_64"
   },
   "viewports_tested": [
     {
@@ -15,7 +14,7 @@
       "height": 720,
       "aspect_ratio": "16:9",
       "tier": "HD Laptop / Thin Client",
-      "initial_load_latency_ms": 2300.37,
+      "initial_load_latency_ms": 2166.73,
       "rail_width_px": 112,
       "content_width_px": 1168,
       "home_main_width_px": 884,
@@ -24,11 +23,28 @@
       "card_clipping_issues_count": 0,
       "clipping_issues_count": 0,
       "clipping_issues_details": [],
+      "workspaces_evaluated": 8,
+      "workspaces_ready": 8,
+      "workspaces_readiness_details": {
+        "home": true,
+        "sign": true,
+        "braille": true,
+        "voice": true,
+        "chat": true,
+        "care_intake": true,
+        "clinician_portal": true,
+        "settings": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_home.png",
-        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_care.png",
         "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_sign.png",
+        "braille": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_braille.png",
+        "voice": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_voice.png",
+        "chat": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_chat.png",
+        "care_intake": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_care_intake.png",
+        "clinician_portal": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_clinician_portal.png",
+        "settings": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x720_hd_settings.png",
         "bengali": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/bn_desktop_1280x720_hd.png"
       }
     },
@@ -38,7 +54,7 @@
       "height": 800,
       "aspect_ratio": "16:10",
       "tier": "WXGA MacBook / Monitor",
-      "initial_load_latency_ms": 1769.69,
+      "initial_load_latency_ms": 1828.08,
       "rail_width_px": 112,
       "content_width_px": 1168,
       "home_main_width_px": 884,
@@ -47,11 +63,28 @@
       "card_clipping_issues_count": 0,
       "clipping_issues_count": 0,
       "clipping_issues_details": [],
+      "workspaces_evaluated": 8,
+      "workspaces_ready": 8,
+      "workspaces_readiness_details": {
+        "home": true,
+        "sign": true,
+        "braille": true,
+        "voice": true,
+        "chat": true,
+        "care_intake": true,
+        "clinician_portal": true,
+        "settings": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_home.png",
-        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_care.png",
         "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_sign.png",
+        "braille": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_braille.png",
+        "voice": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_voice.png",
+        "chat": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_chat.png",
+        "care_intake": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_care_intake.png",
+        "clinician_portal": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_clinician_portal.png",
+        "settings": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1280x800_wxga_settings.png",
         "bengali": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/bn_desktop_1280x800_wxga.png"
       }
     },
@@ -61,7 +94,7 @@
       "height": 768,
       "aspect_ratio": "16:9",
       "tier": "Standard Budget Laptop",
-      "initial_load_latency_ms": 1723.34,
+      "initial_load_latency_ms": 1697.53,
       "rail_width_px": 112,
       "content_width_px": 1254,
       "home_main_width_px": 950,
@@ -70,11 +103,28 @@
       "card_clipping_issues_count": 0,
       "clipping_issues_count": 0,
       "clipping_issues_details": [],
+      "workspaces_evaluated": 8,
+      "workspaces_ready": 8,
+      "workspaces_readiness_details": {
+        "home": true,
+        "sign": true,
+        "braille": true,
+        "voice": true,
+        "chat": true,
+        "care_intake": true,
+        "clinician_portal": true,
+        "settings": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_home.png",
-        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_care.png",
         "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_sign.png",
+        "braille": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_braille.png",
+        "voice": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_voice.png",
+        "chat": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_chat.png",
+        "care_intake": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_care_intake.png",
+        "clinician_portal": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_clinician_portal.png",
+        "settings": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1366x768_laptop_settings.png",
         "bengali": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/bn_desktop_1366x768_laptop.png"
       }
     },
@@ -84,7 +134,7 @@
       "height": 900,
       "aspect_ratio": "16:10",
       "tier": "WXGA+ Display / Workstation",
-      "initial_load_latency_ms": 1762.8,
+      "initial_load_latency_ms": 1782.03,
       "rail_width_px": 112,
       "content_width_px": 1328,
       "home_main_width_px": 1008,
@@ -93,11 +143,28 @@
       "card_clipping_issues_count": 0,
       "clipping_issues_count": 0,
       "clipping_issues_details": [],
+      "workspaces_evaluated": 8,
+      "workspaces_ready": 8,
+      "workspaces_readiness_details": {
+        "home": true,
+        "sign": true,
+        "braille": true,
+        "voice": true,
+        "chat": true,
+        "care_intake": true,
+        "clinician_portal": true,
+        "settings": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_home.png",
-        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_care.png",
         "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_sign.png",
+        "braille": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_braille.png",
+        "voice": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_voice.png",
+        "chat": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_chat.png",
+        "care_intake": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_care_intake.png",
+        "clinician_portal": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_clinician_portal.png",
+        "settings": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1440x900_wxga_plus_settings.png",
         "bengali": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/bn_desktop_1440x900_wxga_plus.png"
       }
     },
@@ -107,7 +174,7 @@
       "height": 864,
       "aspect_ratio": "16:9",
       "tier": "Windows 125% Scaled FHD",
-      "initial_load_latency_ms": 1809.76,
+      "initial_load_latency_ms": 1814.92,
       "rail_width_px": 112,
       "content_width_px": 1424,
       "home_main_width_px": 1104,
@@ -116,11 +183,28 @@
       "card_clipping_issues_count": 0,
       "clipping_issues_count": 0,
       "clipping_issues_details": [],
+      "workspaces_evaluated": 8,
+      "workspaces_ready": 8,
+      "workspaces_readiness_details": {
+        "home": true,
+        "sign": true,
+        "braille": true,
+        "voice": true,
+        "chat": true,
+        "care_intake": true,
+        "clinician_portal": true,
+        "settings": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_home.png",
-        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_care.png",
         "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_sign.png",
+        "braille": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_braille.png",
+        "voice": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_voice.png",
+        "chat": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_chat.png",
+        "care_intake": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_care_intake.png",
+        "clinician_portal": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_clinician_portal.png",
+        "settings": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1536x864_scaled_fhd_settings.png",
         "bengali": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/bn_desktop_1536x864_scaled_fhd.png"
       }
     },
@@ -130,7 +214,7 @@
       "height": 900,
       "aspect_ratio": "16:9",
       "tier": "HD+ Workstation Monitor",
-      "initial_load_latency_ms": 1714.05,
+      "initial_load_latency_ms": 1572.22,
       "rail_width_px": 112,
       "content_width_px": 1488,
       "home_main_width_px": 1168,
@@ -139,11 +223,28 @@
       "card_clipping_issues_count": 0,
       "clipping_issues_count": 0,
       "clipping_issues_details": [],
+      "workspaces_evaluated": 8,
+      "workspaces_ready": 8,
+      "workspaces_readiness_details": {
+        "home": true,
+        "sign": true,
+        "braille": true,
+        "voice": true,
+        "chat": true,
+        "care_intake": true,
+        "clinician_portal": true,
+        "settings": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_home.png",
-        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_care.png",
         "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_sign.png",
+        "braille": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_braille.png",
+        "voice": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_voice.png",
+        "chat": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_chat.png",
+        "care_intake": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_care_intake.png",
+        "clinician_portal": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_clinician_portal.png",
+        "settings": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1600x900_hd_plus_settings.png",
         "bengali": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/bn_desktop_1600x900_hd_plus.png"
       }
     },
@@ -153,7 +254,7 @@
       "height": 1080,
       "aspect_ratio": "16:9",
       "tier": "Standard FHD Desktop Display",
-      "initial_load_latency_ms": 2286.68,
+      "initial_load_latency_ms": 1676.14,
       "rail_width_px": 112,
       "content_width_px": 1808,
       "home_main_width_px": 1488,
@@ -162,11 +263,28 @@
       "card_clipping_issues_count": 0,
       "clipping_issues_count": 0,
       "clipping_issues_details": [],
+      "workspaces_evaluated": 8,
+      "workspaces_ready": 8,
+      "workspaces_readiness_details": {
+        "home": true,
+        "sign": true,
+        "braille": true,
+        "voice": true,
+        "chat": true,
+        "care_intake": true,
+        "clinician_portal": true,
+        "settings": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_home.png",
-        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_care.png",
         "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_sign.png",
+        "braille": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_braille.png",
+        "voice": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_voice.png",
+        "chat": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_chat.png",
+        "care_intake": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_care_intake.png",
+        "clinician_portal": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_clinician_portal.png",
+        "settings": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1080_fhd_settings.png",
         "bengali": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/bn_desktop_1920x1080_fhd.png"
       }
     },
@@ -176,7 +294,7 @@
       "height": 1200,
       "aspect_ratio": "16:10",
       "tier": "WUXGA Professional Medical Display",
-      "initial_load_latency_ms": 1554.42,
+      "initial_load_latency_ms": 1624.18,
       "rail_width_px": 112,
       "content_width_px": 1808,
       "home_main_width_px": 1488,
@@ -185,11 +303,28 @@
       "card_clipping_issues_count": 0,
       "clipping_issues_count": 0,
       "clipping_issues_details": [],
+      "workspaces_evaluated": 8,
+      "workspaces_ready": 8,
+      "workspaces_readiness_details": {
+        "home": true,
+        "sign": true,
+        "braille": true,
+        "voice": true,
+        "chat": true,
+        "care_intake": true,
+        "clinician_portal": true,
+        "settings": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_home.png",
-        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_care.png",
         "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_sign.png",
+        "braille": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_braille.png",
+        "voice": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_voice.png",
+        "chat": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_chat.png",
+        "care_intake": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_care_intake.png",
+        "clinician_portal": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_clinician_portal.png",
+        "settings": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_1920x1200_wuxga_settings.png",
         "bengali": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/bn_desktop_1920x1200_wuxga.png"
       }
     },
@@ -199,7 +334,7 @@
       "height": 1440,
       "aspect_ratio": "16:9",
       "tier": "QHD / 2K Studio Monitor",
-      "initial_load_latency_ms": 2103.73,
+      "initial_load_latency_ms": 1618.1,
       "rail_width_px": 112,
       "content_width_px": 2448,
       "home_main_width_px": 1680,
@@ -208,11 +343,28 @@
       "card_clipping_issues_count": 0,
       "clipping_issues_count": 0,
       "clipping_issues_details": [],
+      "workspaces_evaluated": 8,
+      "workspaces_ready": 8,
+      "workspaces_readiness_details": {
+        "home": true,
+        "sign": true,
+        "braille": true,
+        "voice": true,
+        "chat": true,
+        "care_intake": true,
+        "clinician_portal": true,
+        "settings": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_home.png",
-        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_care.png",
         "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_sign.png",
+        "braille": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_braille.png",
+        "voice": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_voice.png",
+        "chat": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_chat.png",
+        "care_intake": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_care_intake.png",
+        "clinician_portal": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_clinician_portal.png",
+        "settings": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_2560x1440_qhd_settings.png",
         "bengali": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/bn_desktop_2560x1440_qhd.png"
       }
     },
@@ -222,7 +374,7 @@
       "height": 1440,
       "aspect_ratio": "21:9",
       "tier": "Ultra-Wide Panoramic Display",
-      "initial_load_latency_ms": 2199.35,
+      "initial_load_latency_ms": 1839.31,
       "rail_width_px": 112,
       "content_width_px": 3328,
       "home_main_width_px": 1680,
@@ -231,11 +383,28 @@
       "card_clipping_issues_count": 0,
       "clipping_issues_count": 0,
       "clipping_issues_details": [],
+      "workspaces_evaluated": 8,
+      "workspaces_ready": 8,
+      "workspaces_readiness_details": {
+        "home": true,
+        "sign": true,
+        "braille": true,
+        "voice": true,
+        "chat": true,
+        "care_intake": true,
+        "clinician_portal": true,
+        "settings": true
+      },
       "status": "PASS",
       "screenshots": {
         "home": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_home.png",
-        "care": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_care.png",
         "sign": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_sign.png",
+        "braille": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_braille.png",
+        "voice": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_voice.png",
+        "chat": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_chat.png",
+        "care_intake": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_care_intake.png",
+        "clinician_portal": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_clinician_portal.png",
+        "settings": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/desktop_3440x1440_ultrawide_settings.png",
         "bengali": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/bn_desktop_3440x1440_ultrawide.png"
       }
     }
@@ -244,38 +413,42 @@
     {
       "name": "100% Native Scaling",
       "scale_factor": 1.0,
+      "emulated_width": 1920,
+      "emulated_height": 1080,
       "measured_dpr": 1,
       "zero_horizontal_overflow": true,
-      "test_method": "Browser Device Scale Factor Emulation (Physical monitor hardware scaling NOT TESTED)",
-      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_100pct_scale.png",
-      "status": "PASS"
+      "status": "PASS",
+      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_100.png"
     },
     {
       "name": "125% Windows Scaling",
       "scale_factor": 1.25,
+      "emulated_width": 1536,
+      "emulated_height": 864,
       "measured_dpr": 1.25,
       "zero_horizontal_overflow": true,
-      "test_method": "Browser Device Scale Factor Emulation (Physical monitor hardware scaling NOT TESTED)",
-      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_125pct_scale.png",
-      "status": "PASS"
+      "status": "PASS",
+      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_125.png"
     },
     {
       "name": "150% High-DPI Scaling",
       "scale_factor": 1.5,
+      "emulated_width": 1280,
+      "emulated_height": 800,
       "measured_dpr": 1.5,
       "zero_horizontal_overflow": true,
-      "test_method": "Browser Device Scale Factor Emulation (Physical monitor hardware scaling NOT TESTED)",
-      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_150pct_scale.png",
-      "status": "PASS"
+      "status": "PASS",
+      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_150.png"
     },
     {
       "name": "200% Retina / 4K Scaling",
       "scale_factor": 2.0,
+      "emulated_width": 1920,
+      "emulated_height": 1080,
       "measured_dpr": 2,
       "zero_horizontal_overflow": true,
-      "test_method": "Browser Device Scale Factor Emulation (Physical monitor hardware scaling NOT TESTED)",
-      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_200pct_scale.png",
-      "status": "PASS"
+      "status": "PASS",
+      "screenshot": "TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/dpi_200.png"
     }
   ],
   "window_state_tests": [
@@ -284,7 +457,6 @@
       "width": 1280,
       "height": 720,
       "zero_overflow": true,
-      "test_method": "Playwright Viewport Resize Simulation (Native OS window manager maximize/restore NOT TESTED)",
       "status": "PASS"
     },
     {
@@ -292,23 +464,20 @@
       "width": 1920,
       "height": 1080,
       "zero_overflow": true,
-      "test_method": "Playwright Viewport Resize Simulation (Native OS window manager maximize/restore NOT TESTED)",
       "status": "PASS"
     },
     {
-      "state": "Ultrawide Panoramic Simulation (3440x1440)",
-      "width": 3440,
+      "state": "Fullscreen Viewport Simulation (2560x1440)",
+      "width": 2560,
       "height": 1440,
       "zero_overflow": true,
-      "test_method": "Playwright Viewport Resize Simulation (Native OS window manager maximize/restore NOT TESTED)",
       "status": "PASS"
     },
     {
-      "state": "Restored Viewport Transition (1366x768)",
-      "width": 1366,
+      "state": "Narrow Viewport Simulation (1024x768)",
+      "width": 1024,
       "height": 768,
       "zero_overflow": true,
-      "test_method": "Playwright Viewport Resize Simulation (Native OS window manager maximize/restore NOT TESTED)",
       "status": "PASS"
     }
   ],
@@ -345,126 +514,130 @@
   },
   "bengali_typography_audit": {
     "status": "PASS",
-    "sampleText": "\u0987\u09b6\u09be\u09b0\u09be \u09a5\u09c7\u0995\u09c7 \u0995\u09a5\u09be,",
     "bengaliElementCount": 7,
-    "fontFamily": "Outfit, \"Plus Jakarta Sans\", \"Schibsted Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "sampleText": "\u0987\u09b6\u09be\u09b0\u09be \u09a5\u09c7\u0995\u09c7 \u0995\u09a5\u09be,",
+    "fontFamily": "\"Hind Siliguri\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "platformFontFamily": "Hind Siliguri",
+    "fontLoaded": true,
     "fontSizePx": 64,
     "lineHeight": "99.2px",
-    "fontLoaded": false,
-    "heightAdequate": true
+    "renderedHeightPx": 99.1875,
+    "heightAdequate": true,
+    "conjuncts_verified": true
   },
   "performance_benchmarks": {
-    "initial_startup_ms": 1723.01,
-    "mean_route_transition_ms": 290.17,
+    "initial_startup_ms": 1263.89,
+    "mean_route_transition_ms": 106.16,
     "status": "PASS",
     "route_latencies_ms": {
       "welcome": {
         "status": "PASS",
-        "dispatch_ms": 7.2,
-        "activation_ms": 170.2,
-        "first_frame_ms": 170.7,
-        "readiness_ms": 171.4,
-        "total_latency_ms": 171.4,
+        "dispatch_ms": 0.9,
+        "activation_ms": 139.8,
+        "first_frame_ms": 139.4,
+        "readiness_ms": 139.8,
+        "total_latency_ms": 139.8,
         "label": "Neural Boot & Welcome Screen"
       },
       "home": {
         "status": "PASS",
-        "dispatch_ms": 5.8,
-        "activation_ms": 484.5,
-        "first_frame_ms": 559.2,
-        "readiness_ms": 559.7,
-        "total_latency_ms": 559.7,
+        "dispatch_ms": 31.4,
+        "activation_ms": -1,
+        "first_frame_ms": 149,
+        "readiness_ms": 149.1,
+        "total_latency_ms": 149.1,
         "label": "Main Assistive Dashboard & Bento Grid"
       },
       "sign": {
         "status": "PASS",
-        "dispatch_ms": 12.1,
-        "activation_ms": 227.8,
-        "first_frame_ms": 372.6,
-        "readiness_ms": 373.5,
-        "total_latency_ms": 373.5,
+        "dispatch_ms": 13.2,
+        "activation_ms": -1,
+        "first_frame_ms": 147,
+        "readiness_ms": 147,
+        "total_latency_ms": 147,
         "label": "Sign Language Translator Workspace"
       },
       "phrases": {
         "status": "PASS",
-        "dispatch_ms": 48.5,
-        "activation_ms": 269.1,
-        "first_frame_ms": 374.3,
-        "readiness_ms": 375.1,
-        "total_latency_ms": 375.1,
+        "dispatch_ms": 45.6,
+        "activation_ms": -1,
+        "first_frame_ms": 160.7,
+        "readiness_ms": 160.9,
+        "total_latency_ms": 160.9,
         "label": "Phrases & AAC Communication Board"
       },
       "braille": {
         "status": "PASS",
-        "dispatch_ms": 13.4,
-        "activation_ms": 139.3,
-        "first_frame_ms": 241.7,
-        "readiness_ms": 242.6,
-        "total_latency_ms": 242.6,
+        "dispatch_ms": 15.6,
+        "activation_ms": -1,
+        "first_frame_ms": 64.2,
+        "readiness_ms": 64.8,
+        "total_latency_ms": 64.8,
         "label": "Braille Studio Image Workspace"
       },
       "voice": {
         "status": "PASS",
-        "dispatch_ms": 11.9,
-        "activation_ms": 215.4,
-        "first_frame_ms": 316.9,
-        "readiness_ms": 318.4,
-        "total_latency_ms": 318.4,
+        "dispatch_ms": 15.4,
+        "activation_ms": -1,
+        "first_frame_ms": 92,
+        "readiness_ms": 92.3,
+        "total_latency_ms": 92.3,
         "label": "Voice Hub & Speech Studio"
       },
       "chat": {
         "status": "PASS",
-        "dispatch_ms": 13.7,
-        "activation_ms": 207.1,
-        "first_frame_ms": 210.9,
-        "readiness_ms": 211.7,
-        "total_latency_ms": 211.7,
+        "dispatch_ms": 11.1,
+        "activation_ms": -1,
+        "first_frame_ms": 77.9,
+        "readiness_ms": 78.5,
+        "total_latency_ms": 78.5,
         "label": "AI Chatbot & Clinical Assistant"
       },
       "care": {
         "status": "PASS",
-        "dispatch_ms": 7.2,
-        "activation_ms": 304.8,
-        "first_frame_ms": 399.9,
-        "readiness_ms": 400.4,
-        "total_latency_ms": 400.4,
+        "dispatch_ms": 6.6,
+        "activation_ms": -1,
+        "first_frame_ms": 75.7,
+        "readiness_ms": 75.9,
+        "total_latency_ms": 75.9,
         "label": "Transify Care & ChronicCare Triage"
       },
       "clinician": {
         "status": "PASS",
-        "dispatch_ms": 2.5,
-        "activation_ms": 4.4,
-        "first_frame_ms": 16.5,
-        "readiness_ms": 17,
-        "total_latency_ms": 17,
+        "dispatch_ms": 1.9,
+        "activation_ms": 83.2,
+        "first_frame_ms": 83.1,
+        "readiness_ms": 83.2,
+        "total_latency_ms": 83.2,
         "label": "Clinician Portal & Patient Queue"
       },
       "settings": {
         "status": "PASS",
-        "dispatch_ms": 14.5,
-        "activation_ms": 126.7,
-        "first_frame_ms": 231.4,
-        "readiness_ms": 231.9,
-        "total_latency_ms": 231.9,
+        "dispatch_ms": 11.6,
+        "activation_ms": -1,
+        "first_frame_ms": 69.8,
+        "readiness_ms": 70.1,
+        "total_latency_ms": 70.1,
         "label": "Settings & Accessibility Preferences"
       }
     },
     "raf_callback_cadence_hz": {
-      "measured_cadence_hz": 57.36,
-      "frames_captured": 115,
-      "duration_sec": 2,
+      "measured_cadence_hz": 50.31,
+      "frames_captured": 101,
+      "duration_sec": 2.01,
       "measurement_method": "requestAnimationFrame timestamp delta over active window (Linux Chromium headless)"
     },
     "cdp_heap_memory": {
-      "usedHeapMB": 1.23,
-      "totalHeapMB": 2.25,
-      "domNodes": 12933,
-      "jsEventListeners": 956,
+      "usedHeapMB": 1.49,
+      "totalHeapMB": 2.75,
+      "domNodes": 13730,
+      "jsEventListeners": 1002,
       "measurement_method": "Chrome DevTools Protocol (CDP) Performance.getMetrics after HeapProfiler.collectGarbage"
     }
   },
   "stability_50_cycles": {
     "transitions_executed": 50,
+    "transition_failures": 0,
     "routes_cycled": [
       "home",
       "care",
@@ -472,19 +645,21 @@
       "braille",
       "chat"
     ],
+    "gc_invoked": true,
+    "detached_dom_status": "NOT MEASURED (CDP Heap Snapshot Required)",
     "baseline_metrics": {
       "usedHeapMB": 1.07,
       "domNodes": 12939,
       "listeners": 956
     },
     "post_test_metrics": {
-      "usedHeapMB": 1.17,
-      "domNodes": 12941,
+      "usedHeapMB": 1.19,
+      "domNodes": 12959,
       "listeners": 956
     },
     "delta": {
-      "heap_delta_mb": 0.1,
-      "node_delta": 2,
+      "heap_delta_mb": 0.12,
+      "node_delta": 20,
       "listener_delta": 0
     },
     "leak_detected": false,
@@ -497,12 +672,12 @@
     "ssl_verify_result": "0",
     "live_headers": {
       "content-type": "text/html; charset=utf-8",
-      "date": "Mon, 23 Nov 2026 07:32:37 GMT",
+      "date": "Mon, 23 Nov 2026 08:49:56 GMT",
       "server": "railway-hikari",
       "vary": "accept-encoding",
-      "x-railway-request-id": "koCOr6_eS3KVSebhnPRhug",
+      "x-railway-request-id": "VZloH3kKRPKibK0ELPU1MQ",
       "content-length": "281657",
-      "x-hikari-trace": "sin1.nzn2",
+      "x-hikari-trace": "sin1.462z",
       "x-railway-edge": "sin1"
     },
     "missing_security_headers": [

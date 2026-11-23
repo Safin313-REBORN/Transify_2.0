@@ -126,7 +126,7 @@ def passing_fixture():
             "status": "PASS"
         },
         "summary": {
-            "overall_status": "PASS",
+            "overall_status": "CONDITIONALLY APPROVED (Web Pilot Workstations Only)",
             "browser_desktop_functionality_status": "PASSED (VERIFIED)",
             "desktop_production_security_status": "VERIFIED (PASSED)"
         }
@@ -293,3 +293,93 @@ def test_master_report_separate_verdicts(passing_fixture):
     assert "D. GATE 3 — ANDROID PHYSICAL HARDWARE: OPEN / DEFERRED" in master
     assert "E. GATE 2 — CLINICAL GOVERNANCE:       PENDING PRE-DEPLOYMENT" in master
     assert "CONDITIONALLY APPROVED (Web Pilot Workstations Only)" in master
+
+
+def test_bengali_font_loaded_false_fails(passing_fixture):
+    fixture = dict(passing_fixture)
+    fixture["bengali_typography_audit"] = {
+        "fontFamily": "Outfit, sans-serif",
+        "fontLoaded": False,
+        "platformFontFamily": "Unknown",
+        "status": "FAIL"
+    }
+    fixture["summary"] = {
+        "overall_status": "FAIL",
+        "browser_desktop_functionality_status": "FAILED"
+    }
+    master = generate_master_audit_report(fixture)
+    assert "document.fonts.check: **FAIL**" in master
+    assert "**Bengali Typography Status:** **FAIL**" in master
+
+
+def test_keyboard_focus_trap_false_fails(passing_fixture):
+    fixture = dict(passing_fixture)
+    fixture["keyboard_accessibility"] = dict(passing_fixture["keyboard_accessibility"])
+    fixture["keyboard_accessibility"]["modal_focus_trapped"] = False
+    fixture["keyboard_accessibility"]["status"] = "FAIL"
+    
+    a11y = generate_accessibility_report(fixture)
+    assert "| • Modal Focus Trapping:                    FAIL" in a11y
+    assert "| • Computed Keyboard Accessibility Verdict: FAIL" in a11y
+
+
+def test_keyboard_focus_restoration_false_fails(passing_fixture):
+    fixture = dict(passing_fixture)
+    fixture["keyboard_accessibility"] = dict(passing_fixture["keyboard_accessibility"])
+    fixture["keyboard_accessibility"]["focus_restoration_working"] = False
+    fixture["keyboard_accessibility"]["status"] = "FAIL"
+    
+    a11y = generate_accessibility_report(fixture)
+    assert "| • Focus Restoration to Modal Opener:       FAIL" in a11y
+
+
+def test_clinician_queue_readiness_failure(passing_fixture):
+    fixture = dict(passing_fixture)
+    fixture["performance_benchmarks"] = dict(passing_fixture["performance_benchmarks"])
+    fixture["performance_benchmarks"]["route_latencies_ms"] = dict(passing_fixture["performance_benchmarks"]["route_latencies_ms"])
+    fixture["performance_benchmarks"]["route_latencies_ms"]["clinician"] = {
+        "label": "Clinician",
+        "total_latency_ms": -1,
+        "status": "FAIL",
+        "error": "Table rows count was 0, expected 50"
+    }
+    fixture["performance_benchmarks"]["status"] = "FAIL"
+    
+    perf = generate_performance_report(fixture)
+    assert "| `clinician` | Clinician |" in perf
+    assert "**FAIL**" in perf
+
+
+def test_missing_security_headers_fails(passing_fixture):
+    fixture = dict(passing_fixture)
+    fixture["production_security_probe"] = dict(passing_fixture["production_security_probe"])
+    fixture["production_security_probe"]["missing_security_headers"] = ["strict-transport-security", "content-security-policy"]
+    fixture["production_security_probe"]["hsts_present"] = False
+    fixture["production_security_probe"]["csp_present"] = False
+    fixture["production_security_probe"]["status"] = "FAIL"
+    
+    sec = generate_security_report(fixture)
+    assert "| • Live Railway Production Edge:        FAILED / HARDENING PENDING" in sec
+    assert "Live Production Edge Assessment: FAILED / HARDENING PENDING" in sec
+
+
+def test_stability_excessive_heap_growth_fails(passing_fixture):
+    fixture = dict(passing_fixture)
+    fixture["stability_50_cycles"] = dict(passing_fixture["stability_50_cycles"])
+    fixture["stability_50_cycles"]["delta"] = {"heap_delta_mb": 18.5, "node_delta": 400, "listener_delta": 0}
+    fixture["stability_50_cycles"]["status"] = "FAIL"
+    
+    stab = generate_stability_report(fixture)
+    assert "**+18.5 MB** | `< 8.00 MB` | **FAIL**" in stab
+    assert "| • Workload Stability Verdict:          FAIL" in stab
+
+
+def test_detached_dom_unverified_not_claimed_as_pass(passing_fixture):
+    fixture = dict(passing_fixture)
+    fixture["stability_50_cycles"] = dict(passing_fixture["stability_50_cycles"])
+    fixture["stability_50_cycles"]["detached_dom_status"] = "NOT MEASURED (CDP Heap Snapshot Required)"
+    
+    stab = generate_stability_report(fixture)
+    assert "| • Detached DOM Reference Audit:        NOT MEASURED (CDP Heap Snapshot Required)" in stab
+    assert "PASSED (No runaway detached DOM trees detected)" not in stab
+
