@@ -86,20 +86,20 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" testDebugUnitTest assembleDebug assembleDebugAndroidTest --stacktrace --no-daemon
+          ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" testDirectDebugUnitTest assembleDirectDebug assembleDirectDebugAndroidTest --stacktrace --no-daemon
 
       - name: Upload Android Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: transify-android-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/direct/debug/app-direct-debug.apk
           if-no-files-found: error
 
       - name: Upload Android Instrumentation Test APK
         uses: actions/upload-artifact@v4
         with:
           name: transify-android-instrumentation-apk
-          path: android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/direct/debug/app-direct-debug-androidTest.apk
           if-no-files-found: error
 
       - name: Upload Android Test HTML Reports
@@ -107,7 +107,7 @@ jobs:
         if: always()
         with:
           name: transify-android-test-report
-          path: android/app/build/reports/tests/testDebugUnitTest/
+          path: android/app/build/reports/tests/testDirectDebugUnitTest/
           if-no-files-found: ignore
 
       - name: Upload Android JUnit XML Results
@@ -115,5 +115,5 @@ jobs:
         if: always()
         with:
           name: transify-android-junit-xml
-          path: android/app/build/test-results/testDebugUnitTest/
+          path: android/app/build/test-results/testDirectDebugUnitTest/
           if-no-files-found: ignore
