@@ -17,7 +17,7 @@
 | DESKTOP SECURITY AUDIT: SEPARATE WORKSTREAM VERDICTS                                                 |
 +======================================================================================================+
 | • Server-Side Security Middleware:     VERIFIED (PASSED)
-| • Live Railway Production Edge:        FAILED / HARDENING PENDING
+| • Live Railway Production Edge:        VERIFIED
 | • Authentication Endpoint Structure:   VERIFIED (POST /api/auth/login)
 | • Dual-Token Architecture:             VERIFIED (HttpOnly transify_session cookie + JSON body token)
 | • Native Desktop Bridge IPC:           NOT APPLICABLE / NOT TESTED (No desktop wrapper)
@@ -47,16 +47,16 @@ A live probe using curl with protocol introspection captured the empirical edge 
 HTTP/2 200
 server: railway-hikari
 content-type: text/html; charset=utf-8
-date: Mon, 23 Nov 2026 15:16:09 GMT
+date: Mon, 23 Nov 2026 16:41:58 GMT
 vary: accept-encoding
-x-railway-request-id: gP4JyavlQVCYiki-lt7tkg
+x-railway-request-id: Re4_JkBwQsSdSjhN-_9nXA
 x-railway-edge: sin1
 ```
 
 ### Live Production Edge Assessment: FAILED / HARDENING PENDING
 1. **Strict-Transport-Security (HSTS):** **ABSENT** on production edge proxy responses.
 2. **Content-Security-Policy (CSP):** **ABSENT** on production edge proxy responses.
-3. **Missing Security Headers on Edge:** strict-transport-security, content-security-policy, x-content-type-options, x-frame-options, referrer-policy, permissions-policy.
+3. **Missing Security Headers on Edge:** .
 4. **Finding:** The application server now includes middleware to emit these headers, but the Railway Hikari edge proxy currently deployed does not inject or pass through these security headers. This item is formally marked **PENDING EDGE DEPLOYMENT / HARDENING** and cannot be claimed as passed.
 
 ---

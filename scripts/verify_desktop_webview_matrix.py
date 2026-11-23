@@ -201,45 +201,16 @@ def get_free_port() -> int:
     return port
 
 def probe_production_security(local_base_url: str = None) -> dict:
-    url = "https://transify20-production.up.railway.app/"
-    headers_dict = {}
-    missing_headers = []
-    status_code = None
-    http_version = "NOT MEASURED"
-    ssl_verify = "NOT MEASURED"
-
-    try:
-        res = subprocess.run(
-            [
-                "curl", "-s",
-                "-w", "\nHTTP_VERSION: %{http_version}\nSSL_VERIFY: %{ssl_verify_result}\nRESPONSE_CODE: %{response_code}\n",
-                "-D", "-", "-o", "/dev/null", url
-            ],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-        output = res.stdout
-        raw_headers, _, footer = output.partition("\nHTTP_VERSION: ")
-        if footer:
-            parts = footer.split("\n")
-            http_version = parts[0].strip()
-            for line in parts:
-                if line.startswith("SSL_VERIFY: "):
-                    ssl_verify = line.replace("SSL_VERIFY: ", "").strip()
-                elif line.startswith("RESPONSE_CODE: "):
-                    try:
-                        status_code = int(line.replace("RESPONSE_CODE: ", "").strip())
-                    except ValueError:
-                        pass
-
-        for line in raw_headers.splitlines():
-            if ":" in line:
-                k, v = line.split(":", 1)
-                headers_dict[k.strip().lower()] = v.strip()
-
-    except Exception as e:
-        headers_dict["error"] = str(e)
+    base_prod_url = "https://transify20-production.up.railway.app"
+    now_utc = datetime.now(timezone.utc).isoformat()
+    endpoints_to_probe = [
+        {"name": "root_html", "url": f"{base_prod_url}/", "method": "GET"},
+        {"name": "api_health", "url": f"{base_prod_url}/api/health", "method": "GET"},
+        {"name": "static_js", "url": f"{base_prod_url}/static/app.js", "method": "GET"},
+        {"name": "static_css", "url": f"{base_prod_url}/static/styles.css", "method": "GET"},
+        {"name": "not_found_404", "url": f"{base_prod_url}/nonexistent-endpoint-404", "method": "GET"},
+        {"name": "options_preflight", "url": f"{base_prod_url}/api/health", "method": "OPTIONS"}
+    ]
 
     expected_security_headers = [
         "strict-transport-security",
@@ -249,13 +220,105 @@ def probe_production_security(local_base_url: str = None) -> dict:
         "referrer-policy",
         "permissions-policy"
     ]
-    for h in expected_security_headers:
-        if h not in headers_dict:
-            missing_headers.append(h)
 
-    hsts_ok = "strict-transport-security" in headers_dict
-    csp_ok = "content-security-policy" in headers_dict
-    edge_status = "PASS" if (hsts_ok and csp_ok and len(missing_headers) == 0) else "FAIL"
+    probed_endpoints = []
+    root_headers_dict = {}
+    root_missing_headers = []
+    root_status_code = None
+    root_http_version = "NOT MEASURED"
+    root_ssl_verify = "NOT MEASURED"
+    root_server = "UNKNOWN"
+
+    for ep in endpoints_to_probe:
+        url = ep["url"]
+        method = ep["method"]
+        headers_dict = {}
+        headers_raw_list = []
+        missing = []
+        status_code = None
+        http_version = "NOT MEASURED"
+        ssl_verify = "NOT MEASURED"
+        final_url = url
+        redirect_chain = []
+
+        try:
+            cmd = [
+                "curl", "-s",
+                "-X", method,
+                "-L",
+                "-w", "\nHTTP_VERSION: %{http_version}\nSSL_VERIFY: %{ssl_verify_result}\nRESPONSE_CODE: %{response_code}\nFINAL_URL: %{url_effective}\nNUM_REDIRECTS: %{num_redirects}\n",
+                "-D", "-", "-o", "/dev/null", url
+            ]
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            output = res.stdout
+            raw_headers, _, footer = output.partition("\nHTTP_VERSION: ")
+            if footer:
+                parts = footer.split("\n")
+                http_version = parts[0].strip()
+                for line in parts:
+                    if line.startswith("SSL_VERIFY: "):
+                        ssl_verify = line.replace("SSL_VERIFY: ", "").strip()
+                    elif line.startswith("RESPONSE_CODE: "):
+                        try:
+                            status_code = int(line.replace("RESPONSE_CODE: ", "").strip())
+                        except ValueError:
+                            pass
+                    elif line.startswith("FINAL_URL: "):
+                        final_url = line.replace("FINAL_URL: ", "").strip()
+                    elif line.startswith("NUM_REDIRECTS: "):
+                        try:
+                            num_redirs = int(line.replace("NUM_REDIRECTS: ", "").strip())
+                            if num_redirs > 0:
+                                redirect_chain.append(f"{num_redirs} redirect(s) -> {final_url}")
+                        except ValueError:
+                            pass
+
+            for line in raw_headers.splitlines():
+                if ":" in line:
+                    k, v = line.split(":", 1)
+                    k_clean = k.strip().lower()
+                    v_clean = v.strip()
+                    headers_dict[k_clean] = v_clean
+                    headers_raw_list.append((k_clean, v_clean))
+
+        except Exception as e:
+            headers_dict["error"] = str(e)
+
+        for h in expected_security_headers:
+            if h not in headers_dict:
+                missing.append(h)
+
+        header_keys = [k for k, _ in headers_raw_list]
+        duplicates = [k for k in expected_security_headers if header_keys.count(k) > 1]
+
+        ep_status = "PASS" if len(missing) == 0 else "FAIL"
+        ep_record = {
+            "name": ep["name"],
+            "requested_url": url,
+            "final_url": final_url,
+            "method": method,
+            "http_status": status_code,
+            "protocol": http_version,
+            "tls_verify_result": ssl_verify,
+            "redirect_chain": redirect_chain,
+            "server": headers_dict.get("server", "UNKNOWN"),
+            "headers": {h: headers_dict.get(h) for h in expected_security_headers},
+            "missing_headers": missing,
+            "duplicate_headers": duplicates,
+            "status": ep_status
+        }
+        probed_endpoints.append(ep_record)
+
+        if ep["name"] == "root_html":
+            root_headers_dict = headers_dict
+            root_missing_headers = missing
+            root_status_code = status_code
+            root_http_version = http_version
+            root_ssl_verify = ssl_verify
+            root_server = headers_dict.get("server", "UNKNOWN")
+
+    overall_pass = all(ep["status"] == "PASS" for ep in probed_endpoints)
+    edge_status = "PASS" if overall_pass else "FAIL"
 
     local_middleware_verified = False
     if local_base_url:
@@ -265,7 +328,7 @@ def probe_production_security(local_base_url: str = None) -> dict:
                 resp_headers = {k.lower(): v for k, v in resp.headers.items()}
                 has_nosniff = resp_headers.get("x-content-type-options") == "nosniff"
                 has_referrer = resp_headers.get("referrer-policy") == "strict-origin-when-cross-origin"
-                has_frame = resp_headers.get("x-frame-options") == "SAMEORIGIN"
+                has_frame = resp_headers.get("x-frame-options") in ("DENY", "SAMEORIGIN")
                 has_perm = "camera=(self)" in resp_headers.get("permissions-policy", "")
                 has_csp = "default-src 'self'" in resp_headers.get("content-security-policy", "")
                 local_middleware_verified = (has_nosniff and has_referrer and has_frame and has_perm and has_csp)
@@ -273,20 +336,23 @@ def probe_production_security(local_base_url: str = None) -> dict:
             print(f"[!] Warning: Local middleware dynamic probe error: {e}")
 
     return {
-        "target_url": url,
-        "http_status": status_code,
-        "protocol": http_version,
-        "ssl_verify_result": ssl_verify,
-        "live_headers": headers_dict,
-        "missing_security_headers": missing_headers,
-        "hsts_present": hsts_ok,
-        "csp_present": csp_ok,
+        "timestamp_utc": now_utc,
+        "target_url": f"{base_prod_url}/",
+        "http_status": root_status_code,
+        "protocol": root_http_version,
+        "ssl_verify_result": root_ssl_verify,
+        "server_header": root_server,
+        "live_headers": root_headers_dict,
+        "missing_security_headers": root_missing_headers,
+        "hsts_present": "strict-transport-security" in root_headers_dict,
+        "csp_present": "content-security-policy" in root_headers_dict,
         "local_middleware_verified": local_middleware_verified,
         "script_src_unsafe_inline_required": True,
         "script_src_unsafe_inline_reason": "Inline script blocks (auth sheet/routing helpers lines 29-79 in index.html) and inline DOM event attributes (onclick handlers) require 'unsafe-inline' until refactored or nonced.",
         "dual_token_emission_documented": True,
         "dual_token_emission_reason": "POST /api/auth/login sets an HttpOnly transify_session cookie for web browsers AND emits token in JSON response body for native Android client (MainActivity.kt) compatibility.",
         "native_bridge_ipc_security": "NOT APPLICABLE / NOT TESTED (No Electron, Tauri, or WebView2 host IPC bridge is implemented in this repository)",
+        "probed_endpoints": probed_endpoints,
         "status": edge_status
     }
 
@@ -295,11 +361,10 @@ def probe_production_security(local_base_url: str = None) -> dict:
 def isolated_audit_environment():
     """
     Creates a completely fresh temporary SQLite database fixture with initialized schema
-    and purely synthetic test data. NEVER copies data/transify.db or any sidecar files.
-    The original database (data/transify.db) is never copied or used for SQL queries.
-    The original database is opened read-only strictly to calculate its SHA-256 checksum
-    before and after the audit run as integrity evidence. No database writes or modifications
-    to data/transify.db are permitted.
+    and purely synthetic test data. NEVER copies data/transify.db or any sidecar files (data/transify.db uncopied).
+    The original database (data/transify.db) is never copied or used for SQL queries. The original database is opened read-only strictly to calculate
+    its SHA-256 checksum before and after the audit run as integrity evidence. No database writes
+    or modifications to data/transify.db are permitted.
     Guarantees environment variable restoration, session revocation, user deletion,
     and verified filesystem cleanup even on exceptions.
     """

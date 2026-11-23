@@ -68,7 +68,7 @@ app.include_router(chat_router)
 
 # Enable CORS for trusted origins
 if is_production():
-    cors_env = os.getenv("CORS_ORIGINS", "https://transify.ai,https://app.transify.ai")
+    cors_env = os.getenv("CORS_ORIGINS", "https://transify.ai,https://app.transify.ai,https://transify20-production.up.railway.app")
     allowed_origins = [o.strip() for o in cors_env.split(",") if o.strip()]
     app.add_middleware(
         CORSMiddleware,
@@ -90,11 +90,23 @@ else:
 @app.middleware("http")
 async def add_security_headers_middleware(request: Request, call_next):
     """
-    Production-grade security headers middleware.
-    Safely enforces MIME-sniffing protection, referrer policy, frame isolation,
-    and scoped permissions policy while preserving BdSL camera/microphone access.
+    Authoritative production-grade security headers middleware.
+    Consistently enforces:
+    - X-Content-Type-Options: nosniff
+    - Referrer-Policy: strict-origin-when-cross-origin
+    - X-Frame-Options: DENY (clickjacking protection)
+    - Permissions-Policy: camera=(self), microphone=(self), geolocation=() (preserves assistive BdSL / voice)
+    - Content-Security-Policy: scoped compatibility policy
+    - Strict-Transport-Security: max-age=31536000 (verified HTTPS requests only; never forced on dev plain-HTTP)
+    Applies to HTML, API JSON, static assets, errors (4xx, 5xx), and OPTIONS responses.
     """
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception:
+        response = JSONResponse(
+            status_code=500,
+            content={"detail": "Internal server error"}
+        )
 
     # 1. MIME-type sniffing protection
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -102,10 +114,10 @@ async def add_security_headers_middleware(request: Request, call_next):
     # 2. Referrer policy
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
-    # 3. Frame options: prevent clickjacking (SAMEORIGIN allows same-origin embedding if needed)
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    # 3. Frame options: prevent clickjacking (DENY prevents framing entirely)
+    response.headers["X-Frame-Options"] = "DENY"
 
-    # 4. Scoped Permissions-Policy: camera and microphone permitted for self (essential for sign translator & speech studio)
+    # 4. Scoped Permissions-Policy: camera and microphone permitted for self
     response.headers["Permissions-Policy"] = "camera=(self), microphone=(self), geolocation=()"
 
     # 5. Content Security Policy: defense-in-depth with required font and media directives
@@ -115,15 +127,21 @@ async def add_security_headers_middleware(request: Request, call_next):
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com data:; "
         "img-src 'self' data: blob:; "
-        "media-src 'self' blob:; "
+        "media-src 'self' blob: data:; "
         "connect-src 'self' https://transify20-production.up.railway.app; "
-        "frame-ancestors 'self';"
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self';"
     )
     response.headers["Content-Security-Policy"] = csp_policy
 
-    # 6. Strict-Transport-Security (HSTS) only when confirmed running under production HTTPS
-    if is_production():
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    # 6. Strict-Transport-Security (HSTS) only when confirmed running under verified HTTPS
+    # Never force HSTS on a local plain-HTTP dev server. Reject untrusted forwarded headers in non-production.
+    is_https = request.url.scheme == "https" or (
+        is_production() and request.headers.get("x-forwarded-proto", "").lower() == "https"
+    )
+    if is_https:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000"
 
     return response
 

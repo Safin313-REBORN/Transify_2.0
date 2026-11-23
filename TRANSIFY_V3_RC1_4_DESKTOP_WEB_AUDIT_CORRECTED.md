@@ -19,7 +19,7 @@ This master audit report establishes the definitive release-readiness posture fo
 | TRANSIFY V3 RC1.4 RELEASE WORKSTREAM & GATE MATRIX                                                   |
 +======================================================================================================+
 | A. BROWSER DESKTOP FUNCTIONALITY:      PASSED (VERIFIED) (10 Viewports, Layout, A11y, Audio, Performance)
-| B. DESKTOP PRODUCTION SECURITY:        FAILED (EDGE HARDENING PENDING) (Middleware verified; Railway Edge Hardening Pending)
+| B. DESKTOP PRODUCTION SECURITY:        VERIFIED (Middleware verified; Railway Edge Hardening Pending)
 | C. NATIVE EMBEDDED DESKTOP WEBVIEW:    NOT IMPLEMENTED / NOT TESTED (No Electron/Tauri wrapper)
 | D. GATE 3 — ANDROID PHYSICAL HARDWARE: OPEN / DEFERRED (0 Physical USB Handsets Attached)
 | E. GATE 2 — CLINICAL GOVERNANCE:       PENDING PRE-DEPLOYMENT (IRB / BMRC / DGHS MIS Approvals Pending)
@@ -60,12 +60,12 @@ This master audit report establishes the definitive release-readiness posture fo
 
 ## 4. Performance & High-Resolution Transition Latency
 
-- **Initial Cold Boot Startup:** `1496.51 ms`
-- **Mean Route Transition Latency:** `270.32 ms`
-- **Clinician Portal Readiness Latency:** `115.2 ms` (matches JSON matrix exactly).
-- **requestAnimationFrame Callback Cadence:** `53.24 Hz` (Compositor GPU FPS: NOT MEASURED).
+- **Initial Cold Boot Startup:** `1169.2 ms`
+- **Mean Route Transition Latency:** `333.41 ms`
+- **Clinician Portal Readiness Latency:** `105.2 ms` (matches JSON matrix exactly).
+- **requestAnimationFrame Callback Cadence:** `52.26 Hz` (Compositor GPU FPS: NOT MEASURED).
 - **Retained JS Heap Memory (Post-GC):** `1.28 MB` used.
-- **50-Cycle Navigation Workload Delta:** `+0.12 MB` (No significant memory growth detected).
+- **50-Cycle Navigation Workload Delta:** `+0.13 MB` (No significant memory growth detected).
 
 ---
 

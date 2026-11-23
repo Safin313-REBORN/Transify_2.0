@@ -10,6 +10,9 @@ __pycache__
 audit
 ui_audit
 design-reference
+android/
+TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/
+.gradle/
 data/audio_cache/*
 data/sign/raw/*
 data/braille/raw/*

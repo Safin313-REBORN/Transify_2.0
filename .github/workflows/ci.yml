@@ -67,6 +67,14 @@ jobs:
           path: TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json
           if-no-files-found: ignore
 
+      - name: Upload RC1.4.4 Security Header Matrix JSON
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: transify-rc1-4-4-security-matrix
+          path: TRANSIFY_V3_RC1_4_4_SECURITY_HEADER_MATRIX.json
+          if-no-files-found: ignore
+
       - name: Upload Desktop Audit Screenshots
         uses: actions/upload-artifact@v4
         if: always()
