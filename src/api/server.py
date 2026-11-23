@@ -7,6 +7,7 @@ handles translation history, accessibility preferences, and serves the frontend 
 import os
 import sys
 import time
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -744,6 +745,40 @@ def synthesize_speech(req: TTSRequest):
     return res
 
 
+def resolve_dataset_manifest_path(rel_path: str, repo_root: Path, allowed_root: Path) -> Path:
+    """
+    Safely resolves a manifest relative path across Windows and POSIX systems.
+    - Accepts both '/' and '\\' path separators from manifest metadata.
+    - Rejects path traversal attempts ('..') and external absolute paths.
+    - Ensures the fully resolved path remains strictly within allowed_root.
+    """
+    if not rel_path or not isinstance(rel_path, str):
+        raise HTTPException(status_code=400, detail="Invalid landmark path specified in manifest.")
+    
+    # Normalize backslashes to forward slashes
+    normalized_str = rel_path.replace("\\", "/").strip()
+    
+    # Reject absolute paths or paths with traversal components
+    if normalized_str.startswith("/") or normalized_str.startswith("~") or ".." in normalized_str.split("/"):
+        raise HTTPException(status_code=400, detail="Path traversal attempt or absolute path detected.")
+    
+    # Construct safe relative path
+    clean_parts = [p for p in normalized_str.split("/") if p and p != "."]
+    safe_rel_path = Path(*clean_parts)
+    
+    # Resolve against repo_root
+    resolved_path = (repo_root / safe_rel_path).resolve()
+    resolved_allowed = allowed_root.resolve()
+    
+    # Enforce confinement inside allowed_root
+    try:
+        resolved_path.relative_to(resolved_allowed)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Path traversal attempt detected outside allowed root.")
+    
+    return resolved_path
+
+
 # --- Interactive Demonstration & Benchmark Sample Endpoints ---
 
 @app.get("/api/samples/sign/{class_name}", tags=["Samples"])
@@ -760,12 +795,15 @@ def get_sign_sample(class_name: str):
         raise HTTPException(status_code=404, detail=f"No sample found for class {class_clean}")
 
     row = matched.iloc[0]
-    rel_path = row["landmark_filename"]
-    npy_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", rel_path))
-    if not os.path.exists(npy_path):
+    rel_path = str(row["landmark_filename"])
+    repo_root = Path(__file__).resolve().parent.parent.parent
+    data_root = (repo_root / "data").resolve()
+    
+    npy_path = resolve_dataset_manifest_path(rel_path, repo_root, data_root)
+    if not npy_path.exists():
         raise HTTPException(status_code=404, detail=f"Landmark file not found: {rel_path}")
 
-    seq = np.load(npy_path).tolist()
+    seq = np.load(str(npy_path)).tolist()
     return {
         "class_label": class_clean,
         "sample_id": row["sample_id"],

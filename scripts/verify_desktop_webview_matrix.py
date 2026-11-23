@@ -1,5 +1,5 @@
 """
-Transify V3 — RC1.4.2 Comprehensive Desktop Verification & Audit Harness.
+Transify V3 — RC1.4.3.1 Comprehensive Desktop Verification & Audit Harness.
 Independent, evidence-driven audit of desktop responsive layout, deep clipping,
 Bengali typography, performance, 50-cycle stability, keyboard accessibility,
 Zero Auto-Audio policy, and production security.
@@ -296,7 +296,10 @@ def isolated_audit_environment():
     """
     Creates a completely fresh temporary SQLite database fixture with initialized schema
     and purely synthetic test data. NEVER copies data/transify.db or any sidecar files.
-    Calculates and verifies before-and-after SHA-256 checksums of data/transify.db.
+    The original database (data/transify.db) is never copied or used for SQL queries.
+    The original database is opened read-only strictly to calculate its SHA-256 checksum
+    before and after the audit run as integrity evidence. No database writes or modifications
+    to data/transify.db are permitted.
     Guarantees environment variable restoration, session revocation, user deletion,
     and verified filesystem cleanup even on exceptions.
     """
@@ -508,7 +511,7 @@ def wait_for_workspace_readiness(page, ws_id: str, timeout_sec: float = 3.5) -> 
 
 def run_desktop_matrix():
     print("=" * 70)
-    print("TRANSIFY V3 — RC1.4.2 COMPREHENSIVE DESKTOP AUDIT HARNESS")
+    print("TRANSIFY V3 — RC1.4.3.1 COMPREHENSIVE DESKTOP AUDIT HARNESS")
     print("=" * 70, flush=True)
 
     with isolated_audit_environment() as audit_env:
@@ -532,10 +535,16 @@ def run_desktop_matrix():
 
         print(f"[*] Live Desktop Test Server up at {base_url}", flush=True)
 
+        try:
+            head_commit = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+        except Exception:
+            head_commit = "UNKNOWN"
+
         audit_data = {
             "audit_metadata": {
                 "target_package": "com.abrarafick.transify",
-                "milestone": "RC1.4.2 Desktop Audit Finalization & Verification",
+                "milestone": "RC1.4.3.1 CI Repair, Source-of-Truth Reconciliation & Final Verification",
+                "source_commit": head_commit,
                 "timestamp_utc": datetime.now(timezone.utc).isoformat(),
                 "evaluated_runtime": "Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)",
                 "single_source_of_truth": "TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json",
@@ -800,11 +809,10 @@ def run_desktop_matrix():
                                     const yOverlap = Math.max(0, Math.min(rA.bottom, rB.bottom) - Math.max(rA.top, rB.top));
 
                                     if (xOverlap > 4 && yOverlap > 4) {{
-                                        const sA = window.getComputedStyle(elA);
-                                        const sB = window.getComputedStyle(elB);
-                                        const isOverlay = (sA.position === 'fixed' || sA.position === 'absolute' || sB.position === 'fixed' || sB.position === 'absolute') &&
-                                                          (sA.zIndex !== sB.zIndex);
-                                        if (!isOverlay) {{
+                                        const isApprovedOverlay = (el) => {{
+                                            return Boolean(el.closest('[role="dialog"], dialog, .modal, .modal-dialog, .nav-drawer, .toast, .floating-action-control, [data-approved-overlay="true"]'));
+                                        }};
+                                        if (!isApprovedOverlay(elA) && !isApprovedOverlay(elB)) {{
                                             overlappingElements.push({{
                                                 elementA: `${{elA.tagName.toLowerCase()}}${{elA.id ? '#' + elA.id : ''}}.${{Array.from(elA.classList).slice(0, 2).join('.')}}`,
                                                 elementB: `${{elB.tagName.toLowerCase()}}${{elB.id ? '#' + elB.id : ''}}.${{Array.from(elB.classList).slice(0, 2).join('.')}}`,

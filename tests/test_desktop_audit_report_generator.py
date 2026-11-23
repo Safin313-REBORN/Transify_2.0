@@ -704,3 +704,159 @@ def test_negative_conjunct_regex_present_but_visual_rendering_unverified(passing
     assert "complex glyph shaping requires visual inspection" in master
 
 
+def test_browser_level_geometry_negative_cases():
+    """
+    Browser-level negative tests verifying:
+    1. Unintended button overlap is flagged.
+    2. Fixed-versus-absolute element collision is flagged (differing z-index does not bypass).
+    3. Vertical clipping by overflow-hidden parent is flagged.
+    4. Horizontal clipping by overflow-hidden parent is flagged.
+    5. Approved intentional dialog overlay is permitted and not flagged as an overlap defect.
+    """
+    from playwright.sync_api import sync_playwright
+
+    geometry_detector_js = """() => {
+        const horizontalClipping = [];
+        const verticalClipping = [];
+        const parentClipping = [];
+        const overlappingElements = [];
+
+        const allTargets = Array.from(document.querySelectorAll('*')).filter(el => {
+            if (el.offsetWidth <= 1 && el.offsetHeight <= 1) return false;
+            if (el.classList.contains('sr-only')) return false;
+            return true;
+        });
+
+        allTargets.forEach(el => {
+            const parent = el.parentElement;
+            if (!parent) return;
+            const pStyle = window.getComputedStyle(parent);
+            if (pStyle.overflowX === 'hidden' && parent.scrollWidth > parent.clientWidth + 2) {
+                parentClipping.push({
+                    element: `${el.tagName.toLowerCase()}.${Array.from(el.classList).slice(0, 2).join('.')}`,
+                    issue: `Parent ${parent.tagName.toLowerCase()} scrollWidth (${parent.scrollWidth}px) exceeds clientWidth (${parent.clientWidth}px)`
+                });
+            }
+            if (pStyle.overflowY === 'hidden' && parent.scrollHeight > parent.clientHeight + 2) {
+                verticalClipping.push({
+                    element: `${el.tagName.toLowerCase()}.${Array.from(el.classList).slice(0, 2).join('.')}`,
+                    issue: `Parent ${parent.tagName.toLowerCase()} scrollHeight (${parent.scrollHeight}px) exceeds clientHeight (${parent.clientHeight}px)`
+                });
+            }
+        });
+
+        allTargets.forEach(el => {
+            const r = el.getBoundingClientRect();
+            if (r.right > window.innerWidth + 2) {
+                horizontalClipping.push({
+                    element: `${el.tagName.toLowerCase()}.${Array.from(el.classList).slice(0, 2).join('.')}`,
+                    right: Math.round(r.right),
+                    vpWidth: window.innerWidth
+                });
+            }
+        });
+
+        const interactiveControls = allTargets.filter(el => {
+            const tag = el.tagName.toLowerCase();
+            return ['button', 'input', 'select', 'textarea', 'a'].includes(tag) || el.classList.contains('tile') || el.classList.contains('card');
+        });
+
+        for (let i = 0; i < interactiveControls.length; i++) {
+            const elA = interactiveControls[i];
+            const rA = elA.getBoundingClientRect();
+            if (rA.width <= 0 || rA.height <= 0) continue;
+
+            for (let j = i + 1; j < interactiveControls.length; j++) {
+                const elB = interactiveControls[j];
+                if (elA.contains(elB) || elB.contains(elA)) continue;
+
+                const rB = elB.getBoundingClientRect();
+                if (rB.width <= 0 || rB.height <= 0) continue;
+
+                const xOverlap = Math.max(0, Math.min(rA.right, rB.right) - Math.max(rA.left, rB.left));
+                const yOverlap = Math.max(0, Math.min(rA.bottom, rB.bottom) - Math.max(rA.top, rB.top));
+
+                if (xOverlap > 4 && yOverlap > 4) {
+                    const isApprovedOverlay = (el) => {
+                        return Boolean(el.closest('[role="dialog"], dialog, .modal, .modal-dialog, .nav-drawer, .toast, .floating-action-control, [data-approved-overlay="true"]'));
+                    };
+                    if (!isApprovedOverlay(elA) && !isApprovedOverlay(elB)) {
+                        overlappingElements.push({
+                            elementA: `${elA.tagName.toLowerCase()}${elA.id ? '#' + elA.id : ''}.${Array.from(elA.classList).slice(0, 2).join('.')}`,
+                            elementB: `${elB.tagName.toLowerCase()}${elB.id ? '#' + elB.id : ''}.${Array.from(elB.classList).slice(0, 2).join('.')}`,
+                            overlapArea: Math.round(xOverlap * yOverlap)
+                        });
+                    }
+                }
+            }
+        }
+
+        return {
+            horizontalClipping,
+            verticalClipping,
+            parentClipping,
+            overlappingElements
+        };
+    }"""
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1000, "height": 800})
+
+        # 1. Unintended button overlap
+        page.set_content("""
+        <html><body>
+            <button id="btn1" style="position: absolute; left: 50px; top: 50px; width: 100px; height: 40px;">Button 1</button>
+            <button id="btn2" style="position: absolute; left: 80px; top: 60px; width: 100px; height: 40px;">Button 2</button>
+        </body></html>
+        """)
+        res = page.evaluate(geometry_detector_js)
+        assert len(res["overlappingElements"]) > 0, "Unintended button overlap must be detected"
+
+        # 2. Fixed-versus-absolute element collision (differing z-index)
+        page.set_content("""
+        <html><body>
+            <button id="fixed-btn" style="position: fixed; left: 100px; top: 100px; width: 120px; height: 40px; z-index: 10;">Fixed</button>
+            <input id="abs-input" style="position: absolute; left: 120px; top: 110px; width: 120px; height: 40px; z-index: 2;" value="Input">
+        </body></html>
+        """)
+        res = page.evaluate(geometry_detector_js)
+        assert len(res["overlappingElements"]) > 0, "Fixed vs absolute collision with differing z-index must NOT be excused"
+
+        # 3. Vertical clipping by overflow-hidden parent
+        page.set_content("""
+        <html><body>
+            <div id="parent-v" style="height: 50px; overflow-y: hidden; width: 200px;">
+                <div id="child-v" style="height: 120px; width: 100%;">Taller content</div>
+            </div>
+        </body></html>
+        """)
+        res = page.evaluate(geometry_detector_js)
+        assert len(res["verticalClipping"]) > 0, "Vertical clipping by overflow-hidden parent must be detected"
+
+        # 4. Horizontal clipping by overflow-hidden parent
+        page.set_content("""
+        <html><body>
+            <div id="parent-h" style="width: 100px; overflow-x: hidden; height: 100px;">
+                <div id="child-h" style="width: 300px; height: 50px;">Wider content</div>
+            </div>
+        </body></html>
+        """)
+        res = page.evaluate(geometry_detector_js)
+        assert len(res["parentClipping"]) > 0, "Horizontal clipping by overflow-hidden parent must be detected"
+
+        # 5. Approved intentional dialog overlay (must NOT be flagged as layout defect)
+        page.set_content("""
+        <html><body>
+            <button id="under-btn" style="position: absolute; left: 50px; top: 50px; width: 100px; height: 40px;">Under</button>
+            <div class="modal" role="dialog" style="position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 999;">
+                <button id="modal-btn" style="position: absolute; left: 60px; top: 50px; width: 100px; height: 40px;">Modal OK</button>
+            </div>
+        </body></html>
+        """)
+        res = page.evaluate(geometry_detector_js)
+        assert len(res["overlappingElements"]) == 0, "Approved dialog overlay must NOT be flagged as layout defect"
+
+        browser.close()
+
+

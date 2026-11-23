@@ -28,6 +28,7 @@ from src.api.server import (
     read_preferences,
     set_preference,
     get_sign_sample,
+    resolve_dataset_manifest_path,
     list_braille_samples,
     serve_landing_page,
     serve_login_page,
@@ -287,6 +288,55 @@ class TestSampleEndpoints(unittest.TestCase):
         self.assertEqual(res["frames"], 30)
         self.assertEqual(len(res["sequence"]), 30)
         self.assertEqual(len(res["sequence"][0]), 162)
+
+    def test_sign_sample_windows_backslash_path(self):
+        from pathlib import Path
+        repo_root = Path(__file__).resolve().parent.parent
+        data_root = (repo_root / "data").resolve()
+        resolved = resolve_dataset_manifest_path(
+            "data\\sign\\processed\\landmarks\\BDSL_S001_HELLO_SES01_T01.npy",
+            repo_root,
+            data_root
+        )
+        self.assertTrue(resolved.exists())
+        self.assertTrue(str(resolved).endswith("BDSL_S001_HELLO_SES01_T01.npy"))
+
+    def test_sign_sample_posix_slash_path(self):
+        from pathlib import Path
+        repo_root = Path(__file__).resolve().parent.parent
+        data_root = (repo_root / "data").resolve()
+        resolved = resolve_dataset_manifest_path(
+            "data/sign/processed/landmarks/BDSL_S001_HELLO_SES01_T01.npy",
+            repo_root,
+            data_root
+        )
+        self.assertTrue(resolved.exists())
+        self.assertTrue(str(resolved).endswith("BDSL_S001_HELLO_SES01_T01.npy"))
+
+    def test_sign_sample_missing_file(self):
+        from fastapi import HTTPException
+        with self.assertRaises(HTTPException) as ctx:
+            get_sign_sample("NONEXISTENT_CLASS_XYZ_123")
+        self.assertEqual(ctx.exception.status_code, 404)
+
+    def test_sign_sample_path_traversal_attempts(self):
+        from pathlib import Path
+        from fastapi import HTTPException
+        repo_root = Path(__file__).resolve().parent.parent
+        data_root = (repo_root / "data").resolve()
+
+        traversal_cases = [
+            "../../etc/passwd",
+            "/etc/shadow",
+            "~/.bashrc",
+            "data/sign/../../../outside.txt",
+            "data/sign/../../sensitive.db"
+        ]
+        for bad_path in traversal_cases:
+            with self.subTest(bad_path=bad_path):
+                with self.assertRaises(HTTPException) as ctx:
+                    resolve_dataset_manifest_path(bad_path, repo_root, data_root)
+                self.assertEqual(ctx.exception.status_code, 400)
 
     def test_braille_sample_list(self):
         res = list_braille_samples()

@@ -50,7 +50,30 @@ jobs:
           TRANSIFY_ENV: testing
           PYTHONPATH: .
         run: |
-          python -m pytest -v
+          python -m pytest -v --tb=short
+
+      - name: Run Desktop 80-Workspace & Responsive Audit
+        env:
+          TRANSIFY_ENV: testing
+          PYTHONPATH: .
+        run: |
+          python scripts/verify_desktop_webview_matrix.py
+
+      - name: Upload Desktop Audit Matrix JSON
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: transify-desktop-audit-matrix
+          path: TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json
+          if-no-files-found: ignore
+
+      - name: Upload Desktop Audit Screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: transify-desktop-audit-screenshots
+          path: TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/
+          if-no-files-found: ignore
 
       - name: Set up JDK 17 for Android
         uses: actions/setup-java@v4
