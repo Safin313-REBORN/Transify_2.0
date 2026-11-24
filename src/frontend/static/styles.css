@@ -7511,6 +7511,218 @@ button.welcome-guest-link:focus-visible {
   white-space: pre-wrap;
 }
 
+/* =============================================================
+   INTERACTIVE ANIMATED BUTTONS (HUMAN CRAFTED, ZERO AI SLOP)
+   ============================================================= */
+.btn-braille-action,
+.btn-braille-toolbar-primary,
+.btn-braille-toolbar-secondary,
+.btn-micro,
+.btn-outline-dark,
+.phrase-action-btn,
+.quick-word-btn,
+.chronic-nav-btn,
+.chat-suggestion-chip,
+.voice-sample-chip,
+.btn-care-tile-primary,
+.btn-care-tile-secondary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.22s ease,
+              background-color 0.18s ease,
+              border-color 0.18s ease,
+              color 0.18s ease !important;
+  will-change: transform;
+}
+
+.btn-braille-action svg,
+.btn-braille-toolbar-primary svg,
+.btn-braille-toolbar-secondary svg,
+.btn-micro svg,
+.btn-outline-dark svg,
+.phrase-action-btn svg,
+.quick-word-btn svg,
+.chronic-nav-btn svg,
+.chat-suggestion-chip svg,
+.voice-sample-chip svg,
+.btn-care-tile-primary svg,
+.btn-care-tile-secondary svg {
+  flex-shrink: 0;
+  transition: transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease !important;
+}
+
+/* Hover icon dynamics: gentle spring lift */
+.btn-braille-action:hover svg,
+.btn-braille-toolbar-primary:hover svg,
+.btn-braille-toolbar-secondary:hover svg,
+.btn-micro:hover svg,
+.btn-outline-dark:hover svg,
+.phrase-action-btn:hover svg,
+.quick-word-btn:hover svg,
+.chronic-nav-btn:hover svg,
+.chat-suggestion-chip:hover svg,
+.btn-care-tile-primary:hover svg,
+.btn-care-tile-secondary:hover svg {
+  transform: scale(1.15);
+}
+
+/* Micro rotation on invert, flip, refresh, random, clear */
+button[data-action*="invert"]:hover svg,
+button[data-action*="flip"]:hover svg,
+button[data-action*="switch"]:hover svg,
+.btn-micro[data-action*="invert"]:hover svg {
+  transform: rotate(180deg) scale(1.15) !important;
+}
+
+button[data-action*="random"]:hover svg,
+.btn-micro[data-action*="random"]:hover svg {
+  transform: rotate(45deg) scale(1.2) !important;
+}
+
+button[data-action*="clear"]:hover svg,
+.btn-micro[data-action*="clear"]:hover svg {
+  transform: translateY(-2px) rotate(-12deg) scale(1.15) !important;
+}
+
+/* Audio pulse micro-animation on speak buttons */
+button[data-action*="speak"]:hover svg,
+#speak-braille-btn:hover svg,
+.phrase-action-btn[data-action="phrase-speak"]:hover svg {
+  animation: btn-audio-pulse 0.55s ease infinite alternate !important;
+}
+
+@keyframes btn-audio-pulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.22); filter: drop-shadow(0 0 4px rgba(131, 56, 236, 0.4)); }
+}
+
+/* Copy button dynamic check */
+button[data-action*="copy"]:hover svg,
+#copy-braille-btn:hover svg,
+#copy-braille-unicode-btn:hover svg,
+.phrase-action-btn[data-action="phrase-copy"]:hover svg {
+  transform: scale(1.18) translateY(-1px) !important;
+}
+
+/* Tactile Active Compression: spring release feel */
+.btn-braille-action:active,
+.btn-braille-toolbar-primary:active,
+.btn-braille-toolbar-secondary:active,
+.btn-micro:active,
+.btn-outline-dark:active,
+.phrase-action-btn:active,
+.quick-word-btn:active,
+.chronic-nav-btn:active,
+.chat-suggestion-chip:active,
+.voice-sample-chip:active,
+.btn-care-tile-primary:active,
+.btn-care-tile-secondary:active {
+  transform: translateY(1.5px) scale(0.96) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  transition-duration: 0.08s !important;
+}
+
+/* -------------------------------------------------------------
+   INTERACTIVE ANIMATED BUTTONS & MICRO-INTERACTIONS
+   ------------------------------------------------------------- */
+.btn-braille-action,
+.btn-braille-toolbar-primary,
+.btn-braille-toolbar-secondary,
+.btn-micro,
+.btn-outline-dark,
+.phrase-action-btn,
+.chat-suggestion-chip,
+.chronic-nav-btn,
+.quick-word-btn,
+.voice-sample-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.22s ease,
+              background-color 0.2s ease,
+              border-color 0.2s ease,
+              color 0.2s ease !important;
+}
+
+.btn-braille-action svg,
+.btn-braille-toolbar-primary svg,
+.btn-braille-toolbar-secondary svg,
+.btn-micro svg,
+.btn-outline-dark svg,
+.phrase-action-btn svg,
+.chat-suggestion-chip svg,
+.chronic-nav-btn svg,
+.quick-word-btn svg,
+.voice-sample-chip svg {
+  flex-shrink: 0;
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease !important;
+}
+
+/* Hover Micro-interactions: spring lift & icon bloom */
+.btn-braille-action:hover svg,
+.btn-braille-toolbar-primary:hover svg,
+.btn-braille-toolbar-secondary:hover svg,
+.btn-micro:hover svg,
+.btn-outline-dark:hover svg,
+.phrase-action-btn:hover svg,
+.chat-suggestion-chip:hover svg,
+.chronic-nav-btn:hover svg,
+.quick-word-btn:hover svg,
+.voice-sample-chip:hover svg {
+  transform: scale(1.16);
+}
+
+/* Action-Specific Interactive Rotations */
+button[data-action*="invert"]:hover svg,
+button[data-action*="flip"]:hover svg,
+button[data-action*="switch-camera"]:hover svg {
+  transform: rotate(180deg) scale(1.15) !important;
+}
+
+button[data-action*="random"]:hover svg {
+  transform: rotate(45deg) scale(1.2) !important;
+}
+
+button[data-action*="clear"]:hover svg {
+  transform: translateY(-1px) rotate(-14deg) scale(1.15) !important;
+}
+
+/* Speak / Audio Soundwave Micro-Pulse */
+button[data-action*="speak"]:hover svg,
+#speak-braille-btn:hover svg,
+.chat-speak-btn:hover svg {
+  animation: btn-sound-pulse 0.5s ease infinite alternate;
+}
+
+@keyframes btn-sound-pulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.22); }
+}
+
+/* Tactile Active Compression on Press */
+.btn-braille-action:active,
+.btn-braille-toolbar-primary:active,
+.btn-braille-toolbar-secondary:active,
+.btn-micro:active,
+.btn-outline-dark:active,
+.phrase-action-btn:active,
+.chat-suggestion-chip:active,
+.chronic-nav-btn:active,
+.quick-word-btn:active,
+.voice-sample-chip:active {
+  transform: translateY(1.5px) scale(0.97) !important;
+  transition: transform 0.08s ease !important;
+}
+
 /* -------------------------------------------------------------
    10. Voice Hub View (#stt / #tts)
    ------------------------------------------------------------- */

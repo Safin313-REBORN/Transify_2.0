@@ -25,8 +25,8 @@
 
   <!-- Design System CSS (Tokens, Shell, and Core Styles) -->
   <link rel="stylesheet" href="/static/tokens.css">
-  <link rel="stylesheet" href="/static/shell.css?v=20261125_pro_ui_v10">
-  <link rel="stylesheet" href="/static/styles.css?v=20261125_pro_ui_v10">
+  <link rel="stylesheet" href="/static/shell.css?v=20261125_pro_ui_v13">
+  <link rel="stylesheet" href="/static/styles.css?v=20261125_pro_ui_v13">
 
   <script src="/static/boot.js?v=20261124_rc1_4_5"></script>
   <script src="/static/motion.js?v=20261124_motion_v1" defer></script>
@@ -672,8 +672,7 @@
                 <span class="care-badge online">Healthcare Intake</span>
                 <span class="care-badge">Offline-First</span>
                 <span class="care-badge"
-                  style="background: rgba(131,56,236,0.18); color: #C49CFF; border: 1px solid rgba(131,56,236,0.35);">🤖
-                  AI Trained</span>
+                  style="background: rgba(131,56,236,0.18); color: #C49CFF; border: 1px solid rgba(131,56,236,0.35);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -1px; margin-right: 4px;"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4 11a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7z"></path><circle cx="9" cy="15" r="1"></circle><circle cx="15" cy="15" r="1"></circle></svg>AI Trained</span>
               </div>
               <div class="care-title" style="margin-top: 6px;">Transify Care &amp; AI Assistant</div>
               <div class="care-desc">Accessible clinical symptom triage, WHO/Merck guidelines &amp; AI consultation.
@@ -681,10 +680,10 @@
             </div>
             <div class="care-actions">
               <a href="#chat" class="btn-care-tile-primary press" id="btn-open-ai-chat">
-                🤖 AI Chatbot
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> AI Chatbot
               </a>
               <a href="#care-chronic" class="btn-care-tile-primary press" id="btn-open-care-chronic">
-                ⌚ ChronicCare
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="7"></circle><polyline points="12 9 12 12 13.5 13.5"></polyline><path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"></path></svg> ChronicCare
               </a>
               <a href="#care-intake" class="btn-care-tile-secondary press" id="btn-open-care-intake">Symptom Intake</a>
               <a href="#clinician" class="btn-care-tile-secondary press" id="btn-open-clinician-portal">Clinician
@@ -971,7 +970,7 @@
             <div id="alphabet-grid" class="alphabet-grid"></div>
             <div class="spell-actions-row">
               <button type="button" id="spell-space-btn" class="btn-spell-action press">Space</button>
-              <button type="button" id="spell-backspace-btn" class="btn-spell-action press">⌫ Back</button>
+              <button type="button" id="spell-backspace-btn" class="btn-spell-action press"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>Back</button>
               <button type="button" id="spell-send-to-sentence-btn" class="btn-spell-action primary press">Add
                 Word</button>
               <button type="button" id="spell-clear-btn" class="btn-spell-action danger press">Clear</button>
@@ -985,16 +984,16 @@
           <div id="sign-vocab-section" class="sign-vocab-container" style="display: none;">
             <div class="vocab-header-label">Quick Healthcare &amp; Daily Signs</div>
             <div id="sign-vocabulary-grid" class="vocab-chips-grid">
-              <button type="button" class="quick-word-btn press" data-word="hello">👋 Hello</button>
-              <button type="button" class="quick-word-btn press" data-word="thank_you">🙏 Thank you</button>
-              <button type="button" class="quick-word-btn press" data-word="help">🆘 Help</button>
-              <button type="button" class="quick-word-btn press" data-word="yes">✅ Yes</button>
-              <button type="button" class="quick-word-btn press" data-word="no">❌ No</button>
-              <button type="button" class="quick-word-btn press" data-word="please">🤲 Please</button>
-              <button type="button" class="quick-word-btn press" data-word="pain">⚡ Pain</button>
-              <button type="button" class="quick-word-btn press" data-word="doctor">🩺 Doctor</button>
-              <button type="button" class="quick-word-btn press" data-word="water">💧 Water</button>
-              <button type="button" class="quick-word-btn press" data-word="medicine">💊 Medicine</button>
+              <button type="button" class="quick-word-btn press" data-word="hello">Hello</button>
+              <button type="button" class="quick-word-btn press" data-word="thank_you">Thank you</button>
+              <button type="button" class="quick-word-btn press" data-word="help">Help</button>
+              <button type="button" class="quick-word-btn press" data-word="yes">Yes</button>
+              <button type="button" class="quick-word-btn press" data-word="no">No</button>
+              <button type="button" class="quick-word-btn press" data-word="please">Please</button>
+              <button type="button" class="quick-word-btn press" data-word="pain">Pain</button>
+              <button type="button" class="quick-word-btn press" data-word="doctor">Doctor</button>
+              <button type="button" class="quick-word-btn press" data-word="water">Water</button>
+              <button type="button" class="quick-word-btn press" data-word="medicine">Medicine</button>
             </div>
             <div id="sign-domains-container" class="sr-only"></div>
           </div>
@@ -1136,8 +1135,7 @@
               <button type="button" role="tab" class="phrase-cat-tab" data-cat="Assistive"
                 aria-selected="false">Assistive
                 <span class="phrase-cat-count" id="count-assistive">0</span></button>
-              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Favorites" aria-selected="false">⭐
-                Favorites
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Favorites" aria-selected="false"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -1px; margin-right: 4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Favorites
                 <span class="phrase-cat-count" id="count-favorites">0</span></button>
             </div>
           </div>
@@ -1233,7 +1231,7 @@
             <!-- Preloaded Test Samples Bar -->
             <div class="braille-samples-section">
               <div class="braille-samples-header">
-                <span class="braille-samples-title">⚡ Preloaded Test Samples (Click to test instantly):</span>
+                <span class="braille-samples-title">Preloaded Test Samples (Click to test instantly):</span>
                 <span class="braille-samples-hint">Authentic physical embossed photos ready for AI OCR</span>
               </div>
               <div class="braille-samples-grid">
@@ -1292,11 +1290,11 @@
 
               <div class="braille-dropzone-actions">
                 <button type="button" class="btn-braille-action primary press" id="braille-select-file-btn">
-                  📁 Browse Image
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> Browse Image
                 </button>
                 <button type="button" class="btn-braille-action secondary press" id="braille-open-camera-btn"
                   data-action="braille-open-camera">
-                  📷 Snap with Camera
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> Snap with Camera
                 </button>
               </div>
 
@@ -1330,11 +1328,11 @@
               <div class="braille-toolbar-right">
                 <button type="button" id="check-iqa-btn-visible" class="btn-braille-toolbar-secondary press"
                   data-action="braille-run-iqa">
-                  🔍 Check Quality (IQA)
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Check Quality (IQA)
                 </button>
                 <button type="button" id="translate-braille-btn-visible" class="btn-braille-toolbar-primary press"
                   data-action="braille-run-translation">
-                  ✨ Translate Image
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Translate Image
                 </button>
               </div>
             </div>
@@ -1378,13 +1376,10 @@
 
                 <!-- Explorer Utility Controls -->
                 <div class="braille-explorer-actions">
-                  <button type="button" class="btn-micro press" data-action="braille-clear-cell-dots">🧹 Clear</button>
-                  <button type="button" class="btn-micro press" data-action="braille-speak-active-cell">🔊
-                    Pronounce</button>
-                  <button type="button" class="btn-micro press" data-action="braille-invert-cell-dots">🔄
-                    Invert</button>
-                  <button type="button" class="btn-micro press" data-action="braille-random-cell-pattern">🎲
-                    Random</button>
+                  <button type="button" class="btn-micro press" data-action="braille-clear-cell-dots"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Clear</button>
+                  <button type="button" class="btn-micro press" data-action="braille-speak-active-cell"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Pronounce</button>
+                  <button type="button" class="btn-micro press" data-action="braille-invert-cell-dots"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Invert</button>
+                  <button type="button" class="btn-micro press" data-action="braille-random-cell-pattern"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg> Random</button>
                 </div>
               </div>
 
@@ -1406,24 +1401,17 @@
 
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                   <button type="button" id="speak-braille-btn" class="btn-braille-toolbar-primary press"
-                    style="height: 40px; font-size: 14px; padding: 0 16px;">🔊 Speak aloud</button>
+                    style="height: 40px; font-size: 14px; padding: 0 16px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg> Speak aloud</button>
                   <button type="button" id="copy-braille-btn" class="btn-outline-dark press"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);">📋
-                    Copy
-                    text</button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg> Copy text</button>
                   <button type="button" id="copy-braille-unicode-btn" class="btn-outline-dark press"
                     data-action="braille-copy-unicode"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);">⠓
-                    Copy Braille</button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="7" cy="6" r="2.2"/><circle cx="7" cy="12" r="2.2"/><circle cx="17" cy="6" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg> Copy Braille</button>
                   <button type="button" id="download-braille-btn" class="btn-outline-dark press"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);">💾
-                    Download
-                    TXT</button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg> Download TXT</button>
                   <button type="button" id="download-brf-btn" class="btn-outline-dark press"
                     data-action="braille-download-brf"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);">📄
-                    Download
-                    BRF</button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download BRF</button>
                 </div>
               </div>
             </div>
@@ -1436,23 +1424,23 @@
             <!-- Quick Presets -->
             <div class="braille-samples-section">
               <div class="braille-samples-header">
-                <span class="braille-samples-title">⚡ Instant Generator Presets:</span>
+                <span class="braille-samples-title">Instant Generator Presets:</span>
                 <span class="braille-samples-hint">Click a phrase to generate real-time 6-dot Braille</span>
               </div>
               <div class="braille-presets-bar">
                 <button type="button" class="braille-preset-btn press" data-action="braille-load-preset"
-                  data-preset="Hello Transify">👋 "Hello Transify"</button>
+                  data-preset="Hello Transify">"Hello Transify"</button>
                 <button type="button" class="braille-preset-btn press" data-action="braille-load-preset"
-                  data-preset="Emergency 999">🚨 "Emergency 999"</button>
+                  data-preset="Emergency 999">"Emergency 999"</button>
                 <button type="button" class="braille-preset-btn press" data-action="braille-load-preset"
-                  data-preset="Medicine: Paracetamol 500mg">💊 "Medicine:
+                  data-preset="Medicine: Paracetamol 500mg">"Medicine:
                   Paracetamol"</button>
                 <button type="button" class="braille-preset-btn press" data-action="braille-load-preset"
-                  data-preset="Caution: Wet Floor">⚠️ "Caution: Wet Floor"</button>
+                  data-preset="Caution: Wet Floor">"Caution: Wet Floor"</button>
                 <button type="button" class="braille-preset-btn press" data-action="braille-load-preset"
-                  data-preset="স্বাগতম">🇧🇩 "স্বাগতম (Welcome)"</button>
+                  data-preset="স্বাগতম">"স্বাগতম (Welcome)"</button>
                 <button type="button" class="braille-preset-btn press" data-action="braille-load-preset"
-                  data-preset="Thank you very much">🙏 "Thank you very much"</button>
+                  data-preset="Thank you very much">"Thank you very much"</button>
               </div>
             </div>
 
@@ -1597,11 +1585,11 @@
               <div class="braille-camera-controls">
                 <button type="button" class="btn-outline-dark press" data-action="braille-switch-camera-facing"
                   style="color: #fff; border-color: rgba(255,255,255,0.3); height: 44px; padding: 0 16px;">
-                  🔄 Flip Camera
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8c0 1.954.702 3.744 1.868 5.132L4 17h6v-6l-1.868 1.868A5.965 5.965 0 0 1 6 10c0-3.314 2.686-6 6-6s6 2.686 6 6c0 1.258-.387 2.426-1.047 3.393l1.458 1.458A7.957 7.957 0 0 0 20 10z"></path></svg> Flip Camera
                 </button>
                 <button type="button" class="btn-welcome-primary press" data-action="braille-capture-camera"
                   style="height: 48px; font-size: 16px; padding: 0 24px;">
-                  📸 Capture &amp; Translate
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> Capture &amp; Translate
                 </button>
               </div>
             </div>
@@ -1683,14 +1671,14 @@
             <!-- Preloaded Speech Test Samples -->
             <div class="braille-samples-section">
               <div class="braille-samples-header">
-                <span class="braille-samples-title">⚡ Preloaded Speech &amp; Audio Samples (Click to test
+                <span class="braille-samples-title">Preloaded Speech &amp; Audio Samples (Click to test
                   instantly):</span>
                 <span class="braille-samples-hint">Instant simulation without microphone or audio setup</span>
               </div>
               <div class="voice-samples-grid">
                 <button type="button" class="voice-sample-chip press" data-action="voice-load-sample"
                   data-sample="Emergency: I need medical assistance immediately" data-lang="en-US">
-                  <span class="voice-sample-icon">🚨</span>
+                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E63946" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">Emergency Assistance</span>
                     <span class="sample-chip-meta">English • Urgent Triage</span>
@@ -1698,7 +1686,7 @@
                 </button>
                 <button type="button" class="voice-sample-chip press" data-action="voice-load-sample"
                   data-sample="Clinical: Please check patient pulse and oxygen saturation" data-lang="en-US">
-                  <span class="voice-sample-icon">🩺</span>
+                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2A9D8F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg></span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">Clinical Checkup</span>
                     <span class="sample-chip-meta">English • Vitals Triage</span>
@@ -1706,7 +1694,7 @@
                 </button>
                 <button type="button" class="voice-sample-chip press" data-action="voice-load-sample"
                   data-sample="জরুরি: আমার তীব্র শ্বাসকষ্ট হচ্ছে, দয়া করে সাহায্য করুন" data-lang="bn-BD">
-                  <span class="voice-sample-icon">🇧🇩</span>
+                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006A4E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">জরুরি শ্বাসকষ্ট (বাংলা)</span>
                     <span class="sample-chip-meta">বাংলা • হাসপাতাল জরুরি</span>
@@ -1715,7 +1703,7 @@
                 <button type="button" class="voice-sample-chip press" data-action="voice-load-sample"
                   data-sample="Accessibility: Where is the nearest wheelchair ramp and tactile pathway?"
                   data-lang="en-US">
-                  <span class="voice-sample-icon">♿</span>
+                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8338EC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="4" r="2"></circle><path d="M5 19a5 5 0 0 0 9.8-1.5L14 13h4l2 4"></path><path d="M10 8.5v5l4 1"></path></svg></span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">Wheelchair Wayfinding</span>
                     <span class="sample-chip-meta">Accessibility • Direction</span>
@@ -2560,17 +2548,17 @@
             <div class="chronic-module-nav"
               style="display: flex; gap: 8px; flex-wrap: wrap; background: var(--surface-2); padding: 8px; border-radius: 12px; border: 1px solid var(--line);">
               <button type="button" class="chronic-nav-btn active btn-uiverse" data-target="chronic-sec-telemetry"
-                style="font-size: 13px; height: 38px; padding: 0 14px;">⌚ Wearables &amp; 24h Crisis</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><circle cx="12" cy="12" r="7"></circle><polyline points="12 9 12 12 13.5 13.5"></polyline><path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"></path></svg>Wearables &amp; 24h Crisis</button>
               <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-nutrition"
-                style="font-size: 13px; height: 38px; padding: 0 14px;">🥗 Nutrition CV &amp; Insulin</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M12 2a9 9 0 0 1 9 9c0 4.97-4.03 9-9 9A9 9 0 0 1 3 11c0-4.97 4.03-9 9-9z"></path><path d="M12 6v6l4 2"></path></svg>Nutrition CV &amp; Insulin</button>
               <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-labcoach"
-                style="font-size: 13px; height: 38px; padding: 0 14px;">📋 Culturally Tailored Lab Coaching</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Culturally Tailored Lab Coaching</button>
               <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-elderly"
-                style="font-size: 13px; height: 38px; padding: 0 14px;">🎙️ Elderly Voice &amp; Cognition</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10a7 7 0 0 0 14 0"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>Elderly Voice &amp; Cognition</button>
               <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-polypharmacy"
-                style="font-size: 13px; height: 38px; padding: 0 14px;">💊 OpenFDA Drug Interactions</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg>OpenFDA Drug Interactions</button>
               <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-federated"
-                style="font-size: 13px; height: 38px; padding: 0 14px;">🌐 Federated Learning</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>Federated Learning</button>
             </div>
 
             <!-- SECTION 1: Wearables & 24-Hour Crisis Forecasting -->
@@ -2641,7 +2629,7 @@
               </div>
 
               <button type="button" id="btn-run-crisis-forecast" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 340px; font-size: 14px;">⚡ Run 24h Predictive Crisis Forecast</button>
+                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>Run 24h Predictive Crisis Forecast</button>
 
               <!-- Crisis Forecast Output Card -->
               <div id="chronic-forecast-result"
@@ -2753,7 +2741,7 @@
               </div>
 
               <button type="button" id="btn-calc-insulin" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 320px; font-size: 14px;">💉 Analyze Meal &amp; Compute Insulin
+                style="height: 48px; max-width: 320px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><path d="m18 2 4 4"></path><path d="m17 7 3-3"></path><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"></path><path d="m9 11 4 4"></path><path d="m5 19-3 3"></path><path d="m14 4 6 6"></path></svg>Analyze Meal &amp; Compute Insulin
                 Dose</button>
 
               <!-- Nutrition & Insulin Output -->
@@ -2855,7 +2843,7 @@
               </div>
 
               <button type="button" id="btn-translate-lab" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 340px; font-size: 14px;">📋 Translate Lab Results &amp; Generate Diet
+                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Translate Lab Results &amp; Generate Diet
                 Plan</button>
 
               <!-- Lab Translation Results -->
@@ -2930,7 +2918,7 @@
               </div>
 
               <button type="button" id="btn-analyze-elderly-voice" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 340px; font-size: 14px;">🎙️ Analyze Adherence &amp; Vocal
+                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10a7 7 0 0 0 14 0"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>Analyze Adherence &amp; Vocal
                 Biomarkers</button>
 
               <!-- Elderly Adherence & Cognition Output -->
@@ -3012,7 +3000,7 @@
               </div>
 
               <button type="button" id="btn-check-polypharmacy" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 340px; font-size: 14px;">💊 Cross-Check OpenFDA Drug
+                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg>Cross-Check OpenFDA Drug
                 Interactions</button>
 
               <!-- Polypharmacy Results -->
@@ -3080,7 +3068,7 @@
               </div>
 
               <button type="button" id="btn-run-federated-round" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 340px; font-size: 14px;">🌐 Execute Federated Training Round
+                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>Execute Federated Training Round
                 (FedAvg)</button>
 
               <!-- Federated Results -->
@@ -3159,25 +3147,25 @@
             <!-- Messages Stream -->
             <div class="chat-stream-container" id="chat-stream-container">
               <div class="chat-message-item bot">
-                <div class="chat-msg-avatar">🤖</div>
+                <div class="chat-msg-avatar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line></svg></div>
                 <div class="chat-msg-content">
                   <div class="chat-msg-bubble">
-                    <p>👋 <strong>Hello! I am Transify AI</strong>, your accessible healthcare and communication
+                    <p><strong>Hello! I am Transify AI</strong>, your accessible healthcare and communication
                       assistant.</p>
                     <p>I am trained on verified <strong>WHO &amp; Merck Clinical Guidelines</strong> and accessibility
                       protocols:</p>
                     <ul>
-                      <li>🏥 <strong>Clinical Symptom Analysis</strong>: Fever, dehydration, burns, first-aid, emergency
+                      <li><strong>Clinical Symptom Analysis</strong>: Fever, dehydration, burns, first-aid, emergency
                         checks.</li>
-                      <li>✋ <strong>Sign Language Help</strong>: ASL &amp; BdSL hand shapes, fingerspelling, camera
+                      <li><strong>Sign Language Help</strong>: ASL &amp; BdSL hand shapes, fingerspelling, camera
                         guidance.</li>
-                      <li>⠃ <strong>Braille Literacy</strong>: Grade 1 &amp; 2 contracted Braille rules and photo tips.
+                      <li><strong>Braille Literacy</strong>: Grade 1 &amp; 2 contracted Braille rules and photo tips.
                       </li>
-                      <li>🎙️ <strong>Assistive Voice</strong>: Speech captioning, TTS vocalization, and settings.</li>
+                      <li><strong>Assistive Voice</strong>: Speech captioning, TTS vocalization, and settings.</li>
                     </ul>
                     <p>Ask a question below or choose a quick topic to start:</p>
                   </div>
-                  <div class="chat-source-tag">🎯 Trained Knowledge Engine • Safe Triage Grounded</div>
+                  <div class="chat-source-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 16 12 12 8"></polygon></svg>Trained Knowledge Engine • Safe Triage Grounded</div>
                 </div>
               </div>
             </div>
@@ -3185,15 +3173,14 @@
             <!-- Quick Suggestions Bar -->
             <div class="chat-suggestions-bar" id="chat-suggestions-bar">
               <button type="button" class="chat-suggestion-chip press"
-                data-prompt="I have a high fever and headache, what should I do?">🌡️ High fever &amp; headache</button>
+                data-prompt="I have a high fever and headache, what should I do?">High fever &amp; headache</button>
               <button type="button" class="chat-suggestion-chip press"
-                data-prompt="How do I use the Sign Translator with camera?">✋ How to use Sign Translator</button>
+                data-prompt="How do I use the Sign Translator with camera?">How to use Sign Translator</button>
               <button type="button" class="chat-suggestion-chip press"
-                data-prompt="Explain Grade 1 vs Grade 2 contracted Braille">⠃ Grade 1 vs 2 Braille</button>
+                data-prompt="Explain Grade 1 vs Grade 2 contracted Braille">Grade 1 vs 2 Braille</button>
               <button type="button" class="chat-suggestion-chip press"
-                data-prompt="How does CareAnywhere offline triage work?">🏥 Offline Triage &amp; Sync</button>
-              <button type="button" class="chat-suggestion-chip press" data-prompt="আমার জ্বর হয়েছে কি করব">🇧🇩
-                বাংলায় পরামর্শ (Fever in Bengali)</button>
+                data-prompt="How does CareAnywhere offline triage work?">Offline Triage &amp; Sync</button>
+              <button type="button" class="chat-suggestion-chip press" data-prompt="আমার জ্বর হয়েছে কি করব">বাংলায় পরামর্শ (Fever in Bengali)</button>
             </div>
 
             <!-- Input Bar -->
@@ -4189,7 +4176,7 @@
                   style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
                   <button type="button" id="btn-contact-diagnostics" class="btn-settings-action press"
                     data-action="settings-copy-diagnostics">
-                    📋 Copy System Diagnostics
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>Copy System Diagnostics
                   </button>
                   <button type="button" id="btn-contact-submit" class="btn-settings-action press"
                     style="background: var(--violet); color: #FFFFFF; border-color: var(--violet);"
@@ -4647,7 +4634,7 @@
   <div id="transify-auth-screen" style="display: none;"></div>
 
   <!-- Client Application Scripts -->
-  <script src="/static/app.js?v=20261120_mobile_v1"></script>
+  <script src="/static/app.js?v=20261125_pro_ui_v13"></script>
   <script src="/static/care.js?v=20261120_careanywhere"></script>
 </body>
 

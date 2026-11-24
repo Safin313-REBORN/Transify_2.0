@@ -1516,11 +1516,11 @@ var DashboardPage = window.DashboardPage = {
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <button class="btn btn-secondary btn-sm" data-action="dashboard-speak" data-text="${encodeURIComponent(rec.recognized_text)}" aria-label="Speak text">
-                🔊 Speak
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speak
               </button>
               <div style="display: flex; gap: var(--space-2);">
-                <button class="btn-icon" title="Accurate" data-action="dashboard-feedback" data-rec-id="${rec.id}" data-rating="5" aria-label="Thumbs up accurate">👍</button>
-                <button class="btn-icon" title="Needs Correction" data-action="dashboard-feedback" data-rec-id="${rec.id}" data-rating="1" aria-label="Thumbs down incorrect">👎</button>
+                <button class="btn-icon" title="Accurate" data-action="dashboard-feedback" data-rec-id="${rec.id}" data-rating="5" aria-label="Thumbs up accurate"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg></button>
+                <button class="btn-icon" title="Needs Correction" data-action="dashboard-feedback" data-rec-id="${rec.id}" data-rating="1" aria-label="Thumbs down incorrect"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg></button>
               </div>
             </div>
           </div>
@@ -2027,7 +2027,7 @@ var SignPage = window.SignPage = window.TransifySign = {
     const smoothBtn = document.getElementById('smooth-sentence-btn');
     if (smoothBtn) {
       smoothBtn.disabled = true;
-      smoothBtn.innerHTML = '⏳ Synthesizing Thought...';
+      smoothBtn.innerHTML = 'Synthesizing Thought...';
     }
 
     try {
@@ -2064,7 +2064,7 @@ var SignPage = window.SignPage = window.TransifySign = {
     } finally {
       if (smoothBtn) {
         smoothBtn.disabled = false;
-        smoothBtn.innerHTML = '✨ Synthesize Natural Sentence';
+        smoothBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Synthesize Natural Sentence';
       }
     }
   },
@@ -3933,7 +3933,7 @@ var BraillePage = window.BraillePage = {
       [translateBtn, translateBtnVisible].forEach(btn => {
         if (btn) {
           btn.disabled = false;
-          btn.innerHTML = '✨ Translate Image';
+          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Translate Image';
         }
       });
     }
@@ -4769,15 +4769,14 @@ var TransifyTTSPage = window.TransifyTTSPage = {
       const speakBtn = document.getElementById('tts-speak-btn');
       utterance.onstart = () => {
         if (speakBtn) {
-          speakBtn.innerHTML = '🔊 Speaking...';
+          speakBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speaking...';
           speakBtn.classList.add('btn-success');
         }
         if (wave) wave.style.display = 'flex';
       };
       utterance.onend = () => {
         if (speakBtn) {
-          speakBtn.innerHTML = '🔊 Speak Voice';
-          speakBtn.innerHTML = 'Speak text';
+          speakBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speak text';
           speakBtn.classList.remove('btn-success');
         }
         if (wave) wave.style.display = 'none';
@@ -4785,8 +4784,7 @@ var TransifyTTSPage = window.TransifyTTSPage = {
       utterance.onerror = (e) => {
         console.warn('TTS utterance error:', e);
         if (speakBtn) {
-          speakBtn.innerHTML = '🔊 Speak Voice';
-          speakBtn.innerHTML = 'Speak text';
+          speakBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speak text';
           speakBtn.classList.remove('btn-success');
         }
         if (wave) wave.style.display = 'none';
@@ -5039,19 +5037,21 @@ var ChatbotPage = window.ChatbotPage = {
     if (sender === 'bot' && meta) {
       let citationsHtml = '';
       if (meta.citations && meta.citations.length) {
-        citationsHtml = ` • 📚 Ref: ${meta.citations.join(', ')}`;
+        citationsHtml = ` • Ref: ${meta.citations.join(', ')}`;
       }
       metaHtml = `
         <div class="chat-source-tag">
-          <span>${meta.source || '🎯 Trained RAG Engine'}</span>
+          <span>${meta.source || 'Trained RAG Engine'}</span>
           <span>${citationsHtml}</span>
-          <button type="button" class="chat-speak-btn press" data-text="${encodeURIComponent(text.replace(/[*_#`]/g, ''))}">🔊 Speak</button>
+          <button type="button" class="chat-speak-btn press" data-text="${encodeURIComponent(text.replace(/[*_#`]/g, ''))}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 3px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speak</button>
         </div>
       `;
     }
 
+    const botAvatarSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line></svg>';
+
     item.innerHTML = `
-      <div class="chat-msg-avatar">${sender === 'user' ? 'YOU' : '🤖'}</div>
+      <div class="chat-msg-avatar">${sender === 'user' ? 'YOU' : botAvatarSvg}</div>
       <div class="chat-msg-content">
         <div class="chat-msg-bubble">
           ${formattedText}
@@ -6312,20 +6312,20 @@ const EditorialController = {
 
             <div class="phrase-card-actions">
               <button type="button" class="phrase-action-btn press" data-action="phrase-speak" data-idx="${idx}" title="Say phrase aloud">
-                <span>🔊 Speak</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg><span>Speak</span>
               </button>
               <button type="button" class="phrase-action-btn press" data-action="phrase-copy" data-idx="${idx}" title="Copy text">
-                <span>📋 Copy</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><span>Copy</span>
               </button>
               <button type="button" class="phrase-action-btn press" data-action="phrase-bridge-sign" data-idx="${idx}" title="Bridge to sign translator">
-                <span>🤟 Signs</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg><span>Signs</span>
               </button>
               <button type="button" class="phrase-action-btn press" data-action="phrase-bridge-braille" data-idx="${idx}" title="Bridge to Braille studio">
-                <span>⠃ Braille</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="7" cy="6" r="2.2"/><circle cx="7" cy="12" r="2.2"/><circle cx="17" cy="6" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg><span>Braille</span>
               </button>
               ${isEmergency ? `
               <button type="button" class="phrase-action-btn phrase-alert-btn press" data-action="phrase-alert" data-idx="${idx}" title="Trigger emergency siren">
-                <span>🚨 Alert</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span>Alert</span>
               </button>` : ''}
             </div>
           </div>
