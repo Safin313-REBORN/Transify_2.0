@@ -1,8 +1,8 @@
 {
   "audit_metadata": {
-    "milestone": "RC1.4.5.2 Final Release Evidence & Production Readiness Closeout",
-    "source_commit": "11d760abc8ce894f979c462d0281a90c14e96daa",
-    "timestamp_utc": "2026-11-24T10:27:03.045829+00:00",
+    "milestone": "RC1.4.5.3 Final Evidence Correction & Release Verification",
+    "source_commit": "0fa7b733b4da781fbb9528fe7d0c2f247ef6c406",
+    "timestamp_utc": "2026-11-24T10:43:24.535965+00:00",
     "target": "Transify V3 Security Header Matrix",
     "production_url": "https://transify20-production.up.railway.app",
     "production_server": "railway-hikari",
@@ -10,10 +10,15 @@
     "single_source_of_truth": "TRANSIFY_V3_RC1_4_5_SECURITY_HEADER_MATRIX.json"
   },
   "verification_scopes": {
+    "evidence_generated": {
+      "scope": "Local Probe & Matrix Generation",
+      "status": "COMPLETED",
+      "timestamp_utc": "2026-11-24T10:43:24.535965+00:00"
+    },
     "local_and_ci_verification": {
       "scope": "Local Source Repository & CI Test Suite",
-      "status": "PASSED (VERIFIED)",
-      "details": "FastAPI middleware strictly enforces zero 'unsafe-inline' scripts (script-src 'self' only), HTTP 307 direct-route redirects, and strict headers across all 242 tests."
+      "status": "EVALUATED_BY_CI_GATE",
+      "details": "FastAPI middleware strictly enforces zero 'unsafe-inline' scripts (script-src 'self' only), HTTP 307 direct-route redirects, and strict headers."
     },
     "current_production_deployment": {
       "scope": "Live Deployed Edge (https://transify20-production.up.railway.app/)",
@@ -421,38 +426,97 @@
     "wildcard_origin_used": false,
     "live_preflight_results": [
       {
-        "name": "login_preflight_post",
+        "name": "login_preflight_post_valid",
         "url": "https://transify20-production.up.railway.app/api/auth/login",
         "sent_origin": "https://transify20-production.up.railway.app",
         "sent_request_method": "POST",
         "sent_request_headers": "Content-Type",
         "response_status": 200,
+        "expected_status": 200,
         "access_control_allow_origin": "https://transify20-production.up.railway.app",
         "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
         "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
         "access_control_allow_credentials": "true",
-        "is_valid_preflight": true
+        "is_valid_preflight": true,
+        "expected_valid": true,
+        "validation_message": "Preflight passed all origin, method, header, and credential constraints",
+        "test_success": true
       },
       {
-        "name": "spa_login_preflight_get",
+        "name": "spa_login_preflight_get_valid",
         "url": "https://transify20-production.up.railway.app/login",
         "sent_origin": "https://transify20-production.up.railway.app",
         "sent_request_method": "GET",
         "sent_request_headers": "Content-Type",
         "response_status": 200,
+        "expected_status": 200,
         "access_control_allow_origin": "https://transify20-production.up.railway.app",
         "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
         "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
         "access_control_allow_credentials": "true",
-        "is_valid_preflight": true
+        "is_valid_preflight": true,
+        "expected_valid": true,
+        "validation_message": "Preflight passed all origin, method, header, and credential constraints",
+        "test_success": true
+      },
+      {
+        "name": "login_preflight_patch_unsupported",
+        "url": "https://transify20-production.up.railway.app/api/auth/login",
+        "sent_origin": "https://transify20-production.up.railway.app",
+        "sent_request_method": "PATCH",
+        "sent_request_headers": "Content-Type",
+        "response_status": 400,
+        "expected_status": 400,
+        "access_control_allow_origin": "https://transify20-production.up.railway.app",
+        "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
+        "access_control_allow_credentials": "true",
+        "is_valid_preflight": false,
+        "expected_valid": false,
+        "validation_message": "Status code 400 not in (200, 204)",
+        "test_success": true
+      },
+      {
+        "name": "login_preflight_disallowed_header",
+        "url": "https://transify20-production.up.railway.app/api/auth/login",
+        "sent_origin": "https://transify20-production.up.railway.app",
+        "sent_request_method": "POST",
+        "sent_request_headers": "X-Disallowed-Custom-Header",
+        "response_status": 400,
+        "expected_status": 400,
+        "access_control_allow_origin": "https://transify20-production.up.railway.app",
+        "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
+        "access_control_allow_credentials": "true",
+        "is_valid_preflight": false,
+        "expected_valid": false,
+        "validation_message": "Status code 400 not in (200, 204)",
+        "test_success": true
+      },
+      {
+        "name": "login_preflight_untrusted_origin",
+        "url": "https://transify20-production.up.railway.app/api/auth/login",
+        "sent_origin": "https://untrusted-attacker-origin.example.com",
+        "sent_request_method": "POST",
+        "sent_request_headers": "Content-Type",
+        "response_status": 400,
+        "expected_status": 400,
+        "access_control_allow_origin": null,
+        "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
+        "access_control_allow_credentials": "true",
+        "is_valid_preflight": false,
+        "expected_valid": false,
+        "validation_message": "Status code 400 not in (200, 204)",
+        "test_success": true
       }
     ]
   },
   "verdict": {
-    "ci_readiness": "PASSED",
-    "local_middleware_status": "COMPLIANT",
-    "production_edge_connectivity": "CONNECTED",
+    "evidence_collection_status": "SUCCESS",
+    "production_headers_present": true,
+    "production_preflight_tests_passed": true,
     "production_deployment_status": "PENDING (Strict CSP update awaits post-merge Railway deployment)",
-    "overall_release_gate": "READY FOR MERGE (PROD RELEASE PENDING DEPLOYMENT)"
+    "release_gate_authority": "GitHub Actions CI Workflow"
   }
 }

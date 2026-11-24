@@ -20,9 +20,9 @@
 | • Route Requests / Confirmed Changes:  50 requested / 50 confirmed state changes (0 no-ops)
 | • Routes Cycled:                       home -> care -> sign -> braille -> chat
 | • Garbage Collection Procedure:        Explicit V8 HeapProfiler.collectGarbage prior to each measurement
-| • Baseline Retained Heap (Post-GC):    1.11 MB (12933 DOM nodes, 396 listeners)
+| • Baseline Retained Heap (Post-GC):    1.12 MB (12933 DOM nodes, 396 listeners)
 | • Post-50 Cycles Retained Heap (Post-GC): 1.23 MB (12958 DOM nodes, 396 listeners)
-| • Net Retained Heap Growth:            +0.12 MB
+| • Net Retained Heap Growth:            +0.11 MB
 | • Net Retained DOM Node Growth:        +25 nodes
 | • Net Listener Delta:                  +0 listeners
 | • Detached DOM Reference Audit:        NOT MEASURED (CDP Heap Snapshot Required)
@@ -39,11 +39,11 @@ The test harness executed 10 full loops of 5 core views (50 transitions):
 
 | Measurement Dimension | Baseline (Pre-Test, Post-GC) | Post-50 Cycles (Post-GC) | Net Delta | Evaluation Threshold | Status |
 |---|---|---|---|---|---|
-| **Retained JS Heap Used** | 1.11 MB | 1.23 MB | **+0.12 MB** | `< 8.00 MB` | **PASS** |
+| **Retained JS Heap Used** | 1.12 MB | 1.23 MB | **+0.11 MB** | `< 8.00 MB` | **PASS** |
 | **DOM Node Count** | 12933 | 12958 | **+25** | `< 500 nodes` | **PASS** |
 | **Event Listeners** | 396 | 396 | **+0** | `< 100 listeners` | **PASS** |
 
 ### Findings:
 - Full garbage collection was triggered via Chrome DevTools Protocol (`HeapProfiler.collectGarbage`) before sampling both baseline and post-test metrics.
-- The net retained heap growth of **+0.12 MB** and **+25 DOM nodes** is attributed to expected in-memory caching of route templates and i18n string dictionaries.
+- The net retained heap growth of **+0.11 MB** and **+25 DOM nodes** is attributed to expected in-memory caching of route templates and i18n string dictionaries.
 - Wording Standard: Based on empirical data, no significant memory growth detected within the measured workload.

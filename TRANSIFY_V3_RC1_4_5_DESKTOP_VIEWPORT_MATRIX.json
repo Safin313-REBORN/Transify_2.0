@@ -2,8 +2,8 @@
   "audit_metadata": {
     "target_package": "com.abrarafick.transify",
     "milestone": "RC1.4.5 Master Engineering Remediation & Full Browser Verification Directive",
-    "source_commit": "fea456c6f95c6303aa3548ae218bbfb3a5180f98",
-    "timestamp_utc": "2026-11-24T10:04:28.296396+00:00",
+    "source_commit": "0fa7b733b4da781fbb9528fe7d0c2f247ef6c406",
+    "timestamp_utc": "2026-11-24T10:45:38.649794+00:00",
     "evaluated_runtime": "Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)",
     "single_source_of_truth": "TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json",
     "host_os": "Linux 7.0.0-43-generic x86_64"
@@ -15,7 +15,7 @@
       "height": 720,
       "aspect_ratio": "16:9",
       "tier": "HD Laptop / Thin Client",
-      "initial_load_latency_ms": 2270.32,
+      "initial_load_latency_ms": 2311.83,
       "rail_width_px": 112,
       "content_width_px": 1168,
       "home_main_width_px": 884,
@@ -193,7 +193,7 @@
       "height": 800,
       "aspect_ratio": "16:10",
       "tier": "WXGA MacBook / Monitor",
-      "initial_load_latency_ms": 1791.65,
+      "initial_load_latency_ms": 2058.3,
       "rail_width_px": 112,
       "content_width_px": 1168,
       "home_main_width_px": 884,
@@ -371,7 +371,7 @@
       "height": 768,
       "aspect_ratio": "16:9",
       "tier": "Standard Budget Laptop",
-      "initial_load_latency_ms": 1854.46,
+      "initial_load_latency_ms": 1801.6,
       "rail_width_px": 112,
       "content_width_px": 1254,
       "home_main_width_px": 950,
@@ -549,7 +549,7 @@
       "height": 900,
       "aspect_ratio": "16:10",
       "tier": "WXGA+ Display / Workstation",
-      "initial_load_latency_ms": 1909.39,
+      "initial_load_latency_ms": 3272.71,
       "rail_width_px": 112,
       "content_width_px": 1328,
       "home_main_width_px": 1008,
@@ -727,7 +727,7 @@
       "height": 864,
       "aspect_ratio": "16:9",
       "tier": "Windows 125% Scaled FHD",
-      "initial_load_latency_ms": 1910.96,
+      "initial_load_latency_ms": 2193.03,
       "rail_width_px": 112,
       "content_width_px": 1424,
       "home_main_width_px": 1104,
@@ -905,7 +905,7 @@
       "height": 900,
       "aspect_ratio": "16:9",
       "tier": "HD+ Workstation Monitor",
-      "initial_load_latency_ms": 1740.95,
+      "initial_load_latency_ms": 1739.62,
       "rail_width_px": 112,
       "content_width_px": 1488,
       "home_main_width_px": 1168,
@@ -1083,7 +1083,7 @@
       "height": 1080,
       "aspect_ratio": "16:9",
       "tier": "Standard FHD Desktop Display",
-      "initial_load_latency_ms": 1578.46,
+      "initial_load_latency_ms": 1667.07,
       "rail_width_px": 112,
       "content_width_px": 1808,
       "home_main_width_px": 1488,
@@ -1261,7 +1261,7 @@
       "height": 1200,
       "aspect_ratio": "16:10",
       "tier": "WUXGA Professional Medical Display",
-      "initial_load_latency_ms": 1588.01,
+      "initial_load_latency_ms": 1880.91,
       "rail_width_px": 112,
       "content_width_px": 1808,
       "home_main_width_px": 1488,
@@ -1439,7 +1439,7 @@
       "height": 1440,
       "aspect_ratio": "16:9",
       "tier": "QHD / 2K Studio Monitor",
-      "initial_load_latency_ms": 1910.22,
+      "initial_load_latency_ms": 1921.25,
       "rail_width_px": 112,
       "content_width_px": 2448,
       "home_main_width_px": 1680,
@@ -1617,7 +1617,7 @@
       "height": 1440,
       "aspect_ratio": "21:9",
       "tier": "Ultra-Wide Panoramic Display",
-      "initial_load_latency_ms": 1956.77,
+      "initial_load_latency_ms": 2142.58,
       "rail_width_px": 112,
       "content_width_px": 3328,
       "home_main_width_px": 1680,
@@ -1924,8 +1924,8 @@
     "conjuncts_verified": true
   },
   "performance_benchmarks": {
-    "initial_startup_ms": 1146.89,
-    "mean_route_transition_ms": 231.14,
+    "initial_startup_ms": 1373.33,
+    "mean_route_transition_ms": 293.58,
     "historical_rc1_4_2_mean_latency_ms": 266.97,
     "status": "PASS",
     "first_raf_callback_method": "requestAnimationFrame callback invocation delta (not compositor presentation)",
@@ -1935,95 +1935,95 @@
         "status": "PASS",
         "error": null,
         "dispatch_ms": 1.3,
-        "activation_ms": 0.3,
-        "first_raf_callback_ms": 2.2,
-        "first_frame_ms": 2.2,
-        "readiness_ms": 3.1,
-        "total_latency_ms": 3.1,
+        "activation_ms": 0.2,
+        "first_raf_callback_ms": 193.2,
+        "first_frame_ms": 193.2,
+        "readiness_ms": 193.7,
+        "total_latency_ms": 193.7,
         "threshold_ms": 500,
         "label": "Neural Boot & Welcome Screen"
       },
       "home": {
         "status": "PASS",
         "error": null,
-        "dispatch_ms": 58.3,
-        "activation_ms": 157.1,
-        "first_raf_callback_ms": 61.2,
-        "first_frame_ms": 61.2,
-        "readiness_ms": 157.2,
-        "total_latency_ms": 157.2,
+        "dispatch_ms": 31.7,
+        "activation_ms": 728.5,
+        "first_raf_callback_ms": 188.8,
+        "first_frame_ms": 188.8,
+        "readiness_ms": 728.6,
+        "total_latency_ms": 728.6,
         "threshold_ms": 1000,
         "label": "Main Assistive Dashboard & Bento Grid"
       },
       "sign": {
         "status": "PASS",
         "error": null,
-        "dispatch_ms": 47.8,
-        "activation_ms": 595,
-        "first_raf_callback_ms": 90.8,
-        "first_frame_ms": 90.8,
-        "readiness_ms": 595.1,
-        "total_latency_ms": 595.1,
+        "dispatch_ms": 11,
+        "activation_ms": 305.9,
+        "first_raf_callback_ms": 68.5,
+        "first_frame_ms": 68.5,
+        "readiness_ms": 305.9,
+        "total_latency_ms": 305.9,
         "threshold_ms": 1000,
         "label": "Sign Language Translator Workspace"
       },
       "phrases": {
         "status": "PASS",
         "error": null,
-        "dispatch_ms": 47,
-        "activation_ms": 281.2,
-        "first_raf_callback_ms": 167.6,
-        "first_frame_ms": 167.6,
-        "readiness_ms": 281.2,
-        "total_latency_ms": 281.2,
+        "dispatch_ms": 47.5,
+        "activation_ms": 441.6,
+        "first_raf_callback_ms": 167.3,
+        "first_frame_ms": 167.3,
+        "readiness_ms": 441.7,
+        "total_latency_ms": 441.7,
         "threshold_ms": 1000,
         "label": "Phrases & AAC Communication Board"
       },
       "braille": {
         "status": "PASS",
         "error": null,
-        "dispatch_ms": 23.2,
-        "activation_ms": 308.5,
-        "first_raf_callback_ms": 82.5,
-        "first_frame_ms": 82.5,
-        "readiness_ms": 308.6,
-        "total_latency_ms": 308.6,
+        "dispatch_ms": 16.3,
+        "activation_ms": 151.2,
+        "first_raf_callback_ms": 17.9,
+        "first_frame_ms": 17.9,
+        "readiness_ms": 151.2,
+        "total_latency_ms": 151.2,
         "threshold_ms": 1000,
         "label": "Braille Studio Image Workspace"
       },
       "voice": {
         "status": "PASS",
         "error": null,
-        "dispatch_ms": 17.4,
-        "activation_ms": 201.5,
-        "first_raf_callback_ms": 95.8,
-        "first_frame_ms": 95.8,
-        "readiness_ms": 201.5,
-        "total_latency_ms": 201.5,
+        "dispatch_ms": 14,
+        "activation_ms": 351.1,
+        "first_raf_callback_ms": 94.4,
+        "first_frame_ms": 94.4,
+        "readiness_ms": 351.1,
+        "total_latency_ms": 351.1,
         "threshold_ms": 1000,
         "label": "Voice Hub & Speech Studio"
       },
       "chat": {
         "status": "PASS",
         "error": null,
-        "dispatch_ms": 14.7,
-        "activation_ms": 270.7,
-        "first_raf_callback_ms": 95.7,
-        "first_frame_ms": 95.7,
-        "readiness_ms": 270.7,
-        "total_latency_ms": 270.7,
+        "dispatch_ms": 10.5,
+        "activation_ms": 201.7,
+        "first_raf_callback_ms": 87.7,
+        "first_frame_ms": 87.7,
+        "readiness_ms": 201.7,
+        "total_latency_ms": 201.7,
         "threshold_ms": 1000,
         "label": "AI Chatbot & Clinical Assistant"
       },
       "care": {
         "status": "PASS",
         "error": null,
-        "dispatch_ms": 7.5,
-        "activation_ms": 202.8,
-        "first_raf_callback_ms": 99.4,
-        "first_frame_ms": 99.4,
-        "readiness_ms": 202.9,
-        "total_latency_ms": 202.9,
+        "dispatch_ms": 6.7,
+        "activation_ms": 343.8,
+        "first_raf_callback_ms": 88.5,
+        "first_frame_ms": 88.5,
+        "readiness_ms": 343.8,
+        "total_latency_ms": 343.8,
         "threshold_ms": 1000,
         "label": "Transify Care & ChronicCare Triage"
       },
@@ -2031,36 +2031,36 @@
         "status": "PASS",
         "error": null,
         "dispatch_ms": 2.1,
-        "activation_ms": 8.2,
-        "first_raf_callback_ms": 99.9,
-        "first_frame_ms": 99.9,
-        "readiness_ms": 100.5,
-        "total_latency_ms": 100.5,
+        "activation_ms": 8.1,
+        "first_raf_callback_ms": 88.7,
+        "first_frame_ms": 88.7,
+        "readiness_ms": 89.2,
+        "total_latency_ms": 89.2,
         "threshold_ms": 1500,
         "label": "Clinician Portal & Patient Queue"
       },
       "settings": {
         "status": "PASS",
         "error": null,
-        "dispatch_ms": 14.7,
-        "activation_ms": 190.6,
-        "first_raf_callback_ms": 86.3,
-        "first_frame_ms": 86.3,
-        "readiness_ms": 190.6,
-        "total_latency_ms": 190.6,
+        "dispatch_ms": 14.4,
+        "activation_ms": 128.9,
+        "first_raf_callback_ms": 15.8,
+        "first_frame_ms": 15.8,
+        "readiness_ms": 128.9,
+        "total_latency_ms": 128.9,
         "threshold_ms": 1000,
         "label": "Settings & Accessibility Preferences"
       }
     },
     "raf_callback_cadence_hz": {
-      "measured_cadence_hz": 55.33,
-      "frames_captured": 111,
-      "duration_sec": 2.01,
+      "measured_cadence_hz": 51.58,
+      "frames_captured": 104,
+      "duration_sec": 2.02,
       "measurement_method": "requestAnimationFrame timestamp delta over active window (Linux Chromium headless)"
     },
     "cdp_heap_memory": {
-      "usedHeapMB": 1.27,
-      "totalHeapMB": 2.0,
+      "usedHeapMB": 1.32,
+      "totalHeapMB": 2.5,
       "domNodes": 13729,
       "jsEventListeners": 442,
       "measurement_method": "Chrome DevTools Protocol (CDP) Performance.getMetrics after HeapProfiler.collectGarbage"
@@ -2086,7 +2086,7 @@
         "previous_route": "welcome",
         "target_route": "home",
         "confirmed_state_change": true,
-        "elapsed_ms": 38.02,
+        "elapsed_ms": 56.25,
         "status": "PASS"
       },
       {
@@ -2094,7 +2094,7 @@
         "previous_route": "home",
         "target_route": "care",
         "confirmed_state_change": true,
-        "elapsed_ms": 58.26,
+        "elapsed_ms": 37.73,
         "status": "PASS"
       },
       {
@@ -2102,7 +2102,7 @@
         "previous_route": "care",
         "target_route": "sign",
         "confirmed_state_change": true,
-        "elapsed_ms": 18.76,
+        "elapsed_ms": 22.83,
         "status": "PASS"
       },
       {
@@ -2110,7 +2110,7 @@
         "previous_route": "sign",
         "target_route": "braille",
         "confirmed_state_change": true,
-        "elapsed_ms": 19.8,
+        "elapsed_ms": 42.48,
         "status": "PASS"
       },
       {
@@ -2118,7 +2118,7 @@
         "previous_route": "braille",
         "target_route": "chat",
         "confirmed_state_change": true,
-        "elapsed_ms": 27.98,
+        "elapsed_ms": 31.47,
         "status": "PASS"
       },
       {
@@ -2126,7 +2126,7 @@
         "previous_route": "chat",
         "target_route": "home",
         "confirmed_state_change": true,
-        "elapsed_ms": 9.45,
+        "elapsed_ms": 10.61,
         "status": "PASS"
       },
       {
@@ -2134,7 +2134,7 @@
         "previous_route": "home",
         "target_route": "care",
         "confirmed_state_change": true,
-        "elapsed_ms": 8.63,
+        "elapsed_ms": 11.83,
         "status": "PASS"
       },
       {
@@ -2142,7 +2142,7 @@
         "previous_route": "care",
         "target_route": "sign",
         "confirmed_state_change": true,
-        "elapsed_ms": 6.96,
+        "elapsed_ms": 9.23,
         "status": "PASS"
       },
       {
@@ -2150,7 +2150,7 @@
         "previous_route": "sign",
         "target_route": "braille",
         "confirmed_state_change": true,
-        "elapsed_ms": 9.09,
+        "elapsed_ms": 10.06,
         "status": "PASS"
       },
       {
@@ -2158,7 +2158,7 @@
         "previous_route": "braille",
         "target_route": "chat",
         "confirmed_state_change": true,
-        "elapsed_ms": 7.95,
+        "elapsed_ms": 8.01,
         "status": "PASS"
       }
     ],
@@ -2167,7 +2167,7 @@
     "gc_invoked_post": true,
     "detached_dom_status": "NOT MEASURED (CDP Heap Snapshot Required)",
     "baseline_metrics": {
-      "usedHeapMB": 1.11,
+      "usedHeapMB": 1.12,
       "domNodes": 12933,
       "listeners": 396
     },
@@ -2177,7 +2177,7 @@
       "listeners": 396
     },
     "delta": {
-      "heap_delta_mb": 0.12,
+      "heap_delta_mb": 0.11,
       "node_delta": 25,
       "listener_delta": 0
     },
@@ -2185,7 +2185,7 @@
     "status": "PASS"
   },
   "production_security_probe": {
-    "timestamp_utc": "2026-11-24T10:05:49.662075+00:00",
+    "timestamp_utc": "2026-11-24T10:47:02.494326+00:00",
     "target_url": "https://transify20-production.up.railway.app/",
     "http_status": 200,
     "protocol": "2",
@@ -2194,7 +2194,7 @@
     "live_headers": {
       "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
       "content-type": "text/html; charset=utf-8",
-      "date": "Tue, 24 Nov 2026 10:05:55 GMT",
+      "date": "Tue, 24 Nov 2026 10:47:03 GMT",
       "permissions-policy": "camera=(self), microphone=(self), geolocation=()",
       "referrer-policy": "strict-origin-when-cross-origin",
       "server": "railway-hikari",
@@ -2202,17 +2202,57 @@
       "vary": "accept-encoding",
       "x-content-type-options": "nosniff",
       "x-frame-options": "DENY",
-      "x-railway-request-id": "aXTqVNxhQLKRnz6bxtoGcA",
+      "x-railway-request-id": "tzwmwL0dR1apS-XKnpoFkQ",
       "content-length": "281941",
-      "x-hikari-trace": "sin1.hs0s",
+      "x-hikari-trace": "sin1.tr00",
       "x-railway-edge": "sin1"
     },
     "missing_security_headers": [],
+    "exact_policy_matches": {
+      "strict-transport-security": {
+        "present": true,
+        "exact_match": true,
+        "actual": "max-age=31536000",
+        "expected": "max-age=31536000"
+      },
+      "content-security-policy": {
+        "present": true,
+        "exact_match": false,
+        "actual": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+        "expected": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+      },
+      "x-content-type-options": {
+        "present": true,
+        "exact_match": true,
+        "actual": "nosniff",
+        "expected": "nosniff"
+      },
+      "x-frame-options": {
+        "present": true,
+        "exact_match": true,
+        "actual": "DENY",
+        "expected": "DENY"
+      },
+      "referrer-policy": {
+        "present": true,
+        "exact_match": true,
+        "actual": "strict-origin-when-cross-origin",
+        "expected": "strict-origin-when-cross-origin"
+      },
+      "permissions-policy": {
+        "present": true,
+        "exact_match": true,
+        "actual": "camera=(self), microphone=(self), geolocation=()",
+        "expected": "camera=(self), microphone=(self), geolocation=()"
+      }
+    },
+    "all_exact_matches": false,
     "hsts_present": true,
     "csp_present": true,
     "local_middleware_verified": true,
+    "production_deployment_state": "PENDING (Strict CSP update awaits post-merge Railway deployment)",
     "script_src_unsafe_inline_required": true,
-    "script_src_unsafe_inline_reason": "Inline script blocks (auth sheet/routing helpers lines 29-79 in index.html) and inline DOM event attributes (onclick handlers) require 'unsafe-inline' until refactored or nonced.",
+    "script_src_unsafe_inline_reason": "Live Railway edge contains legacy 'unsafe-inline' script-src until PR #1 is merged and deployed; local source and CI enforce strict script-src 'self' only.",
     "dual_token_emission_documented": true,
     "dual_token_emission_reason": "POST /api/auth/login sets an HttpOnly transify_session cookie for web browsers AND emits token in JSON response body for native Android client (MainActivity.kt) compatibility.",
     "native_bridge_ipc_security": "NOT APPLICABLE / NOT TESTED (No Electron, Tauri, or WebView2 host IPC bridge is implemented in this repository)",
@@ -2234,6 +2274,44 @@
           "x-frame-options": "DENY",
           "referrer-policy": "strict-origin-when-cross-origin",
           "permissions-policy": "camera=(self), microphone=(self), geolocation=()"
+        },
+        "exact_header_matches": {
+          "strict-transport-security": {
+            "present": true,
+            "exact_match": true,
+            "actual": "max-age=31536000",
+            "expected": "max-age=31536000"
+          },
+          "content-security-policy": {
+            "present": true,
+            "exact_match": false,
+            "actual": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+            "expected": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+          },
+          "x-content-type-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "nosniff",
+            "expected": "nosniff"
+          },
+          "x-frame-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "DENY",
+            "expected": "DENY"
+          },
+          "referrer-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "strict-origin-when-cross-origin",
+            "expected": "strict-origin-when-cross-origin"
+          },
+          "permissions-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "camera=(self), microphone=(self), geolocation=()",
+            "expected": "camera=(self), microphone=(self), geolocation=()"
+          }
         },
         "missing_headers": [],
         "duplicate_headers": [],
@@ -2257,6 +2335,44 @@
           "referrer-policy": "strict-origin-when-cross-origin",
           "permissions-policy": "camera=(self), microphone=(self), geolocation=()"
         },
+        "exact_header_matches": {
+          "strict-transport-security": {
+            "present": true,
+            "exact_match": true,
+            "actual": "max-age=31536000",
+            "expected": "max-age=31536000"
+          },
+          "content-security-policy": {
+            "present": true,
+            "exact_match": false,
+            "actual": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+            "expected": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+          },
+          "x-content-type-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "nosniff",
+            "expected": "nosniff"
+          },
+          "x-frame-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "DENY",
+            "expected": "DENY"
+          },
+          "referrer-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "strict-origin-when-cross-origin",
+            "expected": "strict-origin-when-cross-origin"
+          },
+          "permissions-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "camera=(self), microphone=(self), geolocation=()",
+            "expected": "camera=(self), microphone=(self), geolocation=()"
+          }
+        },
         "missing_headers": [],
         "duplicate_headers": [],
         "status": "PASS"
@@ -2278,6 +2394,44 @@
           "x-frame-options": "DENY",
           "referrer-policy": "strict-origin-when-cross-origin",
           "permissions-policy": "camera=(self), microphone=(self), geolocation=()"
+        },
+        "exact_header_matches": {
+          "strict-transport-security": {
+            "present": true,
+            "exact_match": true,
+            "actual": "max-age=31536000",
+            "expected": "max-age=31536000"
+          },
+          "content-security-policy": {
+            "present": true,
+            "exact_match": false,
+            "actual": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+            "expected": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+          },
+          "x-content-type-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "nosniff",
+            "expected": "nosniff"
+          },
+          "x-frame-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "DENY",
+            "expected": "DENY"
+          },
+          "referrer-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "strict-origin-when-cross-origin",
+            "expected": "strict-origin-when-cross-origin"
+          },
+          "permissions-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "camera=(self), microphone=(self), geolocation=()",
+            "expected": "camera=(self), microphone=(self), geolocation=()"
+          }
         },
         "missing_headers": [],
         "duplicate_headers": [],
@@ -2301,6 +2455,44 @@
           "referrer-policy": "strict-origin-when-cross-origin",
           "permissions-policy": "camera=(self), microphone=(self), geolocation=()"
         },
+        "exact_header_matches": {
+          "strict-transport-security": {
+            "present": true,
+            "exact_match": true,
+            "actual": "max-age=31536000",
+            "expected": "max-age=31536000"
+          },
+          "content-security-policy": {
+            "present": true,
+            "exact_match": false,
+            "actual": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+            "expected": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+          },
+          "x-content-type-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "nosniff",
+            "expected": "nosniff"
+          },
+          "x-frame-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "DENY",
+            "expected": "DENY"
+          },
+          "referrer-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "strict-origin-when-cross-origin",
+            "expected": "strict-origin-when-cross-origin"
+          },
+          "permissions-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "camera=(self), microphone=(self), geolocation=()",
+            "expected": "camera=(self), microphone=(self), geolocation=()"
+          }
+        },
         "missing_headers": [],
         "duplicate_headers": [],
         "status": "PASS"
@@ -2323,6 +2515,44 @@
           "referrer-policy": "strict-origin-when-cross-origin",
           "permissions-policy": "camera=(self), microphone=(self), geolocation=()"
         },
+        "exact_header_matches": {
+          "strict-transport-security": {
+            "present": true,
+            "exact_match": true,
+            "actual": "max-age=31536000",
+            "expected": "max-age=31536000"
+          },
+          "content-security-policy": {
+            "present": true,
+            "exact_match": false,
+            "actual": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+            "expected": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+          },
+          "x-content-type-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "nosniff",
+            "expected": "nosniff"
+          },
+          "x-frame-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "DENY",
+            "expected": "DENY"
+          },
+          "referrer-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "strict-origin-when-cross-origin",
+            "expected": "strict-origin-when-cross-origin"
+          },
+          "permissions-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "camera=(self), microphone=(self), geolocation=()",
+            "expected": "camera=(self), microphone=(self), geolocation=()"
+          }
+        },
         "missing_headers": [],
         "duplicate_headers": [],
         "status": "PASS"
@@ -2344,6 +2574,44 @@
           "x-frame-options": "DENY",
           "referrer-policy": "strict-origin-when-cross-origin",
           "permissions-policy": "camera=(self), microphone=(self), geolocation=()"
+        },
+        "exact_header_matches": {
+          "strict-transport-security": {
+            "present": true,
+            "exact_match": true,
+            "actual": "max-age=31536000",
+            "expected": "max-age=31536000"
+          },
+          "content-security-policy": {
+            "present": true,
+            "exact_match": false,
+            "actual": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+            "expected": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+          },
+          "x-content-type-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "nosniff",
+            "expected": "nosniff"
+          },
+          "x-frame-options": {
+            "present": true,
+            "exact_match": true,
+            "actual": "DENY",
+            "expected": "DENY"
+          },
+          "referrer-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "strict-origin-when-cross-origin",
+            "expected": "strict-origin-when-cross-origin"
+          },
+          "permissions-policy": {
+            "present": true,
+            "exact_match": true,
+            "actual": "camera=(self), microphone=(self), geolocation=()",
+            "expected": "camera=(self), microphone=(self), geolocation=()"
+          }
         },
         "missing_headers": [],
         "duplicate_headers": [],

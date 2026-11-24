@@ -5570,6 +5570,17 @@ const EditorialController = {
     if (this.closeNavDrawer) this.closeNavDrawer();
     let route = (rawRoute || 'home').toLowerCase();
     if (route === 'voice') route = 'stt';
+    if (route === 'login') {
+      const welcomed = !!localStorage.getItem('transify.welcomed');
+      route = welcomed ? 'home' : 'welcome';
+      setTimeout(() => {
+        if (window.TransifyApp && window.TransifyApp.openAuthSheet) {
+          window.TransifyApp.openAuthSheet('login');
+        } else if (window.openAuthSheet) {
+          window.openAuthSheet('login');
+        }
+      }, 50);
+    }
     if (route === 'care') route = 'care';
     if (route === 'care-intake' || route === 'intake') route = 'care';
     if (route === 'clinician' || route === 'care-clinician') route = 'care';

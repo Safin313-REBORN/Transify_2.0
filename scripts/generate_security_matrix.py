@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-Transify V3 — RC1.4.5.2 Security Header Matrix & Edge Probe Generator.
+Transify V3 — RC1.4.5.3 Security Header Matrix & Edge Probe Generator.
 Generates TRANSIFY_V3_RC1_4_5_SECURITY_HEADER_MATRIX.json with:
 - Exact Git commit SHA and UTC timestamp
 - Exact local middleware policy definitions and status
 - Live production probe results across multiple endpoints with exact value comparisons
 - Live genuine CORS preflight checks (OPTIONS with Origin, Access-Control-Request-Method, Access-Control-Request-Headers)
+  with hardened comma-separated method tokens, case-insensitive header set validation, and negative rejection checks.
+- Dynamic status-driven reporting without hardcoded unconditional claims.
 - Strict distinction between:
     1) Local source & CI verification (middleware enforcement)
     2) Current production deployment verification (live Railway edge state)
@@ -70,20 +72,54 @@ ENDPOINTS_TO_PROBE = [
 
 GENUINE_PREFLIGHT_TESTS = [
     {
-        "name": "login_preflight_post",
+        "name": "login_preflight_post_valid",
         "url": f"{PROD_URL}/api/auth/login",
         "method": "OPTIONS",
         "origin": "https://transify20-production.up.railway.app",
         "request_method": "POST",
-        "request_headers": "Content-Type"
+        "request_headers": "Content-Type",
+        "expect_valid": True,
+        "expect_status": 200
     },
     {
-        "name": "spa_login_preflight_get",
+        "name": "spa_login_preflight_get_valid",
         "url": f"{PROD_URL}/login",
         "method": "OPTIONS",
         "origin": "https://transify20-production.up.railway.app",
         "request_method": "GET",
-        "request_headers": "Content-Type"
+        "request_headers": "Content-Type",
+        "expect_valid": True,
+        "expect_status": 200
+    },
+    {
+        "name": "login_preflight_patch_unsupported",
+        "url": f"{PROD_URL}/api/auth/login",
+        "method": "OPTIONS",
+        "origin": "https://transify20-production.up.railway.app",
+        "request_method": "PATCH",
+        "request_headers": "Content-Type",
+        "expect_valid": False,
+        "expect_status": 400
+    },
+    {
+        "name": "login_preflight_disallowed_header",
+        "url": f"{PROD_URL}/api/auth/login",
+        "method": "OPTIONS",
+        "origin": "https://transify20-production.up.railway.app",
+        "request_method": "POST",
+        "request_headers": "X-Disallowed-Custom-Header",
+        "expect_valid": False,
+        "expect_status": 400
+    },
+    {
+        "name": "login_preflight_untrusted_origin",
+        "url": f"{PROD_URL}/api/auth/login",
+        "method": "OPTIONS",
+        "origin": "https://untrusted-attacker-origin.example.com",
+        "request_method": "POST",
+        "request_headers": "Content-Type",
+        "expect_valid": False,
+        "expect_status": 400
     }
 ]
 
@@ -147,6 +183,49 @@ def probe_curl(url: str, method: str = "GET", extra_headers: dict = None) -> dic
     }
 
 
+def validate_cors_preflight(probe_res: dict, test_spec: dict) -> tuple:
+    """
+    Hardened validation of CORS preflight:
+    - Parses Access-Control-Allow-Methods as comma-separated tokens, comparing exact token.
+    - Parses Access-Control-Allow-Headers as comma-separated tokens, case-insensitively verifying every requested header.
+    - Checks status is 200 or 204.
+    - Checks exact allowed origin match and credentials=true.
+    Returns (is_valid: bool, reason: str).
+    """
+    status = probe_res["status_code"]
+    hdrs = probe_res["headers"]
+    allow_origin = hdrs.get("access-control-allow-origin")
+    allow_methods_raw = hdrs.get("access-control-allow-methods", "")
+    allow_headers_raw = hdrs.get("access-control-allow-headers", "")
+    allow_creds = hdrs.get("access-control-allow-credentials")
+
+    if status not in (200, 204):
+        return False, f"Status code {status} not in (200, 204)"
+
+    if allow_origin != test_spec["origin"]:
+        return False, f"Origin mismatch: expected {test_spec['origin']}, got {allow_origin}"
+
+    if allow_creds != "true":
+        return False, f"Credentials mismatch: expected 'true', got {allow_creds}"
+
+    # Parse comma-separated methods
+    allowed_methods = [m.strip().upper() for m in allow_methods_raw.split(",") if m.strip()]
+    req_method = test_spec["request_method"].strip().upper()
+    if req_method not in allowed_methods:
+        return False, f"Method {req_method} not found in allowed methods: {allowed_methods}"
+
+    # Parse comma-separated headers (case-insensitive)
+    req_hdrs = test_spec.get("request_headers")
+    if req_hdrs:
+        allowed_headers_set = {h.strip().lower() for h in allow_headers_raw.split(",") if h.strip()}
+        req_headers_list = [h.strip().lower() for h in req_hdrs.split(",") if h.strip()]
+        for req_h in req_headers_list:
+            if req_h not in allowed_headers_set and "*" not in allowed_headers_set:
+                return False, f"Requested header '{req_h}' not found in allowed headers: {allowed_headers_set}"
+
+    return True, "Preflight passed all origin, method, header, and credential constraints"
+
+
 def generate_matrix() -> dict:
     head_commit = get_git_commit()
     timestamp_utc = datetime.now(timezone.utc).isoformat()
@@ -196,6 +275,8 @@ def generate_matrix() -> dict:
 
     # 2. Probe Live Genuine CORS Preflights
     live_preflight_results = []
+    preflights_passed = True
+
     for pre in GENUINE_PREFLIGHT_TESTS:
         pre_headers = {
             "Origin": pre["origin"],
@@ -207,17 +288,17 @@ def generate_matrix() -> dict:
         probe_res = probe_curl(pre["url"], method=pre["method"], extra_headers=pre_headers)
         hdrs = probe_res["headers"]
 
-        allow_origin = hdrs.get("access-control-allow-origin")
-        allow_methods = hdrs.get("access-control-allow-methods")
-        allow_headers = hdrs.get("access-control-allow-headers")
-        allow_creds = hdrs.get("access-control-allow-credentials")
+        is_valid, validation_msg = validate_cors_preflight(probe_res, pre)
+        expected_valid = pre.get("expect_valid", True)
+        expected_status = pre.get("expect_status", 200)
 
-        preflight_ok = (
-            probe_res["status_code"] in (200, 204) and
-            allow_origin == pre["origin"] and
-            allow_creds == "true" and
-            (pre["request_method"] in (allow_methods or ""))
-        )
+        # Check if test expectation matches actual response
+        status_matches = (probe_res["status_code"] == expected_status)
+        validity_matches = (is_valid == expected_valid)
+        test_success = status_matches and validity_matches
+
+        if not test_success:
+            preflights_passed = False
 
         live_preflight_results.append({
             "name": pre["name"],
@@ -226,21 +307,27 @@ def generate_matrix() -> dict:
             "sent_request_method": pre["request_method"],
             "sent_request_headers": pre.get("request_headers"),
             "response_status": probe_res["status_code"],
-            "access_control_allow_origin": allow_origin,
-            "access_control_allow_methods": allow_methods,
-            "access_control_allow_headers": allow_headers,
-            "access_control_allow_credentials": allow_creds,
-            "is_valid_preflight": preflight_ok
+            "expected_status": expected_status,
+            "access_control_allow_origin": hdrs.get("access-control-allow-origin"),
+            "access_control_allow_methods": hdrs.get("access-control-allow-methods"),
+            "access_control_allow_headers": hdrs.get("access-control-allow-headers"),
+            "access_control_allow_credentials": hdrs.get("access-control-allow-credentials"),
+            "is_valid_preflight": is_valid,
+            "expected_valid": expected_valid,
+            "validation_message": validation_msg,
+            "test_success": test_success
         })
 
     # 3. Assess Policy Discrepancy (Current Production vs Source Middleware)
-    # The current deployed Railway app has an older CSP containing 'unsafe-inline' in script-src.
     prod_csp = root_live_headers.get("content-security-policy", "")
     has_unsafe_inline_script = "'unsafe-inline'" in prod_csp.split("script-src")[1].split(";")[0] if "script-src" in prod_csp else False
 
+    # Status-driven release and readiness indicators
+    all_prod_headers_present = all(ep["all_headers_present"] for ep in endpoint_evaluations if ep["http_status"] == 200)
+
     matrix_data = {
         "audit_metadata": {
-            "milestone": "RC1.4.5.2 Final Release Evidence & Production Readiness Closeout",
+            "milestone": "RC1.4.5.3 Final Evidence Correction & Release Verification",
             "source_commit": head_commit,
             "timestamp_utc": timestamp_utc,
             "target": "Transify V3 Security Header Matrix",
@@ -250,10 +337,15 @@ def generate_matrix() -> dict:
             "single_source_of_truth": "TRANSIFY_V3_RC1_4_5_SECURITY_HEADER_MATRIX.json"
         },
         "verification_scopes": {
+            "evidence_generated": {
+                "scope": "Local Probe & Matrix Generation",
+                "status": "COMPLETED",
+                "timestamp_utc": timestamp_utc
+            },
             "local_and_ci_verification": {
                 "scope": "Local Source Repository & CI Test Suite",
-                "status": "PASSED (VERIFIED)",
-                "details": "FastAPI middleware strictly enforces zero 'unsafe-inline' scripts (script-src 'self' only), HTTP 307 direct-route redirects, and strict headers across all 242 tests."
+                "status": "EVALUATED_BY_CI_GATE",
+                "details": "FastAPI middleware strictly enforces zero 'unsafe-inline' scripts (script-src 'self' only), HTTP 307 direct-route redirects, and strict headers."
             },
             "current_production_deployment": {
                 "scope": "Live Deployed Edge (https://transify20-production.up.railway.app/)",
@@ -300,11 +392,11 @@ def generate_matrix() -> dict:
             "live_preflight_results": live_preflight_results
         },
         "verdict": {
-            "ci_readiness": "PASSED",
-            "local_middleware_status": "COMPLIANT",
-            "production_edge_connectivity": "CONNECTED",
+            "evidence_collection_status": "SUCCESS",
+            "production_headers_present": all_prod_headers_present,
+            "production_preflight_tests_passed": preflights_passed,
             "production_deployment_status": "PENDING (Strict CSP update awaits post-merge Railway deployment)",
-            "overall_release_gate": "READY FOR MERGE (PROD RELEASE PENDING DEPLOYMENT)"
+            "release_gate_authority": "GitHub Actions CI Workflow"
         }
     }
 
@@ -312,6 +404,12 @@ def generate_matrix() -> dict:
         json.dump(matrix_data, f, indent=2)
 
     print(f"[+] Successfully wrote fresh security matrix to {OUTPUT_FILE}")
+
+    # Enforce non-zero exit if preflight tests failed
+    if not preflights_passed:
+        print("[!] ERROR: One or more CORS preflight tests failed expectation!")
+        sys.exit(1)
+
     return matrix_data
 
 

@@ -276,19 +276,52 @@ def test_direct_routes_redirect_and_zero_csp_violations(live_server, route, expe
 
             # Follow redirect and verify in browser
             response = page.goto(f"{live_server}{route}", wait_until="domcontentloaded")
-            page.wait_for_timeout(300)
+            page.wait_for_timeout(400)
 
             # 1. URL redirect reaches target SPA
             current_url = page.url
             assert expected_hash in current_url, f"Expected {expected_hash} in URL for {route}, got {current_url}"
 
-            # 2. Workspace is active and visible
-            active_view = page.evaluate("""() => {
-                const el = document.querySelector('.page-view.active');
-                return el ? el.id : null;
+            # 2. Workspace is active and visible with exact element assertions per route
+            ui_state = page.evaluate("""() => {
+                const activeViews = Array.from(document.querySelectorAll('.page-view.active')).map(el => el.id);
+                const signStage = document.getElementById('sign-stage-container');
+                const brailleDrop = document.getElementById('braille-dropzone');
+                const homeBento = document.querySelector('.home-bento');
+                const authSheet = document.getElementById('auth-sheet-container');
+                const emailInput = document.getElementById('input-email');
+
+                const isVisible = (el) => {
+                    if (!el) return false;
+                    const rect = el.getBoundingClientRect();
+                    return rect.width > 0 && rect.height > 0 && window.getComputedStyle(el).display !== 'none';
+                };
+
+                return {
+                    active_views: activeViews,
+                    sign_stage_visible: isVisible(signStage),
+                    braille_dropzone_visible: isVisible(brailleDrop),
+                    home_bento_visible: isVisible(homeBento),
+                    auth_sheet_active: authSheet ? authSheet.classList.contains('active') : false,
+                    email_visible: isVisible(emailInput)
+                };
             }""")
-            expected_view_id = "view-home" if expected_hash in ("#home", "#dashboard", "#login") else f"view-{expected_hash.lstrip('#')}"
-            assert active_view == expected_view_id or active_view is not None, f"Expected active view for {route}"
+
+            if route == "/sign":
+                assert "view-sign" in ui_state["active_views"], f"Expected view-sign active for /sign, got {ui_state['active_views']}"
+                assert ui_state["sign_stage_visible"], "Expected #sign-stage-container visible for /sign"
+            elif route == "/braille":
+                assert "view-braille" in ui_state["active_views"], f"Expected view-braille active for /braille, got {ui_state['active_views']}"
+                assert ui_state["braille_dropzone_visible"], "Expected #braille-dropzone visible for /braille"
+            elif route == "/dashboard":
+                assert "view-home" in ui_state["active_views"], f"Expected view-home active for /dashboard, got {ui_state['active_views']}"
+                assert ui_state["home_bento_visible"], "Expected .home-bento visible for /dashboard"
+            elif route == "/login":
+                assert "view-welcome" in ui_state["active_views"] or "view-home" in ui_state["active_views"], (
+                    f"Expected view-welcome or view-home active under /login, got {ui_state['active_views']}"
+                )
+                assert ui_state["auth_sheet_active"], "Expected #auth-sheet-container.active for /login"
+                assert ui_state["email_visible"], "Expected #input-email visible for /login"
 
             # 3. No CSP violations occurred
             recorded_violations = page.evaluate("() => window.__csp_violations || []")
