@@ -16,17 +16,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Schibsted+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Schibsted+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
     rel="stylesheet">
 
   <!-- Self-Hosted Typography Fallback (Offline First) -->
   <link rel="stylesheet" href="/static/fonts/fonts.css">
   <script src="/static/i18n.js?v=20261120_i18n_v2"></script>
 
-  <!-- Design System CSS -->
-  <link rel="stylesheet" href="/static/styles.css?v=20261122_pro_ui_v2">
+  <!-- Design System CSS (Tokens, Shell, and Core Styles) -->
+  <link rel="stylesheet" href="/static/tokens.css">
+  <link rel="stylesheet" href="/static/shell.css">
+  <link rel="stylesheet" href="/static/styles.css?v=20261124_pro_ui_v3">
 
   <script src="/static/boot.js?v=20261124_rc1_4_5"></script>
+  <script src="/static/motion.js?v=20261124_motion_v1" defer></script>
 </head>
 
 <body>
@@ -35,7 +38,7 @@
        TRANSIFY NEURAL BOOT SEQUENCE OVERLAY
        ====================================================================== -->
   <div id="transify-boot-screen" class="transify-boot-screen" aria-label="System Initializing" role="status"
-    aria-live="polite">
+    aria-live="polite" data-approved-overlay="true">
     <div class="boot-ambient-glow" aria-hidden="true"></div>
     <div class="boot-content">
       <!-- Animated 6-Dot Braille Matrix Badge -->
@@ -68,6 +71,22 @@
         <span class="boot-pill">CLIENT SILICON</span>
         <span class="boot-pill">ZERO AUTO-AUDIO</span>
         <span class="boot-pill">WCAG AAA</span>
+      </div>
+      <button type="button" id="skip" class="btn o" style="margin-top: 14px; border-color: rgba(238,239,245,.4); color: #EEEFF5;">Skip intro</button>
+    </div>
+  </div>
+
+  <!-- Emergency Modal Overlay (WCAG Alertdialog) -->
+  <div id="em" role="alertdialog" aria-modal="true" aria-label="Emergency" data-approved-overlay="true" style="display:none">
+    <div>
+      <h1>Medical emergency</h1>
+      <h1 lang="bn" style="margin-top:10px">জরুরি চিকিৎসা সহায়তা প্রয়োজন</h1>
+      <p style="color:#fff;margin:22px auto;max-width:40ch;font-size:20px">
+        Please help this person, or call <a href="tel:999">999</a> now. Health helpline: <a href="tel:16263">16263</a>.
+      </p>
+      <div class="row" style="justify-content:center">
+        <button type="button" class="btn w" id="emsay">Speak this aloud</button>
+        <button type="button" class="btn w" id="emx">Dismiss</button>
       </div>
     </div>
   </div>
@@ -126,7 +145,7 @@
   </div>
 
   <!-- Accessible Skip Link (WCAG 2.4.1) -->
-  <a href="#main" class="skip-link">Skip to main content</a>
+  <a href="#main" class="skip-link" data-approved-overlay="true">Skip to main content</a>
 
   <!-- Offscreen Polite Announcements (WCAG 4.1.3) -->
   <div id="sr-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
@@ -145,12 +164,11 @@
 
     <!-- Persistent Left Rail Navigation (Prompt §5) -->
     <nav aria-label="Main" class="rail" id="app-rail">
+      <i class="ind" aria-hidden="true"></i>
       <!-- Interactive 6-Dot Logo Badge (Links to Home) -->
-      <a href="#home" class="rail-logo-link press" id="rail-logo-btn" aria-label="Transify Home" title="Transify Home">
-        <div class="rail-logo-glow" aria-hidden="true"></div>
-        <div class="rail-logo" aria-hidden="true">
-          <i></i><i></i><i></i><i></i><i></i><i></i>
-        </div>
+      <a href="#home" class="logo rail-logo-link press" id="rail-logo-btn" aria-label="Transify Home" title="Transify Home" style="text-decoration: none;">
+        <i aria-hidden="true"><b></b><b></b><b></b><b></b><b></b><b></b></i>
+        <span>Transify</span>
       </a>
 
       <!-- 1. Home -->
@@ -263,10 +281,30 @@
         </svg>
         <span>More</span>
       </button>
+
+      <!-- Sidebar Spacer & User Account Chip -->
+      <span class="sp" aria-hidden="true"></span>
+      <div class="who" id="rail-user-chip" role="button" tabindex="0" aria-label="Account details" title="Sign In">
+        <span class="av" id="rail-user-avatar">GU</span>
+        <span id="rail-user-name">Guest, on-device</span>
+      </div>
     </nav>
 
     <!-- Content Frame -->
     <div class="content-frame" id="main">
+
+      <!-- Sticky Top Bar (Page Title, Language Toggle, Emergency SOS) -->
+      <header class="top" aria-label="Transify Header" data-approved-overlay="true">
+        <h2 id="ttl">Home</h2>
+        <div class="seg" id="langs" role="group" aria-label="Language selection">
+          <button type="button" aria-pressed="true" data-l="en" id="btn-lang-en">EN</button>
+          <button type="button" aria-pressed="false" data-l="bn" id="btn-lang-bn" lang="bn">বাংলা</button>
+        </div>
+        <button type="button" class="sos" id="sosb" aria-label="Emergency Medical Assistance">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20zM12 10v5M12 18v.01"/></svg>
+          <span>Emergency</span>
+        </button>
+      </header>
 
       <!-- ======================================================================
            VIEW 1: COVER PAGE & WELCOME SCREEN (#welcome)
@@ -537,38 +575,29 @@
 
           <!-- Bento Grid of Assistive Services -->
           <div class="home-bento">
-            <!-- Tile 1: Sign Translator -->
-            <a href="#sign" class="tile t1 press" aria-label="Open sign translator" id="btn-open-hand-signal">
-              <div class="tile-bg-image-wrap" style="opacity: 0.35;">
+            <!-- Tile 1: Sign Translator Hero -->
+            <a href="#sign" class="tile t1 press hero" aria-label="Open sign translator" id="btn-open-hand-signal" data-s>
+              <div class="tile-bg-image-wrap" style="opacity: 0.25;">
                 <picture>
                   <source srcset="/static/photos/sign-bg-wide.webp" type="image/webp">
                   <img src="/static/photos/sign-bg-wide.jpg" alt="" class="tile-bg-img" loading="lazy">
                 </picture>
               </div>
-              <div class="ph"
-                style="background: radial-gradient(52% 52% at 62% 38%,#B8896A 0%,rgba(180,136,102,0) 62%),radial-gradient(60% 60% at 10% 90%,#2C4258 0%,rgba(44,66,88,0) 70%),linear-gradient(160deg,#45382F 0%,#1A1621 75%);">
-              </div>
-              <svg class="grain" width="100%" height="100%" aria-hidden="true">
-                <rect width="100%" height="100%" filter="url(#g)" />
-              </svg>
-              <div class="scrim-bottom"></div>
-              <!-- Decorative Animated Real Hand Sign Visualizer -->
-              <div class="tile-hand-container" aria-hidden="true">
-                <div class="tile-hand-box">
-                  <picture>
-                    <source srcset="/static/photos/illustration-sign-hand.webp" type="image/webp">
-                    <img src="/static/photos/illustration-sign-hand.jpg" alt="Illustrated sign hand"
-                      class="tile-real-hand-img" width="180" height="180">
-                  </picture>
-                </div>
-              </div>
               <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                   stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M7 17L17 7M8 7h9v9" />
                 </svg></span>
-              <span class="cap"><b style="font-size: 40px; line-height: 1.02;">Translate signs</b><span
-                  style="display: block; margin-top: 6px; font-size: 18px; color: #E0DEEE;">BdSL and ASL, spoken as you
-                  sign</span></span>
+              <span class="cap">
+                <b style="font-size: 34px; line-height: 1.05;">Sign translator</b>
+                <span style="display: block; margin-top: 6px; font-size: 16px; color: #E0DEEE;">BdSL and ASL, spoken as you sign</span>
+              </span>
+              <div class="rd">
+                <b id="hw">Hello</b>
+                <div class="cf"><i id="hb" style="width: 98.7%;"></i></div>
+                <small id="hp">98.7% sure</small>
+              </div>
+              <div class="cells" id="hc" aria-hidden="true"></div>
+              <svg id="hh" viewBox="0 0 300 340" aria-hidden="true"></svg>
             </a>
 
             <!-- Tile 2: Braille Scanner -->
@@ -622,6 +651,14 @@
             </a>
           </div>
 
+          <!-- On-Device Stat Strip (WCAG Count-Up) -->
+          <div class="stats" role="region" aria-label="Key Accessibility Capabilities">
+            <div class="card stat"><b data-to="100" data-suf="%">100%</b><small>On-device processing</small></div>
+            <div class="card stat"><b data-to="21">21</b><small>Hand landmarks tracked</small></div>
+            <div class="card stat"><b data-to="6">6</b><small>Caption languages</small></div>
+            <div class="card stat"><b data-to="3">3</b><small>Braille standards</small></div>
+          </div>
+
           <!-- Transify Care & AI Assistant Feature Card (Full Width) -->
           <div class="home-care-tile">
             <div class="care-info">
@@ -667,6 +704,10 @@
                   <div class="an-team-title">Team <span class="an-highlight">Alpha Nexus</span></div>
                   <div class="an-copy-claim">© 2026 <strong>Alpha Nexus</strong>. All rights reserved. • Engineered with
                     pride for Transify 2.0</div>
+                  <div style="margin-top: 6px; font-size: 13px;">
+                    <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener" style="color:var(--violet);font-weight:700;text-decoration:none;margin-right:12px;">Source &amp; Feedback on GitHub</a>
+                    <button type="button" id="rep" style="background:none;border:0;color:var(--violet);font-weight:700;cursor:pointer;text-decoration:underline;padding:0;font-size:inherit;">Replay intro</button>
+                  </div>
                 </div>
               </div>
             </div>

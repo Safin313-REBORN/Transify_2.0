@@ -1,10 +1,12 @@
 /* ==========================================================================
    TRANSIFY 2.0 — PIXEL-EXACT EDITORIAL ASSISTIVE DESIGN SYSTEM
-   Source of Truth: design-reference/ (DesktopHome, DesktopSign, DesktopPhrases, DesktopCover)
-   WCAG 2.2 AAA Accessible | Pure Vanilla CSS
+   Source of Truth: reference/transify-full.html & DESIGN_BRIEF.md
+   WCAG 2.1 AAA Accessible | Pure Vanilla CSS
    ========================================================================== */
 
 @import url('/static/fonts/fonts.css');
+@import url('/static/tokens.css');
+@import url('/static/shell.css');
 
 /* -------------------------------------------------------------
    1. Design Tokens (Prompt §4)

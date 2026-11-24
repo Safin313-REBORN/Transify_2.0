@@ -1,0 +1,22 @@
+/* Transify 2.0 design tokens. Drop into src/frontend and import before other CSS. */
+:root{
+  /* official palette */
+  --violet:#8338EC; --ink:#14111F; --paper:#EEEFF5; --white:#FFFFFF; --slate:#4A4860;
+  /* tints derived from violet */
+  --violet-50:#F2EAFD; --violet-100:#E6D8FB; --violet-300:#A674F2; --violet-700:#5E1FB8; --violet-900:#2E1170;
+  /* semantic */
+  --alert:#D92D3F; --amber:#FFC878; --rose:#FF8A95;
+  /* theme (light) */
+  --bg:var(--paper); --fg:var(--ink); --muted:var(--slate); --card:var(--white);
+  --line:rgba(20,17,31,.12); --accent:var(--violet); --on-accent:#fff;
+  --shadow:0 1px 2px rgba(20,17,31,.05),0 14px 34px -18px rgba(20,17,31,.18);
+  --radius:20px; --radius-pill:99px;
+  --font:'Manrope',system-ui,sans-serif; --font-bn:'Hind Siliguri','Manrope',sans-serif;
+  --ease-out:cubic-bezier(.2,.8,.2,1); --ease-io:cubic-bezier(.7,0,.2,1);
+  --scale:1;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="hc"]){
+  --bg:var(--ink); --fg:var(--paper); --muted:#B9B7CC; --card:#1E1A31; --line:rgba(238,239,245,.14);
+  --accent:var(--violet-300); --on-accent:var(--ink); --violet-50:rgba(166,116,242,.12); --violet-100:rgba(166,116,242,.22);}}
+:root[data-theme="dark"]{--bg:var(--ink);--fg:var(--paper);--muted:#B9B7CC;--card:#1E1A31;--line:rgba(238,239,245,.14);--accent:var(--violet-300);--on-accent:var(--ink);--violet-50:rgba(166,116,242,.12);--violet-100:rgba(166,116,242,.22)}
+:root[data-theme="hc"]{--bg:#000;--fg:#fff;--muted:#fff;--card:#000;--line:#fff;--accent:#C9A0FF;--on-accent:#000;--shadow:none}
