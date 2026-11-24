@@ -2209,6 +2209,14 @@ var SignPage = window.SignPage = window.TransifySign = {
       });
     }
 
+    const stopCamBtn = document.getElementById('stop-camera-btn');
+    if (stopCamBtn) {
+      stopCamBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.stopCamera();
+      });
+    }
+
     const bdslBtn = document.getElementById('lang-bdsl-btn');
     const aslBtn = document.getElementById('lang-asl-btn');
     if (bdslBtn) {

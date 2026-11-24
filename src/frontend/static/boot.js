@@ -498,6 +498,24 @@
         e.preventDefault();
         if (window.testVoicePreview) window.testVoicePreview();
         break;
+      case 'stop-camera':
+        e.preventDefault();
+        if (window.SignPage && typeof window.SignPage.stopCamera === 'function') {
+          window.SignPage.stopCamera();
+        }
+        break;
+      case 'toggle-roi-focus':
+        e.preventDefault();
+        if (window.SignPage && typeof window.SignPage.setRoiPosition === 'function') {
+          var nextPos = (window.SignPage.roiPosition === 'fullscreen') ? 'center' : 'fullscreen';
+          window.SignPage.setRoiPosition(nextPos);
+        }
+        break;
+      case 'toggle-cam-fullscreen':
+        e.preventDefault();
+        var fsEl = document.getElementById('btn-toggle-cam-fullscreen');
+        if (fsEl) fsEl.click();
+        break;
       case 'set-sign-lang':
       case 'settings-sign-lang':
         e.preventDefault();

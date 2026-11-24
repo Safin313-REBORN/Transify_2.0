@@ -359,6 +359,28 @@
       });
     }
 
+    // Camera header control buttons
+    const stopCamBtn = document.getElementById('stop-camera-btn');
+    if (stopCamBtn) {
+      stopCamBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.SignPage && typeof window.SignPage.stopCamera === 'function') {
+          window.SignPage.stopCamera();
+        }
+      });
+    }
+
+    const focusBtn = document.getElementById('toggle-roi-focus-btn');
+    if (focusBtn) {
+      focusBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.SignPage && typeof window.SignPage.setRoiPosition === 'function') {
+          const nextPos = (window.SignPage.roiPosition === 'fullscreen') ? 'center' : 'fullscreen';
+          window.SignPage.setRoiPosition(nextPos);
+        }
+      });
+    }
+
     // User profile chip
     const userChip = document.getElementById('rail-user-chip');
     if (userChip) {

@@ -848,11 +848,11 @@
             </div>
             <div class="sign-header-right">
               <button type="button" id="toggle-roi-focus-btn" class="btn-focus-mode press"
-                aria-label="Toggle camera focus mode">🎯 Center Focus</button>
+                data-action="toggle-roi-focus" aria-label="Toggle camera focus mode">🎯 Center Focus</button>
               <button type="button" id="btn-toggle-cam-fullscreen" class="btn-fullscreen-cam press"
-                aria-label="Toggle camera fullscreen">⛶ Fullscreen</button>
-              <button type="button" id="stop-camera-btn" class="btn-stop-cam press" style="display: none;">Stop
-                camera</button>
+                data-action="toggle-cam-fullscreen" aria-label="Toggle camera fullscreen">⛶ Fullscreen</button>
+              <button type="button" id="stop-camera-btn" class="btn-stop-cam press"
+                data-action="stop-camera" style="display: none;">Stop camera</button>
               <div role="group" aria-label="Sign language" class="lang-segmented" id="sign-lang-segmented-group">
                 <button type="button" id="lang-bdsl-btn" class="press" aria-pressed="false" data-action="set-sign-lang" data-lang="bdsl">BdSL</button>
                 <button type="button" id="lang-asl-btn" class="press active" aria-pressed="true" data-action="set-sign-lang" data-lang="asl">ASL</button>
