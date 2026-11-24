@@ -1216,6 +1216,11 @@ a.rowl:hover {
   z-index: 40 !important;
 }
 
+.auth-google-action:hover {
+  background: var(--surface-2, #f5f3ff) !important;
+  border-color: var(--violet, #7c3aed) !important;
+}
+
 /* Hide floating chat button when already inside AI Chat view or Welcome view */
 body:has(#view-chat.active) .floating-chat-btn,
 .app:has(#view-chat.active) ~ .floating-chat-btn,

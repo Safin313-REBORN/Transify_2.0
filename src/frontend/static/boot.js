@@ -142,6 +142,14 @@
         e.preventDefault();
         window.handleDemoLogin();
         break;
+      case 'google-login':
+        e.preventDefault();
+        if (window.TransifyApp && window.TransifyApp.handleGoogleLogin) {
+          window.TransifyApp.handleGoogleLogin();
+        } else if (window.handleGoogleLogin) {
+          window.handleGoogleLogin();
+        }
+        break;
       case 'settings-auth-action':
         e.preventDefault();
         if (window.TransifyApp && window.TransifyApp.handleSettingsAuthAction) {
