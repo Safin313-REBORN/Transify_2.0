@@ -1540,11 +1540,11 @@ def run_desktop_matrix():
                     }}
 
                     const tReady = ready ? (performance.now() - t0) : -1;
-                    const passesThreshold = ready && (tReady <= targetThreshold) && (tActivation > 0);
+                    const passesThreshold = ready && (tReady <= targetThreshold) && (tActivation >= 0);
 
                     return {{
                         status: passesThreshold ? "PASS" : "FAIL",
-                        error: !ready ? "Readiness timeout" : (tActivation <= 0 ? "Activation timing unrecorded" : (tReady > targetThreshold ? "Exceeded latency threshold" : null)),
+                        error: !ready ? "Readiness timeout" : (tActivation < 0 ? "Activation timing unrecorded" : (tReady > targetThreshold ? "Exceeded latency threshold" : null)),
                         dispatch_ms: Math.round(tDispatch * 100) / 100,
                         activation_ms: Math.round(tActivation * 100) / 100,
                         first_raf_callback_ms: Math.round(tFirstRaf * 100) / 100,

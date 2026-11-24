@@ -121,6 +121,39 @@ def test_csp_blocks_unauthorized_external_script(live_server):
         assert violation_triggered is True, "Enforced CSP failed to block unauthorized external script!"
         browser.close()
 
+def test_csp_blocks_inline_script_injection(live_server):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+
+        page.goto(f"{live_server}/", wait_until="domcontentloaded")
+
+        # Inject an inline script block - must be blocked by strict script-src 'self'
+        violation_triggered = page.evaluate("""() => {
+            return new Promise((resolve) => {
+                let caught = false;
+                document.addEventListener('securitypolicyviolation', (e) => {
+                    if (e.violatedDirective.includes('script-src')) {
+                        caught = true;
+                        resolve(true);
+                    }
+                });
+                try {
+                    const s = document.createElement('script');
+                    s.textContent = 'window.__malicious_inline_executed = true;';
+                    document.body.appendChild(s);
+                } catch (e) {}
+                setTimeout(() => {
+                    resolve(caught || !window.__malicious_inline_executed);
+                }, 500);
+            });
+        }""")
+
+        assert violation_triggered is True, "Strict CSP failed to block injected inline script!"
+        is_executed = page.evaluate("() => Boolean(window.__malicious_inline_executed)")
+        assert is_executed is False, "Inline script was executed despite strict CSP!"
+        browser.close()
+
 def test_permissions_policy_allows_camera_and_mic_for_self(live_server):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)

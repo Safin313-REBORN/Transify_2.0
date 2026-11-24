@@ -59,8 +59,41 @@
       this.initChronicCare();
     },
 
+    switchTab: function (tabName) {
+      const intakeTab = document.getElementById('care-tab-intake-btn');
+      const clinicianTab = document.getElementById('care-tab-clinician-btn');
+      const chronicTab = document.getElementById('care-tab-chronic-btn');
+      const intakeSlide = document.getElementById('slide-care-intake');
+      const clinicianSlide = document.getElementById('slide-clinician-portal');
+      const chronicSlide = document.getElementById('slide-care-chronic');
+
+      [intakeTab, clinicianTab, chronicTab].forEach(t => { if (t) t.classList.remove('active'); });
+      [intakeSlide, clinicianSlide, chronicSlide].forEach(s => { if (s) s.style.display = 'none'; });
+
+      if (tabName === 'clinician') {
+        if (clinicianTab) clinicianTab.classList.add('active');
+        if (clinicianSlide) clinicianSlide.style.display = 'block';
+        this.loadClinicianQueue();
+        this.loadDashboardStats();
+      } else if (tabName === 'chronic') {
+        if (chronicTab) chronicTab.classList.add('active');
+        if (chronicSlide) chronicSlide.style.display = 'flex';
+      } else {
+        if (intakeTab) intakeTab.classList.add('active');
+        if (intakeSlide) intakeSlide.style.display = 'flex';
+      }
+    },
+
     bindEvents: function () {
       const self = this;
+
+      // Care sub-tabs
+      const intakeTab = document.getElementById('care-tab-intake-btn');
+      const clinicianTab = document.getElementById('care-tab-clinician-btn');
+      const chronicTab = document.getElementById('care-tab-chronic-btn');
+      if (intakeTab) intakeTab.addEventListener('click', () => self.switchTab('intake'));
+      if (clinicianTab) clinicianTab.addEventListener('click', () => self.switchTab('clinician'));
+      if (chronicTab) chronicTab.addEventListener('click', () => self.switchTab('chronic'));
 
       // Severity Slider Sync
       const slider = document.getElementById('care-severity-slider');

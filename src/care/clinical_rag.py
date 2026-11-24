@@ -230,6 +230,8 @@ def seed_clinical_sources_if_empty(force_reseed: bool = False):
     Seeds the Clinical and Research Evidence Registry.
     Ensures rich provenance metadata and flags each resource according to its legitimate scope.
     """
+    from src.care.db_care import init_care_db
+    init_care_db()
     conn = get_connection()
     cursor = conn.cursor()
 

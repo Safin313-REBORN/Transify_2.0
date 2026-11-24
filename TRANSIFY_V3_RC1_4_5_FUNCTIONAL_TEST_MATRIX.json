@@ -1,0 +1,57 @@
+{
+  "summary": {
+    "total_tests": 238,
+    "passed": 238,
+    "failed": 0,
+    "skipped": 0,
+    "subtests_passed": 5,
+    "duration_seconds": 204.3,
+    "execution_status": "PASS"
+  },
+  "suites": {
+    "test_care_anywhere": {
+      "count": 21,
+      "status": "PASS"
+    },
+    "test_care_browser": {
+      "count": 16,
+      "status": "PASS"
+    },
+    "test_care_security": {
+      "count": 15,
+      "status": "PASS"
+    },
+    "test_clinical_rag": {
+      "count": 21,
+      "status": "PASS"
+    },
+    "test_clinical_safety_matrix": {
+      "count": 72,
+      "status": "PASS"
+    },
+    "test_csp_browser_regression": {
+      "count": 6,
+      "status": "PASS"
+    },
+    "test_data_integrity": {
+      "count": 14,
+      "status": "PASS"
+    },
+    "test_elderly_voice_care": {
+      "count": 16,
+      "status": "PASS"
+    },
+    "test_full_system": {
+      "count": 35,
+      "status": "PASS"
+    },
+    "test_security_headers_middleware": {
+      "count": 18,
+      "status": "PASS"
+    },
+    "test_zero_auto_audio_regression": {
+      "count": 4,
+      "status": "PASS"
+    }
+  }
+}

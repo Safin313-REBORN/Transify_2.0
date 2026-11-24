@@ -47,7 +47,7 @@ from src.care.care_anywhere import (
 # Ensure databases initialized
 init_db()
 init_care_db()
-seed_clinical_sources_if_empty(force_reseed=True)
+seed_clinical_sources_if_empty(force_reseed=False)
 
 
 @pytest.fixture

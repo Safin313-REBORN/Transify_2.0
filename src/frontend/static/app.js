@@ -641,7 +641,7 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
     if (this._authOpener && typeof this._authOpener.focus === 'function') {
       try {
         this._authOpener.focus();
-      } catch (_) {}
+      } catch (_) { }
     }
   },
 
@@ -1502,12 +1502,12 @@ var DashboardPage = window.DashboardPage = {
               "${rec.recognized_text}"
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <button class="btn btn-secondary btn-sm" onclick="TransifyTTS.speak('${rec.recognized_text.replace(/'/g, "\\'")}')" aria-label="Speak text">
+              <button class="btn btn-secondary btn-sm" data-action="dashboard-speak" data-text="${encodeURIComponent(rec.recognized_text)}" aria-label="Speak text">
                 🔊 Speak
               </button>
               <div style="display: flex; gap: var(--space-2);">
-                <button class="btn-icon" title="Accurate" onclick="DashboardPage.giveFeedback(${rec.id}, 5)" aria-label="Thumbs up accurate">👍</button>
-                <button class="btn-icon" title="Needs Correction" onclick="DashboardPage.giveFeedback(${rec.id}, 1)" aria-label="Thumbs down incorrect">👎</button>
+                <button class="btn-icon" title="Accurate" data-action="dashboard-feedback" data-rec-id="${rec.id}" data-rating="5" aria-label="Thumbs up accurate">👍</button>
+                <button class="btn-icon" title="Needs Correction" data-action="dashboard-feedback" data-rec-id="${rec.id}" data-rating="1" aria-label="Thumbs down incorrect">👎</button>
               </div>
             </div>
           </div>
@@ -5690,14 +5690,26 @@ const EditorialController = {
     }
 
     if (rawRoute === 'clinician' || rawRoute === 'care-clinician') {
-      const clinicianTab = document.getElementById('care-tab-clinician-btn');
-      if (clinicianTab) clinicianTab.click();
+      if (window.TransifyCare && window.TransifyCare.switchTab) {
+        window.TransifyCare.switchTab('clinician');
+      } else {
+        const clinicianTab = document.getElementById('care-tab-clinician-btn');
+        if (clinicianTab) clinicianTab.click();
+      }
     } else if (rawRoute === 'care-chronic' || rawRoute === 'chronic') {
-      const chronicTab = document.getElementById('care-tab-chronic-btn');
-      if (chronicTab) chronicTab.click();
+      if (window.TransifyCare && window.TransifyCare.switchTab) {
+        window.TransifyCare.switchTab('chronic');
+      } else {
+        const chronicTab = document.getElementById('care-tab-chronic-btn');
+        if (chronicTab) chronicTab.click();
+      }
     } else if (rawRoute === 'care-intake' || rawRoute === 'care' || rawRoute === 'intake') {
-      const intakeTab = document.getElementById('care-tab-intake-btn');
-      if (intakeTab) intakeTab.click();
+      if (window.TransifyCare && window.TransifyCare.switchTab) {
+        window.TransifyCare.switchTab('intake');
+      } else {
+        const intakeTab = document.getElementById('care-tab-intake-btn');
+        if (intakeTab) intakeTab.click();
+      }
     } else if (route === 'contact' || rawRoute === 'contact') {
       if (this.switchSettingsTab) this.switchSettingsTab('contact');
     } else if (rawRoute && rawRoute.startsWith('settings-')) {
@@ -6209,40 +6221,40 @@ const EditorialController = {
         return `
         <li>
           <div class="phrase-card card-uiverse ${isEmergency ? 'is-emergency' : ''}" data-idx="${idx}" role="region" aria-label="${p.en}">
-            <div class="go-corner" aria-hidden="true" onclick="EditorialController.speakPhraseCard(${idx})"><span class="go-arrow">🔊</span></div>
+            <div class="go-corner" aria-hidden="true" data-action="phrase-speak" data-idx="${idx}"><span class="go-arrow">🔊</span></div>
             <div class="phrase-card-top">
               <span class="phrase-badge ${catClass}">${p.cat}</span>
               <div style="display: flex; align-items: center; gap: 6px;">
-                <button type="button" class="phrase-fav-btn ${isFav ? 'is-fav' : ''}" onclick="EditorialController.toggleFavoritePhrase('${p.id || p.en}', event)" title="Toggle Favorite" aria-label="Toggle favorite">
+                <button type="button" class="phrase-fav-btn ${isFav ? 'is-fav' : ''}" data-action="phrase-toggle-fav" data-phrase-id="${p.id || p.en}" title="Toggle Favorite" aria-label="Toggle favorite">
                   ${isFav ? '★' : '☆'}
                 </button>
-                <span class="phrase-card-icon" id="card-icon-${idx}" onclick="EditorialController.speakPhraseCard(${idx})" style="cursor: pointer;" title="Speak phrase">
+                <span class="phrase-card-icon" id="card-icon-${idx}" data-action="phrase-speak" data-idx="${idx}" style="cursor: pointer;" title="Speak phrase">
                   <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>
                 </span>
               </div>
             </div>
             
-            <div onclick="EditorialController.speakPhraseCard(${idx})" style="cursor: pointer;">
+            <div data-action="phrase-speak" data-idx="${idx}" style="cursor: pointer;">
               <span class="phrase-en card-title">${p.en}</span>
               ${p.bn ? `<span class="phrase-bn small-desc">${p.bn}</span>` : ''}
               ${p.translit ? `<span class="phrase-translit">Pronounce: ${p.translit}</span>` : ''}
             </div>
 
             <div class="phrase-card-actions">
-              <button type="button" class="phrase-action-btn press" onclick="EditorialController.speakPhraseCard(${idx})" title="Say phrase aloud">
+              <button type="button" class="phrase-action-btn press" data-action="phrase-speak" data-idx="${idx}" title="Say phrase aloud">
                 <span>🔊 Speak</span>
               </button>
-              <button type="button" class="phrase-action-btn press" onclick="EditorialController.copyPhrase('${p.en.replace(/'/g, "\\'")}', '${(p.bn || '').replace(/'/g, "\\'")}')" title="Copy text">
+              <button type="button" class="phrase-action-btn press" data-action="phrase-copy" data-idx="${idx}" title="Copy text">
                 <span>📋 Copy</span>
               </button>
-              <button type="button" class="phrase-action-btn press" onclick="EditorialController.bridgePhraseToSign('${p.en.replace(/'/g, "\\'")}')" title="Bridge to sign translator">
+              <button type="button" class="phrase-action-btn press" data-action="phrase-bridge-sign" data-idx="${idx}" title="Bridge to sign translator">
                 <span>🤟 Signs</span>
               </button>
-              <button type="button" class="phrase-action-btn press" onclick="EditorialController.bridgePhraseToBraille('${p.en.replace(/'/g, "\\'")}')" title="Bridge to Braille studio">
+              <button type="button" class="phrase-action-btn press" data-action="phrase-bridge-braille" data-idx="${idx}" title="Bridge to Braille studio">
                 <span>⠃ Braille</span>
               </button>
               ${isEmergency ? `
-              <button type="button" class="phrase-action-btn press" onclick="EditorialController.triggerEmergencyFlashByIdx(${idx})" style="background: rgba(239,68,68,0.12); color: #dc2626; border-color: rgba(239,68,68,0.3);" title="Trigger emergency siren">
+              <button type="button" class="phrase-action-btn press" data-action="phrase-alert" data-idx="${idx}" style="background: rgba(239,68,68,0.12); color: #dc2626; border-color: rgba(239,68,68,0.3);" title="Trigger emergency siren">
                 <span>🚨 Alert</span>
               </button>` : ''}
             </div>

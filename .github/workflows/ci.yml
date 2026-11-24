@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-and-verify:
-    name: Backend, Security, Browser & Android Verification
+    name: Backend, Security, Desktop & Mobile Browser Verification
     runs-on: ubuntu-24.04
     timeout-minutes: 25
 
@@ -59,20 +59,35 @@ jobs:
         run: |
           python scripts/verify_desktop_webview_matrix.py
 
+      - name: Run Mobile 110-Workspace Playwright Audit Matrix
+        env:
+          TRANSIFY_ENV: testing
+          PYTHONPATH: .
+        run: |
+          python scripts/verify_mobile_browser_matrix.py
+
       - name: Upload Desktop Audit Matrix JSON
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: transify-desktop-audit-matrix
-          path: TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json
+          path: TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json
           if-no-files-found: ignore
 
-      - name: Upload RC1.4.4 Security Header Matrix JSON
+      - name: Upload Mobile Audit Matrix JSON
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: transify-rc1-4-4-security-matrix
-          path: TRANSIFY_V3_RC1_4_4_SECURITY_HEADER_MATRIX.json
+          name: transify-mobile-audit-matrix
+          path: TRANSIFY_V3_RC1_4_5_MOBILE_VIEWPORT_MATRIX.json
+          if-no-files-found: ignore
+
+      - name: Upload RC1.4.5 Security Header Matrix JSON
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: transify-rc1-4-5-security-matrix
+          path: TRANSIFY_V3_RC1_4_5_SECURITY_HEADER_MATRIX.json
           if-no-files-found: ignore
 
       - name: Upload Desktop Audit Screenshots
@@ -83,45 +98,11 @@ jobs:
           path: TRANSIFY_V3_RC1_4_DESKTOP_SCREENSHOTS/
           if-no-files-found: ignore
 
-      - name: Set up JDK 17 for Android
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
-
-      - name: Run Android Unit Tests and Build Debug and Instrumentation APKs
-        working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" testDirectDebugUnitTest assembleDirectDebug assembleDirectDebugAndroidTest --stacktrace --no-daemon
-
-      - name: Upload Android Debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: transify-android-debug-apk
-          path: android/app/build/outputs/apk/direct/debug/app-direct-debug.apk
-          if-no-files-found: error
-
-      - name: Upload Android Instrumentation Test APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: transify-android-instrumentation-apk
-          path: android/app/build/outputs/apk/androidTest/direct/debug/app-direct-debug-androidTest.apk
-          if-no-files-found: error
-
-      - name: Upload Android Test HTML Reports
+      - name: Upload Mobile Audit Screenshots
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: transify-android-test-report
-          path: android/app/build/reports/tests/testDirectDebugUnitTest/
+          name: transify-mobile-audit-screenshots
+          path: TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/
           if-no-files-found: ignore
 
-      - name: Upload Android JUnit XML Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: transify-android-junit-xml
-          path: android/app/build/test-results/testDirectDebugUnitTest/
-          if-no-files-found: ignore

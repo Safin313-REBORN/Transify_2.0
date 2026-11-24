@@ -7,6 +7,8 @@ handles translation history, accessibility preferences, and serves the frontend 
 import os
 import sys
 import time
+import ipaddress
+import logging
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
@@ -67,24 +69,43 @@ app.include_router(care_router)
 app.include_router(chat_router)
 
 # Enable CORS for trusted origins
+cors_env = os.getenv("CORS_ORIGINS", "https://transify.ai,https://app.transify.ai,https://transify20-production.up.railway.app")
+allowed_origins = [o.strip() for o in cors_env.split(",") if o.strip()]
+
 if is_production():
-    cors_env = os.getenv("CORS_ORIGINS", "https://transify.ai,https://app.transify.ai,https://transify20-production.up.railway.app")
-    allowed_origins = [o.strip() for o in cors_env.split(",") if o.strip()]
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allowed_origins,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
+        allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With", "X-CSRF-Token"],
     )
 else:
     app.add_middleware(
         CORSMiddleware,
+        allow_origins=allowed_origins,
         allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
         allow_headers=["*"],
     )
+
+
+def is_trusted_proxy_host(client_host: Optional[str]) -> bool:
+    """
+    Check if the immediate peer client is a trusted proxy or loopback/private network.
+    Railway Hikari edge router runs on Railway's internal overlay network, forwarding
+    requests from RFC 1918 private subnets or localhost to container.
+    """
+    if not client_host:
+        return False
+    if client_host in ("127.0.0.1", "::1", "localhost", "testclient"):
+        return True
+    try:
+        ip = ipaddress.ip_address(client_host)
+        return ip.is_loopback or ip.is_private
+    except ValueError:
+        return False
 
 
 @app.middleware("http")
@@ -95,14 +116,15 @@ async def add_security_headers_middleware(request: Request, call_next):
     - X-Content-Type-Options: nosniff
     - Referrer-Policy: strict-origin-when-cross-origin
     - X-Frame-Options: DENY (clickjacking protection)
-    - Permissions-Policy: camera=(self), microphone=(self), geolocation=() (preserves assistive BdSL / voice)
-    - Content-Security-Policy: scoped compatibility policy
-    - Strict-Transport-Security: max-age=31536000 (verified HTTPS requests only; never forced on dev plain-HTTP)
-    Applies to HTML, API JSON, static assets, errors (4xx, 5xx), and OPTIONS responses.
+    - Permissions-Policy: camera=(self), microphone=(self), geolocation=()
+    - Content-Security-Policy: strict script-src 'self' (zero inline scripts)
+    - Strict-Transport-Security: max-age=31536000 (verified HTTPS requests only)
+    Applies to HTML, API JSON, static assets, errors (4xx, 5xx), and CORS preflights.
     """
     try:
         response = await call_next(request)
-    except Exception:
+    except Exception as exc:
+        logging.getLogger("transify.security").error(f"Unhandled exception during request processing: {exc}", exc_info=True)
         response = JSONResponse(
             status_code=500,
             content={"detail": "Internal server error"}
@@ -120,10 +142,10 @@ async def add_security_headers_middleware(request: Request, call_next):
     # 4. Scoped Permissions-Policy: camera and microphone permitted for self
     response.headers["Permissions-Policy"] = "camera=(self), microphone=(self), geolocation=()"
 
-    # 5. Content Security Policy: defense-in-depth with required font and media directives
+    # 5. Content Security Policy: defense-in-depth with strict script execution ('self' only)
     csp_policy = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline'; "
+        "script-src 'self'; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com data:; "
         "img-src 'self' data: blob:; "
@@ -137,10 +159,14 @@ async def add_security_headers_middleware(request: Request, call_next):
 
     # 6. Strict-Transport-Security (HSTS) only when confirmed running under verified HTTPS
     # Never force HSTS on a local plain-HTTP dev server. Reject untrusted forwarded headers in non-production.
-    is_https = request.url.scheme == "https" or (
-        is_production() and request.headers.get("x-forwarded-proto", "").lower() == "https"
+    client_host = request.client.host if request.client else None
+    is_direct_https = request.url.scheme == "https"
+    is_forwarded_https = (
+        is_production()
+        and is_trusted_proxy_host(client_host)
+        and request.headers.get("x-forwarded-proto", "").lower() == "https"
     )
-    if is_https:
+    if is_direct_https or is_forwarded_https:
         response.headers["Strict-Transport-Security"] = "max-age=31536000"
 
     return response
@@ -264,6 +290,15 @@ def health_check():
             "tts": "ready"
         }
     }
+
+
+@app.options("/api/health", tags=["System"])
+def options_health():
+    """Provides supported HTTP methods for the health check endpoint."""
+    return Response(
+        status_code=200,
+        headers={"Allow": "GET, HEAD, OPTIONS"}
+    )
 
 
 # --- Authentication & Session Endpoints ---

@@ -26,64 +26,7 @@
   <!-- Design System CSS -->
   <link rel="stylesheet" href="/static/styles.css?v=20261122_pro_ui_v2">
 
-  <script>
-    // Bulletproof routing & auth initialization
-    window.openAuthSheet = function (mode) {
-      if (window.TransifyApp && window.TransifyApp.openAuthSheet) {
-        window.TransifyApp.openAuthSheet(mode);
-      } else {
-        var sheet = document.getElementById('auth-sheet-container');
-        if (sheet) sheet.classList.add('active');
-      }
-    };
-    window.closeAuthSheet = function () {
-      if (window.TransifyApp && window.TransifyApp.closeAuthSheet) {
-        window.TransifyApp.closeAuthSheet();
-      } else {
-        var sheet = document.getElementById('auth-sheet-container');
-        if (sheet) sheet.classList.remove('active');
-      }
-    };
-    window.handleDirectLogin = function () {
-      try {
-        localStorage.setItem('transify_auth_user', JSON.stringify({ name: 'Transify Member', email: 'member@transify.ai' }));
-        localStorage.setItem('transify.welcomed', '1');
-      } catch (e) { }
-      window.closeAuthSheet();
-      if (window.routeTo) window.routeTo('home');
-    };
-    window.handleDemoLogin = function () {
-      try { localStorage.setItem('transify.welcomed', '1'); } catch (e) { }
-      window.closeAuthSheet();
-      if (window.routeTo) window.routeTo('home');
-    };
-    window.openSlide = function (slideId) {
-      if (slideId === 'slide-care-intake') {
-        if (window.routeTo) window.routeTo('care-intake');
-        var tab = document.getElementById('care-tab-intake-btn');
-        if (tab) tab.click();
-      } else if (slideId === 'slide-clinician-portal') {
-        if (window.routeTo) window.routeTo('clinician');
-        var tab = document.getElementById('care-tab-clinician-btn');
-        if (tab) tab.click();
-      } else if (slideId === 'slide-care-chronic') {
-        if (window.routeTo) window.routeTo('care');
-        var tab = document.getElementById('care-tab-chronic-btn');
-        if (tab) tab.click();
-      } else if (slideId === 'slide-hand-signal') {
-        if (window.routeTo) window.routeTo('sign');
-      } else if (slideId === 'slide-braille') {
-        if (window.routeTo) window.routeTo('braille');
-      } else if (slideId === 'slide-stt' || slideId === 'slide-tts') {
-        if (window.routeTo) window.routeTo(slideId.replace('slide-', ''));
-      }
-    };
-    var TransifyApp = window.TransifyApp = window.TransifyApp || {};
-    TransifyApp.openAuthSheet = window.openAuthSheet;
-    TransifyApp.closeAuthSheet = window.closeAuthSheet;
-    TransifyApp.handleDirectLogin = window.handleDirectLogin;
-    TransifyApp.handleDemoLogin = window.handleDemoLogin;
-  </script>
+  <script src="/static/boot.js?v=20261124_rc1_4_5"></script>
 </head>
 
 <body>
@@ -501,7 +444,7 @@
             <!-- CTA Buttons -->
             <div class="welcome-cta-row">
               <button type="button" class="btn-uiverse press" id="btn-explore-dashboard"
-                onclick="window.routeTo('home'); if (window.TransifyApp) window.TransifyApp.handleDemoLogin();"
+                data-route="home" data-after-route="demo-login"
                 style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
                 <span>Explore Transify Dashboard</span>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
@@ -511,17 +454,17 @@
                 </svg>
               </button>
               <button type="button" class="btn-welcome-secondary press" id="btn-open-login"
-                onclick="window.TransifyApp.openAuthSheet('login')">Log in</button>
+                data-action="open-auth" data-mode="login">Log in</button>
             </div>
             <div style="margin-top: 10px; display: flex; align-items: center; gap: 14px;">
               <button type="button" class="welcome-guest-link" id="btn-demo-guest"
                 style="appearance: none; -webkit-appearance: none; -moz-appearance: none; background: transparent !important; background-color: transparent !important; border: 0 !important; box-shadow: none !important; color: #C7C6D3 !important; padding: 6px 0 !important; cursor: pointer; text-decoration: underline;"
-                onclick="window.routeTo('home'); if (window.TransifyApp) window.TransifyApp.handleDemoLogin();">Continue
+                data-route="home" data-after-route="demo-login">Continue
                 as Guest</button>
               <span style="color: rgba(255, 255, 255, 0.2);">•</span>
               <button type="button" class="welcome-guest-link" id="btn-open-register"
                 style="appearance: none; -webkit-appearance: none; -moz-appearance: none; background: transparent !important; background-color: transparent !important; border: 0 !important; box-shadow: none !important; color: #C7C6D3 !important; padding: 6px 0 !important; cursor: pointer; text-decoration: underline;"
-                onclick="window.TransifyApp.openAuthSheet('signup')">Create an account</button>
+                data-action="open-auth" data-mode="signup">Create an account</button>
             </div>
 
             <!-- Team Alpha Nexus Copyright Claim -->
@@ -1053,7 +996,7 @@
               </button>
 
               <button type="button" id="btn-phrase-emergency-mode" class="btn-outline-dark press"
-                onclick="EditorialController.toggleEmergencyFlashMode()"
+                data-action="editorial-toggle-flash"
                 style="height: 48px; border-color: rgba(239,68,68,0.4); color: #dc2626; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                 <span>🚨 Emergency Siren Mode</span>
               </button>
@@ -1064,14 +1007,14 @@
                   Rate:</label>
                 <select id="phrase-speed-select" class="settings-select"
                   style="min-height: 36px; padding: 2px 6px; font-size: 13px; border: none; background: transparent;"
-                  onchange="EditorialController.setPhraseSpeed(parseFloat(this.value))">
+                  data-action="editorial-phrase-speed">
                   <option value="0.75">0.75x (Slow)</option>
                   <option value="1.0" selected>1.0x (Normal)</option>
                   <option value="1.25">1.25x (Fast)</option>
                 </select>
               </div>
 
-              <button type="button" class="btn-outline-dark press" onclick="EditorialController.exportPhrasesJSON()"
+              <button type="button" class="btn-outline-dark press" data-action="editorial-export-json"
                 style="height: 48px; font-size: 13px; color: var(--ink); border-color: var(--line-2);">
                 📥 Export JSON
               </button>
@@ -1169,8 +1112,8 @@
 
           <!-- Emergency Flash Fullscreen Overlay -->
           <div id="phrase-flash-overlay" class="phrase-flash-overlay" style="display: none;"
-            onclick="EditorialController.dismissEmergencyFlash()">
-            <div class="phrase-flash-modal" onclick="event.stopPropagation()">
+            data-action="editorial-dismiss-flash">
+            <div class="phrase-flash-modal" data-action="stop-propagation">
               <div class="phrase-flash-siren">🚨 URGENT MEDICAL EMERGENCY 🚨</div>
               <div id="phrase-flash-text" class="phrase-flash-text">EMERGENCY ASSISTANCE NEEDED</div>
               <div id="phrase-flash-bn" class="phrase-flash-bn">জরুরি চিকিৎসা সহায়তা প্রয়োজন</div>
@@ -1181,7 +1124,7 @@
               <p style="margin: 12px 0 0; color: #fee2e2; font-size: 14px;">Please assist this individual or call 999
                 emergency services immediately.</p>
               <button type="button" class="btn-welcome-primary press"
-                onclick="EditorialController.dismissEmergencyFlash()"
+                data-action="editorial-dismiss-flash"
                 style="margin-top: 18px; background: #ffffff; color: #b91c1c; font-weight: 800; border: none; padding: 0 24px;">
                 Dismiss Emergency Alert
               </button>
@@ -1210,7 +1153,7 @@
             <!-- Sub-Mode Tabs -->
             <div class="braille-mode-tabs" role="tablist" aria-label="Braille Studio Modes">
               <button type="button" class="braille-mode-tab active press" id="braille-tab-scan" role="tab"
-                aria-selected="true" onclick="BraillePage.switchMode('scan')">
+                aria-selected="true" data-action="braille-switch-mode" data-mode="scan">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3M9 12h6M12 9v6" />
@@ -1218,7 +1161,7 @@
                 <span>Optical Scanner</span>
               </button>
               <button type="button" class="braille-mode-tab press" id="braille-tab-generator" role="tab"
-                aria-selected="false" onclick="BraillePage.switchMode('generator')">
+                aria-selected="false" data-action="braille-switch-mode" data-mode="generator">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 20h16M14 4l6 6-10 10H4v-6L14 4z" />
@@ -1226,7 +1169,7 @@
                 <span>Text to Braille</span>
               </button>
               <button type="button" class="braille-mode-tab press" id="braille-tab-reference" role="tab"
-                aria-selected="false" onclick="BraillePage.switchMode('reference')">
+                aria-selected="false" data-action="braille-switch-mode" data-mode="reference">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path
@@ -1249,7 +1192,7 @@
               </div>
               <div class="braille-samples-grid">
                 <button type="button" class="braille-sample-chip press"
-                  onclick="BraillePage.loadSample('/static/photos/braille-page.jpg', 'braille-page.jpg')">
+                  data-action="braille-load-sample" data-sample="/static/photos/braille-page.jpg" data-sample-name="braille-page.jpg">
                   <img src="/static/photos/braille-page_lqip.jpg" alt="Embossed Page" class="sample-chip-thumb"
                     loading="lazy">
                   <div class="sample-chip-info">
@@ -1258,7 +1201,7 @@
                   </div>
                 </button>
                 <button type="button" class="braille-sample-chip press"
-                  onclick="BraillePage.loadSample('/static/photos/care-braille-access.jpg', 'care-braille-access.jpg')">
+                  data-action="braille-load-sample" data-sample="/static/photos/care-braille-access.jpg" data-sample-name="care-braille-access.jpg">
                   <img src="/static/photos/care-braille-access_lqip.jpg" alt="Clinical Sign" class="sample-chip-thumb"
                     loading="lazy">
                   <div class="sample-chip-info">
@@ -1267,7 +1210,7 @@
                   </div>
                 </button>
                 <button type="button" class="braille-sample-chip press"
-                  onclick="BraillePage.loadSample('/static/photos/tile-braille-embossed.jpg', 'tile-braille-embossed.jpg')">
+                  data-action="braille-load-sample" data-sample="/static/photos/tile-braille-embossed.jpg" data-sample-name="tile-braille-embossed.jpg">
                   <img src="/static/photos/tile-braille-embossed_lqip.jpg" alt="Tactile Tile" class="sample-chip-thumb"
                     loading="lazy">
                   <div class="sample-chip-info">
@@ -1276,7 +1219,7 @@
                   </div>
                 </button>
                 <button type="button" class="braille-sample-chip press"
-                  onclick="BraillePage.loadSample('/static/photos/braille-bg-wide.jpg', 'braille-bg-wide.jpg')">
+                  data-action="braille-load-sample" data-sample="/static/photos/braille-bg-wide.jpg" data-sample-name="braille-bg-wide.jpg">
                   <img src="/static/photos/braille-bg-wide_lqip.jpg" alt="Signboard" class="sample-chip-thumb"
                     loading="lazy">
                   <div class="sample-chip-info">
@@ -1307,7 +1250,7 @@
                   📁 Browse Image
                 </button>
                 <button type="button" class="btn-outline-dark press" id="braille-open-camera-btn"
-                  onclick="BraillePage.openCamera(event)"
+                  data-action="braille-open-camera"
                   style="height: 38px; font-size: 14px; padding: 0 16px; color: var(--ink); border-color: var(--line-2);">
                   📷 Snap with Camera
                 </button>
@@ -1343,12 +1286,12 @@
               </div>
               <div class="braille-toolbar-right">
                 <button type="button" id="check-iqa-btn-visible" class="btn-outline-dark press"
-                  onclick="BraillePage.runIQACheck()"
+                  data-action="braille-run-iqa"
                   style="height: 36px; font-size: 13px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);">
                   🔍 Check Quality (IQA)
                 </button>
                 <button type="button" id="translate-braille-btn-visible" class="btn-welcome-primary press"
-                  onclick="BraillePage.runTranslation()" style="height: 36px; font-size: 13px; padding: 0 16px;">
+                  data-action="braille-run-translation" style="height: 36px; font-size: 13px; padding: 0 16px;">
                   ✨ Translate Image
                 </button>
               </div>
@@ -1393,12 +1336,12 @@
 
                 <!-- Explorer Utility Controls -->
                 <div class="braille-explorer-actions">
-                  <button type="button" class="btn-micro press" onclick="BraillePage.clearCellDots()">🧹 Clear</button>
-                  <button type="button" class="btn-micro press" onclick="BraillePage.speakActiveCell()">🔊
+                  <button type="button" class="btn-micro press" data-action="braille-clear-cell-dots">🧹 Clear</button>
+                  <button type="button" class="btn-micro press" data-action="braille-speak-active-cell">🔊
                     Pronounce</button>
-                  <button type="button" class="btn-micro press" onclick="BraillePage.invertCellDots()">🔄
+                  <button type="button" class="btn-micro press" data-action="braille-invert-cell-dots">🔄
                     Invert</button>
-                  <button type="button" class="btn-micro press" onclick="BraillePage.randomCellPattern()">🎲
+                  <button type="button" class="btn-micro press" data-action="braille-random-cell-pattern">🎲
                     Random</button>
                 </div>
               </div>
@@ -1426,14 +1369,14 @@
                     style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Copy
                     text</button>
                   <button type="button" id="copy-braille-unicode-btn" class="btn-outline-dark press"
-                    onclick="BraillePage.copyUnicodeBraille()"
+                    data-action="braille-copy-unicode"
                     style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Copy Braille
                     ⠓⠑⠇⠇⠕</button>
                   <button type="button" id="download-braille-btn" class="btn-outline-dark press"
                     style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Download
                     TXT</button>
                   <button type="button" id="download-brf-btn" class="btn-outline-dark press"
-                    onclick="BraillePage.downloadBRF()"
+                    data-action="braille-download-brf"
                     style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Download
                     BRF</button>
                 </div>
@@ -1453,18 +1396,18 @@
               </div>
               <div class="braille-presets-bar">
                 <button type="button" class="braille-preset-btn press"
-                  onclick="BraillePage.loadGeneratorPreset('Hello Transify')">👋 "Hello Transify"</button>
+                  data-action="braille-load-preset" data-preset="Hello Transify">👋 "Hello Transify"</button>
                 <button type="button" class="braille-preset-btn press"
-                  onclick="BraillePage.loadGeneratorPreset('Emergency 999')">🚨 "Emergency 999"</button>
+                  data-action="braille-load-preset" data-preset="Emergency 999">🚨 "Emergency 999"</button>
                 <button type="button" class="braille-preset-btn press"
-                  onclick="BraillePage.loadGeneratorPreset('Medicine: Paracetamol 500mg')">💊 "Medicine:
+                  data-action="braille-load-preset" data-preset="Medicine: Paracetamol 500mg">💊 "Medicine:
                   Paracetamol"</button>
                 <button type="button" class="braille-preset-btn press"
-                  onclick="BraillePage.loadGeneratorPreset('Caution: Wet Floor')">⚠️ "Caution: Wet Floor"</button>
+                  data-action="braille-load-preset" data-preset="Caution: Wet Floor">⚠️ "Caution: Wet Floor"</button>
                 <button type="button" class="braille-preset-btn press"
-                  onclick="BraillePage.loadGeneratorPreset('স্বাগতম')">🇧🇩 "স্বাগতম (Welcome)"</button>
+                  data-action="braille-load-preset" data-preset="স্বাগতম">🇧🇩 "স্বাগতম (Welcome)"</button>
                 <button type="button" class="braille-preset-btn press"
-                  onclick="BraillePage.loadGeneratorPreset('Thank you very much')">🙏 "Thank you very much"</button>
+                  data-action="braille-load-preset" data-preset="Thank you very much">🙏 "Thank you very much"</button>
               </div>
             </div>
 
@@ -1476,7 +1419,7 @@
                     or Speech</h2>
                   <div style="display: flex; gap: 8px;">
                     <button type="button" class="btn-micro press"
-                      onclick="BraillePage.clearGeneratorInput()">Clear</button>
+                      data-action="braille-clear-generator-input">Clear</button>
                   </div>
                 </div>
                 <p style="margin: 0; color: var(--text-2); font-size: 14px;">Enter English or Bengali text. Transify
@@ -1484,7 +1427,7 @@
 
                 <textarea id="braille-generator-input" class="braille-textarea" rows="4"
                   placeholder="Type text here (e.g. Hello, Care 101, বাতি নিভান)..."
-                  oninput="BraillePage.onGeneratorInput(this.value)"></textarea>
+                  data-action="braille-generator-input"></textarea>
 
                 <div class="braille-input-stats">
                   <span id="braille-gen-char-count">0 characters</span>
@@ -1519,15 +1462,15 @@
 
                 <!-- Action Buttons -->
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                  <button type="button" class="btn-welcome-primary press" onclick="BraillePage.speakGeneratorText()"
+                  <button type="button" class="btn-welcome-primary press" data-action="braille-speak-generator"
                     style="height: 44px; font-size: 15px; padding: 0 18px;">Speak text</button>
-                  <button type="button" class="btn-outline-dark press" onclick="BraillePage.copyGeneratorUnicode()"
+                  <button type="button" class="btn-outline-dark press" data-action="braille-copy-generator-unicode"
                     style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Copy Unicode
                     ⠓⠑⠇⠇⠕</button>
-                  <button type="button" class="btn-outline-dark press" onclick="BraillePage.copyGeneratorDots()"
+                  <button type="button" class="btn-outline-dark press" data-action="braille-copy-generator-dots"
                     style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Copy Dot
                     Numbers</button>
-                  <button type="button" class="btn-outline-dark press" onclick="BraillePage.downloadGeneratorBRF()"
+                  <button type="button" class="btn-outline-dark press" data-action="braille-download-generator-brf"
                     style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Download
                     .BRF</button>
                 </div>
@@ -1551,15 +1494,15 @@
                 <!-- Reference Category Filter Buttons -->
                 <div class="braille-ref-filters">
                   <button type="button" class="braille-ref-filter active press" data-cat="letters"
-                    onclick="BraillePage.filterReference('letters')">Letters (A-Z)</button>
+                    data-action="braille-filter-reference" data-filter="letters">Letters (A-Z)</button>
                   <button type="button" class="braille-ref-filter press" data-cat="numbers"
-                    onclick="BraillePage.filterReference('numbers')">Numbers (0-9)</button>
+                    data-action="braille-filter-reference" data-filter="numbers">Numbers (0-9)</button>
                   <button type="button" class="braille-ref-filter press" data-cat="punct"
-                    onclick="BraillePage.filterReference('punct')">Punctuation</button>
+                    data-action="braille-filter-reference" data-filter="punct">Punctuation</button>
                   <button type="button" class="braille-ref-filter press" data-cat="contractions"
-                    onclick="BraillePage.filterReference('contractions')">Contractions (Grade 2)</button>
+                    data-action="braille-filter-reference" data-filter="contractions">Contractions (Grade 2)</button>
                   <button type="button" class="braille-ref-filter press" data-cat="bengali"
-                    onclick="BraillePage.filterReference('bengali')">বাংলা বর্ণমালা (Bharati)</button>
+                    data-action="braille-filter-reference" data-filter="bengali">বাংলা বর্ণমালা (Bharati)</button>
                 </div>
               </div>
             </div>
@@ -1584,7 +1527,7 @@
                     style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff;">
                     Braille Viewfinder</h3>
                 </div>
-                <button type="button" class="btn-camera-close press" onclick="BraillePage.closeCamera()"
+                <button type="button" class="btn-camera-close press" data-action="braille-close-camera"
                   aria-label="Close Camera">✕</button>
               </div>
 
@@ -1607,11 +1550,11 @@
               </div>
 
               <div class="braille-camera-controls">
-                <button type="button" class="btn-outline-dark press" onclick="BraillePage.switchCameraFacing()"
+                <button type="button" class="btn-outline-dark press" data-action="braille-switch-camera-facing"
                   style="color: #fff; border-color: rgba(255,255,255,0.3); height: 44px; padding: 0 16px;">
                   🔄 Flip Camera
                 </button>
-                <button type="button" class="btn-welcome-primary press" onclick="BraillePage.captureCamera()"
+                <button type="button" class="btn-welcome-primary press" data-action="braille-capture-camera"
                   style="height: 48px; font-size: 16px; padding: 0 24px;">
                   📸 Capture &amp; Translate
                 </button>
@@ -1657,7 +1600,7 @@
             <!-- Sub-Mode Tabs -->
             <div class="braille-mode-tabs" role="tablist" aria-label="Voice Studio Modes">
               <button type="button" class="braille-mode-tab active press" id="voice-tab-studio" role="tab"
-                aria-selected="true" onclick="TransifyVoiceStudio.switchMode('studio')">
+                aria-selected="true" data-action="voice-switch-mode" data-mode="studio">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
@@ -1667,7 +1610,7 @@
                 <span>Voice Studio</span>
               </button>
               <button type="button" class="braille-mode-tab press" id="voice-tab-bridge" role="tab"
-                aria-selected="false" onclick="TransifyVoiceStudio.switchMode('bridge')">
+                aria-selected="false" data-action="voice-switch-mode" data-mode="bridge">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="m18 8-4-4-4 4" />
@@ -1676,7 +1619,7 @@
                 <span>Sign &amp; Braille Bridge</span>
               </button>
               <button type="button" class="braille-mode-tab press" id="voice-tab-diagnostics" role="tab"
-                aria-selected="false" onclick="TransifyVoiceStudio.switchMode('diagnostics')">
+                aria-selected="false" data-action="voice-switch-mode" data-mode="diagnostics">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
@@ -1701,7 +1644,7 @@
               </div>
               <div class="voice-samples-grid">
                 <button type="button" class="voice-sample-chip press"
-                  onclick="TransifyVoiceStudio.loadSample('Emergency: I need medical assistance immediately', 'en-US')">
+                  data-action="voice-load-sample" data-sample="Emergency: I need medical assistance immediately" data-lang="en-US">
                   <span class="voice-sample-icon">🚨</span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">Emergency Assistance</span>
@@ -1709,7 +1652,7 @@
                   </div>
                 </button>
                 <button type="button" class="voice-sample-chip press"
-                  onclick="TransifyVoiceStudio.loadSample('Clinical: Please check patient pulse and oxygen saturation', 'en-US')">
+                  data-action="voice-load-sample" data-sample="Clinical: Please check patient pulse and oxygen saturation" data-lang="en-US">
                   <span class="voice-sample-icon">🩺</span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">Clinical Checkup</span>
@@ -1717,7 +1660,7 @@
                   </div>
                 </button>
                 <button type="button" class="voice-sample-chip press"
-                  onclick="TransifyVoiceStudio.loadSample('জরুরি: আমার তীব্র শ্বাসকষ্ট হচ্ছে, দয়া করে সাহায্য করুন', 'bn-BD')">
+                  data-action="voice-load-sample" data-sample="জরুরি: আমার তীব্র শ্বাসকষ্ট হচ্ছে, দয়া করে সাহায্য করুন" data-lang="bn-BD">
                   <span class="voice-sample-icon">🇧🇩</span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">জরুরি শ্বাসকষ্ট (বাংলা)</span>
@@ -1725,7 +1668,7 @@
                   </div>
                 </button>
                 <button type="button" class="voice-sample-chip press"
-                  onclick="TransifyVoiceStudio.loadSample('Accessibility: Where is the nearest wheelchair ramp and tactile pathway?', 'en-US')">
+                  data-action="voice-load-sample" data-sample="Accessibility: Where is the nearest wheelchair ramp and tactile pathway?" data-lang="en-US">
                   <span class="voice-sample-icon">♿</span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">Wheelchair Wayfinding</span>
@@ -1763,7 +1706,7 @@
                     <label for="stt-font-toggle" class="voice-toolbar-label">Font Size:</label>
                     <select id="stt-font-toggle" class="settings-select"
                       style="min-height: 34px; padding: 4px 8px; font-size: 13px;"
-                      onchange="TransifyVoiceStudio.changeCaptionFont(this.value)">
+                      data-action="voice-caption-font">
                       <option value="normal">Normal (20px)</option>
                       <option value="large">Large (24px)</option>
                       <option value="xlarge">Extra Large (28px)</option>
@@ -1819,19 +1762,19 @@
                     style="height: 42px; font-size: 14px; color: var(--ink); border-color: var(--line-2);">Send to Read
                     Aloud</button>
                   <button type="button" id="stt-download-btn" class="btn-outline-dark press"
-                    onclick="TransifyVoiceStudio.downloadCaptionsTXT()"
+                    data-action="voice-download-txt"
                     style="height: 42px; font-size: 14px; color: var(--ink); border-color: var(--line-2);">Download
                     TXT</button>
                   <button type="button" id="stt-srt-btn" class="btn-outline-dark press"
-                    onclick="TransifyVoiceStudio.downloadCaptionsSRT()"
+                    data-action="voice-download-srt"
                     style="height: 42px; font-size: 14px; color: var(--ink); border-color: var(--line-2);">Download
                     SRT</button>
                   <button type="button" id="stt-bridge-sign-btn" class="btn-outline-dark press"
-                    onclick="TransifyVoiceStudio.bridgeToSign()"
+                    data-action="voice-bridge-sign"
                     style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);">Bridge
                     to Signs 🤟</button>
                   <button type="button" id="stt-bridge-braille-btn" class="btn-outline-dark press"
-                    onclick="TransifyVoiceStudio.bridgeToBraille()"
+                    data-action="voice-bridge-braille"
                     style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);">Bridge
                     to Braille ⠃</button>
                 </div>
@@ -1863,7 +1806,7 @@
                     <label for="tts-voice-persona" class="voice-toolbar-label">Voice Persona:</label>
                     <select id="tts-voice-persona" class="settings-select"
                       style="min-height: 34px; padding: 4px 8px; font-size: 13px;"
-                      onchange="TransifyVoiceStudio.changeVoicePersona(this.value)">
+                      data-action="voice-persona">
                       <option value="default" selected>✨ System Natural</option>
                       <option value="female">👩 Studio Female (Clear)</option>
                       <option value="male">👨 Professional Male</option>
@@ -1877,15 +1820,15 @@
                   <span class="voice-toolbar-label">Playback Rate:</span>
                   <div class="tts-speed-bar" role="group" aria-label="Speech Speed">
                     <button type="button" class="tts-speed-btn press" data-speed="0.75"
-                      onclick="TransifyVoiceStudio.setTTSSpeed(0.75)">0.75x</button>
+                      data-action="voice-set-tts-speed" data-speed="0.75">0.75x</button>
                     <button type="button" class="tts-speed-btn active press" data-speed="1.0"
-                      onclick="TransifyVoiceStudio.setTTSSpeed(1.0)">1.0x (Normal)</button>
+                      data-action="voice-set-tts-speed" data-speed="1.0">1.0x (Normal)</button>
                     <button type="button" class="tts-speed-btn press" data-speed="1.25"
-                      onclick="TransifyVoiceStudio.setTTSSpeed(1.25)">1.25x</button>
+                      data-action="voice-set-tts-speed" data-speed="1.25">1.25x</button>
                     <button type="button" class="tts-speed-btn press" data-speed="1.5"
-                      onclick="TransifyVoiceStudio.setTTSSpeed(1.5)">1.5x</button>
+                      data-action="voice-set-tts-speed" data-speed="1.5">1.5x</button>
                     <button type="button" class="tts-speed-btn press" data-speed="2.0"
-                      onclick="TransifyVoiceStudio.setTTSSpeed(2.0)">2.0x</button>
+                      data-action="voice-set-tts-speed" data-speed="2.0">2.0x</button>
                   </div>
                 </div>
 
@@ -1895,22 +1838,22 @@
                     Everyday Phrases:</span>
                   <div class="voice-chips-scroll">
                     <button type="button" class="voice-quick-chip press"
-                      onclick="TransifyVoiceStudio.insertTTSPhrase('Emergency! Please call 999 immediately.')">🚨
+                      data-action="voice-insert-phrase" data-phrase="Emergency! Please call 999 immediately.">🚨
                       Emergency 999</button>
                     <button type="button" class="voice-quick-chip press"
-                      onclick="TransifyVoiceStudio.insertTTSPhrase('I need to take my prescribed medication now.')">💊
+                      data-action="voice-insert-phrase" data-phrase="I need to take my prescribed medication now.">💊
                       Take Medication</button>
                     <button type="button" class="voice-quick-chip press"
-                      onclick="TransifyVoiceStudio.insertTTSPhrase('Please hold the door, I require wheelchair access.')">♿
+                      data-action="voice-insert-phrase" data-phrase="Please hold the door, I require wheelchair access.">♿
                       Wheelchair Access</button>
                     <button type="button" class="voice-quick-chip press"
-                      onclick="TransifyVoiceStudio.insertTTSPhrase('আমার রক্তের গ্রুপ ও-পজিটিভ, জরুরি রক্ত প্রয়োজন।')">🇧🇩
+                      data-action="voice-insert-phrase" data-phrase="আমার রক্তের গ্রুপ ও-পজিটিভ, জরুরি রক্ত প্রয়োজন।">🇧🇩
                       রক্তের গ্রুপ ও-পজিটিভ</button>
                     <button type="button" class="voice-quick-chip press"
-                      onclick="TransifyVoiceStudio.insertTTSPhrase('আমার কথা বলতে কষ্ট হচ্ছে, আমাকে সাহায্য করুন।')">🇧🇩
+                      data-action="voice-insert-phrase" data-phrase="আমার কথা বলতে কষ্ট হচ্ছে, আমাকে সাহায্য করুন।">🇧🇩
                       কথা বলতে কষ্ট হচ্ছে</button>
                     <button type="button" class="voice-quick-chip press"
-                      onclick="TransifyVoiceStudio.insertTTSPhrase('Hello, nice to meet you. Thank you for your support.')">👋
+                      data-action="voice-insert-phrase" data-phrase="Hello, nice to meet you. Thank you for your support.">👋
                       Hello &amp; Thank you</button>
                   </div>
                 </div>
@@ -1943,7 +1886,7 @@
                   <button type="button" id="tts-speak-btn" class="btn-welcome-primary press"
                     style="height: 44px; font-size: 15px; padding: 0 20px;">Speak text</button>
                   <button type="button" id="tts-pause-btn" class="btn-outline-dark press"
-                    onclick="TransifyVoiceStudio.pauseTTS()"
+                    data-action="voice-pause-tts"
                     style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Pause /
                     Resume</button>
                   <button type="button" id="tts-stop-btn" class="btn-outline-dark press"
@@ -1951,7 +1894,7 @@
                   <button type="button" id="tts-clear-btn" class="btn-outline-dark press"
                     style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Clear</button>
                   <button type="button" id="tts-copy-btn" class="btn-outline-dark press"
-                    onclick="TransifyVoiceStudio.copyTTSText()"
+                    data-action="voice-copy-tts"
                     style="height: 44px; font-size: 15px; color: var(--ink); border-color: var(--line-2);">Copy
                     text</button>
                 </div>
@@ -1974,7 +1917,7 @@
                 </div>
                 <div style="display: flex; gap: 8px;">
                   <button type="button" class="btn-welcome-primary press"
-                    onclick="TransifyVoiceStudio.syncActiveSpeechToBridge()"
+                    data-action="voice-sync-bridge"
                     style="height: 38px; font-size: 13px; padding: 0 14px;">
                     🔄 Sync Current Voice
                   </button>
@@ -1988,7 +1931,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;">🤟 ASL
                     Fingerspelling Stream</h3>
-                  <button type="button" class="btn-micro press" onclick="window.routeTo('sign')">Open Sign
+                  <button type="button" class="btn-micro press" data-route="sign">Open Sign
                     Translator</button>
                 </div>
                 <p style="margin: 0; color: var(--text-2); font-size: 13px;">Live translation of spoken characters into
@@ -2004,7 +1947,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;">⠃ Tactile
                     Braille Cells Stream</h3>
-                  <button type="button" class="btn-micro press" onclick="window.routeTo('braille')">Open Braille
+                  <button type="button" class="btn-micro press" data-route="braille">Open Braille
                     Studio</button>
                 </div>
                 <p style="margin: 0; color: var(--text-2); font-size: 13px;">UEB Grade 1 and Bengali Bharati Braille dot
@@ -3350,7 +3293,7 @@
             </div>
             <div class="settings-header-actions">
               <button type="button" class="btn-settings-action press" id="btn-settings-reset-defaults"
-                onclick="window.resetSettingsToDefaults()">
+                data-action="settings-reset-defaults">
                 Reset to Defaults
               </button>
             </div>
@@ -3361,7 +3304,7 @@
             <nav class="settings-navbar" role="tablist" aria-label="Settings Navigation Dock">
               <button type="button" class="settings-nav-tab active press" data-settings-tab="profile" role="tab"
                 id="tab-btn-profile" aria-selected="true" aria-controls="settings-pane-profile"
-                onclick="window.switchSettingsTab('profile')">
+                data-action="settings-tab" data-tab="profile">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -3372,7 +3315,7 @@
 
               <button type="button" class="settings-nav-tab press" data-settings-tab="account" role="tab"
                 id="tab-btn-account" aria-selected="false" aria-controls="settings-pane-account"
-                onclick="window.switchSettingsTab('account')">
+                data-action="settings-tab" data-tab="account">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -3383,7 +3326,7 @@
 
               <button type="button" class="settings-nav-tab press" data-settings-tab="appearance" role="tab"
                 id="tab-btn-appearance" aria-selected="false" aria-controls="settings-pane-appearance"
-                onclick="window.switchSettingsTab('appearance')">
+                data-action="settings-tab" data-tab="appearance">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="5" />
@@ -3395,7 +3338,7 @@
 
               <button type="button" class="settings-nav-tab press" data-settings-tab="accessibility" role="tab"
                 id="tab-btn-accessibility" aria-selected="false" aria-controls="settings-pane-accessibility"
-                onclick="window.switchSettingsTab('accessibility')">
+                data-action="settings-tab" data-tab="accessibility">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
@@ -3407,7 +3350,7 @@
 
               <button type="button" class="settings-nav-tab press" data-settings-tab="privacy" role="tab"
                 id="tab-btn-privacy" aria-selected="false" aria-controls="settings-pane-privacy"
-                onclick="window.switchSettingsTab('privacy')">
+                data-action="settings-tab" data-tab="privacy">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -3417,7 +3360,7 @@
 
               <button type="button" class="settings-nav-tab press" data-settings-tab="contact" role="tab"
                 id="tab-btn-contact" aria-selected="false" aria-controls="settings-pane-contact"
-                onclick="window.switchSettingsTab('contact')">
+                data-action="settings-tab" data-tab="contact">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -3514,7 +3457,7 @@
                     <span>Client-Side AES-256 Storage</span>
                   </div>
                   <button type="button" id="btn-save-profile" class="btn-settings-primary press"
-                    onclick="window.saveUserProfile()">
+                    data-action="settings-save-profile">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                       stroke-width="2.2">
                       <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
@@ -3646,7 +3589,7 @@
                     </div>
                   </div>
                   <button type="button" id="btn-settings-auth" class="btn-settings-auth-action press"
-                    onclick="window.TransifyApp.handleSettingsAuthAction()">
+                    data-action="settings-auth-action">
                     Sign In / Register
                   </button>
                 </div>
@@ -3714,7 +3657,7 @@
                 <div class="theme-picker-grid">
                   <!-- Theme Option 1: Light -->
                   <button type="button" class="theme-card-btn active" data-theme="light" id="theme-btn-light"
-                    aria-pressed="true" onclick="window.applyThemeGlobal('light')">
+                    aria-pressed="true" data-action="settings-apply-theme" data-theme="light">
                     <div class="theme-preview theme-prev-light">
                       <div class="theme-dot" style="background: #8338EC;"></div>
                       <div class="theme-bar" style="background: #14111F;"></div>
@@ -3725,7 +3668,7 @@
 
                   <!-- Theme Option 2: Dark -->
                   <button type="button" class="theme-card-btn" data-theme="dark" id="theme-btn-dark"
-                    aria-pressed="false" onclick="window.applyThemeGlobal('dark')">
+                    aria-pressed="false" data-action="settings-apply-theme" data-theme="dark">
                     <div class="theme-preview theme-prev-dark">
                       <div class="theme-dot" style="background: #FFCB05;"></div>
                       <div class="theme-bar" style="background: #FFFFFF;"></div>
@@ -3736,7 +3679,7 @@
 
                   <!-- Theme Option 3: High Contrast -->
                   <button type="button" class="theme-card-btn" data-theme="high-contrast" id="theme-btn-contrast"
-                    aria-pressed="false" onclick="window.applyThemeGlobal('high-contrast')">
+                    aria-pressed="false" data-action="settings-apply-theme" data-theme="high-contrast">
                     <div class="theme-preview theme-prev-contrast">
                       <div class="theme-dot" style="background: #FFCB05;"></div>
                       <div class="theme-bar" style="background: #FFCB05;"></div>
@@ -3747,7 +3690,7 @@
 
                   <!-- Theme Option 4: System -->
                   <button type="button" class="theme-card-btn" data-theme="system" id="theme-btn-system"
-                    aria-pressed="false" onclick="window.applyThemeGlobal('system')">
+                    aria-pressed="false" data-action="settings-apply-theme" data-theme="system">
                     <div class="theme-preview theme-prev-system">
                       <div class="theme-dot" style="background: #0F9D74;"></div>
                       <div class="theme-bar" style="background: #72708A;"></div>
@@ -3783,7 +3726,7 @@
                       <div class="settings-item-desc">Choose English or বাংলা as the primary application language</div>
                     </div>
                     <select id="setting-lang-select" class="settings-select" aria-label="Application Interface Language"
-                      onchange="window.setAppLanguage(this.value)">
+                      data-action="settings-language">
                       <option value="en">English (Default)</option>
                       <option value="bn">বাংলা (Bengali)</option>
                     </select>
@@ -3825,11 +3768,11 @@
                     <div role="group" aria-label="Typography scaling" class="segmented-control"
                       id="settings-fontsize-group">
                       <button type="button" class="segmented-btn press active" data-scale="normal"
-                        onclick="window.applyFontScale('normal')">100%</button>
+                        data-action="settings-font-scale" data-scale="normal">100%</button>
                       <button type="button" class="segmented-btn press" data-scale="large"
-                        onclick="window.applyFontScale('large')">115%</button>
+                        data-action="settings-font-scale" data-scale="large">115%</button>
                       <button type="button" class="segmented-btn press" data-scale="xlarge"
-                        onclick="window.applyFontScale('xlarge')">130%</button>
+                        data-action="settings-font-scale" data-scale="xlarge">130%</button>
                     </div>
                   </div>
 
@@ -3841,7 +3784,7 @@
                     </div>
                     <label class="toggle-switch" for="setting-reduce-motion">
                       <input type="checkbox" id="setting-reduce-motion" aria-label="Reduce motion across all screens"
-                        onchange="window.toggleReduceMotion(this.checked)">
+                        data-action="settings-reduce-motion">
                       <span class="toggle-slider"></span>
                     </label>
                   </div>
@@ -3853,7 +3796,7 @@
                     </div>
                     <label class="toggle-switch" for="setting-focus-rings">
                       <input type="checkbox" id="setting-focus-rings" aria-label="Enhance keyboard focus outlines"
-                        onchange="window.toggleFocusRings(this.checked)">
+                        data-action="settings-focus-rings">
                       <span class="toggle-slider"></span>
                     </label>
                   </div>
@@ -3887,14 +3830,14 @@
                       <div role="group" aria-label="Speech pace" class="segmented-control"
                         id="settings-speech-rate-group">
                         <button type="button" class="segmented-btn press" data-rate="0.8"
-                          onclick="window.setSpeechRate(0.8)">0.8x</button>
+                          data-action="settings-speech-rate" data-rate="0.8">0.8x</button>
                         <button type="button" class="segmented-btn press active" data-rate="1.0"
-                          onclick="window.setSpeechRate(1.0)">1.0x</button>
+                          data-action="settings-speech-rate" data-rate="1.0">1.0x</button>
                         <button type="button" class="segmented-btn press" data-rate="1.2"
-                          onclick="window.setSpeechRate(1.2)">1.2x</button>
+                          data-action="settings-speech-rate" data-rate="1.2">1.2x</button>
                       </div>
                       <button type="button" class="btn-voice-preview press" id="btn-settings-test-voice"
-                        onclick="window.testVoicePreview()">
+                        data-action="settings-test-voice">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
@@ -3913,7 +3856,7 @@
                     </div>
                     <label class="toggle-switch" for="setting-audio-chimes">
                       <input type="checkbox" id="setting-audio-chimes" checked
-                        aria-label="Play audio confirmation chimes" onchange="window.toggleAudioChimes(this.checked)">
+                        aria-label="Play audio confirmation chimes" data-action="settings-audio-chimes">
                       <span class="toggle-slider"></span>
                     </label>
                   </div>
@@ -3946,9 +3889,9 @@
                     <div role="group" aria-label="Default Sign Language" class="segmented-control"
                       id="settings-sign-lang-group">
                       <button type="button" class="segmented-btn press" data-sign="bdsl"
-                        onclick="window.setDefaultSignLang('bdsl')">BdSL (Bengali)</button>
+                        data-action="settings-sign-lang" data-lang="bdsl">BdSL (Bengali)</button>
                       <button type="button" class="segmented-btn press active" data-sign="asl"
-                        onclick="window.setDefaultSignLang('asl')">ASL (American)</button>
+                        data-action="settings-sign-lang" data-lang="asl">ASL (American)</button>
                     </div>
                   </div>
 
@@ -3960,9 +3903,9 @@
                     <div role="group" aria-label="Braille Standard" class="segmented-control"
                       id="settings-braille-standard-group">
                       <button type="button" class="segmented-btn press active" data-braille="grade1"
-                        onclick="window.setBrailleStandard('grade1')">Grade 1 (Letter by letter)</button>
+                        data-action="settings-braille-standard" data-standard="grade1">Grade 1 (Letter by letter)</button>
                       <button type="button" class="segmented-btn press" data-braille="grade2"
-                        onclick="window.setBrailleStandard('grade2')">Grade 2 (Contracted)</button>
+                        data-action="settings-braille-standard" data-standard="grade2">Grade 2 (Contracted)</button>
                     </div>
                   </div>
 
@@ -3974,19 +3917,19 @@
                     <div class="radio-container" style="--total-radio: 3;" id="setting-confidence-radio-group"
                       role="radiogroup" aria-label="Vision Model Confidence Gate">
                       <input type="radio" id="confidence-gate-95" name="setting_confidence_radio" value="95">
-                      <label for="confidence-gate-95" class="radio-option-card" onclick="window.setConfidenceGate(95)">
+                      <label for="confidence-gate-95" class="radio-option-card" data-action="settings-confidence-gate" data-gate="95">
                         <span class="radio-opt-title">Strict (95% Accuracy)</span>
                         <span class="radio-opt-desc">High precision landmark gate for critical signs and symptoms</span>
                       </label>
 
                       <input type="radio" id="confidence-gate-85" name="setting_confidence_radio" value="85" checked>
-                      <label for="confidence-gate-85" class="radio-option-card" onclick="window.setConfidenceGate(85)">
+                      <label for="confidence-gate-85" class="radio-option-card" data-action="settings-confidence-gate" data-gate="85">
                         <span class="radio-opt-title">Balanced (85% Accuracy)</span>
                         <span class="radio-opt-desc">Recommended default for smooth real-time conversation</span>
                       </label>
 
                       <input type="radio" id="confidence-gate-70" name="setting_confidence_radio" value="70">
-                      <label for="confidence-gate-70" class="radio-option-card" onclick="window.setConfidenceGate(70)">
+                      <label for="confidence-gate-70" class="radio-option-card" data-action="settings-confidence-gate" data-gate="70">
                         <span class="radio-opt-title">Sensitive (70% Accuracy)</span>
                         <span class="radio-opt-desc">Rapid capture in dim lighting and fast-paced gestures</span>
                       </label>
@@ -4051,11 +3994,11 @@
                   </div>
                   <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button type="button" class="btn-settings-action press" id="btn-settings-export-data"
-                      onclick="window.exportSettingsData()">
+                      data-action="settings-export-data">
                       Export Data (JSON)
                     </button>
                     <button type="button" class="btn-clear-history-settings press" id="btn-settings-clear-history"
-                      onclick="window.clearActivityHistory()">
+                      data-action="settings-clear-history">
                       Clear Cache
                     </button>
                   </div>
@@ -4191,12 +4134,12 @@
                 <div
                   style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
                   <button type="button" id="btn-contact-diagnostics" class="btn-settings-action press"
-                    onclick="window.copySystemDiagnostics()">
+                    data-action="settings-copy-diagnostics">
                     📋 Copy System Diagnostics
                   </button>
                   <button type="button" id="btn-contact-submit" class="btn-settings-action press"
                     style="background: var(--violet); color: #FFFFFF; border-color: var(--violet);"
-                    onclick="window.submitDeveloperFeedback()">
+                    data-action="settings-submit-feedback">
                     Send Message
                   </button>
                 </div>
@@ -4383,7 +4326,7 @@
        ========================================================================== -->
   <div class="auth-sheet-container" id="auth-sheet-container" role="dialog" aria-modal="true"
     aria-label="Sign In or Sign Up">
-    <div class="auth-sheet-backdrop" id="auth-sheet-backdrop" onclick="window.TransifyApp.closeAuthSheet()"></div>
+    <div class="auth-sheet-backdrop" id="auth-sheet-backdrop" data-action="close-auth"></div>
     <div class="auth-sheet-card" id="auth-sheet-card">
       <div class="auth-card-header">
         <div>
@@ -4393,7 +4336,7 @@
         </div>
         <button type="button" class="btn-outline-dark press"
           style="border: none; font-size: 20px; font-weight: 700; color: var(--text-2);"
-          onclick="window.TransifyApp.closeAuthSheet()" aria-label="Close form">×</button>
+          data-action="close-auth" aria-label="Close form">×</button>
       </div>
 
       <div class="auth-tabs-row" role="tablist">
@@ -4404,7 +4347,7 @@
       <div id="auth-alert" style="display: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600;"
         role="alert"></div>
 
-      <form id="auth-form" onsubmit="event.preventDefault(); window.TransifyApp.handleDirectLogin();">
+      <form id="auth-form" data-action="auth-form-submit">
         <div class="auth-input-group">
           <div id="group-fullname" style="display: none;">
             <input type="text" id="input-fullname" class="auth-text-input" placeholder="Full name">
@@ -4413,7 +4356,7 @@
           <div style="position: relative;">
             <input type="password" id="input-password" class="auth-text-input" placeholder="Password" required>
             <button type="button" id="eye-icon"
-              onclick="var p = document.getElementById('input-password'); p.type = (p.type === 'password' ? 'text' : 'password'); this.textContent = (p.type === 'password' ? 'Show' : 'Hide');"
+              data-action="auth-toggle-password"
               style="position: absolute; right: 12px; top: 14px; background: none; border: none; color: var(--text-2); font-size: 14px; font-weight: 600; cursor: pointer;">Show</button>
           </div>
         </div>
@@ -4425,7 +4368,7 @@
             <span id="remember-label-text">Remember me</span>
           </label>
           <a href="#" id="forgot-password-link" style="font-size: 14px; color: var(--violet); font-weight: 600;"
-            onclick="event.preventDefault(); alert('Password reset link sent to demo email.');">Forgot password?</a>
+            data-action="auth-forgot-password">Forgot password?</a>
         </div>
 
         <button type="submit" class="auth-submit-btn press" id="auth-submit-btn" style="width: 100%;">
@@ -4435,7 +4378,7 @@
         <div style="text-align: center; margin-top: 14px; font-size: 14px; color: var(--text-2);">
           <span id="switch-prompt-text">Don't have an account?</span>
           <a href="#" id="switch-prompt-link" style="color: var(--violet); font-weight: 700; margin-left: 4px;"
-            onclick="event.preventDefault(); document.getElementById('tab-signup').click();">Create one</a>
+            data-action="auth-switch-tab" data-tab-id="tab-signup">Create one</a>
         </div>
       </form>
     </div>
@@ -4486,7 +4429,7 @@
               <div class="profile-email" id="profile-email-text">Offline Edge Session</div>
             </div>
             <button type="button" class="btn-profile-auth press" id="btn-profile-auth-action"
-              onclick="window.TransifyApp.handleProfileAuthAction()">
+              data-action="profile-auth-action">
               Sign In
             </button>
           </div>

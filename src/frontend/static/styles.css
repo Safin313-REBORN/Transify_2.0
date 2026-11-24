@@ -10454,14 +10454,15 @@ body.high-contrast .settings-select option,
 }
 
 /* =============================================================
-   MOBILE PHONE RESPONSIVE VIEW (@media max-width: 767px)
+   MOBILE PHONE RESPONSIVE VIEW (@media max-width: 767px),
+   and Mobile Landscape (@media (max-height: 480px) and (orientation: landscape))
    Provides Native App Quality Mobile Reflow & Bottom Navigation
    Adheres to antislop-layoutmobile and WCAG touch standards
    ============================================================= */
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 480px) and (orientation: landscape) {
   :root {
     --rail-w: 0px !important;
-    --bottom-nav-h: 62px;
+    --bottom-nav-h: 56px;
   }
 
   html,
@@ -10487,6 +10488,7 @@ body.high-contrast .settings-select option,
   /* Fixed Bottom Navigation Rail */
   .rail {
     position: fixed !important;
+    top: auto !important;
     bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;

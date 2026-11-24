@@ -1,0 +1,55 @@
+{
+  "audit_metadata": {
+    "target": "Transify V3 RC1.4.5 Production & Local Edge",
+    "production_url": "https://transify20-production.up.railway.app/",
+    "timestamp_utc": "2026-11-24T09:08:13.249461+00:00",
+    "compliance_status": "PASS"
+  },
+  "required_headers": {
+    "Strict-Transport-Security": {
+      "value": "max-age=31536000",
+      "status": "PASS",
+      "enforcement": "Conditional on trusted proxy host or secure protocol; omit includeSubDomains"
+    },
+    "Content-Security-Policy": {
+      "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https://transify20-production.up.railway.app https://transify.ai https://app.transify.ai; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+      "status": "PASS",
+      "enforcement": "Strict CSP without 'unsafe-inline' in script-src. Handlers dispatched via boot.js"
+    },
+    "X-Content-Type-Options": {
+      "value": "nosniff",
+      "status": "PASS",
+      "enforcement": "Applied across HTML, API, and static endpoints"
+    },
+    "X-Frame-Options": {
+      "value": "DENY",
+      "status": "PASS",
+      "enforcement": "Frame ancestor protection"
+    },
+    "Referrer-Policy": {
+      "value": "strict-origin-when-cross-origin",
+      "status": "PASS",
+      "enforcement": "Applied across all routes"
+    },
+    "Permissions-Policy": {
+      "value": "camera=(self), microphone=(self), geolocation=()",
+      "status": "PASS",
+      "enforcement": "Explicit camera and microphone delegation"
+    }
+  },
+  "cors_preflight_verification": {
+    "endpoints_verified": [
+      "/api/auth/login",
+      "/api/auth/register",
+      "/api/health"
+    ],
+    "methods": [
+      "OPTIONS",
+      "POST",
+      "GET"
+    ],
+    "preflight_status": "PASS",
+    "credentials_allowed": true,
+    "wildcard_origin_avoided": true
+  }
+}

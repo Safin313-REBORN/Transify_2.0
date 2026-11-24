@@ -46,12 +46,15 @@ def main():
     args = parser.parse_args()
 
     print_banner(args.host, args.port)
+    trusted_ips = os.getenv("FORWARDED_ALLOW_IPS", "127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16")
     uvicorn.run(
         "src.api.server:app",
         host=args.host,
         port=args.port,
         reload=args.reload,
-        log_level="info"
+        log_level="info",
+        proxy_headers=True,
+        forwarded_allow_ips=trusted_ips
     )
 
 

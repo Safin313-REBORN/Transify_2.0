@@ -60,12 +60,12 @@ This master audit report establishes the definitive release-readiness posture fo
 
 ## 4. Performance & High-Resolution Transition Latency
 
-- **Initial Cold Boot Startup:** `1169.2 ms`
-- **Mean Route Transition Latency:** `333.41 ms`
-- **Clinician Portal Readiness Latency:** `105.2 ms` (matches JSON matrix exactly).
-- **requestAnimationFrame Callback Cadence:** `52.26 Hz` (Compositor GPU FPS: NOT MEASURED).
-- **Retained JS Heap Memory (Post-GC):** `1.28 MB` used.
-- **50-Cycle Navigation Workload Delta:** `+0.13 MB` (No significant memory growth detected).
+- **Initial Cold Boot Startup:** `1660.94 ms`
+- **Mean Route Transition Latency:** `326.07 ms`
+- **Clinician Portal Readiness Latency:** `17.6 ms` (matches JSON matrix exactly).
+- **requestAnimationFrame Callback Cadence:** `49.2 Hz` (Compositor GPU FPS: NOT MEASURED).
+- **Retained JS Heap Memory (Post-GC):** `1.32 MB` used.
+- **50-Cycle Navigation Workload Delta:** `+0.12 MB` (No significant memory growth detected).
 
 ---
 
