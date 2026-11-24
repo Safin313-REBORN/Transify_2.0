@@ -1288,14 +1288,12 @@
               <p style="margin: 4px 0 12px; color: var(--text-2); font-size: 15px;" id="dropzone-text">Supports JPEG,
                 PNG, WEBP with embossed or printed cells</p>
 
-              <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                <button type="button" class="btn-welcome-primary press" id="braille-select-file-btn"
-                  style="min-height: 44px; font-size: 14px; padding: 0 16px;">
+              <div class="braille-dropzone-actions">
+                <button type="button" class="btn-braille-action primary press" id="braille-select-file-btn">
                   📁 Browse Image
                 </button>
-                <button type="button" class="btn-outline-dark press" id="braille-open-camera-btn"
-                  data-action="braille-open-camera"
-                  style="min-height: 44px; font-size: 14px; padding: 0 16px; color: var(--ink); border-color: var(--line-2);">
+                <button type="button" class="btn-braille-action secondary press" id="braille-open-camera-btn"
+                  data-action="braille-open-camera">
                   📷 Snap with Camera
                 </button>
               </div>
@@ -1314,8 +1312,7 @@
               <div class="braille-toolbar-left">
                 <div class="braille-toolbar-item">
                   <label for="braille-opt-standard" class="braille-toolbar-label">Translation Standard:</label>
-                  <select id="braille-opt-standard" class="settings-select"
-                    style="min-height: 36px; padding: 4px 10px; font-size: 13px;">
+                  <select id="braille-opt-standard" class="braille-select settings-select">
                     <option value="ueb1" selected>Unified English Braille (UEB Grade 1)</option>
                     <option value="ueb2">UEB Grade 2 (Contracted)</option>
                     <option value="bharati">Bharati Braille (বাংলা / Bengali)</option>
@@ -1329,13 +1326,12 @@
                 </div>
               </div>
               <div class="braille-toolbar-right">
-                <button type="button" id="check-iqa-btn-visible" class="btn-outline-dark press"
-                  data-action="braille-run-iqa"
-                  style="height: 36px; font-size: 13px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);">
+                <button type="button" id="check-iqa-btn-visible" class="btn-braille-toolbar-secondary press"
+                  data-action="braille-run-iqa">
                   🔍 Check Quality (IQA)
                 </button>
-                <button type="button" id="translate-braille-btn-visible" class="btn-welcome-primary press"
-                  data-action="braille-run-translation" style="height: 36px; font-size: 13px; padding: 0 16px;">
+                <button type="button" id="translate-braille-btn-visible" class="btn-braille-toolbar-primary press"
+                  data-action="braille-run-translation">
                   ✨ Translate Image
                 </button>
               </div>

@@ -6739,6 +6739,219 @@ button.welcome-guest-link {
   background: var(--surface-3);
 }
 
+/* Braille Dropzone Actions */
+.braille-dropzone-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.btn-braille-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+
+.btn-braille-action.primary {
+  background: #FFCB05;
+  color: #14111F;
+  border: 1.5px solid #E5B700;
+  box-shadow: 0 2px 10px rgba(255, 203, 5, 0.3);
+}
+
+.btn-braille-action.primary:hover {
+  background: #FFD426;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(255, 203, 5, 0.45);
+}
+
+.btn-braille-action.secondary {
+  background: var(--surface, #FFFFFF);
+  color: var(--ink, #14111F);
+  border: 1.5px solid var(--line, rgba(20, 17, 31, 0.15));
+  box-shadow: 0 1px 4px rgba(20, 17, 31, 0.04);
+}
+
+.btn-braille-action.secondary:hover {
+  border-color: var(--violet, #8338EC);
+  color: var(--violet, #8338EC);
+  background: rgba(131, 56, 236, 0.04);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(131, 56, 236, 0.12);
+}
+
+/* OCR Options Toolbar Card */
+.braille-toolbar-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: var(--surface-2, #F8F8FC);
+  border: 1px solid var(--line, rgba(20, 17, 31, 0.08));
+  border-radius: 14px;
+  padding: 12px 18px;
+  margin-top: 14px;
+  margin-bottom: 20px;
+}
+
+.braille-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.braille-toolbar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.braille-toolbar-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink, #14111F);
+  white-space: nowrap;
+}
+
+.braille-select.settings-select {
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 38px 0 14px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+  background-color: var(--surface, #FFFFFF) !important;
+  border: 1.5px solid var(--line, rgba(20, 17, 31, 0.12)) !important;
+  min-width: 250px !important;
+  box-sizing: border-box !important;
+}
+
+.braille-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink, #14111F);
+  cursor: pointer;
+  user-select: none;
+}
+
+.braille-checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  accent-color: var(--violet, #8338EC);
+}
+
+.braille-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-braille-toolbar-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--surface, #FFFFFF);
+  color: var(--ink, #14111F);
+  border: 1.5px solid var(--line, rgba(20, 17, 31, 0.15));
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(20, 17, 31, 0.03);
+}
+
+.btn-braille-toolbar-secondary:hover {
+  border-color: var(--violet, #8338EC);
+  color: var(--violet, #8338EC);
+  background: rgba(131, 56, 236, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(131, 56, 236, 0.12);
+}
+
+.btn-braille-toolbar-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 800;
+  background: #FFCB05;
+  color: #14111F;
+  border: 1.5px solid #E5B700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(255, 203, 5, 0.3);
+  flex: 0 0 auto;
+}
+
+.btn-braille-toolbar-primary:hover {
+  background: #FFD426;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 203, 5, 0.45);
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] .braille-toolbar-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .braille-toolbar-label,
+[data-theme="dark"] .braille-checkbox-label {
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .braille-select.settings-select {
+  background-color: #19142A !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .btn-braille-action.secondary,
+[data-theme="dark"] .btn-braille-toolbar-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme="dark"] .btn-braille-action.secondary:hover,
+[data-theme="dark"] .btn-braille-toolbar-secondary:hover {
+  background: rgba(131, 56, 236, 0.2);
+  border-color: #A674F2;
+  color: #FFFFFF;
+}
+
 .braille-grid-layout {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
