@@ -212,14 +212,16 @@ def probe_production_security(local_base_url: str = None) -> dict:
         {"name": "options_preflight", "url": f"{base_prod_url}/api/health", "method": "OPTIONS"}
     ]
 
-    expected_security_headers = [
-        "strict-transport-security",
-        "content-security-policy",
-        "x-content-type-options",
-        "x-frame-options",
-        "referrer-policy",
-        "permissions-policy"
-    ]
+    expected_security_policy = {
+        "strict-transport-security": "max-age=31536000",
+        "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "permissions-policy": "camera=(self), microphone=(self), geolocation=()"
+    }
+
+    expected_security_headers = list(expected_security_policy.keys())
 
     probed_endpoints = []
     root_headers_dict = {}
@@ -291,6 +293,16 @@ def probe_production_security(local_base_url: str = None) -> dict:
         header_keys = [k for k, _ in headers_raw_list]
         duplicates = [k for k in expected_security_headers if header_keys.count(k) > 1]
 
+        exact_matches = {}
+        for h, exp_val in expected_security_policy.items():
+            act_val = headers_dict.get(h)
+            exact_matches[h] = {
+                "present": act_val is not None,
+                "exact_match": act_val == exp_val,
+                "actual": act_val,
+                "expected": exp_val
+            }
+
         ep_status = "PASS" if len(missing) == 0 else "FAIL"
         ep_record = {
             "name": ep["name"],
@@ -303,6 +315,7 @@ def probe_production_security(local_base_url: str = None) -> dict:
             "redirect_chain": redirect_chain,
             "server": headers_dict.get("server", "UNKNOWN"),
             "headers": {h: headers_dict.get(h) for h in expected_security_headers},
+            "exact_header_matches": exact_matches,
             "missing_headers": missing,
             "duplicate_headers": duplicates,
             "status": ep_status
@@ -335,6 +348,16 @@ def probe_production_security(local_base_url: str = None) -> dict:
         except Exception as e:
             print(f"[!] Warning: Local middleware dynamic probe error: {e}")
 
+    exact_root_matches = {}
+    for h, exp_val in expected_security_policy.items():
+        act_val = root_headers_dict.get(h)
+        exact_root_matches[h] = {
+            "present": act_val is not None,
+            "exact_match": act_val == exp_val,
+            "actual": act_val,
+            "expected": exp_val
+        }
+
     return {
         "timestamp_utc": now_utc,
         "target_url": f"{base_prod_url}/",
@@ -344,11 +367,14 @@ def probe_production_security(local_base_url: str = None) -> dict:
         "server_header": root_server,
         "live_headers": root_headers_dict,
         "missing_security_headers": root_missing_headers,
+        "exact_policy_matches": exact_root_matches,
+        "all_exact_matches": all(m["exact_match"] for m in exact_root_matches.values()),
         "hsts_present": "strict-transport-security" in root_headers_dict,
         "csp_present": "content-security-policy" in root_headers_dict,
         "local_middleware_verified": local_middleware_verified,
+        "production_deployment_state": "PENDING (Strict CSP update awaits post-merge Railway deployment)",
         "script_src_unsafe_inline_required": True,
-        "script_src_unsafe_inline_reason": "Inline script blocks (auth sheet/routing helpers lines 29-79 in index.html) and inline DOM event attributes (onclick handlers) require 'unsafe-inline' until refactored or nonced.",
+        "script_src_unsafe_inline_reason": "Live Railway edge contains legacy 'unsafe-inline' script-src until PR #1 is merged and deployed; local source and CI enforce strict script-src 'self' only.",
         "dual_token_emission_documented": True,
         "dual_token_emission_reason": "POST /api/auth/login sets an HttpOnly transify_session cookie for web browsers AND emits token in JSON response body for native Android client (MainActivity.kt) compatibility.",
         "native_bridge_ipc_security": "NOT APPLICABLE / NOT TESTED (No Electron, Tauri, or WebView2 host IPC bridge is implemented in this repository)",

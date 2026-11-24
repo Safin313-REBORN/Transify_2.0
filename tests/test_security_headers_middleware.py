@@ -164,6 +164,50 @@ def test_cors_preflight_does_not_execute_route_logic(monkeypatch):
     assert response.status_code in (200, 204)
 
 
+def test_cors_configured_methods_and_headers_exact_assertion(monkeypatch):
+    """
+    RC1.4.5.2: Explicitly tests the actual configured CORS implementation:
+    - Allowed methods: GET, POST, PUT, DELETE, OPTIONS, HEAD.
+    - Prohibits claiming unconfigured methods like PATCH.
+    - Allowed headers: Authorization, Content-Type, Accept, Origin, X-Requested-With, X-CSRF-Token.
+    - Credentials: True with non-wildcard origin.
+    """
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("CORS_ORIGINS", "https://transify.ai,https://transify20-production.up.railway.app")
+    prod_client = TestClient(app, base_url="https://transify20-production.up.railway.app")
+
+    # 1. Genuine preflight for allowed POST with Content-Type and Authorization
+    resp_post = prod_client.options(
+        "/api/auth/login",
+        headers={
+            "Origin": "https://transify.ai",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Authorization, Content-Type"
+        }
+    )
+    assert resp_post.status_code in (200, 204)
+    assert resp_post.headers.get("access-control-allow-origin") == "https://transify.ai"
+    assert resp_post.headers.get("access-control-allow-credentials") == "true"
+    allow_methods = [m.strip() for m in resp_post.headers.get("access-control-allow-methods", "").split(",")]
+    assert "POST" in allow_methods
+    assert "GET" in allow_methods
+    assert "OPTIONS" in allow_methods
+    # Verify PATCH is not claimed or configured
+    assert "PATCH" not in allow_methods, f"Unimplemented PATCH method should not be in CORS allowed methods: {allow_methods}"
+
+    # 2. Genuine preflight for unallowed method
+    resp_unallowed = prod_client.options(
+        "/api/auth/login",
+        headers={
+            "Origin": "https://transify.ai",
+            "Access-Control-Request-Method": "TRACE",
+            "Access-Control-Request-Headers": "Content-Type"
+        }
+    )
+    # Starlette CORS middleware omits Allow-Methods or rejects for unallowed methods
+    assert "TRACE" not in resp_unallowed.headers.get("access-control-allow-methods", "")
+
+
 def test_trusted_proxy_host_helper():
     """Verify is_trusted_proxy_host accurately discriminates private/loopback networks."""
     assert is_trusted_proxy_host("127.0.0.1") is True

@@ -47,7 +47,7 @@ jobs:
 
       - name: Clean Stale Audit Artifacts
         run: |
-          rm -f TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json TRANSIFY_V3_RC1_4_5_MOBILE_VIEWPORT_MATRIX.json TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json
+          rm -f TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json TRANSIFY_V3_RC1_4_5_MOBILE_VIEWPORT_MATRIX.json TRANSIFY_V3_RC1_4_5_SECURITY_HEADER_MATRIX.json TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json
 
       - name: Run Backend & Browser Regression Test Suite
         id: backend-tests
@@ -75,14 +75,24 @@ jobs:
         run: |
           python scripts/verify_mobile_browser_matrix.py
 
+      - name: Generate Fresh Security Header Matrix
+        id: security-matrix
+        if: always() && steps.backend-tests.outcome != 'cancelled'
+        env:
+          TRANSIFY_ENV: testing
+          PYTHONPATH: .
+        run: |
+          python scripts/generate_security_matrix.py
+
       - name: Verify Mandatory Audit Artifacts and Provenance
         run: |
           test -f TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json || (echo "ERROR: Missing desktop matrix" && exit 1)
           test -f TRANSIFY_V3_RC1_4_5_MOBILE_VIEWPORT_MATRIX.json || (echo "ERROR: Missing mobile matrix" && exit 1)
+          test -f TRANSIFY_V3_RC1_4_5_SECURITY_HEADER_MATRIX.json || (echo "ERROR: Missing security matrix" && exit 1)
           python -c "
           import json, os
           sha = os.environ.get('GITHUB_SHA', '')
-          for p in ['TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json', 'TRANSIFY_V3_RC1_4_5_MOBILE_VIEWPORT_MATRIX.json']:
+          for p in ['TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json', 'TRANSIFY_V3_RC1_4_5_MOBILE_VIEWPORT_MATRIX.json', 'TRANSIFY_V3_RC1_4_5_SECURITY_HEADER_MATRIX.json']:
               with open(p) as f:
                   d = json.load(f)
               c = d.get('audit_metadata', {}).get('source_commit')
@@ -137,7 +147,8 @@ jobs:
           echo "Backend Test Outcome: ${{ steps.backend-tests.outcome }}"
           echo "Desktop Audit Outcome: ${{ steps.desktop-audit.outcome }}"
           echo "Mobile Audit Outcome: ${{ steps.mobile-audit.outcome }}"
-          if [ "${{ steps.backend-tests.outcome }}" != "success" ] || [ "${{ steps.desktop-audit.outcome }}" != "success" ] || [ "${{ steps.mobile-audit.outcome }}" != "success" ]; then
+          echo "Security Matrix Outcome: ${{ steps.security-matrix.outcome }}"
+          if [ "${{ steps.backend-tests.outcome }}" != "success" ] || [ "${{ steps.desktop-audit.outcome }}" != "success" ] || [ "${{ steps.mobile-audit.outcome }}" != "success" ] || [ "${{ steps.security-matrix.outcome }}" != "success" ]; then
             echo "CI FAILURE: One or more required test/audit stages failed."
             exit 1
           fi

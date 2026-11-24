@@ -268,6 +268,13 @@ def test_direct_routes_redirect_and_zero_csp_violations(live_server, route, expe
                 });
             """)
 
+            # RC1.4.5.2: Assert the initial HTTP redirect response is exactly 307 with matching Location header
+            api_req = page.context.request.get(f"{live_server}{route}", max_redirects=0)
+            assert api_req.status == 307, f"Expected HTTP 307 status for direct route {route}, got {api_req.status}"
+            loc_header = api_req.headers.get("location", "")
+            assert loc_header == f"/{expected_hash}", f"Expected Location '/{expected_hash}' for {route}, got '{loc_header}'"
+
+            # Follow redirect and verify in browser
             response = page.goto(f"{live_server}{route}", wait_until="domcontentloaded")
             page.wait_for_timeout(300)
 

@@ -1,55 +1,458 @@
 {
   "audit_metadata": {
-    "target": "Transify V3 RC1.4.5 Production & Local Edge",
-    "production_url": "https://transify20-production.up.railway.app/",
-    "timestamp_utc": "2026-11-24T09:08:13.249461+00:00",
-    "compliance_status": "PASS"
+    "milestone": "RC1.4.5.2 Final Release Evidence & Production Readiness Closeout",
+    "source_commit": "11d760abc8ce894f979c462d0281a90c14e96daa",
+    "timestamp_utc": "2026-11-24T10:27:03.045829+00:00",
+    "target": "Transify V3 Security Header Matrix",
+    "production_url": "https://transify20-production.up.railway.app",
+    "production_server": "railway-hikari",
+    "production_edge": "sin1",
+    "single_source_of_truth": "TRANSIFY_V3_RC1_4_5_SECURITY_HEADER_MATRIX.json"
   },
-  "required_headers": {
-    "Strict-Transport-Security": {
-      "value": "max-age=31536000",
-      "status": "PASS",
-      "enforcement": "Conditional on trusted proxy host or secure protocol; omit includeSubDomains"
+  "verification_scopes": {
+    "local_and_ci_verification": {
+      "scope": "Local Source Repository & CI Test Suite",
+      "status": "PASSED (VERIFIED)",
+      "details": "FastAPI middleware strictly enforces zero 'unsafe-inline' scripts (script-src 'self' only), HTTP 307 direct-route redirects, and strict headers across all 242 tests."
     },
-    "Content-Security-Policy": {
-      "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
-      "status": "PASS",
-      "enforcement": "Strict script execution ('self' only, zero unsafe-inline in script-src). Style directives allow 'unsafe-inline' for dynamic theme styles."
+    "current_production_deployment": {
+      "scope": "Live Deployed Edge (https://transify20-production.up.railway.app/)",
+      "status": "OPERATIONAL (LEGACY CSP PRESENT)",
+      "details": "All 6 security headers are present and enforced on Railway edge. However, live CSP on Railway still contains legacy 'unsafe-inline' in script-src from pre-RC1.4.5 deployment.",
+      "live_csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+      "has_legacy_unsafe_inline": true
     },
-    "X-Content-Type-Options": {
-      "value": "nosniff",
-      "status": "PASS",
-      "enforcement": "Applied across HTML, API, and static endpoints"
-    },
-    "X-Frame-Options": {
-      "value": "DENY",
-      "status": "PASS",
-      "enforcement": "Frame ancestor protection"
-    },
-    "Referrer-Policy": {
-      "value": "strict-origin-when-cross-origin",
-      "status": "PASS",
-      "enforcement": "Applied across all routes"
-    },
-    "Permissions-Policy": {
-      "value": "camera=(self), microphone=(self), geolocation=()",
-      "status": "PASS",
-      "enforcement": "Explicit camera and microphone delegation"
+    "pending_deployment_verification": {
+      "scope": "Post-Merge Release Deployment to Railway",
+      "status": "PENDING PRODUCTION DEPLOYMENT",
+      "details": "Strict CSP without 'unsafe-inline' in script-src is fully implemented and verified in branch commit but requires Railway deployment after PR #1 merge."
     }
   },
-  "cors_preflight_verification": {
-    "endpoints_verified": [
-      "/api/auth/login",
-      "/api/auth/register",
-      "/api/health"
+  "target_middleware_policy": {
+    "Strict-Transport-Security": {
+      "expected_value": "max-age=31536000",
+      "description": "Enforced on direct HTTPS or trusted proxy forwarded HTTPS. Omits includeSubDomains for single-domain deployment.",
+      "enforcement": "Conditional on verified HTTPS"
+    },
+    "Content-Security-Policy": {
+      "expected_value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+      "description": "Strict script execution ('self' only, zero unsafe-inline in script-src). Style allows 'unsafe-inline' for dynamic theme variables.",
+      "enforcement": "Strict script-src 'self' (zero inline scripts)"
+    },
+    "X-Content-Type-Options": {
+      "expected_value": "nosniff",
+      "description": "MIME-sniffing protection across all HTML, JSON, and static assets.",
+      "enforcement": "Always enforced"
+    },
+    "X-Frame-Options": {
+      "expected_value": "DENY",
+      "description": "Clickjacking protection denying iframe embedding.",
+      "enforcement": "Always enforced"
+    },
+    "Referrer-Policy": {
+      "expected_value": "strict-origin-when-cross-origin",
+      "description": "Referrer leak protection sending origin only on cross-origin requests.",
+      "enforcement": "Always enforced"
+    },
+    "Permissions-Policy": {
+      "expected_value": "camera=(self), microphone=(self), geolocation=()",
+      "description": "Restricts browser device features to same-origin for assistive sign/voice.",
+      "enforcement": "Always enforced"
+    }
+  },
+  "production_exact_value_comparison": {
+    "Strict-Transport-Security": {
+      "expected": "max-age=31536000",
+      "live_production": "max-age=31536000",
+      "exact_match": true,
+      "note": "Exact match"
+    },
+    "Content-Security-Policy": {
+      "expected": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+      "live_production": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+      "exact_match": false,
+      "note": "Differs in legacy script-src directive pending Railway deployment"
+    },
+    "X-Content-Type-Options": {
+      "expected": "nosniff",
+      "live_production": "nosniff",
+      "exact_match": true,
+      "note": "Exact match"
+    },
+    "X-Frame-Options": {
+      "expected": "DENY",
+      "live_production": "DENY",
+      "exact_match": true,
+      "note": "Exact match"
+    },
+    "Referrer-Policy": {
+      "expected": "strict-origin-when-cross-origin",
+      "live_production": "strict-origin-when-cross-origin",
+      "exact_match": true,
+      "note": "Exact match"
+    },
+    "Permissions-Policy": {
+      "expected": "camera=(self), microphone=(self), geolocation=()",
+      "live_production": "camera=(self), microphone=(self), geolocation=()",
+      "exact_match": true,
+      "note": "Exact match"
+    }
+  },
+  "production_endpoints_evaluated": [
+    {
+      "name": "root_html",
+      "url": "https://transify20-production.up.railway.app/",
+      "method": "GET",
+      "http_status": 200,
+      "protocol": "2",
+      "ssl_verify": "0",
+      "server": "railway-hikari",
+      "headers_evaluated": {
+        "Strict-Transport-Security": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "max-age=31536000",
+          "expected_value": "max-age=31536000"
+        },
+        "Content-Security-Policy": {
+          "present": true,
+          "exact_match": false,
+          "actual_value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+          "expected_value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        },
+        "X-Content-Type-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "nosniff",
+          "expected_value": "nosniff"
+        },
+        "X-Frame-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "DENY",
+          "expected_value": "DENY"
+        },
+        "Referrer-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "strict-origin-when-cross-origin",
+          "expected_value": "strict-origin-when-cross-origin"
+        },
+        "Permissions-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "camera=(self), microphone=(self), geolocation=()",
+          "expected_value": "camera=(self), microphone=(self), geolocation=()"
+        }
+      },
+      "all_headers_present": true,
+      "all_exact_match": false
+    },
+    {
+      "name": "api_health",
+      "url": "https://transify20-production.up.railway.app/api/health",
+      "method": "GET",
+      "http_status": 200,
+      "protocol": "2",
+      "ssl_verify": "0",
+      "server": "railway-hikari",
+      "headers_evaluated": {
+        "Strict-Transport-Security": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "max-age=31536000",
+          "expected_value": "max-age=31536000"
+        },
+        "Content-Security-Policy": {
+          "present": true,
+          "exact_match": false,
+          "actual_value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+          "expected_value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        },
+        "X-Content-Type-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "nosniff",
+          "expected_value": "nosniff"
+        },
+        "X-Frame-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "DENY",
+          "expected_value": "DENY"
+        },
+        "Referrer-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "strict-origin-when-cross-origin",
+          "expected_value": "strict-origin-when-cross-origin"
+        },
+        "Permissions-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "camera=(self), microphone=(self), geolocation=()",
+          "expected_value": "camera=(self), microphone=(self), geolocation=()"
+        }
+      },
+      "all_headers_present": true,
+      "all_exact_match": false
+    },
+    {
+      "name": "static_js",
+      "url": "https://transify20-production.up.railway.app/static/app.js",
+      "method": "GET",
+      "http_status": 200,
+      "protocol": "2",
+      "ssl_verify": "0",
+      "server": "railway-hikari",
+      "headers_evaluated": {
+        "Strict-Transport-Security": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "max-age=31536000",
+          "expected_value": "max-age=31536000"
+        },
+        "Content-Security-Policy": {
+          "present": true,
+          "exact_match": false,
+          "actual_value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+          "expected_value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        },
+        "X-Content-Type-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "nosniff",
+          "expected_value": "nosniff"
+        },
+        "X-Frame-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "DENY",
+          "expected_value": "DENY"
+        },
+        "Referrer-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "strict-origin-when-cross-origin",
+          "expected_value": "strict-origin-when-cross-origin"
+        },
+        "Permissions-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "camera=(self), microphone=(self), geolocation=()",
+          "expected_value": "camera=(self), microphone=(self), geolocation=()"
+        }
+      },
+      "all_headers_present": true,
+      "all_exact_match": false
+    },
+    {
+      "name": "static_css",
+      "url": "https://transify20-production.up.railway.app/static/styles.css",
+      "method": "GET",
+      "http_status": 200,
+      "protocol": "2",
+      "ssl_verify": "0",
+      "server": "railway-hikari",
+      "headers_evaluated": {
+        "Strict-Transport-Security": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "max-age=31536000",
+          "expected_value": "max-age=31536000"
+        },
+        "Content-Security-Policy": {
+          "present": true,
+          "exact_match": false,
+          "actual_value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+          "expected_value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        },
+        "X-Content-Type-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "nosniff",
+          "expected_value": "nosniff"
+        },
+        "X-Frame-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "DENY",
+          "expected_value": "DENY"
+        },
+        "Referrer-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "strict-origin-when-cross-origin",
+          "expected_value": "strict-origin-when-cross-origin"
+        },
+        "Permissions-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "camera=(self), microphone=(self), geolocation=()",
+          "expected_value": "camera=(self), microphone=(self), geolocation=()"
+        }
+      },
+      "all_headers_present": true,
+      "all_exact_match": false
+    },
+    {
+      "name": "not_found_404",
+      "url": "https://transify20-production.up.railway.app/nonexistent-endpoint-404",
+      "method": "GET",
+      "http_status": 404,
+      "protocol": "2",
+      "ssl_verify": "0",
+      "server": "railway-hikari",
+      "headers_evaluated": {
+        "Strict-Transport-Security": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "max-age=31536000",
+          "expected_value": "max-age=31536000"
+        },
+        "Content-Security-Policy": {
+          "present": true,
+          "exact_match": false,
+          "actual_value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+          "expected_value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        },
+        "X-Content-Type-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "nosniff",
+          "expected_value": "nosniff"
+        },
+        "X-Frame-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "DENY",
+          "expected_value": "DENY"
+        },
+        "Referrer-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "strict-origin-when-cross-origin",
+          "expected_value": "strict-origin-when-cross-origin"
+        },
+        "Permissions-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "camera=(self), microphone=(self), geolocation=()",
+          "expected_value": "camera=(self), microphone=(self), geolocation=()"
+        }
+      },
+      "all_headers_present": true,
+      "all_exact_match": false
+    },
+    {
+      "name": "options_plain_health",
+      "url": "https://transify20-production.up.railway.app/api/health",
+      "method": "OPTIONS",
+      "http_status": 405,
+      "protocol": "2",
+      "ssl_verify": "0",
+      "server": "railway-hikari",
+      "headers_evaluated": {
+        "Strict-Transport-Security": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "max-age=31536000",
+          "expected_value": "max-age=31536000"
+        },
+        "Content-Security-Policy": {
+          "present": true,
+          "exact_match": false,
+          "actual_value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+          "expected_value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+        },
+        "X-Content-Type-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "nosniff",
+          "expected_value": "nosniff"
+        },
+        "X-Frame-Options": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "DENY",
+          "expected_value": "DENY"
+        },
+        "Referrer-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "strict-origin-when-cross-origin",
+          "expected_value": "strict-origin-when-cross-origin"
+        },
+        "Permissions-Policy": {
+          "present": true,
+          "exact_match": true,
+          "actual_value": "camera=(self), microphone=(self), geolocation=()",
+          "expected_value": "camera=(self), microphone=(self), geolocation=()"
+        }
+      },
+      "all_headers_present": true,
+      "all_exact_match": false
+    }
+  ],
+  "cors_policy_specification": {
+    "configured_origins": [
+      "https://transify.ai",
+      "https://app.transify.ai",
+      "https://transify20-production.up.railway.app"
     ],
-    "methods": [
-      "OPTIONS",
+    "allowed_methods": [
+      "GET",
       "POST",
-      "GET"
+      "PUT",
+      "DELETE",
+      "OPTIONS",
+      "HEAD"
     ],
-    "preflight_status": "PASS",
-    "credentials_allowed": true,
-    "wildcard_origin_avoided": true
+    "allowed_headers_production": [
+      "Authorization",
+      "Content-Type",
+      "Accept",
+      "Origin",
+      "X-Requested-With",
+      "X-CSRF-Token"
+    ],
+    "credentials_policy": "allow_credentials=True (Strictly pairs with explicit origins; wildcard '*' prohibited in production)",
+    "patch_method_supported": false,
+    "wildcard_origin_used": false,
+    "live_preflight_results": [
+      {
+        "name": "login_preflight_post",
+        "url": "https://transify20-production.up.railway.app/api/auth/login",
+        "sent_origin": "https://transify20-production.up.railway.app",
+        "sent_request_method": "POST",
+        "sent_request_headers": "Content-Type",
+        "response_status": 200,
+        "access_control_allow_origin": "https://transify20-production.up.railway.app",
+        "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
+        "access_control_allow_credentials": "true",
+        "is_valid_preflight": true
+      },
+      {
+        "name": "spa_login_preflight_get",
+        "url": "https://transify20-production.up.railway.app/login",
+        "sent_origin": "https://transify20-production.up.railway.app",
+        "sent_request_method": "GET",
+        "sent_request_headers": "Content-Type",
+        "response_status": 200,
+        "access_control_allow_origin": "https://transify20-production.up.railway.app",
+        "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
+        "access_control_allow_credentials": "true",
+        "is_valid_preflight": true
+      }
+    ]
+  },
+  "verdict": {
+    "ci_readiness": "PASSED",
+    "local_middleware_status": "COMPLIANT",
+    "production_edge_connectivity": "CONNECTED",
+    "production_deployment_status": "PENDING (Strict CSP update awaits post-merge Railway deployment)",
+    "overall_release_gate": "READY FOR MERGE (PROD RELEASE PENDING DEPLOYMENT)"
   }
 }
