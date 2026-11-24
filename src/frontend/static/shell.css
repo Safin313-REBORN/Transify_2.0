@@ -199,20 +199,27 @@ aside.rail .sp {
 /* User Account Chip at Bottom of Sidebar */
 .who {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
   align-items: center;
-  padding: 12px;
+  justify-content: center;
+  text-align: center;
+  gap: 5px;
+  padding: 10px 4px;
+  margin-top: auto;
   border-top: 1px solid rgba(238, 239, 245, 0.14);
-  font-size: 14px;
+  font-size: 13px;
   color: #B9B7CC;
   cursor: pointer;
   border-radius: 12px;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.15s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .who:hover {
-  background: rgba(238, 239, 245, 0.06);
+  background: rgba(238, 239, 245, 0.08);
   color: #fff;
+  transform: translateY(-1px);
 }
 
 .av {
@@ -226,6 +233,42 @@ aside.rail .sp {
   place-items: center;
   font-size: 13px;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.who-text-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  max-width: 100%;
+}
+
+.who-primary-name,
+#rail-user-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #EEEFF5;
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 88px;
+  display: block;
+}
+
+.who-status-sub {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #8E8B9E;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 88px;
+  display: block;
 }
 
 /* Top Bar (Sticky) */
