@@ -1236,6 +1236,140 @@ body:has(#view-welcome.active) .floating-chat-btn {
   margin-bottom: 30px;
 }
 
+/* ==========================================================================
+   Team Alpha Nexus Platform Footer
+   ========================================================================== */
+.alpha-nexus-footer {
+  margin-top: 36px;
+  padding: 24px 0 36px;
+  border-top: 1px solid var(--line);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.an-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.an-brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.an-emblem-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.an-emblem-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid #FFCB05;
+  box-shadow: 0 4px 12px rgba(255, 203, 5, 0.3);
+  object-fit: cover;
+  display: block;
+}
+
+.an-text-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.an-team-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.2;
+}
+
+.an-highlight {
+  color: #FFCB05;
+  background: linear-gradient(135deg, #FFCB05, #F59E0B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.an-copy-claim {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.an-links-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.an-links-row a {
+  color: var(--violet);
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.an-links-row a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.an-links-row .btn-rep-intro {
+  background: none;
+  border: 0;
+  color: var(--violet);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: inherit;
+  transition: opacity 0.2s;
+}
+
+.an-links-row .btn-rep-intro:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 600px) {
+  .an-footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Home aside scrollbar styling */
+.home-aside::-webkit-scrollbar {
+  width: 5px;
+}
+
+.home-aside::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.home-aside::-webkit-scrollbar-thumb {
+  background: rgba(20, 17, 31, 0.18);
+  border-radius: 999px;
+}
+
+[data-theme="dark"] .home-aside::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+}
+
 /* Bento Grid Layout Fix */
 .home-bento {
   display: grid;
