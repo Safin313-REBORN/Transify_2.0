@@ -6291,24 +6291,23 @@ const EditorialController = {
         const isFav = !!p.fav;
         return `
         <li>
-          <div class="phrase-card card-uiverse ${isEmergency ? 'is-emergency' : ''}" data-idx="${idx}" role="region" aria-label="${p.en}">
-            <div class="go-corner" aria-hidden="true" data-action="phrase-speak" data-idx="${idx}"><span class="go-arrow">🔊</span></div>
+          <div class="phrase-card ${isEmergency ? 'is-emergency' : ''}" data-idx="${idx}" role="region" aria-label="${p.en}">
             <div class="phrase-card-top">
               <span class="phrase-badge ${catClass}">${p.cat}</span>
-              <div style="display: flex; align-items: center; gap: 6px;">
+              <div class="phrase-card-quick-actions">
                 <button type="button" class="phrase-fav-btn ${isFav ? 'is-fav' : ''}" data-action="phrase-toggle-fav" data-phrase-id="${p.id || p.en}" title="Toggle Favorite" aria-label="Toggle favorite">
                   ${isFav ? '★' : '☆'}
                 </button>
-                <span class="phrase-card-icon" id="card-icon-${idx}" data-action="phrase-speak" data-idx="${idx}" style="cursor: pointer;" title="Speak phrase">
-                  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>
-                </span>
+                <button type="button" class="phrase-card-icon-btn" id="card-icon-${idx}" data-action="phrase-speak" data-idx="${idx}" title="Speak phrase" aria-label="Speak phrase">
+                  <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>
+                </button>
               </div>
             </div>
             
-            <div data-action="phrase-speak" data-idx="${idx}" style="cursor: pointer;">
-              <span class="phrase-en card-title">${p.en}</span>
-              ${p.bn ? `<span class="phrase-bn small-desc">${p.bn}</span>` : ''}
-              ${p.translit ? `<span class="phrase-translit">Pronounce: ${p.translit}</span>` : ''}
+            <div class="phrase-card-content" data-action="phrase-speak" data-idx="${idx}">
+              <h3 class="phrase-en">${p.en}</h3>
+              ${p.bn ? `<p class="phrase-bn">${p.bn}</p>` : ''}
+              ${p.translit ? `<div class="phrase-translit"><span class="translit-label">Pronounce:</span> <span class="translit-text">${p.translit}</span></div>` : ''}
             </div>
 
             <div class="phrase-card-actions">
@@ -6325,7 +6324,7 @@ const EditorialController = {
                 <span>⠃ Braille</span>
               </button>
               ${isEmergency ? `
-              <button type="button" class="phrase-action-btn press" data-action="phrase-alert" data-idx="${idx}" style="background: rgba(239,68,68,0.12); color: #dc2626; border-color: rgba(239,68,68,0.3);" title="Trigger emergency siren">
+              <button type="button" class="phrase-action-btn phrase-alert-btn press" data-action="phrase-alert" data-idx="${idx}" title="Trigger emergency siren">
                 <span>🚨 Alert</span>
               </button>` : ''}
             </div>

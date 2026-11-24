@@ -1399,6 +1399,32 @@ body:has(#view-welcome.active) .floating-chat-btn {
   }
 }
 
+/* Welcome Screen Copyright Claim & Team Alpha Nexus Attribution */
+.welcome-copyright-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+  font-size: 12.5px;
+  color: #B9B7CC;
+}
+
+.welcome-copyright-row strong {
+  color: #FFCB05;
+}
+
+.an-emblem-mini {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid #FFCB05;
+  box-shadow: 0 2px 8px rgba(255, 203, 5, 0.25);
+  object-fit: cover;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 /* Home aside scrollbar styling */
 .home-aside::-webkit-scrollbar {
   width: 5px;
