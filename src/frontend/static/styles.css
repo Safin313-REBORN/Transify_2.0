@@ -1798,13 +1798,30 @@ body.reduced-motion .page-view.active::before {
   bottom: 18px;
   display: block;
   z-index: 2;
+  color: #FFFFFF !important;
 }
 
-.cap b {
+.cap b,
+.tile .cap b {
   display: block;
   font-family: var(--font-display);
   font-weight: 800;
   letter-spacing: -.025em;
+  color: #FFFFFF !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.cap span,
+.tile .cap span {
+  color: #E2E0EC !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.tile.t1 .cap b,
+.tile.t2 .cap b,
+.tile.t3 .cap b {
+  color: #FFFFFF !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
 }
 
 /* Transify Care Hero Banner on Home (Full Width) */
