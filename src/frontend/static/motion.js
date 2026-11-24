@@ -209,16 +209,23 @@
 
     const logEl = document.getElementById('bl') || document.getElementById('boot-log');
     const fillEl = document.getElementById('bp') || document.getElementById('boot-progress-fill');
+    const pctEl = document.getElementById('boot-pct');
+    const statusEl = document.getElementById('boot-status-text');
     const skipBtn = document.getElementById('skip') || document.getElementById('btn-boot-skip');
 
     let idx = 0;
     if (logEl) logEl.textContent = '';
     if (fillEl) fillEl.style.width = '0%';
+    if (pctEl) pctEl.textContent = '0%';
 
     const timer = setInterval(() => {
       if (idx < statusLines.length) {
-        if (logEl) logEl.textContent += statusLines[idx++] + '\n';
-        if (fillEl) fillEl.style.width = `${(idx / statusLines.length) * 100}%`;
+        const line = statusLines[idx++];
+        if (logEl) logEl.textContent += line + '\n';
+        const pct = Math.round((idx / statusLines.length) * 100);
+        if (fillEl) fillEl.style.width = `${pct}%`;
+        if (pctEl) pctEl.textContent = `${pct}%`;
+        if (statusEl) statusEl.textContent = line;
       } else {
         clearInterval(timer);
         setTimeout(endBoot, 350);
@@ -246,19 +253,22 @@
     window.location.hash = '#home';
     const bootEl = document.getElementById('boot') || document.getElementById('transify-boot-screen');
     if (bootEl) {
-      bootEl.classList.remove('out');
+      bootEl.classList.remove('out', 'boot-done');
+      bootEl.style.display = 'grid';
+      bootEl.style.pointerEvents = 'auto';
+      bootEl.style.opacity = '1';
+      bootEl.style.visibility = 'visible';
       initBootSequence();
     }
   };
 
   function initReplayButton() {
-    const repBtn = document.getElementById('rep');
-    if (repBtn) {
-      repBtn.onclick = (e) => {
+    document.querySelectorAll('#rep, .btn-rep-intro').forEach(btn => {
+      btn.onclick = (e) => {
         e.preventDefault();
         window.replayIntro();
       };
-    }
+    });
   }
 
   // 11. Top Bar, Emergency SOS & Language Integration

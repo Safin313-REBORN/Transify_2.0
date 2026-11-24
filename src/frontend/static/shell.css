@@ -1212,6 +1212,25 @@ a.rowl:hover {
   transition: width 1s var(--ease-out);
 }
 
+.floating-chat-btn {
+  z-index: 40 !important;
+}
+
+/* Hide floating chat button when already inside AI Chat view or Welcome view */
+body:has(#view-chat.active) .floating-chat-btn,
+.app:has(#view-chat.active) ~ .floating-chat-btn,
+body:has(#view-welcome.active) .floating-chat-btn {
+  display: none !important;
+}
+
+.settings-container {
+  padding-bottom: 80px;
+}
+
+.settings-permanent-footer {
+  margin-bottom: 30px;
+}
+
 /* Bento Grid Layout Fix */
 .home-bento {
   display: grid;
