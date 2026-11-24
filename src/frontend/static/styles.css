@@ -375,7 +375,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(131, 56, 236, 0.6);
+  background: rgba(20, 17, 31, 0.4);
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
@@ -383,7 +383,13 @@ body {
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(166, 116, 242, 0.6);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 * {
@@ -405,6 +411,67 @@ body {
 .home-aside {
   scrollbar-width: thin;
   scrollbar-color: rgba(20, 17, 31, 0.15) transparent;
+}
+
+/* Language Selection Pill Toggle (#langs) */
+#langs.seg {
+  display: inline-flex;
+  align-items: center;
+  background: var(--seg, #EAE8F3);
+  border: 1px solid var(--line, rgba(20, 17, 31, 0.12));
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+  height: 38px;
+  min-height: 38px;
+  box-sizing: border-box;
+}
+
+#langs.seg button {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--muted, #6B6880);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#langs.seg button:hover {
+  color: var(--ink, #14111F);
+}
+
+#langs.seg button[aria-pressed="true"],
+#langs.seg button.active {
+  background: #14111F;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="dark"] #langs.seg {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] #langs.seg button {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+[data-theme="dark"] #langs.seg button:hover {
+  color: #ffffff;
+}
+
+[data-theme="dark"] #langs.seg button[aria-pressed="true"],
+[data-theme="dark"] #langs.seg button.active {
+  background: #ffffff;
+  color: #14111F;
 }
 
 /* Bilingual Bengali Text Quality & Diacritic Protection */
@@ -1087,11 +1154,12 @@ h3,
   display: none;
   width: 100%;
   max-width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
-  max-height: 100dvh;
-  overflow: hidden;
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+  max-height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
   position: relative;
 }
@@ -1181,25 +1249,25 @@ body.reduced-motion .page-view.active::before {
   display: flex;
   flex-wrap: nowrap;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
-  max-height: 100dvh;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
   overflow: hidden;
 }
 
 .home-main {
   flex: 1 1 0;
   min-width: 0;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
+  height: 100%;
+  max-height: 100%;
   box-sizing: border-box;
-  padding: clamp(14px, 2vh, 26px) clamp(18px, 2.5vw, 36px);
+  padding: clamp(14px, 2vh, 26px) clamp(18px, 2.5vw, 36px) clamp(48px, 6vh, 80px);
   display: flex;
   flex-direction: column;
   gap: clamp(10px, 1.4vh, 18px);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .home-header {
@@ -1687,11 +1755,10 @@ body.reduced-motion .page-view.active::before {
 .home-aside {
   flex: 0 0 clamp(260px, 22.222vw, 320px);
   min-width: 0;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
+  height: 100%;
+  max-height: 100%;
   box-sizing: border-box;
-  padding: clamp(14px, 2vh, 26px) clamp(16px, 2vw, 24px) clamp(14px, 2vh, 26px) clamp(16px, 2vw, 24px);
+  padding: clamp(14px, 2vh, 26px) clamp(16px, 2vw, 24px) clamp(48px, 6vh, 80px) clamp(16px, 2vw, 24px);
   border-left: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -1776,10 +1843,10 @@ a.rec,
   display: flex;
   flex-wrap: nowrap;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
-  max-height: 100dvh;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
   overflow: hidden;
   background: #14111F;
   color: #fff;
@@ -1789,9 +1856,8 @@ a.rec,
   position: relative;
   flex: 1 1 0;
   min-width: 0;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
+  height: 100%;
+  max-height: 100%;
   overflow: hidden;
   background: #171420;
 }
@@ -2150,17 +2216,17 @@ a.rec,
 /* Result Panel (520px) */
 .sign-result-panel {
   flex: 0 0 520px;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
+  height: 100%;
+  max-height: 100%;
   box-sizing: border-box;
-  padding: clamp(18px, 2.5vh, 28px);
+  padding: clamp(18px, 2.5vh, 28px) clamp(18px, 2.5vh, 28px) clamp(48px, 6vh, 80px);
   background: var(--paper);
   color: var(--ink);
   display: flex;
   flex-direction: column;
   gap: 16px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sign-mode-tabs {
@@ -2615,8 +2681,32 @@ a.rec,
 }
 
 @media (max-width: 1099px) {
+  #view-sign.active {
+    flex-direction: column !important;
+    display: flex !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    width: 100% !important;
+  }
+
+  .sign-stage {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    height: clamp(300px, 48vh, 460px) !important;
+    max-height: 50vh !important;
+    min-height: 280px !important;
+  }
+
   .sign-result-panel {
-    flex: 1 1 100%;
+    flex: 1 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+    padding: 20px 16px 80px !important;
   }
 }
 
@@ -2627,12 +2717,14 @@ a.rec,
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
   box-sizing: border-box;
-  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px);
+  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px) clamp(48px, 6vh, 80px);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .phrases-container {
@@ -6371,12 +6463,14 @@ button.welcome-guest-link {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
   box-sizing: border-box;
-  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px);
+  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px) clamp(48px, 6vh, 80px);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .braille-container {
@@ -6456,12 +6550,14 @@ button.welcome-guest-link {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
   box-sizing: border-box;
-  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px);
+  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px) clamp(48px, 6vh, 80px);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .voice-container {
@@ -6905,12 +7001,14 @@ body.high-contrast .voice-quick-chip:hover,
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
   box-sizing: border-box;
-  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px);
+  padding: clamp(16px, 2.5vh, 32px) clamp(24px, 4vw, 56px) clamp(48px, 6vh, 80px);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .care-container {

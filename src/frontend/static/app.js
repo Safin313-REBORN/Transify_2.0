@@ -956,6 +956,13 @@ var TransifyApp = window.TransifyApp = Object.assign(window.TransifyApp || {}, {
       const parts = userObj.name.trim().split(' ');
       avatarLarge.textContent = parts.map(p => p[0]).join('').toUpperCase().slice(0, 2);
     }
+    const railName = document.getElementById('rail-user-name');
+    if (railName && userObj.name) railName.textContent = userObj.name;
+    const railAvatar = document.getElementById('rail-user-avatar');
+    if (railAvatar && userObj.name) {
+      const parts = userObj.name.trim().split(' ');
+      railAvatar.textContent = parts.map(p => p[0]).join('').toUpperCase().slice(0, 2);
+    }
   },
 
   bindProfileModal() {
