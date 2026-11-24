@@ -45,9 +45,12 @@ jobs:
         run: |
           python -m playwright install chromium --with-deps
 
-      - name: Clean Stale Audit Artifacts
+      - name: Clean Stale Audit Artifacts and Record Pre-Verification DB Hash
         run: |
           rm -f TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json TRANSIFY_V3_RC1_4_5_MOBILE_VIEWPORT_MATRIX.json TRANSIFY_V3_RC1_4_5_SECURITY_HEADER_MATRIX.json TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json
+          PRE_HASH=$(sha256sum data/transify.db | awk '{print $1}')
+          echo "PRE_VERIFICATION_DB_SHA256=$PRE_HASH" >> $GITHUB_ENV
+          echo "Pre-verification data/transify.db SHA-256: $PRE_HASH"
 
       - name: Run Backend & Browser Regression Test Suite
         id: backend-tests
@@ -140,6 +143,19 @@ jobs:
           name: transify-mobile-audit-screenshots
           path: TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/
           if-no-files-found: error
+
+      - name: Verify Database SHA-256 Invariant and Provenance
+        if: always()
+        run: |
+          POST_HASH=$(sha256sum data/transify.db | awk '{print $1}')
+          echo "Pre-verification DB Hash:  $PRE_VERIFICATION_DB_SHA256"
+          echo "Post-verification DB Hash: $POST_HASH"
+          EXPECTED_HASH="9e5ec945a0450f87705c3702790da675777f7eef3d64e1dfe64221c99e097cac"
+          if [ "$POST_HASH" != "$EXPECTED_HASH" ] || [ "$PRE_VERIFICATION_DB_SHA256" != "$POST_HASH" ]; then
+            echo "DATABASE INVARIANT BREACH: data/transify.db hash modified during audit/test execution!"
+            exit 1
+          fi
+          echo "DATABASE INVARIANT VERIFIED: data/transify.db remained strictly read-only and unmutated."
 
       - name: Enforce Overall Verification Gate
         if: always()

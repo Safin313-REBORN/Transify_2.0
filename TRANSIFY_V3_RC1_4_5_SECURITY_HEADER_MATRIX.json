@@ -1,8 +1,8 @@
 {
   "audit_metadata": {
-    "milestone": "RC1.4.5.3 Final Evidence Correction & Release Verification",
-    "source_commit": "0fa7b733b4da781fbb9528fe7d0c2f247ef6c406",
-    "timestamp_utc": "2026-11-24T10:43:24.535965+00:00",
+    "milestone": "RC1.4.5.3.1 Final CORS Evidence & PR Metadata Cleanup",
+    "source_commit": "0a4b2ca624be0e8f56fed10e998713aa31815185",
+    "timestamp_utc": "2026-11-24T11:10:55.410350+00:00",
     "target": "Transify V3 Security Header Matrix",
     "production_url": "https://transify20-production.up.railway.app",
     "production_server": "railway-hikari",
@@ -13,24 +13,24 @@
     "evidence_generated": {
       "scope": "Local Probe & Matrix Generation",
       "status": "COMPLETED",
-      "timestamp_utc": "2026-11-24T10:43:24.535965+00:00"
+      "timestamp_utc": "2026-11-24T11:10:55.410350+00:00"
     },
     "local_and_ci_verification": {
       "scope": "Local Source Repository & CI Test Suite",
       "status": "EVALUATED_BY_CI_GATE",
-      "details": "FastAPI middleware strictly enforces zero 'unsafe-inline' scripts (script-src 'self' only), HTTP 307 direct-route redirects, and strict headers."
+      "details": "FastAPI middleware strictly enforces zero 'unsafe-inline' scripts (script-src 'self' only), HTTP 307 direct-route redirects, exact CORS policy (including HEAD and X-CSRF-Token), and strict headers."
     },
     "current_production_deployment": {
       "scope": "Live Deployed Edge (https://transify20-production.up.railway.app/)",
-      "status": "OPERATIONAL (LEGACY CSP PRESENT)",
-      "details": "All 6 security headers are present and enforced on Railway edge. However, live CSP on Railway still contains legacy 'unsafe-inline' in script-src from pre-RC1.4.5 deployment.",
+      "status": "OPERATIONAL (LEGACY POLICY PRESENT)",
+      "details": "All 6 security headers are present and enforced on Railway edge. However, live CSP on Railway still contains legacy 'unsafe-inline' in script-src, and live CORS currently omits HEAD from methods and X-CSRF-Token from headers until post-merge deployment.",
       "live_csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
       "has_legacy_unsafe_inline": true
     },
     "pending_deployment_verification": {
       "scope": "Post-Merge Release Deployment to Railway",
       "status": "PENDING PRODUCTION DEPLOYMENT",
-      "details": "Strict CSP without 'unsafe-inline' in script-src is fully implemented and verified in branch commit but requires Railway deployment after PR #1 merge."
+      "details": "Strict CSP without 'unsafe-inline' in script-src, along with HEAD method and X-CSRF-Token CORS support, is fully implemented and verified in branch commit but requires Railway deployment after PR #1 merge."
     }
   },
   "target_middleware_policy": {
@@ -108,6 +108,8 @@
       "name": "root_html",
       "url": "https://transify20-production.up.railway.app/",
       "method": "GET",
+      "is_control": false,
+      "control_type": null,
       "http_status": 200,
       "protocol": "2",
       "ssl_verify": "0",
@@ -157,6 +159,8 @@
       "name": "api_health",
       "url": "https://transify20-production.up.railway.app/api/health",
       "method": "GET",
+      "is_control": false,
+      "control_type": null,
       "http_status": 200,
       "protocol": "2",
       "ssl_verify": "0",
@@ -206,6 +210,8 @@
       "name": "static_js",
       "url": "https://transify20-production.up.railway.app/static/app.js",
       "method": "GET",
+      "is_control": false,
+      "control_type": null,
       "http_status": 200,
       "protocol": "2",
       "ssl_verify": "0",
@@ -255,6 +261,8 @@
       "name": "static_css",
       "url": "https://transify20-production.up.railway.app/static/styles.css",
       "method": "GET",
+      "is_control": false,
+      "control_type": null,
       "http_status": 200,
       "protocol": "2",
       "ssl_verify": "0",
@@ -304,6 +312,8 @@
       "name": "not_found_404",
       "url": "https://transify20-production.up.railway.app/nonexistent-endpoint-404",
       "method": "GET",
+      "is_control": false,
+      "control_type": null,
       "http_status": 404,
       "protocol": "2",
       "ssl_verify": "0",
@@ -350,9 +360,11 @@
       "all_exact_match": false
     },
     {
-      "name": "options_plain_health",
+      "name": "options_plain_health_control",
       "url": "https://transify20-production.up.railway.app/api/health",
       "method": "OPTIONS",
+      "is_control": true,
+      "control_type": "plain_options_no_cors_headers",
       "http_status": 405,
       "protocol": "2",
       "ssl_verify": "0",
@@ -400,39 +412,97 @@
     }
   ],
   "cors_policy_specification": {
-    "configured_origins": [
-      "https://transify.ai",
-      "https://app.transify.ai",
-      "https://transify20-production.up.railway.app"
-    ],
-    "allowed_methods": [
-      "GET",
-      "POST",
-      "PUT",
-      "DELETE",
-      "OPTIONS",
-      "HEAD"
-    ],
-    "allowed_headers_production": [
-      "Authorization",
-      "Content-Type",
-      "Accept",
-      "Origin",
-      "X-Requested-With",
-      "X-CSRF-Token"
-    ],
-    "credentials_policy": "allow_credentials=True (Strictly pairs with explicit origins; wildcard '*' prohibited in production)",
-    "patch_method_supported": false,
-    "wildcard_origin_used": false,
-    "live_preflight_results": [
+    "configured_branch_policy": {
+      "origins": [
+        "https://transify.ai",
+        "https://app.transify.ai",
+        "https://transify20-production.up.railway.app"
+      ],
+      "allowed_methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS",
+        "HEAD"
+      ],
+      "allowed_headers": [
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+        "X-CSRF-Token"
+      ],
+      "allow_credentials": true,
+      "wildcard_origin_used": false,
+      "wildcard_headers_used": false,
+      "patch_method_supported": false
+    },
+    "observed_current_railway_policy": {
+      "live_allowed_methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS"
+      ],
+      "live_allowed_headers": [
+        "Accept",
+        "Accept-Language",
+        "Authorization",
+        "Content-Language",
+        "Content-Type",
+        "Origin",
+        "X-Requested-With"
+      ],
+      "live_allow_credentials": true,
+      "unverified_methods_on_live_edge": [
+        "HEAD"
+      ],
+      "unverified_headers_on_live_edge": [
+        "X-CSRF-Token"
+      ],
+      "policy_status": "PARTIAL_MATCH (HEAD and X-CSRF-Token pending release deployment)"
+    },
+    "expected_state_after_release_deployment": {
+      "allowed_methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS",
+        "HEAD"
+      ],
+      "allowed_headers": [
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+        "X-CSRF-Token"
+      ],
+      "allow_credentials": true,
+      "script_src_policy": "script-src 'self' (zero unsafe-inline)"
+    },
+    "branch_positive_probes": {
+      "status": "PROBE_ERROR: No module named 'src'",
+      "head_method_preflight_supported": false,
+      "x_csrf_token_preflight_supported": false
+    },
+    "live_positive_preflights": [
       {
         "name": "login_preflight_post_valid",
         "url": "https://transify20-production.up.railway.app/api/auth/login",
+        "category": "positive_live",
         "sent_origin": "https://transify20-production.up.railway.app",
         "sent_request_method": "POST",
         "sent_request_headers": "Content-Type",
         "response_status": 200,
         "expected_status": 200,
+        "response_body_safely_captured": "OK",
+        "expected_rejection_reason": null,
+        "rejection_reason_verified": true,
         "access_control_allow_origin": "https://transify20-production.up.railway.app",
         "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
         "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
@@ -445,11 +515,15 @@
       {
         "name": "spa_login_preflight_get_valid",
         "url": "https://transify20-production.up.railway.app/login",
+        "category": "positive_live",
         "sent_origin": "https://transify20-production.up.railway.app",
         "sent_request_method": "GET",
         "sent_request_headers": "Content-Type",
         "response_status": 200,
         "expected_status": 200,
+        "response_body_safely_captured": "OK",
+        "expected_rejection_reason": null,
+        "rejection_reason_verified": true,
         "access_control_allow_origin": "https://transify20-production.up.railway.app",
         "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
         "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
@@ -458,15 +532,21 @@
         "expected_valid": true,
         "validation_message": "Preflight passed all origin, method, header, and credential constraints",
         "test_success": true
-      },
+      }
+    ],
+    "live_negative_rejections": [
       {
         "name": "login_preflight_patch_unsupported",
         "url": "https://transify20-production.up.railway.app/api/auth/login",
+        "category": "negative_rejection",
         "sent_origin": "https://transify20-production.up.railway.app",
         "sent_request_method": "PATCH",
         "sent_request_headers": "Content-Type",
         "response_status": 400,
         "expected_status": 400,
+        "response_body_safely_captured": "Disallowed CORS method",
+        "expected_rejection_reason": "Disallowed CORS method",
+        "rejection_reason_verified": true,
         "access_control_allow_origin": "https://transify20-production.up.railway.app",
         "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
         "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
@@ -479,11 +559,15 @@
       {
         "name": "login_preflight_disallowed_header",
         "url": "https://transify20-production.up.railway.app/api/auth/login",
+        "category": "negative_rejection",
         "sent_origin": "https://transify20-production.up.railway.app",
         "sent_request_method": "POST",
         "sent_request_headers": "X-Disallowed-Custom-Header",
         "response_status": 400,
         "expected_status": 400,
+        "response_body_safely_captured": "Disallowed CORS headers",
+        "expected_rejection_reason": "Disallowed CORS headers",
+        "rejection_reason_verified": true,
         "access_control_allow_origin": "https://transify20-production.up.railway.app",
         "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
         "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
@@ -496,11 +580,15 @@
       {
         "name": "login_preflight_untrusted_origin",
         "url": "https://transify20-production.up.railway.app/api/auth/login",
+        "category": "negative_rejection",
         "sent_origin": "https://untrusted-attacker-origin.example.com",
         "sent_request_method": "POST",
         "sent_request_headers": "Content-Type",
         "response_status": 400,
         "expected_status": 400,
+        "response_body_safely_captured": "Disallowed CORS origin",
+        "expected_rejection_reason": "Disallowed CORS origin",
+        "rejection_reason_verified": true,
         "access_control_allow_origin": null,
         "access_control_allow_methods": "GET, POST, PUT, DELETE, OPTIONS",
         "access_control_allow_headers": "Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With",
@@ -516,7 +604,7 @@
     "evidence_collection_status": "SUCCESS",
     "production_headers_present": true,
     "production_preflight_tests_passed": true,
-    "production_deployment_status": "PENDING (Strict CSP update awaits post-merge Railway deployment)",
+    "production_deployment_status": "PENDING (Strict CSP and complete CORS method/header sync await post-merge Railway deployment)",
     "release_gate_authority": "GitHub Actions CI Workflow"
   }
 }

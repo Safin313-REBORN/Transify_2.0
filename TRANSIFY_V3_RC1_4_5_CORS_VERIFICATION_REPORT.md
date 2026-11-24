@@ -1,8 +1,8 @@
 # TRANSIFY V3 — RC1.4.5 CORS VERIFICATION REPORT
 
-**Milestone:** RC1.4.5 Master Engineering Remediation & Evidence Correction  
+**Milestone:** RC1.4.5.3.1 Final CORS Evidence & PR Metadata Cleanup  
 **Date:** November 24, 2026  
-**Status:** **PASS**
+**Status:** **PASS (SOURCE POLICY VERIFIED / PRODUCTION DEPLOYMENT PENDING)**
 
 ---
 
@@ -20,7 +20,7 @@ Transify V3 implements strict CORS controls with explicit separation between pro
   - **Important:** `PATCH` is strictly **NOT** supported.
 - **Allowed Request Headers:**
   - `Authorization`, `Content-Type`, `Accept`, `Origin`, `X-Requested-With`, `X-CSRF-Token`
-  - **Important:** Wildcard (`*`) request headers are strictly prohibited in production.
+  - **Important:** Wildcard (`*`) request headers are strictly prohibited and rejected in production validation.
 - **Allow Credentials:**
   - `true` (enforced with explicit origin binding; wildcard `*` origins are impossible with credentials).
 
@@ -33,31 +33,50 @@ Transify V3 implements strict CORS controls with explicit separation between pro
 
 ---
 
-## 2. Configured Policy vs. Live Production Railway Edge Response
+## 2. Configured Policy vs. Observed Live Production Railway Edge Response
 
-The table below contrasts the configured application code specification against empirical live edge responses measured on `https://transify20-production.up.railway.app`:
+The table below contrasts the configured branch specification against empirical live edge responses measured on `https://transify20-production.up.railway.app`:
 
-| Property | Configured Middleware Policy (`src/api/server.py`) | Observed Live Production Edge (`server: railway-hikari`) | Status / Notes |
+| Property | Configured Branch Policy (`src/api/server.py`) | Observed Current Railway Policy (`server: railway-hikari`) | Status / Deployment State |
 |:---|:---|:---|:---|
-| **Allowed Origins** | `https://transify.ai`, `https://app.transify.ai`, `https://transify20-production.up.railway.app` | Echoes valid requested origin (`https://transify20-production.up.railway.app`) | MATCH |
-| **Untrusted Origins** | Rejection (HTTP 400 `Disallowed CORS origin`) | HTTP 400 `Disallowed CORS origin` | MATCH |
-| **Credentials** | `true` | `access-control-allow-credentials: true` | MATCH |
-| **Allowed Methods** | `GET, POST, PUT, DELETE, OPTIONS, HEAD` | `GET, POST, PUT, DELETE, OPTIONS` | MATCH (`OPTIONS` preflight returns standard CORS subset) |
-| **Unsupported Method (`PATCH`)** | Rejection (HTTP 400 `Disallowed CORS method`) | HTTP 400 `Disallowed CORS method` | MATCH (Confirmed empirically) |
-| **Allowed Headers** | `Authorization, Content-Type, Accept, Origin, X-Requested-With, X-CSRF-Token` | `Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With` | MATCH (All production request headers permitted) |
-| **Disallowed Header** | Rejection (HTTP 400 `Disallowed CORS headers`) | HTTP 400 `Disallowed CORS headers` | MATCH (Confirmed empirically) |
-| **Preflight Max-Age** | 600s | `access-control-max-age: 600` | MATCH |
+| **Allowed Origins** | `https://transify.ai`, `https://app.transify.ai`, `https://transify20-production.up.railway.app` | Echoes valid requested origin (`https://transify20-production.up.railway.app`, `https://transify.ai`) | **MATCH** |
+| **Untrusted Origins** | Rejection (HTTP 400 `Disallowed CORS origin`) | HTTP 400 `Disallowed CORS origin` | **MATCH** |
+| **Credentials** | `true` | `access-control-allow-credentials: true` | **MATCH** |
+| **Allowed Methods** | `GET, POST, PUT, DELETE, OPTIONS, HEAD` | `GET, POST, PUT, DELETE, OPTIONS` | **PARTIAL MATCH** (`HEAD` is verified in branch tests; unverified on live edge pending release deployment) |
+| **Unsupported Method (`PATCH`)** | Rejection (HTTP 400 `Disallowed CORS method`) | HTTP 400 `Disallowed CORS method` | **MATCH** (Empirically verified) |
+| **Allowed Headers** | `Authorization, Content-Type, Accept, Origin, X-Requested-With, X-CSRF-Token` | `Accept, Accept-Language, Authorization, Content-Language, Content-Type, Origin, X-Requested-With` | **PARTIAL MATCH** (`X-CSRF-Token` is verified in branch tests; unverified on live edge pending release deployment) |
+| **Disallowed Header** | Rejection (HTTP 400 `Disallowed CORS headers`) | HTTP 400 `Disallowed CORS headers` | **MATCH** (Empirically verified) |
+| **Preflight Max-Age** | 600s | `access-control-max-age: 600` | **MATCH** |
 
 ---
 
-## 3. Empirical Preflight Audit Matrix
+## 3. Empirical Preflight & Control Audit Matrix
 
-Empirically verified via live HTTPS probes against `https://transify20-production.up.railway.app`:
+Empirically verified via live HTTPS probes against `https://transify20-production.up.railway.app` and in-memory branch verification:
 
-| Endpoint | Request Method | Origin | Requested Headers | Response Status | Access-Control-Allow-Origin | Security Headers Present | Verdict |
-|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| `/api/auth/login` | `OPTIONS` (POST preflight) | `https://transify20-production.up.railway.app` | `Content-Type` | 200 | `https://transify20-production.up.railway.app` | YES (All 6) | **PASS** |
-| `/api/auth/login` | `OPTIONS` (PATCH preflight) | `https://transify20-production.up.railway.app` | None | 400 | `https://transify20-production.up.railway.app` | YES (All 6) | **REJECTED (EXPECTED)** |
-| `/api/auth/login` | `OPTIONS` (Disallowed header) | `https://transify20-production.up.railway.app` | `X-Disallowed-Header` | 400 | `https://transify20-production.up.railway.app` | YES (All 6) | **REJECTED (EXPECTED)** |
-| `/api/auth/login` | `OPTIONS` (Untrusted origin) | `https://evil.com` | `Content-Type` | 400 | None | YES (All 6) | **REJECTED (EXPECTED)** |
-| `/api/health` | `OPTIONS` | `https://transify20-production.up.railway.app` | None | 200 | None (standard GET allowed without preflight) | YES (All 6) | **PASS** |
+### A. Live Production Edge Probes (`https://transify20-production.up.railway.app`)
+
+| Type | Endpoint | Sent Method / Headers | Sent Origin | Status | Captured Response Body | Observed Access-Control Headers | Verdict |
+|:---|:---|:---|:---|:---:|:---|:---|:---:|
+| **Positive CORS Preflight** | `/api/auth/login` | `POST` / `Content-Type` | `https://transify20-production.up.railway.app` | 200 | (empty) | Allow-Origin: prod URL, Allow-Methods: 5 methods, Credentials: true | **PASS** |
+| **Positive CORS Preflight** | `/login` (SPA) | `GET` / `Content-Type` | `https://transify20-production.up.railway.app` | 200 | (empty) | Allow-Origin: prod URL, Allow-Methods: 5 methods, Credentials: true | **PASS** |
+| **Negative Rejection (Method)** | `/api/auth/login` | `PATCH` / `Content-Type` | `https://transify20-production.up.railway.app` | 400 | `Disallowed CORS method` | Allow-Origin: None, Rejected | **REJECTED (EXPECTED)** |
+| **Negative Rejection (Header)** | `/api/auth/login` | `POST` / `X-Disallowed-Custom-Header` | `https://transify20-production.up.railway.app` | 400 | `Disallowed CORS headers` | Allow-Origin: None, Rejected | **REJECTED (EXPECTED)** |
+| **Negative Rejection (Origin)** | `/api/auth/login` | `POST` / `Content-Type` | `https://untrusted-attacker-origin.example.com` | 400 | `Disallowed CORS origin` | Allow-Origin: None, Rejected | **REJECTED (EXPECTED)** |
+| **Plain OPTIONS Control** | `/api/health` | (Plain OPTIONS, no CORS headers) | None | 405 | `{"detail":"Method Not Allowed"}` | Allow: GET. Not a CORS preflight. | **CONTROL VERIFIED** |
+
+### B. In-Memory Branch Verification (`src/api/server.py` Production Policy)
+
+| Type | Endpoint | Sent Method / Headers | Sent Origin | Status | Result / Allowed Values | Verdict |
+|:---|:---|:---|:---|:---:|:---|:---:|
+| **Branch Positive Probe** | `/api/auth/login` | `HEAD` preflight | `https://transify.ai` | 200 | `Access-Control-Allow-Methods` includes `HEAD` | **PASS (VERIFIED IN BRANCH)** |
+| **Branch Positive Probe** | `/api/auth/login` | `POST` / `X-CSRF-Token` | `https://transify.ai` | 200 | `Access-Control-Allow-Headers` includes `X-CSRF-Token`, zero wildcard `*` | **PASS (VERIFIED IN BRANCH)** |
+
+---
+
+## 4. Expected State After Release Deployment
+
+Following the merge of PR #1 and subsequent automated deployment to Railway:
+1. `HEAD` method support in CORS preflights will be active across all production origins.
+2. `X-CSRF-Token` header support in CORS preflights will be active across all production origins.
+3. Content-Security-Policy will strictly enforce `script-src 'self'` without legacy `'unsafe-inline'`.

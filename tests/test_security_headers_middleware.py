@@ -191,11 +191,43 @@ def test_cors_configured_methods_and_headers_exact_assertion(monkeypatch):
     allow_methods = [m.strip() for m in resp_post.headers.get("access-control-allow-methods", "").split(",")]
     assert "POST" in allow_methods
     assert "GET" in allow_methods
+    assert "HEAD" in allow_methods
     assert "OPTIONS" in allow_methods
     # Verify PATCH is not claimed or configured
     assert "PATCH" not in allow_methods, f"Unimplemented PATCH method should not be in CORS allowed methods: {allow_methods}"
 
-    # 2. Genuine preflight for unallowed method
+    # Verify allowed headers contain Content-Type and Authorization
+    allow_headers_post = [h.strip() for h in resp_post.headers.get("access-control-allow-headers", "").split(",")]
+    assert any(h.lower() == "content-type" for h in allow_headers_post)
+    assert any(h.lower() == "authorization" for h in allow_headers_post)
+
+    # 2. Positive probe for HEAD preflight
+    resp_head = prod_client.options(
+        "/api/auth/login",
+        headers={
+            "Origin": "https://transify.ai",
+            "Access-Control-Request-Method": "HEAD"
+        }
+    )
+    assert resp_head.status_code in (200, 204)
+    head_methods = [m.strip() for m in resp_head.headers.get("access-control-allow-methods", "").split(",")]
+    assert "HEAD" in head_methods
+
+    # 3. Positive probe for X-CSRF-Token preflight
+    resp_csrf = prod_client.options(
+        "/api/auth/login",
+        headers={
+            "Origin": "https://transify.ai",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "X-CSRF-Token"
+        }
+    )
+    assert resp_csrf.status_code in (200, 204)
+    csrf_headers = [h.strip() for h in resp_csrf.headers.get("access-control-allow-headers", "").split(",")]
+    assert any(h.lower() == "x-csrf-token" for h in csrf_headers)
+    assert "*" not in csrf_headers, "Production preflight must NOT return wildcard allowed headers"
+
+    # 4. Genuine preflight for unallowed method
     resp_unallowed = prod_client.options(
         "/api/auth/login",
         headers={

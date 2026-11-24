@@ -69,14 +69,14 @@ PHASE 10.E: ZERO AUTO-AUDIO ENFORCEMENT
 [PASS] Zero Auto-Audio Overall: PASS
 
 PHASE 10.F: PERFORMANCE BENCHMARK & ROUTE LATENCIES
-[PASS] Initial Cold Startup: 1373.33 ms
-[PASS] Mean Route Latency: 293.58 ms across 10 routes
-[INFO] requestAnimationFrame Callback Cadence: 51.58 Hz (Compositor GPU FPS: NOT MEASURED)
-[INFO] Active CDP Heap Memory: 1.32 MB used / 2.5 MB allocated
+[PASS] Initial Cold Startup: 1336.15 ms
+[PASS] Mean Route Latency: 268.62 ms across 10 routes
+[INFO] requestAnimationFrame Callback Cadence: 55.25 Hz (Compositor GPU FPS: NOT MEASURED)
+[INFO] Active CDP Heap Memory: 1.27 MB used / 2.5 MB allocated
 
 PHASE 10.G: 50-CYCLE NAVIGATION STABILITY TEST
 [PASS] 50 View Transitions Executed (50/50 Confirmed Distinct State Changes, 0 No-Ops)
-[PASS] Heap Growth: +0.11 MB (No significant retained growth detected within the measured workload)
+[PASS] Heap Growth: +0.12 MB (No significant retained growth detected within the measured workload)
 [PASS] Node Growth: +25 DOM nodes
 
 PHASE 10.H: PRODUCTION SECURITY PROBE (LIVE RAILWAY AUDIT)
