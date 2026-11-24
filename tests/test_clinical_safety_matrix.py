@@ -29,6 +29,7 @@ VALID_PWD = "TransifySecurePass2026!"
 
 def test_session_revocation_via_bearer_token_logout():
     """Verifies that logging out with a Bearer token revokes the session on the server."""
+    init_db()
     client = TestClient(app)
     email = f"user_logout_{os.urandom(4).hex()}@transify.test"
     user = create_user("Logout Test User", email, VALID_PWD, role="user", consent_terms=True)
