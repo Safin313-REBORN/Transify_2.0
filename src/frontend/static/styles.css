@@ -1205,9 +1205,7 @@ body.reduced-motion .page-view.active::before {
 }
 
 .home-header-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: none !important;
 }
 
 .lang-segmented {
@@ -2361,7 +2359,7 @@ a.rec,
   gap: 4px;
 }
 
-.seg {
+.segments-bar .seg {
   position: relative;
   height: 5px;
   background: var(--line);
@@ -2370,7 +2368,7 @@ a.rec,
   border-radius: 2px;
 }
 
-.seg i {
+.segments-bar .seg i {
   position: absolute;
   inset: 0;
   background: var(--violet);
@@ -2379,7 +2377,7 @@ a.rec,
   transition: transform .45s var(--ease-wipe);
 }
 
-.seg.on i {
+.segments-bar .seg.on i {
   transform: scaleX(1);
 }
 
