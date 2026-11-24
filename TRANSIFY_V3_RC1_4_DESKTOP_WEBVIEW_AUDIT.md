@@ -6,7 +6,7 @@
 **Date:** November 23, 2026  
 **Auditors:** Principal Software Architect, Desktop QA Engineer, Application Security Engineer, Release Verification Lead  
 **Evaluated Environment:** Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)  
-**Data Provenance:** Extracted programmatically from `TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json`  
+**Data Provenance:** Extracted programmatically from `TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json`  
 
 ---
 
@@ -60,11 +60,11 @@ This master audit report establishes the definitive release-readiness posture fo
 
 ## 4. Performance & High-Resolution Transition Latency
 
-- **Initial Cold Boot Startup:** `1660.94 ms`
-- **Mean Route Transition Latency:** `326.07 ms`
-- **Clinician Portal Readiness Latency:** `17.6 ms` (matches JSON matrix exactly).
-- **requestAnimationFrame Callback Cadence:** `49.2 Hz` (Compositor GPU FPS: NOT MEASURED).
-- **Retained JS Heap Memory (Post-GC):** `1.32 MB` used.
+- **Initial Cold Boot Startup:** `1146.89 ms`
+- **Mean Route Transition Latency:** `231.14 ms`
+- **Clinician Portal Readiness Latency:** `100.5 ms` (matches JSON matrix exactly).
+- **requestAnimationFrame Callback Cadence:** `55.33 Hz` (Compositor GPU FPS: NOT MEASURED).
+- **Retained JS Heap Memory (Post-GC):** `1.27 MB` used.
 - **50-Cycle Navigation Workload Delta:** `+0.12 MB` (No significant memory growth detected).
 
 ---

@@ -359,28 +359,36 @@ class TestFrontendServing(unittest.TestCase):
         self.assertIn("btn-open-tts", html)
 
     def test_login_page(self):
-        html = serve_login_page()
-        self.assertIn("Login", html)
-        self.assertIn("Sign Up", html)
-        self.assertIn("Welcome Back!", html)
-        self.assertIn("transify-auth", html or "auth")
+        resp = serve_login_page()
+        if hasattr(resp, "headers"):
+            self.assertEqual(resp.status_code, 307)
+            self.assertIn("#login", resp.headers.get("location", ""))
+        else:
+            self.assertIn("Login", resp)
 
     def test_dashboard_page(self):
-        html = serve_dashboard_page()
-        self.assertIn("Assistive Control Dashboard", html)
-        self.assertIn("history-records-list", html)
+        resp = serve_dashboard_page()
+        if hasattr(resp, "headers"):
+            self.assertEqual(resp.status_code, 307)
+            self.assertIn("#home", resp.headers.get("location", ""))
+        else:
+            self.assertIn("Assistive Control Dashboard", resp)
 
     def test_sign_page(self):
-        html = serve_sign_page()
-        self.assertIn("Live ASL & HaGRID Hand Gesture Translator", html)
-        self.assertIn("sign-video", html)
-        self.assertIn("debounce-progress-fill", html)
+        resp = serve_sign_page()
+        if hasattr(resp, "headers"):
+            self.assertEqual(resp.status_code, 307)
+            self.assertIn("#sign", resp.headers.get("location", ""))
+        else:
+            self.assertIn("Live ASL & HaGRID Hand Gesture Translator", resp)
 
     def test_braille_page(self):
-        html = serve_braille_page()
-        self.assertIn("Braille Image Translator", html)
-        self.assertIn("braille-dropzone", html)
-        self.assertIn("braille-text-output", html)
+        resp = serve_braille_page()
+        if hasattr(resp, "headers"):
+            self.assertEqual(resp.status_code, 307)
+            self.assertIn("#braille", resp.headers.get("location", ""))
+        else:
+            self.assertIn("Braille Image Translator", resp)
 
 
 class TestAssistiveExtensions(unittest.TestCase):

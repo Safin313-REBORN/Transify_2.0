@@ -6,7 +6,7 @@
 **Date:** November 23, 2026  
 **Auditor:** Desktop Performance Engineer & Reliability Architect  
 **Evaluated Environment:** Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)  
-**Data Provenance:** Extracted programmatically from `TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json`  
+**Data Provenance:** Extracted programmatically from `TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json`  
 
 ---
 
@@ -20,8 +20,8 @@
 | • Route Requests / Confirmed Changes:  50 requested / 50 confirmed state changes (0 no-ops)
 | • Routes Cycled:                       home -> care -> sign -> braille -> chat
 | • Garbage Collection Procedure:        Explicit V8 HeapProfiler.collectGarbage prior to each measurement
-| • Baseline Retained Heap (Post-GC):    1.07 MB (12933 DOM nodes, 396 listeners)
-| • Post-50 Cycles Retained Heap (Post-GC): 1.19 MB (12958 DOM nodes, 396 listeners)
+| • Baseline Retained Heap (Post-GC):    1.11 MB (12933 DOM nodes, 396 listeners)
+| • Post-50 Cycles Retained Heap (Post-GC): 1.23 MB (12958 DOM nodes, 396 listeners)
 | • Net Retained Heap Growth:            +0.12 MB
 | • Net Retained DOM Node Growth:        +25 nodes
 | • Net Listener Delta:                  +0 listeners
@@ -39,7 +39,7 @@ The test harness executed 10 full loops of 5 core views (50 transitions):
 
 | Measurement Dimension | Baseline (Pre-Test, Post-GC) | Post-50 Cycles (Post-GC) | Net Delta | Evaluation Threshold | Status |
 |---|---|---|---|---|---|
-| **Retained JS Heap Used** | 1.07 MB | 1.19 MB | **+0.12 MB** | `< 8.00 MB` | **PASS** |
+| **Retained JS Heap Used** | 1.11 MB | 1.23 MB | **+0.12 MB** | `< 8.00 MB` | **PASS** |
 | **DOM Node Count** | 12933 | 12958 | **+25** | `< 500 nodes` | **PASS** |
 | **Event Listeners** | 396 | 396 | **+0** | `< 100 listeners` | **PASS** |
 

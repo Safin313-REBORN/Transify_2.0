@@ -20,7 +20,7 @@ load_dotenv()
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Response, Request, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, RedirectResponse
 from pydantic import BaseModel, Field
 import numpy as np
 
@@ -963,42 +963,26 @@ def serve_landing_page():
     return HTMLResponse("<h1>Transify — Breaking Communication Barriers</h1><p>Frontend initializing...</p>")
 
 
-@app.get("/login", response_class=HTMLResponse, tags=["Frontend"])
+@app.get("/login", tags=["Frontend"])
 def serve_login_page():
-    """Serves the Transify Login and Registration page."""
-    login_path = os.path.join(FRONTEND_DIR, "login.html")
-    if os.path.exists(login_path):
-        with open(login_path, "r", encoding="utf-8") as f:
-            return f.read()
-    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+    """Redirects to the SPA login view without CSP inline-script blocks."""
+    return RedirectResponse(url="/#login", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 
-@app.get("/dashboard", response_class=HTMLResponse, tags=["Frontend"])
+@app.get("/dashboard", tags=["Frontend"])
 def serve_dashboard_page():
-    """Serves the Transify central assistive dashboard."""
-    dash_path = os.path.join(FRONTEND_DIR, "dashboard.html")
-    if os.path.exists(dash_path):
-        with open(dash_path, "r", encoding="utf-8") as f:
-            return f.read()
-    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+    """Redirects to the SPA home dashboard without CSP inline-script blocks."""
+    return RedirectResponse(url="/#home", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 
-@app.get("/sign", response_class=HTMLResponse, tags=["Frontend"])
+@app.get("/sign", tags=["Frontend"])
 def serve_sign_page():
-    """Serves the Live Sign Language Translator page."""
-    sign_path = os.path.join(FRONTEND_DIR, "sign.html")
-    if os.path.exists(sign_path):
-        with open(sign_path, "r", encoding="utf-8") as f:
-            return f.read()
-    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+    """Redirects to the SPA sign language translator view without CSP inline-script blocks."""
+    return RedirectResponse(url="/#sign", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 
-@app.get("/braille", response_class=HTMLResponse, tags=["Frontend"])
+@app.get("/braille", tags=["Frontend"])
 def serve_braille_page():
-    """Serves the Braille Image Translator page."""
-    br_path = os.path.join(FRONTEND_DIR, "braille.html")
-    if os.path.exists(br_path):
-        with open(br_path, "r", encoding="utf-8") as f:
-            return f.read()
-    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+    """Redirects to the SPA braille translator view without CSP inline-script blocks."""
+    return RedirectResponse(url="/#braille", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 

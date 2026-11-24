@@ -27,7 +27,7 @@ def generate_execution_log(data: Dict[str, Any]) -> str:
         f"**Date:** November 23, 2026  ",
         f"**Auditor:** Release Verification Lead & Build Specialist  ",
         f"**Evaluated Environment:** {meta.get('evaluated_runtime', 'Unknown')}  ",
-        f"**Data Provenance:** Extracted programmatically from `{meta.get('single_source_of_truth', 'TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json')}`  ",
+        f"**Data Provenance:** Extracted programmatically from `{meta.get('single_source_of_truth', 'TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json')}`  ",
         "",
         "---",
         "",

@@ -6,6 +6,22 @@
 (function () {
   'use strict';
 
+  // Standalone legacy page fallback redirect
+  var path = window.location.pathname;
+  if (path === '/sign' || path.endsWith('/sign.html')) {
+    window.location.replace('/#sign');
+    return;
+  } else if (path === '/braille' || path.endsWith('/braille.html')) {
+    window.location.replace('/#braille');
+    return;
+  } else if (path === '/login' || path.endsWith('/login.html')) {
+    window.location.replace('/#login');
+    return;
+  } else if (path === '/dashboard' || path.endsWith('/dashboard.html')) {
+    window.location.replace('/#home');
+    return;
+  }
+
   // 1. Bulletproof routing & auth initialization (formerly inline in index.html)
   window.openAuthSheet = function (mode) {
     if (window.TransifyApp && window.TransifyApp.openAuthSheet) {

@@ -10137,8 +10137,10 @@ body.high-contrast .settings-select option,
 }
 
 .chat-mic-btn {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 10px;
   border: none;
   background: transparent;
@@ -10162,8 +10164,10 @@ body.high-contrast .settings-select option,
 }
 
 .chat-send-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 10px;
   border: none;
   background: var(--violet, #8338EC);
@@ -10986,6 +10990,34 @@ body.high-contrast .settings-select option,
   .fingerspell-keyboard-container {
     max-height: 220px !important;
     width: 100% !important;
+  }
+
+  /* Sub-Mode Tabs & Buttons on Mobile */
+  .btn-back-stage,
+  .braille-mode-tab,
+  .btn-chat-header-action,
+  .chat-suggestion-chip,
+  .chat-input,
+  .phrase-action-btn,
+  .phrase-fav-btn,
+  .braille-sample-chip {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    box-sizing: border-box !important;
+  }
+
+  .braille-mode-tabs {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .braille-mode-tab {
+    flex: 1 1 auto !important;
+    padding: 8px 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   /* 3. Braille View on Phone */

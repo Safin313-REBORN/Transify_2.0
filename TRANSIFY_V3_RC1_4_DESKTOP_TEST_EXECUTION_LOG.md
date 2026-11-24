@@ -6,7 +6,7 @@
 **Date:** November 23, 2026  
 **Auditor:** Release Verification Lead & Build Specialist  
 **Evaluated Environment:** Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)  
-**Data Provenance:** Extracted programmatically from `TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json`  
+**Data Provenance:** Extracted programmatically from `TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json`  
 
 ---
 
@@ -69,10 +69,10 @@ PHASE 10.E: ZERO AUTO-AUDIO ENFORCEMENT
 [PASS] Zero Auto-Audio Overall: PASS
 
 PHASE 10.F: PERFORMANCE BENCHMARK & ROUTE LATENCIES
-[PASS] Initial Cold Startup: 1660.94 ms
-[PASS] Mean Route Latency: 326.07 ms across 10 routes
-[INFO] requestAnimationFrame Callback Cadence: 49.2 Hz (Compositor GPU FPS: NOT MEASURED)
-[INFO] Active CDP Heap Memory: 1.32 MB used / 2.5 MB allocated
+[PASS] Initial Cold Startup: 1146.89 ms
+[PASS] Mean Route Latency: 231.14 ms across 10 routes
+[INFO] requestAnimationFrame Callback Cadence: 55.33 Hz (Compositor GPU FPS: NOT MEASURED)
+[INFO] Active CDP Heap Memory: 1.27 MB used / 2.0 MB allocated
 
 PHASE 10.G: 50-CYCLE NAVIGATION STABILITY TEST
 [PASS] 50 View Transitions Executed (50/50 Confirmed Distinct State Changes, 0 No-Ops)

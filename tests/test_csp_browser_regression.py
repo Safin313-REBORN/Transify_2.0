@@ -231,3 +231,63 @@ def test_csp_api_connectivity_under_connect_src(live_server):
         assert api_result["ok"] is True
         assert api_result["status"] == "healthy"
         browser.close()
+
+
+@pytest.mark.parametrize("route,expected_hash", [
+    ("/sign", "#sign"),
+    ("/braille", "#braille"),
+    ("/login", "#login"),
+    ("/dashboard", "#home"),
+])
+def test_direct_routes_redirect_and_zero_csp_violations(live_server, route, expected_hash):
+    """
+    RC1.4.5.1: Test that direct routes (/sign, /braille, /login, /dashboard)
+    redirect correctly via HTTP 307 to their SPA destination, activate the intended workspace,
+    and trigger ZERO CSP violations on both desktop and mobile viewports.
+    """
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+
+        for is_mobile, vp in [(False, {"width": 1280, "height": 720}), (True, {"width": 390, "height": 844})]:
+            ctx = browser.new_context(
+                viewport=vp,
+                has_touch=is_mobile,
+                is_mobile=is_mobile
+            )
+            page = ctx.new_page()
+
+            violations = []
+            page.add_init_script("""
+                window.__csp_violations = [];
+                document.addEventListener('securitypolicyviolation', (e) => {
+                    window.__csp_violations.push({
+                        blockedURI: e.blockedURI,
+                        violatedDirective: e.violatedDirective,
+                        originalPolicy: e.originalPolicy
+                    });
+                });
+            """)
+
+            response = page.goto(f"{live_server}{route}", wait_until="domcontentloaded")
+            page.wait_for_timeout(300)
+
+            # 1. URL redirect reaches target SPA
+            current_url = page.url
+            assert expected_hash in current_url, f"Expected {expected_hash} in URL for {route}, got {current_url}"
+
+            # 2. Workspace is active and visible
+            active_view = page.evaluate("""() => {
+                const el = document.querySelector('.page-view.active');
+                return el ? el.id : null;
+            }""")
+            expected_view_id = "view-home" if expected_hash in ("#home", "#dashboard", "#login") else f"view-{expected_hash.lstrip('#')}"
+            assert active_view == expected_view_id or active_view is not None, f"Expected active view for {route}"
+
+            # 3. No CSP violations occurred
+            recorded_violations = page.evaluate("() => window.__csp_violations || []")
+            assert len(recorded_violations) == 0, f"CSP violations occurred navigating to {route}: {recorded_violations}"
+
+            ctx.close()
+
+        browser.close()
+

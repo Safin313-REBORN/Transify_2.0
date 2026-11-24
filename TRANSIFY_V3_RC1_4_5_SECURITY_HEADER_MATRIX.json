@@ -12,9 +12,9 @@
       "enforcement": "Conditional on trusted proxy host or secure protocol; omit includeSubDomains"
     },
     "Content-Security-Policy": {
-      "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https://transify20-production.up.railway.app https://transify.ai https://app.transify.ai; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+      "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://transify20-production.up.railway.app; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
       "status": "PASS",
-      "enforcement": "Strict CSP without 'unsafe-inline' in script-src. Handlers dispatched via boot.js"
+      "enforcement": "Strict script execution ('self' only, zero unsafe-inline in script-src). Style directives allow 'unsafe-inline' for dynamic theme styles."
     },
     "X-Content-Type-Options": {
       "value": "nosniff",

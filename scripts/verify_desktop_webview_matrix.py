@@ -608,11 +608,11 @@ def run_desktop_matrix():
         audit_data = {
             "audit_metadata": {
                 "target_package": "com.abrarafick.transify",
-                "milestone": "RC1.4.3.1 CI Repair, Source-of-Truth Reconciliation & Final Verification",
+                "milestone": "RC1.4.5 Master Engineering Remediation & Full Browser Verification Directive",
                 "source_commit": head_commit,
                 "timestamp_utc": datetime.now(timezone.utc).isoformat(),
                 "evaluated_runtime": "Browser-based Chromium Desktop Testing (Playwright / Chromium 130.0.0.0, Linux x86_64)",
-                "single_source_of_truth": "TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json",
+                "single_source_of_truth": "TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json",
                 "host_os": "Linux 7.0.0-43-generic x86_64"
             },
             "viewports_tested": [],
@@ -1594,9 +1594,10 @@ def run_desktop_matrix():
             dom_nodes = int(m_dict.get("Nodes", 0))
             listeners = int(m_dict.get("JSEventListeners", 0))
 
-            valid_latencies = [r["total_latency_ms"] for r in route_latencies.values() if r.get("status") == "PASS" and r.get("total_latency_ms", -1) > 0]
+            valid_latencies = [r["total_latency_ms"] for r in route_latencies.values() if r.get("status") == "PASS" and r.get("total_latency_ms", -1) >= 0]
             mean_latency = round(sum(valid_latencies) / len(valid_latencies), 2) if valid_latencies else -1
-            all_routes_pass = all(r.get("status") == "PASS" and r.get("activation_ms", -1) > 0 for r in route_latencies.values())
+            # Permit valid measured activation >= 0; initial route is a startup/readiness measurement
+            all_routes_pass = all(r.get("status") == "PASS" and r.get("activation_ms", -1) >= 0 for r in route_latencies.values())
 
             audit_data["performance_benchmarks"] = {
                 "initial_startup_ms": startup_ms,
@@ -1819,8 +1820,8 @@ def run_desktop_matrix():
             "overall_status": "CONDITIONALLY APPROVED (Web Pilot Workstations Only)" if browser_desktop_pass else "FAIL"
         }
 
-        # Save to Single Source of Truth: TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json
-        json_path = Path("TRANSIFY_V3_RC1_4_DESKTOP_VIEWPORT_MATRIX.json")
+        # Save to Single Source of Truth: TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json
+        json_path = Path("TRANSIFY_V3_RC1_4_5_DESKTOP_VIEWPORT_MATRIX.json")
         with open(json_path, "w") as f:
             json.dump(audit_data, f, indent=2)
 

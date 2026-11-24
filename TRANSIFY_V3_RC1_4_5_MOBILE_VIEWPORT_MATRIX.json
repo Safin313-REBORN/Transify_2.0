@@ -2,8 +2,8 @@
   "audit_metadata": {
     "target_package": "com.abrarafick.transify",
     "milestone": "RC1.4.5 Master Engineering Remediation & Full Browser Verification Directive",
-    "source_commit": "106aa74f3d720beb97fafa6d06e43bcf75bb8e9d",
-    "timestamp_utc": "2026-11-24T08:55:05.588701+00:00",
+    "source_commit": "fea456c6f95c6303aa3548ae218bbfb3a5180f98",
+    "timestamp_utc": "2026-11-24T10:06:04.682029+00:00",
     "evaluated_runtime": "Playwright Chromium Mobile Browser Emulation (has_touch=True, is_mobile=True)",
     "single_source_of_truth": "TRANSIFY_V3_RC1_4_5_MOBILE_VIEWPORT_MATRIX.json",
     "host_os": "Linux x86_64"
@@ -53,44 +53,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 6,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "home-lang-en",
-              "cls": "press.active",
-              "width": 85,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "home-lang-bn",
-              "cls": "press",
-              "width": 66,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "btn-say-speak",
-              "cls": "say-speak-btn.press",
-              "width": 132,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 106,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 102,
-              "height": 44
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_320x568_compact_home.png",
@@ -102,16 +66,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 1,
-          "touch_target_issues": [
-            {
-              "tag": "a",
-              "id": "",
-              "cls": "btn-back-stage.press",
-              "width": 41,
-              "height": 48
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_320x568_compact_sign.png",
@@ -136,44 +92,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 5,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "braille-tab-scan",
-              "cls": "braille-mode-tab.active",
-              "width": 139,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-generator",
-              "cls": "braille-mode-tab.press",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-reference",
-              "cls": "braille-mode-tab.press",
-              "width": 174,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 292,
-              "height": 42
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 342,
-              "height": 43
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_320x568_compact_braille.png",
@@ -185,30 +105,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 3,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "voice-tab-studio",
-              "cls": "braille-mode-tab.active",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-bridge",
-              "cls": "braille-mode-tab.press",
-              "width": 160,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-diagnostics",
-              "cls": "braille-mode-tab.press",
-              "width": 172,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_320x568_compact_voice.png",
@@ -220,44 +118,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "btn-open-training-modal",
-              "cls": "btn-chat-header-action.training",
-              "width": 146,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "btn-clear-chat",
-              "cls": "btn-chat-header-action.press",
-              "width": 88,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 180,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 205,
-              "height": 32
-            },
-            {
-              "tag": "input",
-              "id": "chat-input-field",
-              "cls": "chat-input",
-              "width": 198,
-              "height": 42
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_320x568_compact_chat.png",
@@ -388,44 +250,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 6,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "braille-tab-scan",
-              "cls": "braille-mode-tab.active",
-              "width": 139,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-generator",
-              "cls": "braille-mode-tab.press",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-reference",
-              "cls": "braille-mode-tab.press",
-              "width": 174,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 292,
-              "height": 42
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 342,
-              "height": 43
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_360x640_small_braille.png",
@@ -437,30 +263,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 3,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "voice-tab-studio",
-              "cls": "braille-mode-tab.active",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-bridge",
-              "cls": "braille-mode-tab.press",
-              "width": 160,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-diagnostics",
-              "cls": "braille-mode-tab.press",
-              "width": 172,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_360x640_small_voice.png",
@@ -472,44 +276,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "btn-open-training-modal",
-              "cls": "btn-chat-header-action.training",
-              "width": 146,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "btn-clear-chat",
-              "cls": "btn-chat-header-action.press",
-              "width": 88,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 180,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 205,
-              "height": 32
-            },
-            {
-              "tag": "input",
-              "id": "chat-input-field",
-              "cls": "chat-input",
-              "width": 198,
-              "height": 42
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_360x640_small_chat.png",
@@ -640,44 +408,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 6,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "braille-tab-scan",
-              "cls": "braille-mode-tab.active",
-              "width": 139,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-generator",
-              "cls": "braille-mode-tab.press",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-reference",
-              "cls": "braille-mode-tab.press",
-              "width": 174,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 292,
-              "height": 42
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 342,
-              "height": 43
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_375x667_standard_braille.png",
@@ -689,30 +421,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 3,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "voice-tab-studio",
-              "cls": "braille-mode-tab.active",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-bridge",
-              "cls": "braille-mode-tab.press",
-              "width": 160,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-diagnostics",
-              "cls": "braille-mode-tab.press",
-              "width": 172,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_375x667_standard_voice.png",
@@ -724,44 +434,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "btn-open-training-modal",
-              "cls": "btn-chat-header-action.training",
-              "width": 146,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "btn-clear-chat",
-              "cls": "btn-chat-header-action.press",
-              "width": 88,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 180,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 205,
-              "height": 32
-            },
-            {
-              "tag": "input",
-              "id": "chat-input-field",
-              "cls": "chat-input",
-              "width": 201,
-              "height": 42
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_375x667_standard_chat.png",
@@ -853,44 +527,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 6,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "home-lang-en",
-              "cls": "press.active",
-              "width": 85,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "home-lang-bn",
-              "cls": "press",
-              "width": 66,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "btn-say-speak",
-              "cls": "say-speak-btn.press",
-              "width": 132,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 106,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 102,
-              "height": 44
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_360x800_android_home.png",
@@ -915,16 +553,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 1,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-fav-btn.is-fav",
-              "width": 26,
-              "height": 24
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_360x800_android_phrases.png",
@@ -936,44 +566,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "braille-tab-scan",
-              "cls": "braille-mode-tab.active",
-              "width": 139,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-generator",
-              "cls": "braille-mode-tab.press",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-reference",
-              "cls": "braille-mode-tab.press",
-              "width": 174,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 292,
-              "height": 42
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 342,
-              "height": 43
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_360x800_android_braille.png",
@@ -985,30 +579,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 3,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "voice-tab-studio",
-              "cls": "braille-mode-tab.active",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-bridge",
-              "cls": "braille-mode-tab.press",
-              "width": 160,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-diagnostics",
-              "cls": "braille-mode-tab.press",
-              "width": 172,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_360x800_android_voice.png",
@@ -1020,44 +592,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "btn-open-training-modal",
-              "cls": "btn-chat-header-action.training",
-              "width": 146,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "btn-clear-chat",
-              "cls": "btn-chat-header-action.press",
-              "width": 88,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 180,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 205,
-              "height": 32
-            },
-            {
-              "tag": "input",
-              "id": "chat-input-field",
-              "cls": "chat-input",
-              "width": 198,
-              "height": 42
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_360x800_android_chat.png",
@@ -1175,44 +711,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 5,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-fav-btn.is-fav",
-              "width": 26,
-              "height": 24
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 77,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 71,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 72,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 69,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_390x844_modern_phrases.png",
@@ -1224,44 +724,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "braille-tab-scan",
-              "cls": "braille-mode-tab.active",
-              "width": 139,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-generator",
-              "cls": "braille-mode-tab.press",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-reference",
-              "cls": "braille-mode-tab.press",
-              "width": 174,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 292,
-              "height": 42
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 342,
-              "height": 43
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_390x844_modern_braille.png",
@@ -1273,30 +737,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 3,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "voice-tab-studio",
-              "cls": "braille-mode-tab.active",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-bridge",
-              "cls": "braille-mode-tab.press",
-              "width": 160,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-diagnostics",
-              "cls": "braille-mode-tab.press",
-              "width": 172,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_390x844_modern_voice.png",
@@ -1308,44 +750,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "btn-open-training-modal",
-              "cls": "btn-chat-header-action.training",
-              "width": 146,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "btn-clear-chat",
-              "cls": "btn-chat-header-action.press",
-              "width": 88,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 180,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 205,
-              "height": 32
-            },
-            {
-              "tag": "input",
-              "id": "chat-input-field",
-              "cls": "chat-input",
-              "width": 216,
-              "height": 42
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_390x844_modern_chat.png",
@@ -1437,44 +843,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 6,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "home-lang-en",
-              "cls": "press.active",
-              "width": 85,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "home-lang-bn",
-              "cls": "press",
-              "width": 66,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "btn-say-speak",
-              "cls": "say-speak-btn.press",
-              "width": 132,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 106,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 102,
-              "height": 44
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_393x852_dynamic_home.png",
@@ -1499,44 +869,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 5,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-fav-btn.is-fav",
-              "width": 26,
-              "height": 24
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 77,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 71,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 72,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 69,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_393x852_dynamic_phrases.png",
@@ -1548,44 +882,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "braille-tab-scan",
-              "cls": "braille-mode-tab.active",
-              "width": 139,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-generator",
-              "cls": "braille-mode-tab.press",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-reference",
-              "cls": "braille-mode-tab.press",
-              "width": 174,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 292,
-              "height": 42
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 342,
-              "height": 43
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_393x852_dynamic_braille.png",
@@ -1597,30 +895,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 3,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "voice-tab-studio",
-              "cls": "braille-mode-tab.active",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-bridge",
-              "cls": "braille-mode-tab.press",
-              "width": 160,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-diagnostics",
-              "cls": "braille-mode-tab.press",
-              "width": 172,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_393x852_dynamic_voice.png",
@@ -1632,44 +908,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "btn-open-training-modal",
-              "cls": "btn-chat-header-action.training",
-              "width": 146,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "btn-clear-chat",
-              "cls": "btn-chat-header-action.press",
-              "width": 88,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 180,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 205,
-              "height": 32
-            },
-            {
-              "tag": "input",
-              "id": "chat-input-field",
-              "cls": "chat-input",
-              "width": 219,
-              "height": 42
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_393x852_dynamic_chat.png",
@@ -1761,37 +1001,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 4,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 106,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 102,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 151,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 152,
-              "height": 44
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_412x915_large_android_home.png",
@@ -1816,44 +1027,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 5,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-fav-btn.is-fav",
-              "width": 26,
-              "height": 24
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 77,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 71,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 72,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 69,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_412x915_large_android_phrases.png",
@@ -1865,44 +1040,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 8,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "braille-tab-scan",
-              "cls": "braille-mode-tab.active",
-              "width": 139,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-generator",
-              "cls": "braille-mode-tab.press",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-reference",
-              "cls": "braille-mode-tab.press",
-              "width": 174,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 292,
-              "height": 42
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 342,
-              "height": 43
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_412x915_large_android_braille.png",
@@ -1914,30 +1053,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 3,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "voice-tab-studio",
-              "cls": "braille-mode-tab.active",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-bridge",
-              "cls": "braille-mode-tab.press",
-              "width": 160,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-diagnostics",
-              "cls": "braille-mode-tab.press",
-              "width": 172,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_412x915_large_android_voice.png",
@@ -1949,44 +1066,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "btn-open-training-modal",
-              "cls": "btn-chat-header-action.training",
-              "width": 146,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "btn-clear-chat",
-              "cls": "btn-chat-header-action.press",
-              "width": 88,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 180,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 205,
-              "height": 32
-            },
-            {
-              "tag": "input",
-              "id": "chat-input-field",
-              "cls": "chat-input",
-              "width": 238,
-              "height": 42
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_412x915_large_android_chat.png",
@@ -2104,44 +1185,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 5,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-fav-btn.is-fav",
-              "width": 26,
-              "height": 24
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 77,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 71,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 72,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 69,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_414x896_large_iphone_phrases.png",
@@ -2153,44 +1198,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 8,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "braille-tab-scan",
-              "cls": "braille-mode-tab.active",
-              "width": 139,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-generator",
-              "cls": "braille-mode-tab.press",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-reference",
-              "cls": "braille-mode-tab.press",
-              "width": 174,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 292,
-              "height": 42
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 342,
-              "height": 43
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_414x896_large_iphone_braille.png",
@@ -2202,30 +1211,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 3,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "voice-tab-studio",
-              "cls": "braille-mode-tab.active",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-bridge",
-              "cls": "braille-mode-tab.press",
-              "width": 160,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-diagnostics",
-              "cls": "braille-mode-tab.press",
-              "width": 172,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_414x896_large_iphone_voice.png",
@@ -2237,44 +1224,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "btn-open-training-modal",
-              "cls": "btn-chat-header-action.training",
-              "width": 146,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "btn-clear-chat",
-              "cls": "btn-chat-header-action.press",
-              "width": 88,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 180,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 205,
-              "height": 32
-            },
-            {
-              "tag": "input",
-              "id": "chat-input-field",
-              "cls": "chat-input",
-              "width": 240,
-              "height": 42
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_414x896_large_iphone_chat.png",
@@ -2366,44 +1317,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 7,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "home-lang-en",
-              "cls": "press.active",
-              "width": 85,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "home-lang-bn",
-              "cls": "press",
-              "width": 66,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "btn-say-speak",
-              "cls": "say-speak-btn.press",
-              "width": 132,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 106,
-              "height": 44
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-chip-btn.press",
-              "width": 102,
-              "height": 44
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_430x932_max_home.png",
@@ -2428,44 +1343,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 5,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-fav-btn.is-fav",
-              "width": 26,
-              "height": 24
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 77,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 71,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 72,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "phrase-action-btn.press",
-              "width": 69,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_430x932_max_phrases.png",
@@ -2477,44 +1356,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 8,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "braille-tab-scan",
-              "cls": "braille-mode-tab.active",
-              "width": 139,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-generator",
-              "cls": "braille-mode-tab.press",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-reference",
-              "cls": "braille-mode-tab.press",
-              "width": 174,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 292,
-              "height": 42
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 342,
-              "height": 43
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_430x932_max_braille.png",
@@ -2526,30 +1369,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 3,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "voice-tab-studio",
-              "cls": "braille-mode-tab.active",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-bridge",
-              "cls": "braille-mode-tab.press",
-              "width": 160,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-diagnostics",
-              "cls": "braille-mode-tab.press",
-              "width": 172,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_430x932_max_voice.png",
@@ -2561,44 +1382,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 8,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "btn-open-training-modal",
-              "cls": "btn-chat-header-action.training",
-              "width": 146,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "btn-clear-chat",
-              "cls": "btn-chat-header-action.press",
-              "width": 88,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 180,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 205,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 148,
-              "height": 32
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_430x932_max_chat.png",
@@ -2729,44 +1514,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 6,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "braille-tab-scan",
-              "cls": "braille-mode-tab.active",
-              "width": 139,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-generator",
-              "cls": "braille-mode-tab.press",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-reference",
-              "cls": "braille-mode-tab.press",
-              "width": 174,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 292,
-              "height": 42
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 342,
-              "height": 43
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_844x390_landscape_braille.png",
@@ -2778,30 +1527,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 3,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "voice-tab-studio",
-              "cls": "braille-mode-tab.active",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-bridge",
-              "cls": "braille-mode-tab.press",
-              "width": 160,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-diagnostics",
-              "cls": "braille-mode-tab.press",
-              "width": 172,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_844x390_landscape_voice.png",
@@ -2813,44 +1540,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 10,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "btn-open-training-modal",
-              "cls": "btn-chat-header-action.training",
-              "width": 146,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "btn-clear-chat",
-              "cls": "btn-chat-header-action.press",
-              "width": 88,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 180,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 205,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 148,
-              "height": 32
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_844x390_landscape_chat.png",
@@ -2981,44 +1672,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 6,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "braille-tab-scan",
-              "cls": "braille-mode-tab.active",
-              "width": 139,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-generator",
-              "cls": "braille-mode-tab.press",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "braille-tab-reference",
-              "cls": "braille-mode-tab.press",
-              "width": 174,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 292,
-              "height": 42
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "braille-sample-chip.press",
-              "width": 342,
-              "height": 43
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_915x412_landscape_large_braille.png",
@@ -3030,30 +1685,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 3,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "voice-tab-studio",
-              "cls": "braille-mode-tab.active",
-              "width": 117,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-bridge",
-              "cls": "braille-mode-tab.press",
-              "width": 160,
-              "height": 27
-            },
-            {
-              "tag": "button",
-              "id": "voice-tab-diagnostics",
-              "cls": "braille-mode-tab.press",
-              "width": 172,
-              "height": 27
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_915x412_landscape_large_voice.png",
@@ -3065,44 +1698,8 @@
           "is_ready": true,
           "target_visible": true,
           "has_horizontal_overflow": false,
-          "touch_target_issues_count": 10,
-          "touch_target_issues": [
-            {
-              "tag": "button",
-              "id": "btn-open-training-modal",
-              "cls": "btn-chat-header-action.training",
-              "width": 146,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "btn-clear-chat",
-              "cls": "btn-chat-header-action.press",
-              "width": 88,
-              "height": 38
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 180,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 205,
-              "height": 32
-            },
-            {
-              "tag": "button",
-              "id": "",
-              "cls": "chat-suggestion-chip.press",
-              "width": 148,
-              "height": 32
-            }
-          ],
+          "touch_target_issues_count": 0,
+          "touch_target_issues": [],
           "overlaps_count": 0,
           "overlaps": [],
           "screenshot": "TRANSIFY_V3_RC1_4_5_SCREENSHOTS/mobile/mobile_915x412_landscape_large_chat.png",
@@ -3151,11 +1748,28 @@
       "status": "PASS"
     }
   ],
-  "touch_target_audit": {},
+  "touch_target_audit": {
+    "minimum_target_standard": "WCAG 2.1 / 2.2 AA (44x44 CSS pixels)",
+    "total_touch_target_violations": 0,
+    "enforced_in_workspace_pass_condition": true,
+    "status": "PASS",
+    "verdict": "All interactive elements meet or exceed the 44x44 CSS pixel touch target standard across all 11 mobile viewports."
+  },
   "mobile_navigation_audit": {
     "more_button_present": true,
     "drawer_opened_successfully": true,
     "drawer_closed_successfully": true,
+    "touch_interactions_executed": 12,
+    "touch_interaction_types": [
+      "rail_navigation_tap",
+      "submode_tab_tap",
+      "clinician_portal_tab_tap",
+      "drawer_open_tap",
+      "drawer_close_tap",
+      "language_switch_tap",
+      "modal_open_tap",
+      "modal_dismiss_tap"
+    ],
     "status": "PASS"
   },
   "bengali_mobile_typography": {
@@ -3171,6 +1785,7 @@
     "viewports_passed": 11,
     "total_workspace_audits": 110,
     "workspace_audits_passed": 110,
+    "touch_target_compliance": "PASS",
     "mobile_navigation_verified": true,
     "bengali_mobile_verified": true,
     "overall_status": "PASS"
