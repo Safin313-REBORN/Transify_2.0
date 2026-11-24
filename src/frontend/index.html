@@ -25,8 +25,8 @@
 
   <!-- Design System CSS (Tokens, Shell, and Core Styles) -->
   <link rel="stylesheet" href="/static/tokens.css">
-  <link rel="stylesheet" href="/static/shell.css?v=20261125_pro_ui_v13">
-  <link rel="stylesheet" href="/static/styles.css?v=20261125_pro_ui_v13">
+  <link rel="stylesheet" href="/static/shell.css?v=20261125_pro_ui_v14">
+  <link rel="stylesheet" href="/static/styles.css?v=20261125_pro_ui_v14">
 
   <script src="/static/boot.js?v=20261124_rc1_4_5"></script>
   <script src="/static/motion.js?v=20261124_motion_v1" defer></script>
@@ -170,8 +170,46 @@
       <!-- Interactive 6-Dot Logo Badge (Links to Home) -->
       <a href="#home" class="logo rail-logo-link press" id="rail-logo-btn" aria-label="Transify Home"
         title="Transify Home" style="text-decoration: none;">
-        <i aria-hidden="true"><b></b><b></b><b></b><b></b><b></b><b></b></i>
-        <span>Transify</span>
+        <div class="transify-logo-mark" aria-hidden="true">
+          <div class="logo-aura"></div>
+          <svg class="logo-svg" width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="logoBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#9D4EDD"/>
+                <stop offset="45%" stop-color="#8338EC"/>
+                <stop offset="100%" stop-color="#5A189A"/>
+              </linearGradient>
+              <linearGradient id="logoSignalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FFF275"/>
+                <stop offset="50%" stop-color="#FFCB05"/>
+                <stop offset="100%" stop-color="#FF9E00"/>
+              </linearGradient>
+              <linearGradient id="logoSheen" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.45"/>
+                <stop offset="45%" stop-color="#FFFFFF" stop-opacity="0.08"/>
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+              </linearGradient>
+              <filter id="dotGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="1" result="blur"/>
+                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+              </filter>
+            </defs>
+            <rect x="1" y="1" width="34" height="34" rx="10" fill="url(#logoBgGrad)" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
+            <rect x="1" y="1" width="34" height="17" rx="10" fill="url(#logoSheen)" opacity="0.6"/>
+            <path class="logo-wave-arc wave-1" d="M12 9 C15 13, 21 13, 24 9" stroke="url(#logoSignalGrad)" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.85"/>
+            <path class="logo-wave-arc wave-2" d="M12 27 C15 23, 21 23, 24 27" stroke="#D8B4FE" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.6"/>
+            <circle cx="12" cy="10" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
+            <circle cx="12" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-1" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+            <circle cx="12" cy="26" r="2.8" class="logo-dot dot-active dot-pulse-2" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+            <circle cx="24" cy="10" r="2.8" class="logo-dot dot-active dot-pulse-3" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+            <circle cx="24" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-4" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+            <circle cx="24" cy="26" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
+          </svg>
+        </div>
+        <div class="logo-brand-lockup">
+          <span class="logo-brand-text">Transify</span>
+          <span class="logo-brand-badge">2.0</span>
+        </div>
       </a>
 
       <!-- 1. Home -->
@@ -449,10 +487,25 @@
         <aside class="welcome-aside">
           <header class="welcome-header">
             <div class="welcome-brand">
-              <div aria-hidden="true" class="welcome-logo-dots">
-                <i></i><i></i><i></i><i></i><i></i><i></i>
+              <div class="transify-logo-mark large" aria-hidden="true">
+                <div class="logo-aura"></div>
+                <svg class="logo-svg" width="42" height="42" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="1" y="1" width="34" height="34" rx="10" fill="url(#logoBgGrad)" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
+                  <rect x="1" y="1" width="34" height="17" rx="10" fill="url(#logoSheen)" opacity="0.6"/>
+                  <path class="logo-wave-arc wave-1" d="M12 9 C15 13, 21 13, 24 9" stroke="url(#logoSignalGrad)" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.85"/>
+                  <path class="logo-wave-arc wave-2" d="M12 27 C15 23, 21 23, 24 27" stroke="#D8B4FE" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.6"/>
+                  <circle cx="12" cy="10" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
+                  <circle cx="12" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-1" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+                  <circle cx="12" cy="26" r="2.8" class="logo-dot dot-active dot-pulse-2" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+                  <circle cx="24" cy="10" r="2.8" class="logo-dot dot-active dot-pulse-3" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+                  <circle cx="24" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-4" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+                  <circle cx="24" cy="26" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
+                </svg>
               </div>
-              <div class="welcome-brand-name">Transify</div>
+              <div class="logo-brand-lockup">
+                <div class="welcome-brand-name">Transify</div>
+                <span class="logo-brand-badge">2.0</span>
+              </div>
             </div>
             <div class="welcome-header-controls">
               <button type="button" id="welcome-lang-btn" class="btn-welcome-control press">বাংলা</button>
@@ -848,11 +901,25 @@
             </div>
             <div class="sign-header-right">
               <button type="button" id="toggle-roi-focus-btn" class="btn-focus-mode press"
-                data-action="toggle-roi-focus" aria-label="Toggle camera focus mode">🎯 Center Focus</button>
+                data-action="toggle-roi-focus" aria-label="Toggle camera focus mode">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <line x1="12" y1="2" x2="12" y2="6"></line>
+                  <line x1="12" y1="18" x2="12" y2="22"></line>
+                  <line x1="2" y1="12" x2="6" y2="12"></line>
+                  <line x1="18" y1="12" x2="22" y2="12"></line>
+                </svg><span>Center Focus</span></button>
               <button type="button" id="btn-toggle-cam-fullscreen" class="btn-fullscreen-cam press"
-                data-action="toggle-cam-fullscreen" aria-label="Toggle camera fullscreen">⛶ Fullscreen</button>
+                data-action="toggle-cam-fullscreen" aria-label="Toggle camera fullscreen">
+                <svg class="fs-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                </svg><span>Fullscreen</span></button>
               <button type="button" id="stop-camera-btn" class="btn-stop-cam press" data-action="stop-camera"
-                style="display: none;">⏹ Stop camera</button>
+                style="display: none;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;">
+                  <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                </svg><span>Stop camera</span></button>
               <div role="group" aria-label="Sign language" class="lang-segmented" id="sign-lang-segmented-group">
                 <button type="button" id="lang-bdsl-btn" class="press" aria-pressed="false" data-action="set-sign-lang"
                   data-lang="bdsl">BdSL</button>
@@ -1044,7 +1111,7 @@
               <button type="button" id="btn-phrase-emergency-mode" class="btn-outline-dark press"
                 data-action="editorial-toggle-flash"
                 style="height: 48px; border-color: rgba(239,68,68,0.4); color: #dc2626; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <span>🚨 Emergency Siren Mode</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg><span>Emergency Siren Mode</span>
               </button>
 
               <div class="tts-speed-selector-wrap"
@@ -1062,7 +1129,7 @@
 
               <button type="button" class="btn-outline-dark press" data-action="editorial-export-json"
                 style="height: 48px; font-size: 13px; color: var(--ink); border-color: var(--line-2);">
-                📥 Export JSON
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>Export JSON</span>
               </button>
             </div>
           </header>
@@ -1803,12 +1870,10 @@
                     SRT</button>
                   <button type="button" id="stt-bridge-sign-btn" class="btn-outline-dark press"
                     data-action="voice-bridge-sign"
-                    style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);">Bridge
-                    to Signs 🤟</button>
+                    style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg><span>Bridge to Signs</span></button>
                   <button type="button" id="stt-bridge-braille-btn" class="btn-outline-dark press"
                     data-action="voice-bridge-braille"
-                    style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);">Bridge
-                    to Braille ⠃</button>
+                    style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><circle cx="7" cy="6" r="2.2"/><circle cx="7" cy="12" r="2.2"/><circle cx="7" cy="18" r="2.2"/><circle cx="17" cy="6" r="2.2"/></svg><span>Bridge to Braille</span></button>
                 </div>
               </div>
 
@@ -1915,21 +1980,15 @@
                 <!-- Action Buttons -->
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                   <button type="button" id="tts-speak-btn" class="btn-braille-toolbar-primary press"
-                    style="height: 40px; font-size: 14px; padding: 0 18px;">🔊 Speak text</button>
+                    style="height: 40px; font-size: 14px; padding: 0 18px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg><span>Speak text</span></button>
                   <button type="button" id="tts-pause-btn" class="btn-outline-dark press" data-action="voice-pause-tts"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);">⏸️
-                    Pause /
-                    Resume</button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg><span>Pause / Resume</span></button>
                   <button type="button" id="tts-stop-btn" class="btn-outline-dark press"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);">⏹️
-                    Stop</button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg><span>Stop</span></button>
                   <button type="button" id="tts-clear-btn" class="btn-outline-dark press"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);">🧹
-                    Clear</button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span>Clear</span></button>
                   <button type="button" id="tts-copy-btn" class="btn-outline-dark press" data-action="voice-copy-tts"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);">📋
-                    Copy
-                    text</button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><span>Copy text</span></button>
                 </div>
               </div>
             </div>
@@ -1951,7 +2010,7 @@
                 <div style="display: flex; gap: 8px;">
                   <button type="button" class="btn-welcome-primary press" data-action="voice-sync-bridge"
                     style="height: 38px; font-size: 13px; padding: 0 14px;">
-                    🔄 Sync Current Voice
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg><span>Sync Current Voice</span>
                   </button>
                 </div>
               </div>
@@ -2122,44 +2181,54 @@
               style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; margin-bottom: 4px;">
               <label for="care-photo-input" class="btn-outline-dark press"
                 style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <span>📷 Scan Lesion / Eye</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                <span>Scan Lesion / Eye</span>
                 <input type="file" id="care-photo-input" accept="image/*" class="sr-only">
               </label>
               <button type="button" id="btn-care-voice-dialect" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <span>🎤 Voice Dialect</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
+                <span>Voice Dialect</span>
               </button>
               <button type="button" id="btn-care-outbreak-alert" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: #E65100; border-color: #FFE082; background: #FFF8E1;">
-                <span>📍 Outbreak Alert (Dhaka)</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>Outbreak Alert (Dhaka)</span>
               </button>
               <button type="button" id="btn-care-nearby-facilities" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <span>🏥 Nearest Clinics (OSM)</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>Nearest Clinics (OSM)</span>
               </button>
               <button type="button" id="btn-care-ada-diff" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <span>🎯 Differential (Ada)</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                <span>Differential (Ada)</span>
               </button>
               <button type="button" id="btn-care-k-health" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <span>📊 People Like Me (K Health)</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>People Like Me (K Health)</span>
               </button>
               <button type="button" id="btn-care-healthy-io" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <span>🧪 Urine &amp; Wound (Healthy.io)</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"></path></svg>
+                <span>Urine &amp; Wound (Healthy.io)</span>
               </button>
               <button type="button" id="btn-care-mimic-hmd" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <span>📈 Shock &amp; Risk (MIMIC/HMD)</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                <span>Shock &amp; Risk (MIMIC/HMD)</span>
               </button>
               <button type="button" id="btn-care-zipline" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <span>🚁 Drone Supply (Zipline)</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polygon points="12 2 19 21 12 17 5 21 12 2"></polygon></svg>
+                <span>Drone Supply (Zipline)</span>
               </button>
               <button type="button" id="btn-care-who-gho" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <span>🌍 Infrastructure (WHO GHO)</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                <span>Infrastructure (WHO GHO)</span>
               </button>
             </div>
 
@@ -2697,7 +2766,7 @@
 
                   <label for="chronic-food-photo-input" class="btn-outline-dark press"
                     style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 38px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px;">
-                    <span>📷 Upload Custom Meal Photo</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg><span>Upload Custom Meal Photo</span>
                     <input type="file" id="chronic-food-photo-input" accept="image/*" class="sr-only">
                   </label>
                   <div id="chronic-food-preview-box" style="display: none; align-items: center; gap: 10px;">
@@ -3267,7 +3336,7 @@
                     </select>
                   </label>
                   <button type="button" id="btn-start-training" class="btn-start-train press">
-                    <span>⚡ Train AI Model Now</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Train AI Model Now</span>
                   </button>
                 </div>
                 <!-- Training Progress Bar -->
@@ -4227,19 +4296,25 @@
   <aside id="app-nav-drawer" class="nav-drawer" aria-label="Quick Navigation Menu">
     <div class="nav-drawer-header">
       <div class="nav-drawer-brand">
-        <div class="nav-drawer-logo-badge" aria-hidden="true">
-          <svg width="18" height="22" viewBox="0 0 18 22" fill="none" shape-rendering="geometricPrecision">
-            <!-- Column 1 (dots 1, 2, 3) -->
-            <circle cx="4" cy="4" r="2.8" class="db-dot dot-inactive" />
-            <circle cx="4" cy="11" r="2.8" class="db-dot dot-active" />
-            <circle cx="4" cy="18" r="2.8" class="db-dot dot-active" />
-            <!-- Column 2 (dots 4, 5, 6) -->
-            <circle cx="14" cy="4" r="2.8" class="db-dot dot-inactive" />
-            <circle cx="14" cy="11" r="2.8" class="db-dot dot-active" />
-            <circle cx="14" cy="18" r="2.8" class="db-dot dot-inactive" />
+        <div class="transify-logo-mark small" aria-hidden="true">
+          <div class="logo-aura"></div>
+          <svg class="logo-svg" width="28" height="28" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="34" height="34" rx="10" fill="url(#logoBgGrad)" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
+            <rect x="1" y="1" width="34" height="17" rx="10" fill="url(#logoSheen)" opacity="0.6"/>
+            <path class="logo-wave-arc wave-1" d="M12 9 C15 13, 21 13, 24 9" stroke="url(#logoSignalGrad)" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.85"/>
+            <path class="logo-wave-arc wave-2" d="M12 27 C15 23, 21 23, 24 27" stroke="#D8B4FE" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.6"/>
+            <circle cx="12" cy="10" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
+            <circle cx="12" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-1" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+            <circle cx="12" cy="26" r="2.8" class="logo-dot dot-active dot-pulse-2" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+            <circle cx="24" cy="10" r="2.8" class="logo-dot dot-active dot-pulse-3" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+            <circle cx="24" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-4" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
+            <circle cx="24" cy="26" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
           </svg>
         </div>
-        <span class="nav-drawer-title">Transify Menu</span>
+        <div class="logo-brand-lockup">
+          <span class="nav-drawer-title">Transify</span>
+          <span class="logo-brand-badge">2.0</span>
+        </div>
       </div>
       <button type="button" class="nav-drawer-close press" id="nav-drawer-close-btn" aria-label="Close navigation menu">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
@@ -4634,7 +4709,7 @@
   <div id="transify-auth-screen" style="display: none;"></div>
 
   <!-- Client Application Scripts -->
-  <script src="/static/app.js?v=20261125_pro_ui_v13"></script>
+  <script src="/static/app.js?v=20261125_pro_ui_v14"></script>
   <script src="/static/care.js?v=20261120_careanywhere"></script>
 </body>
 

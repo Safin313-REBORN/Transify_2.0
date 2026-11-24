@@ -2203,17 +2203,62 @@ var SignPage = window.SignPage = window.TransifySign = {
 
     const fsBtn = document.getElementById('btn-toggle-cam-fullscreen');
     if (fsBtn) {
-      fsBtn.addEventListener('click', () => {
+      const enterFsIcon = '<svg class="fs-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
+      const exitFsIcon = '<svg class="fs-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>';
+
+      const updateFsState = (isFs) => {
         const stage = document.getElementById('sign-stage-container');
         const hud = document.getElementById('fullscreen-pred-hud');
         if (stage) {
-          const isFs = stage.classList.toggle('stage-fullscreen');
-          fsBtn.innerHTML = isFs ? '⛶ Exit Fullscreen' : '⛶ Fullscreen';
-          fsBtn.setAttribute('aria-expanded', isFs ? 'true' : 'false');
-          if (hud) hud.style.display = isFs ? 'flex' : 'none';
-          TransifyApp.showToast(isFs ? 'Fullscreen camera enabled' : 'Returned to split view', 'info');
+          stage.classList.toggle('stage-fullscreen', isFs);
+        }
+        fsBtn.innerHTML = isFs ? `${exitFsIcon}<span>Exit Fullscreen</span>` : `${enterFsIcon}<span>Fullscreen</span>`;
+        fsBtn.setAttribute('aria-expanded', isFs ? 'true' : 'false');
+        if (hud) hud.style.display = isFs ? 'flex' : 'none';
+      };
+
+      fsBtn.addEventListener('click', async () => {
+        const stage = document.getElementById('sign-stage-container');
+        if (!stage) return;
+        const isCurrentlyFs = stage.classList.contains('stage-fullscreen') || !!document.fullscreenElement;
+        
+        if (!isCurrentlyFs) {
+          updateFsState(true);
+          try {
+            if (stage.requestFullscreen) {
+              await stage.requestFullscreen();
+            } else if (stage.webkitRequestFullscreen) {
+              stage.webkitRequestFullscreen();
+            }
+          } catch (_) {
+            // CSS fallback is already active
+          }
+          TransifyApp.showToast('Fullscreen camera enabled', 'info');
+        } else {
+          updateFsState(false);
+          try {
+            if (document.fullscreenElement) {
+              if (document.exitFullscreen) {
+                await document.exitFullscreen();
+              } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+              }
+            }
+          } catch (_) {}
+          TransifyApp.showToast('Returned to standard view', 'info');
         }
       });
+
+      // Synchronize with ESC or browser native fullscreen exits
+      const syncNativeFullscreen = () => {
+        const stage = document.getElementById('sign-stage-container');
+        const isNative = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        if (!isNative && stage && stage.classList.contains('stage-fullscreen')) {
+          updateFsState(false);
+        }
+      };
+      document.addEventListener('fullscreenchange', syncNativeFullscreen);
+      document.addEventListener('webkitfullscreenchange', syncNativeFullscreen);
     }
 
     const stopCamBtn = document.getElementById('stop-camera-btn');
@@ -2334,7 +2379,7 @@ var SignPage = window.SignPage = window.TransifySign = {
     const hud = document.getElementById('fullscreen-pred-hud');
     if (hud) hud.style.display = 'none';
     const fsBtn = document.getElementById('btn-toggle-cam-fullscreen');
-    if (fsBtn) fsBtn.innerHTML = '⛶ Fullscreen';
+    if (fsBtn) fsBtn.innerHTML = '<svg class="fs-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span>Fullscreen</span>';
 
     const overlay = document.getElementById('camera-off-overlay');
     if (overlay) overlay.style.display = 'flex';
