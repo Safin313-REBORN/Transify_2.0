@@ -3,15 +3,15 @@
 **Pull Request URL:** https://github.com/Safin313-REBORN/Transify_2.0/pull/1  
 **Target / Base Branch:** `main`  
 **Feature Branch:** `fix/rc1.3.3-signing-pipeline`  
-**Milestone:** Transify V3 RC1.4.5.3.1 Final CORS Evidence & PR Metadata Cleanup  
-**Branch HEAD Commit:** `0a4b2ca624be0e8f56fed10e998713aa31815185` (and current update)  
-**Successful Reference CI:** Run #70 (`45378512691`)  
+**Milestone:** Transify V3 RC1.4.5.3.1 Final Metadata & CI Closeout  
+**Baseline / Verified Commit:** `0a11de5db6b96db01b23575ca058424a31cd56a6`  
+**Successful Verified CI:** Run #72 (`45381997633`) — status: `completed`, conclusion: `success`  
 
 ---
 
 ## PR Title
 ```text
-feat(v3): Transify V3 RC1.4.5.3 Release Verification & Webview Hardening
+feat(v3): Transify V3 RC1.4.5.3.1 Release Verification & Webview Hardening
 ```
 
 ---
@@ -19,7 +19,7 @@ feat(v3): Transify V3 RC1.4.5.3 Release Verification & Webview Hardening
 ## PR Description / Body
 
 ```markdown
-### Summary of Transify V3 RC1.4.5.3
+### Summary of Transify V3 RC1.4.5.3.1
 
 This pull request completes the full engineering remediation, evidence correction, and verification closeout for **Transify V3** on branch `fix/rc1.3.3-signing-pipeline`.
 
@@ -28,7 +28,7 @@ This pull request completes the full engineering remediation, evidence correctio
 - **Desktop Audit:** 80/80 workspaces passed (10 viewports × 8 workspaces) with subpixel anti-aliasing, keyboard accessibility, and 50-cycle memory stability.
 - **Mobile Browser Audit:** 110/110 workspaces passed (11 viewports × 10 workspaces) via Playwright mobile emulation with native `.tap()` interaction and touch targets.
 - **Direct Route SPA Navigation:** HTTP 307 redirects to `/#sign`, `/#braille`, `/#home`, `/#login` with exact active view assertions, visible key elements, and zero CSP violations.
-- **Database Immutability:** `data/transify.db` SHA-256 invariant (`9e5ec945a0450f87705c3702790da675777f7eef3d64e1dfe64221c99e097cac`) strictly preserved with before/after CI verification.
+- **Database Immutability:** `data/transify.db` SHA-256 invariant (`9e5ec945a0450f87705c3702790da675777f7eef3d64e1dfe64221c99e097cac`) strictly preserved with before/after CI verification recorded in the overall gate.
 - **Zero Auto-Audio Policy:** 0 unprompted audio playbacks, 0 unprompted speech synthesis attempts.
 - **Bengali Typography:** Verified `Hind Siliguri` font rendering across all Bengali content.
 
@@ -38,6 +38,7 @@ This pull request completes the full engineering remediation, evidence correctio
   - Methods: `GET`, `POST`, `PUT`, `DELETE`, `OPTIONS`, `HEAD`. (`PATCH` is strictly not supported).
   - Headers: `Authorization`, `Content-Type`, `Accept`, `Origin`, `X-Requested-With`, `X-CSRF-Token` (wildcards prohibited in production).
   - Credentials: `true`.
+  - Mandatory branch-policy in-memory probes: `HEAD` and `X-CSRF-Token` verified in `branch_positive_probes`.
 - **Live Railway Deployment Notice:**
   - All 6 production security headers are present and enforced on Railway edge.
   - The deployed Railway container currently runs pre-RC1.4.5 code containing legacy `'unsafe-inline'` in `script-src` and omits `HEAD` / `X-CSRF-Token` from preflights.

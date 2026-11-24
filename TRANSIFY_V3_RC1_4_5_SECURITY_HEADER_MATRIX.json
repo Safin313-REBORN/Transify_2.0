@@ -1,8 +1,8 @@
 {
   "audit_metadata": {
     "milestone": "RC1.4.5.3.1 Final CORS Evidence & PR Metadata Cleanup",
-    "source_commit": "0a4b2ca624be0e8f56fed10e998713aa31815185",
-    "timestamp_utc": "2026-11-24T11:10:55.410350+00:00",
+    "source_commit": "0a11de5db6b96db01b23575ca058424a31cd56a6",
+    "timestamp_utc": "2026-11-24T11:26:49.107574+00:00",
     "target": "Transify V3 Security Header Matrix",
     "production_url": "https://transify20-production.up.railway.app",
     "production_server": "railway-hikari",
@@ -13,7 +13,7 @@
     "evidence_generated": {
       "scope": "Local Probe & Matrix Generation",
       "status": "COMPLETED",
-      "timestamp_utc": "2026-11-24T11:10:55.410350+00:00"
+      "timestamp_utc": "2026-11-24T11:26:49.107574+00:00"
     },
     "local_and_ci_verification": {
       "scope": "Local Source Repository & CI Test Suite",
@@ -486,9 +486,25 @@
       "script_src_policy": "script-src 'self' (zero unsafe-inline)"
     },
     "branch_positive_probes": {
-      "status": "PROBE_ERROR: No module named 'src'",
-      "head_method_preflight_supported": false,
-      "x_csrf_token_preflight_supported": false
+      "status": "VERIFIED_IN_BRANCH",
+      "head_method_preflight_supported": true,
+      "x_csrf_token_preflight_supported": true,
+      "branch_configured_methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS",
+        "HEAD"
+      ],
+      "branch_configured_headers": [
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+        "X-CSRF-Token"
+      ]
     },
     "live_positive_preflights": [
       {
@@ -604,6 +620,7 @@
     "evidence_collection_status": "SUCCESS",
     "production_headers_present": true,
     "production_preflight_tests_passed": true,
+    "branch_policy_probes_passed": true,
     "production_deployment_status": "PENDING (Strict CSP and complete CORS method/header sync await post-merge Railway deployment)",
     "release_gate_authority": "GitHub Actions CI Workflow"
   }

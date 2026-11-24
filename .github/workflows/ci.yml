@@ -145,6 +145,7 @@ jobs:
           if-no-files-found: error
 
       - name: Verify Database SHA-256 Invariant and Provenance
+        id: db-verification
         if: always()
         run: |
           POST_HASH=$(sha256sum data/transify.db | awk '{print $1}')
@@ -164,7 +165,8 @@ jobs:
           echo "Desktop Audit Outcome: ${{ steps.desktop-audit.outcome }}"
           echo "Mobile Audit Outcome: ${{ steps.mobile-audit.outcome }}"
           echo "Security Matrix Outcome: ${{ steps.security-matrix.outcome }}"
-          if [ "${{ steps.backend-tests.outcome }}" != "success" ] || [ "${{ steps.desktop-audit.outcome }}" != "success" ] || [ "${{ steps.mobile-audit.outcome }}" != "success" ] || [ "${{ steps.security-matrix.outcome }}" != "success" ]; then
+          echo "Database Invariant Outcome: ${{ steps.db-verification.outcome }}"
+          if [ "${{ steps.backend-tests.outcome }}" != "success" ] || [ "${{ steps.desktop-audit.outcome }}" != "success" ] || [ "${{ steps.mobile-audit.outcome }}" != "success" ] || [ "${{ steps.security-matrix.outcome }}" != "success" ] || [ "${{ steps.db-verification.outcome }}" != "success" ]; then
             echo "CI FAILURE: One or more required test/audit stages failed."
             exit 1
           fi

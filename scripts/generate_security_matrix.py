@@ -27,6 +27,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 OUTPUT_FILE = BASE_DIR / "TRANSIFY_V3_RC1_4_5_SECURITY_HEADER_MATRIX.json"
 PROD_URL = "https://transify20-production.up.railway.app"
 
@@ -537,6 +539,10 @@ def generate_matrix() -> dict:
             "evidence_collection_status": "SUCCESS",
             "production_headers_present": all_prod_headers_present,
             "production_preflight_tests_passed": all_preflights_passed,
+            "branch_policy_probes_passed": (
+                branch_policy_eval.get("head_method_preflight_supported") is True and
+                branch_policy_eval.get("x_csrf_token_preflight_supported") is True
+            ),
             "production_deployment_status": "PENDING (Strict CSP and complete CORS method/header sync await post-merge Railway deployment)",
             "release_gate_authority": "GitHub Actions CI Workflow"
         }
@@ -546,6 +552,15 @@ def generate_matrix() -> dict:
         json.dump(matrix_data, f, indent=2)
 
     print(f"[+] Successfully wrote fresh security matrix to {OUTPUT_FILE}")
+
+    # Enforce non-zero exit if mandatory branch policy probes failed
+    branch_probes_passed = (
+        branch_policy_eval.get("head_method_preflight_supported") is True and
+        branch_policy_eval.get("x_csrf_token_preflight_supported") is True
+    )
+    if not branch_probes_passed:
+        print("[!] ERROR: Mandatory branch-policy CORS probes (HEAD, X-CSRF-Token) failed!")
+        sys.exit(1)
 
     # Enforce non-zero exit if preflight tests failed
     if not all_preflights_passed:
