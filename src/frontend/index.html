@@ -853,9 +853,9 @@
                 aria-label="Toggle camera fullscreen">⛶ Fullscreen</button>
               <button type="button" id="stop-camera-btn" class="btn-stop-cam press" style="display: none;">Stop
                 camera</button>
-              <div role="group" aria-label="Sign language" class="lang-segmented">
-                <button type="button" id="lang-bdsl-btn" class="press" aria-pressed="false">BdSL</button>
-                <button type="button" id="lang-asl-btn" class="press active" aria-pressed="true">ASL</button>
+              <div role="group" aria-label="Sign language" class="lang-segmented" id="sign-lang-segmented-group">
+                <button type="button" id="lang-bdsl-btn" class="press" aria-pressed="false" data-action="set-sign-lang" data-lang="bdsl">BdSL</button>
+                <button type="button" id="lang-asl-btn" class="press active" aria-pressed="true" data-action="set-sign-lang" data-lang="asl">ASL</button>
               </div>
             </div>
           </header>

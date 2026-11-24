@@ -498,9 +498,14 @@
         e.preventDefault();
         if (window.testVoicePreview) window.testVoicePreview();
         break;
+      case 'set-sign-lang':
       case 'settings-sign-lang':
         e.preventDefault();
-        if (window.setDefaultSignLang) window.setDefaultSignLang(target.getAttribute('data-lang'));
+        var signChoice = target.getAttribute('data-lang') || target.getAttribute('data-sign');
+        if (window.setDefaultSignLang) window.setDefaultSignLang(signChoice);
+        if (window.SignPage && typeof window.SignPage.setLanguageMode === 'function') {
+          window.SignPage.setLanguageMode(signChoice);
+        }
         break;
       case 'settings-braille-standard':
         e.preventDefault();

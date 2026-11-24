@@ -318,21 +318,27 @@ window.setSpeechRate = function (rate) {
 };
 
 window.setDefaultSignLang = function (lang) {
+  const chosen = (lang === 'bdsl' || lang === 'asl') ? lang : 'asl';
   const group = document.getElementById('settings-sign-lang-group');
   if (group) {
     group.querySelectorAll('.segmented-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.sign === lang);
+      btn.classList.toggle('active', btn.dataset.sign === chosen);
     });
   }
-  try { localStorage.setItem('transify_default_sign_lang', lang); } catch (_) { }
+  try { localStorage.setItem('transify_default_sign_lang', chosen); } catch (_) { }
   const aslBtn = document.getElementById('lang-asl-btn');
   const bdslBtn = document.getElementById('lang-bdsl-btn');
   if (aslBtn && bdslBtn) {
-    aslBtn.classList.toggle('active', lang === 'asl');
-    bdslBtn.classList.toggle('active', lang === 'bdsl');
+    aslBtn.classList.toggle('active', chosen === 'asl');
+    bdslBtn.classList.toggle('active', chosen === 'bdsl');
+    aslBtn.setAttribute('aria-pressed', chosen === 'asl' ? 'true' : 'false');
+    bdslBtn.setAttribute('aria-pressed', chosen === 'bdsl' ? 'true' : 'false');
+  }
+  if (window.TransifySign) {
+    window.TransifySign.currentLanguageMode = chosen;
   }
   if (window.TransifyApp && window.TransifyApp.showToast) {
-    window.TransifyApp.showToast(`Default sign lexicon: ${lang.toUpperCase()}`, 'info');
+    window.TransifyApp.showToast(`Sign lexicon: ${chosen.toUpperCase()}`, 'info');
   }
 };
 
@@ -1628,8 +1634,30 @@ var SignPage = window.SignPage = window.TransifySign = {
   },
 
   setLanguageMode(mode) {
-    this.currentLanguageMode = 'asl';
+    const lang = (mode === 'bdsl' || mode === 'asl') ? mode : 'asl';
+    this.currentLanguageMode = lang;
     this.detectionState = { isDetected: false, label: '', confidence: 0, timestamp: 0 };
+    try { localStorage.setItem('transify_default_sign_lang', lang); } catch (_) { }
+
+    const aslBtn = document.getElementById('lang-asl-btn');
+    const bdslBtn = document.getElementById('lang-bdsl-btn');
+    if (aslBtn && bdslBtn) {
+      aslBtn.classList.toggle('active', lang === 'asl');
+      bdslBtn.classList.toggle('active', lang === 'bdsl');
+      aslBtn.setAttribute('aria-pressed', lang === 'asl' ? 'true' : 'false');
+      bdslBtn.setAttribute('aria-pressed', lang === 'bdsl' ? 'true' : 'false');
+    }
+
+    const group = document.getElementById('settings-sign-lang-group');
+    if (group) {
+      group.querySelectorAll('.segmented-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sign === lang);
+      });
+    }
+
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast(`Sign lexicon: ${lang.toUpperCase()}`, 'info');
+    }
     fetch('/api/sign/reset', { method: 'POST' }).catch(() => { });
   },
 
@@ -1663,6 +1691,8 @@ var SignPage = window.SignPage = window.TransifySign = {
     this.videoEl = document.getElementById('sign-video');
     this.canvasEl = document.getElementById('sign-canvas');
     if (this.canvasEl) this.ctx = this.canvasEl.getContext('2d');
+    const savedSignLang = localStorage.getItem('transify_default_sign_lang') || 'asl';
+    this.setLanguageMode(savedSignLang);
     this.setupListeners();
     this.setupModeSwitcher();
     this.initFingerspellingUI();
@@ -2176,6 +2206,21 @@ var SignPage = window.SignPage = window.TransifySign = {
           if (hud) hud.style.display = isFs ? 'flex' : 'none';
           TransifyApp.showToast(isFs ? 'Fullscreen camera enabled' : 'Returned to split view', 'info');
         }
+      });
+    }
+
+    const bdslBtn = document.getElementById('lang-bdsl-btn');
+    const aslBtn = document.getElementById('lang-asl-btn');
+    if (bdslBtn) {
+      bdslBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.setLanguageMode('bdsl');
+      });
+    }
+    if (aslBtn) {
+      aslBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.setLanguageMode('asl');
       });
     }
   },

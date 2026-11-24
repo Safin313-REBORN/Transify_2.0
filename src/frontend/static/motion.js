@@ -335,6 +335,30 @@
       });
     }
 
+    // Sign Language toggle (BdSL vs ASL)
+    const bdslBtn = document.getElementById('lang-bdsl-btn');
+    const aslBtn = document.getElementById('lang-asl-btn');
+    if (bdslBtn) {
+      bdslBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.SignPage && typeof window.SignPage.setLanguageMode === 'function') {
+          window.SignPage.setLanguageMode('bdsl');
+        } else if (window.setDefaultSignLang) {
+          window.setDefaultSignLang('bdsl');
+        }
+      });
+    }
+    if (aslBtn) {
+      aslBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (window.SignPage && typeof window.SignPage.setLanguageMode === 'function') {
+          window.SignPage.setLanguageMode('asl');
+        } else if (window.setDefaultSignLang) {
+          window.setDefaultSignLang('asl');
+        }
+      });
+    }
+
     // User profile chip
     const userChip = document.getElementById('rail-user-chip');
     if (userChip) {
