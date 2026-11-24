@@ -963,7 +963,220 @@ class TransifyAIChatbot:
             },
 
             # =================================================================
-            # DOMAIN 7: GENERAL GREETING & MULTILINGUAL ASSISTANT
+            # DOMAIN 7: DESIGN SYSTEMS, UI/UX ARCHITECTURE & ACCESSIBILITY (WCAG)
+            # =================================================================
+            {
+                "id": "design_principles_and_hierarchy",
+                "domain": "design_system",
+                "keywords": [
+                    "design", "ui", "ux", "visual hierarchy", "hierarchy", "design system",
+                    "typography scale", "spatial grid", "8px grid", "gestalt", "spacing tokens",
+                    "ডিজাইন", "ইউআই", "ইউএক্স"
+                ],
+                "patterns": [
+                    "what is good ui design", "how to improve design hierarchy", "design principles",
+                    "design system rules", "how to design layout", "typography and spacing",
+                    "design knowledge", "tell me about ui ux design", "how to make perfect design",
+                    "ui ux knowledge", "more perfect design knowledge"
+                ],
+                "response": (
+                    "🎨 **Core Principles of UI/UX & Design Systems Architecture**:\n\n"
+                    "1. **Visual Hierarchy & Typographic Scale**:\n"
+                    "   - Use an intentional ratio scale (Major Third 1.25x or Perfect Fourth 1.333x): Display (32-40px bold) → H1/H2 (24-28px semibold) → Body (15-16px regular) → Caption (12-13px medium).\n"
+                    "   - Limit font families to at most two: a distinct display font for headings and an ultra-legible grotesque/system sans-serif for UI copy.\n\n"
+                    "2. **Spatial Harmony & 8px Grid**:\n"
+                    "   - All margins, paddings, and heights align to an 8px base rhythm (`4px`, `8px`, `12px`, `16px`, `24px`, `32px`, `48px`, `64px`).\n"
+                    "   - Keep related elements tightly grouped (proximity principle) and separate distinct sections with generous breathing room.\n\n"
+                    "3. **Affordance, Elevation & Surface Tokens**:\n"
+                    "   - Use subtle 1px/1.5px borders (`var(--line)`) with soft, multi-layered ambient shadows rather than harsh drop shadows.\n"
+                    "   - Every interactive element (buttons, cards, chips) must have distinct default, hover, active, focus, and disabled states."
+                ),
+                "citations": ["Refactoring UI (Wathan & Schoger)", "Material Design 3 & Apple HIG Design Systems"],
+                "suggested_replies": ["WCAG Contrast Rules", "Touch Target Guidelines", "Accessible Color Tokens"]
+            },
+            {
+                "id": "design_wcag_accessibility_standards",
+                "domain": "design_system",
+                "keywords": [
+                    "wcag", "accessibility", "a11y", "color contrast", "contrast ratio", "wcag aa",
+                    "wcag aaa", "colorblind", "accessible design", "text contrast", "অ্যাক্সেসিবিলিটি", "কনট্রাস্ট"
+                ],
+                "patterns": [
+                    "what are wcag contrast requirements", "how to pass wcag aa", "color contrast standards",
+                    "accessibility guidelines for design", "how to make colors accessible", "contrast ratio for text",
+                    "is this accessible"
+                ],
+                "response": (
+                    "♿ **WCAG 2.1 & 2.2 Accessibility & Contrast Standards**:\n\n"
+                    "1. **Minimum Contrast Ratios (Level AA)**:\n"
+                    "   - **Normal Body Text (<18pt or <14pt bold)**: Minimum **4.5:1** contrast ratio against its background.\n"
+                    "   - **Large Text (≥18pt or ≥14pt bold)**: Minimum **3.0:1** contrast ratio.\n"
+                    "   - **User Interface Components & Graphical Objects**: Minimum **3.0:1** contrast for active button borders, form inputs, toggle tracks, and icons.\n\n"
+                    "2. **Enhanced Contrast (Level AAA)**:\n"
+                    "   - Minimum **7.0:1** for normal body text, and **4.5:1** for large text.\n\n"
+                    "3. **Never Rely on Color Alone (WCAG 1.4.1)**:\n"
+                    "   - Always pair color with secondary visual cues: icons (e.g. ⚠️ for warning, ✅ for success), distinct textual badges, underline on inline links, or bold weights.\n"
+                    "   - Essential for users with Protanopia, Deuteranopia, Tritanopia, or monochromacy."
+                ),
+                "citations": ["W3C Web Content Accessibility Guidelines (WCAG) 2.2 §1.4.3 & §1.4.11"],
+                "suggested_replies": ["Touch Target Minimums", "Screen Reader ARIA", "High Contrast Theme"]
+            },
+            {
+                "id": "design_touch_targets_and_motor_accessibility",
+                "domain": "design_system",
+                "keywords": [
+                    "touch target", "tap target", "44px", "motor accessibility", "mobile ergonomics",
+                    "button size", "click area", "thumb zone", "reachability", "fitts law"
+                ],
+                "patterns": [
+                    "what is minimum touch target size", "how big should buttons be", "touch target guidelines",
+                    "mobile ergonomics and tap size", "wcag 2.5.8 target size", "how to design buttons for mobile"
+                ],
+                "response": (
+                    "📱 **Touch Targets & Motor Accessibility (WCAG 2.5.5 / 2.5.8 & Apple HIG)**:\n\n"
+                    "1. **Minimum Target Dimensions**:\n"
+                    "   - **Primary Standard**: Minimum **44×44 CSS pixels** for all interactive targets (buttons, links, icon toggles, segmented controls).\n"
+                    "   - **WCAG 2.2 Level AA (Criterion 2.5.8)**: Target size must be at least **24×24 CSS pixels** with sufficient spacing, but **44×44px** is the recommended baseline for true motor accessibility.\n\n"
+                    "2. **Target Spacing to Prevent Mispicks**:\n"
+                    "   - Maintain at least **8px** gap between adjacent touch targets to prevent accidental triggers for users with motor tremors or large fingertips.\n"
+                    "   - If visual icon is 20px, expand its clickable hit area with `padding: 12px` or pseudo-elements.\n\n"
+                    "3. **Thumb-Zone Optimization**:\n"
+                    "   - Place critical primary actions in the lower half of the screen (bottom action docks, floating sticky sheets) within natural thumb sweep."
+                ),
+                "citations": ["Apple Human Interface Guidelines: Target Sizing", "WCAG 2.2 Success Criterion 2.5.8 Target Size (Minimum)"],
+                "suggested_replies": ["Design Systems Principles", "Responsive Layout Rules", "Reduced Motion"]
+            },
+            {
+                "id": "design_color_system_and_tokens",
+                "domain": "design_system",
+                "keywords": [
+                    "color palette", "color tokens", "semantic colors", "dark mode", "high contrast",
+                    "color system", "primary color", "surface tokens", "কালার টোকেন", "থিম"
+                ],
+                "patterns": [
+                    "how to build a color system", "design tokens explanation", "dark mode design rules",
+                    "semantic color tokens", "how to choose colors for ui", "how transify uses color tokens"
+                ],
+                "response": (
+                    "🎨 **Semantic Color Architecture & Two-Layer Token System**:\n\n"
+                    "1. **Two-Layer Token Hierarchy**:\n"
+                    "   - **Layer 1 (Primitives)**: Raw values like `Slate-900: #0F172A`, `Violet-600: #8338EC`, `Gold-400: #FFCB05`.\n"
+                    "   - **Layer 2 (Semantic Tokens)**: Intent-driven tokens mapped to primitives: `--surface`, `--surface-2`, `--ink`, `--text-2`, `--line`, `--primary`, `--focus`.\n\n"
+                    "2. **Dark Mode Best Practices**:\n"
+                    "   - Never use pure black (`#000000`) for surfaces; use rich dark tints (like `#14111F` or `#0F0C1B`) to reduce eye strain and preserve depth.\n"
+                    "   - Never use pure white (`#FFFFFF`) for large text in dark mode; use off-white (`#F3F2F8`) to eliminate halation and glare.\n\n"
+                    "3. **High Contrast Mode Support**:\n"
+                    "   - Provide a 1-click High Contrast mode that boosts borders to 2px solid vivid gold (`#FFCB05`) or pure white against `#000000` for low-vision clarity."
+                ),
+                "citations": ["W3C Design Tokens Community Group (DTCG)", "Google Material You Dynamic Color Specification"],
+                "suggested_replies": ["WCAG Contrast Rules", "Visual Hierarchy", "Design Anti-Slop"]
+            },
+            {
+                "id": "design_motion_and_vestibular_safety",
+                "domain": "design_system",
+                "keywords": [
+                    "motion", "animation", "prefers-reduced-motion", "vestibular", "transitions",
+                    "micro-interactions", "easing", "cubic-bezier", "reduced motion", "এনিমেশন"
+                ],
+                "patterns": [
+                    "how to design accessible animations", "prefers reduced motion guidelines", "vestibular disorders and ui motion",
+                    "animation duration and easing", "motion design principles", "how to handle reduced motion in css"
+                ],
+                "response": (
+                    "⚡ **Motion Design & Vestibular Safety Guidelines**:\n\n"
+                    "1. **Respecting `prefers-reduced-motion: reduce`**:\n"
+                    "   - Users with vestibular disorders, vertigo, or motion sickness can suffer severe nausea from zoom, parallax, and spinning animations.\n"
+                    "   - When reduced motion is requested, disable transform/translate animations and replace them with instant or subtle opacity fades (`transition: opacity 0.15s ease`).\n\n"
+                    "2. **Flash & Seizure Safety (WCAG 2.3.1)**:\n"
+                    "   - Never flash any element more than **3 times per second** (threshold for photosensitive epilepsy).\n\n"
+                    "3. **Micro-Interaction Timing & Curves**:\n"
+                    "   - **Feedback (Button clicks, hover)**: 120ms–180ms.\n"
+                    "   - **Panel/Drawer reveal**: 220ms–320ms using an exponential decelerate curve (`cubic-bezier(0.16, 1, 0.3, 1)`).\n"
+                    "   - Never delay content presentation with decorative delays."
+                ),
+                "citations": ["WCAG 2.1 §2.3.3 Animation from Interactions", "Web.dev Guidelines: Building Accessible Animations"],
+                "suggested_replies": ["Touch Target Minimums", "Design Systems Principles", "Screen Reader ARIA"]
+            },
+            {
+                "id": "design_responsive_fluid_layouts",
+                "domain": "design_system",
+                "keywords": [
+                    "responsive design", "fluid typography", "clamp", "media queries", "overflow",
+                    "horizontal scrolling", "mobile layout", "flexbox grid", "container queries"
+                ],
+                "patterns": [
+                    "how to do responsive design", "fluid typography with clamp", "prevent horizontal scroll",
+                    "responsive layout guidelines", "mobile first vs desktop design", "how to avoid broken mobile layout"
+                ],
+                "response": (
+                    "📐 **Responsive Architecture & Fluid Layout Guidelines**:\n\n"
+                    "1. **Fluid Typography with `clamp()`**:\n"
+                    "   - Avoid jarring breakpoint jumps. Use fluid formulas: `font-size: clamp(16px, 1.2vw + 12px, 22px)` and `padding: clamp(16px, 3vh, 32px)`.\n"
+                    "   - Guarantees seamless scaling from a 360px phone up to a 4K desktop monitor.\n\n"
+                    "2. **Zero Horizontal Overflow Invariant**:\n"
+                    "   - Prevent accidental page-widening: enforce `overflow-x: hidden !important` on main viewport frames and `box-sizing: border-box` globally.\n"
+                    "   - Any grid with `repeat(auto-fit, minmax(...))` must have `minmax(0, 1fr)` or explicit min widths to prevent content push-out.\n\n"
+                    "3. **Adaptive Component Reflow**:\n"
+                    "   - Desktop multi-column sidebars reflow to bottom navigation or off-canvas drawers below 900px breakpoint."
+                ),
+                "citations": ["Smashing Magazine Responsive Design Standards", "MDN CSS Layout & Container Queries Reference"],
+                "suggested_replies": ["Design Anti-Slop", "Touch Target Minimums", "WCAG Contrast Rules"]
+            },
+            {
+                "id": "design_assistive_screen_reader_semantics",
+                "domain": "design_system",
+                "keywords": [
+                    "screen reader", "aria", "nvda", "voiceover", "jaws", "aria-live", "semantics",
+                    "semantic html", "focus ring", "tabindex", "keyboard navigation"
+                ],
+                "patterns": [
+                    "how to design for screen readers", "aria live regions best practices", "semantic html for accessibility",
+                    "accessible forms and labels", "keyboard focus rings", "how screen readers parse web pages"
+                ],
+                "response": (
+                    "🔊 **Screen Reader UX & Semantic HTML Architecture**:\n\n"
+                    "1. **Native Semantic Landmarks First**:\n"
+                    "   - Use `<main>`, `<header>`, `<nav>`, `<aside>`, `<footer>`, `<section aria-label=\"...\">` rather than generic `<div>` soup.\n"
+                    "   - Enables screen reader users (VoiceOver, NVDA, JAWS) to jump directly to primary content with rotor shortcuts.\n\n"
+                    "2. **Dynamic Live Announcements (`aria-live`)**:\n"
+                    "   - Use `aria-live=\"polite\"` for non-emergency status updates, caption streams, and AI responses so screen readers announce them without interrupting ongoing speech.\n"
+                    "   - Use `aria-live=\"assertive\"` exclusively for emergency medical alerts.\n\n"
+                    "3. **Focus Ring Hygiene**:\n"
+                    "   - Never write `outline: none` without a visible alternative! Enforce `outline: 2.5px solid var(--violet); outline-offset: 2px;` so keyboard navigators always know where they are."
+                ),
+                "citations": ["W3C WAI-ARIA Authoring Practices Guide 1.2", "WebAIM Screen Reader Survey Standards"],
+                "suggested_replies": ["WCAG Contrast Rules", "Design Anti-Slop", "Touch Target Minimums"]
+            },
+            {
+                "id": "design_anti_slop_and_ui_hygiene",
+                "domain": "design_system",
+                "keywords": [
+                    "anti-slop", "ui hygiene", "clean design", "design quality", "pixel perfect",
+                    "design polish", "slop", "bad design", "layout bugs", "flawless ui"
+                ],
+                "patterns": [
+                    "how to eliminate ai slop in ui", "what is anti slop design", "how to polish ui to perfection",
+                    "rules for perfect ui design", "how to fix ugly ui", "design quality locks", "make design more perfect"
+                ],
+                "response": (
+                    "💎 **Anti-Slop UI Hygiene & Quality Locks**:\n\n"
+                    "1. **Eliminate Floating or Double Scrollbars**:\n"
+                    "   - Never place `overflow-y: auto` on constrained centered inner containers (e.g. `max-width: 1200px; margin: 0 auto;`). Scrollbars belong exclusively on the outer viewport frame.\n"
+                    "   - Hide ugly OS stepper buttons (`display: none !important` on `::-webkit-scrollbar-button`) and use thin, translucent, trackless thumbs.\n\n"
+                    "2. **Button Group Consistency**:\n"
+                    "   - Buttons in the same group must share uniform height (40px/44px), aligned text baselines, and matching border-radii. Avoid mixing conflicting random outlines and glows.\n\n"
+                    "3. **Whitespace & Edge Clearance**:\n"
+                    "   - Prevent elements from hugging the viewport fold. Footer emblems and brand marks must have breathing room (`padding-bottom: clamp(32px, 6vh, 64px)`) and never clip abruptly.\n\n"
+                    "4. **Typography & Badge Harmony**:\n"
+                    "   - Text must never wrap awkwardly (use `word-break: keep-all; white-space: nowrap;` on status pills and actions).\n"
+                    "   - Badges should have subtle tinted backgrounds with 1px semi-transparent borders, not garish high-saturation blocks."
+                ),
+                "citations": ["Anti-Slop UI Manifesto for AI Agents", "Linear Design System & Craft Engineering Standard"],
+                "suggested_replies": ["Visual Hierarchy", "Semantic Color Tokens", "WCAG Contrast Rules"]
+            },
+
+            # =================================================================
+            # DOMAIN 8: GENERAL GREETING & MULTILINGUAL ASSISTANT
             # =================================================================
             {
                 "id": "general_greeting",
@@ -972,15 +1185,16 @@ class TransifyAIChatbot:
                 "patterns": ["hello", "hi there", "who are you", "kemon acho", "ki korte paro", "what can you do", "help me"],
                 "response": (
                     "👋 **Hello! I am Transify AI**, your certified accessible healthcare & communication assistant.\n\n"
-                    "I am trained across verified **WHO & Merck Clinical Guidelines** and accessibility standards:\n\n"
+                    "I am trained across verified **WHO & Merck Clinical Guidelines**, **WCAG 2.2 Accessibility Standards**, and design systems:\n\n"
                     "- 🩺 **Clinical Symptom Triage**: Fever, dengue, burns, asthma, hydration, first aid, and emergency red-flags.\n"
+                    "- 🎨 **UI/UX & Accessibility Design**: WCAG 2.2 AA/AAA compliance, 4.5:1 contrast, 44px tap targets, 8px spatial grid, and anti-slop design systems.\n"
                     "- ✋ **Sign Language Guidance**: ASL & BdSL hand tracking, fingerspelling, camera angles, and sentence speech.\n"
                     "- ⠃ **Braille Literacy**: Grade 1 vs Grade 2 rules, 6-dot matrix cell architecture, OBR scanning tips, and Bengali Braille.\n"
                     "- 🎙 **Voice & Assistive Speech**: Speech-to-text captions, natural TTS vocalization rate, and AAC phrase boards.\n\n"
-                    "How may I support your health or communication needs today?"
+                    "How may I support your health, communication, or design needs today?"
                 ),
-                "citations": ["Transify Core Knowledge Specification v2.4"],
-                "suggested_replies": ["Check Symptoms in Triage", "How to use Sign Translator", "Grade 1 vs 2 Braille"]
+                "citations": ["Transify Core Knowledge Specification v2.4", "WHO Guidelines & WCAG 2.2"],
+                "suggested_replies": ["Check Symptoms in Triage", "UI/UX Design Principles", "WCAG Contrast Rules", "Grade 1 vs 2 Braille"]
             }
         ]
 

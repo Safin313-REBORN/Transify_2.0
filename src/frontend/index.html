@@ -25,8 +25,8 @@
 
   <!-- Design System CSS (Tokens, Shell, and Core Styles) -->
   <link rel="stylesheet" href="/static/tokens.css">
-  <link rel="stylesheet" href="/static/shell.css">
-  <link rel="stylesheet" href="/static/styles.css?v=20261124_pro_ui_v6">
+  <link rel="stylesheet" href="/static/shell.css?v=20261124_pro_ui_v7">
+  <link rel="stylesheet" href="/static/styles.css?v=20261124_pro_ui_v7">
 
   <script src="/static/boot.js?v=20261124_rc1_4_5"></script>
   <script src="/static/motion.js?v=20261124_motion_v1" defer></script>
@@ -665,30 +665,24 @@
           <!-- Transify Care & AI Assistant Feature Card (Full Width) -->
           <div class="home-care-tile">
             <div class="care-info">
-              <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <span class="care-badge online">Healthcare Intake</span>
                 <span class="care-badge">Offline-First</span>
                 <span class="care-badge"
-                  style="background: rgba(131,56,236,0.15); color: var(--violet); border: 1px solid rgba(131,56,236,0.3);">🩺
-                  Clinical Triage</span>
+                  style="background: rgba(131,56,236,0.18); color: #C49CFF; border: 1px solid rgba(131,56,236,0.35);">🤖 AI Trained</span>
               </div>
-              <div class="care-title" style="margin-top: 6px;">Transify Care &amp; Clinical Health</div>
-              <div class="care-desc">Accessible clinical symptom triage, WHO/Merck guidelines &amp; clinical review.
-              </div>
+              <div class="care-title" style="margin-top: 6px;">Transify Care &amp; AI Assistant</div>
+              <div class="care-desc">Accessible clinical symptom triage, WHO/Merck guidelines &amp; AI consultation.</div>
             </div>
             <div class="care-actions">
-              <a href="#chat" class="btn-welcome-primary press" id="btn-open-ai-chat"
-                style="height: 44px; padding: 0 18px; font-size: 15px; background: var(--violet); color: #fff;">
+              <a href="#chat" class="btn-care-tile-primary press" id="btn-open-ai-chat">
                 🤖 AI Chatbot
               </a>
-              <a href="#care-chronic" class="btn-welcome-primary press" id="btn-open-care-chronic"
-                style="height: 44px; padding: 0 16px; font-size: 15px; background: #8338EC; color: #fff;">
+              <a href="#care-chronic" class="btn-care-tile-primary press" id="btn-open-care-chronic">
                 ⌚ ChronicCare
               </a>
-              <a href="#care-intake" class="btn-welcome-secondary press" id="btn-open-care-intake"
-                style="height: 44px; padding: 0 16px; font-size: 15px;">Symptom Intake</a>
-              <a href="#clinician" class="btn-welcome-secondary press" id="btn-open-clinician-portal"
-                style="height: 44px; padding: 0 16px; font-size: 15px;">Clinician Portal</a>
+              <a href="#care-intake" class="btn-care-tile-secondary press" id="btn-open-care-intake">Symptom Intake</a>
+              <a href="#clinician" class="btn-care-tile-secondary press" id="btn-open-clinician-portal">Clinician Portal</a>
             </div>
           </div>
 

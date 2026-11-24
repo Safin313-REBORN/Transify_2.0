@@ -1814,42 +1814,94 @@ body.reduced-motion .page-view.active::before {
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 20px;
   background: #171420;
   color: #fff;
-  padding: 16px 24px;
+  padding: clamp(18px, 2.5vh, 26px) clamp(20px, 3vw, 32px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  border: 1.5px solid rgba(255, 255, 255, .1);
+  gap: 24px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(20, 17, 31, 0.15);
+  margin-top: 18px;
+  margin-bottom: 24px;
 }
 
 .home-care-tile .care-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
 }
 
 .home-care-tile .care-title {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 22px;
+  font-size: clamp(20px, 2.2vw, 24px);
   letter-spacing: -.02em;
 }
 
 .home-care-tile .care-desc {
-  font-size: 15px;
+  font-size: 14.5px;
+  line-height: 1.45;
   color: #D4D2E4;
 }
 
 .home-care-tile .care-actions {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(136px, 156px));
   gap: 10px;
   flex-shrink: 0;
-  flex-wrap: wrap;
+}
+
+.btn-care-tile-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 9999px;
+  background: var(--violet, #8338EC);
+  color: #FFFFFF !important;
+  text-decoration: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.btn-care-tile-primary:hover {
+  background: #7322E2;
+  box-shadow: 0 4px 16px rgba(131, 56, 236, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-care-tile-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #E2E0EC !important;
+  text-decoration: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  transition: transform 0.15s, background 0.15s, border-color 0.15s, color 0.15s;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.btn-care-tile-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #FFFFFF !important;
+  transform: translateY(-1px);
 }
 
 /* Recent Aside */

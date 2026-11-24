@@ -1287,8 +1287,8 @@ body:has(#view-welcome.active) .floating-chat-btn {
    Team Alpha Nexus Platform Footer
    ========================================================================== */
 .alpha-nexus-footer {
-  margin-top: 48px;
-  padding: 28px 0 48px;
+  margin-top: 28px;
+  padding: 24px 0 clamp(48px, 8vh, 88px);
   border-top: 1px solid var(--line);
   box-sizing: border-box;
   width: 100%;
