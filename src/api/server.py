@@ -9,8 +9,9 @@ import sys
 import time
 import ipaddress
 import logging
+import json
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
@@ -271,6 +272,13 @@ class MCPSignResolveRequest(BaseModel):
     top_candidates: Optional[List[Dict[str, Any]]] = Field(None, description="Top predicted candidates")
     motion_energy: Optional[float] = Field(0.0, description="Kinematic motion energy")
     gloss_hint: Optional[str] = Field("", description="Gloss hint")
+
+
+class MCPJsonRpcRequest(BaseModel):
+    jsonrpc: Optional[str] = Field("2.0", description="JSON-RPC protocol version")
+    id: Optional[Union[str, int]] = Field(1, description="Client request identifier")
+    method: str = Field(..., description="Method name: initialize, tools/list, tools/call, ping")
+    params: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Method parameters")
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -793,6 +801,252 @@ def mcp_sign_resolve_endpoint(req: MCPSignResolveRequest):
         gloss_hint=req.gloss_hint or ""
     )
     return res
+
+
+MCP_TOOLS_MANIFEST = [
+    {
+        "name": "resolve_sign_ambiguity",
+        "description": "Disambiguates low-confidence sign language predictions (< 98%) using kinematic motion energy and temporal context.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "candidate_label": {"type": "string", "description": "Candidate sign label"},
+                "confidence": {"type": "number", "description": "Model confidence (0.0 to 1.0)"},
+                "motion_energy": {"type": "number", "description": "Kinematic velocity energy"},
+                "gloss_hint": {"type": "string", "description": "Sentence context gloss hint"}
+            },
+            "required": ["candidate_label", "confidence"]
+        }
+    },
+    {
+        "name": "resolve_braille_ambiguity",
+        "description": "Resolves optical Braille recognition ambiguity using ICEB UEB Grade 1 state rules and contextual grammar.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "raw_text": {"type": "string", "description": "Preliminary decoded Braille text"},
+                "mean_confidence": {"type": "number", "description": "Mean recognition confidence score"}
+            },
+            "required": ["raw_text"]
+        }
+    },
+    {
+        "name": "triage_symptom",
+        "description": "Evaluates patient symptoms against WHO Interagency Integrated Triage rules and emergency red flags.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "symptoms": {"type": "string", "description": "Patient reported complaint/symptoms"},
+                "severity": {"type": "integer", "description": "Pain or severity score (1-10)"},
+                "patient_age": {"type": "integer", "description": "Patient age in years"}
+            },
+            "required": ["symptoms"]
+        }
+    },
+    {
+        "name": "calculate_insulin_correction",
+        "description": "Calculates safe insulin correction dose based on current BG, target BG, and ISF with negative correction protection.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "current_bg": {"type": "number", "description": "Current blood glucose in mg/dL"},
+                "target_bg": {"type": "number", "description": "Target blood glucose in mg/dL"},
+                "isf": {"type": "number", "description": "Insulin Sensitivity Factor (mg/dL per unit)"}
+            },
+            "required": ["current_bg", "target_bg", "isf"]
+        }
+    },
+    {
+        "name": "chat_assistive_agent",
+        "description": "Queries the offline-first Transify assistive knowledge base for clinical first aid, sign language guidance, or troubleshooting.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "message": {"type": "string", "description": "User question or inquiry"}
+            },
+            "required": ["message"]
+        }
+    }
+]
+
+
+@app.get("/api/mcp/tools", tags=["MCP"])
+@app.get("/mcp/tools", tags=["MCP"])
+def mcp_tools_list_rest():
+    """Returns the list of available Model Context Protocol tools and schemas."""
+    return {
+        "status": "success",
+        "protocolVersion": "2024-11-05",
+        "tools": MCP_TOOLS_MANIFEST
+    }
+
+
+@app.post("/api/mcp", tags=["MCP"])
+@app.post("/mcp", tags=["MCP"])
+def mcp_jsonrpc_endpoint(req: MCPJsonRpcRequest):
+    """
+    Standard Model Context Protocol (MCP) JSON-RPC 2.0 Endpoint.
+    Supports: initialize, tools/list, tools/call, ping.
+    """
+    method = req.method.strip().lower()
+    req_id = req.id
+
+    if method == "initialize":
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "result": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {
+                    "tools": {"listChanged": False}
+                },
+                "serverInfo": {
+                    "name": "Transify MCP Server",
+                    "version": "2.0.0"
+                }
+            }
+        }
+
+    elif method in ("tools/list", "tool/list"):
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "result": {
+                "tools": MCP_TOOLS_MANIFEST
+            }
+        }
+
+    elif method in ("tools/call", "tool/call"):
+        params = req.params or {}
+        tool_name = params.get("name")
+        args = params.get("arguments", {})
+
+        if tool_name == "resolve_sign_ambiguity":
+            resolver = MCPSignResolver()
+            res = resolver.resolve(
+                candidate_label=args.get("candidate_label", ""),
+                confidence=float(args.get("confidence", 0.90)),
+                top_candidates=args.get("top_candidates", []),
+                motion_energy=float(args.get("motion_energy", 0.0)),
+                gloss_hint=args.get("gloss_hint", "")
+            )
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {
+                    "content": [{"type": "text", "text": json.dumps(res)}]
+                }
+            }
+
+        elif tool_name == "resolve_braille_ambiguity":
+            from src.braille.mcp_chatbot_resolver import MCPChatbotResolver
+            resolver = MCPChatbotResolver()
+            res = resolver.resolve(
+                image_bytes=b"",
+                raw_text=args.get("raw_text", ""),
+                mean_confidence=float(args.get("mean_confidence", 0.85))
+            )
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {
+                    "content": [{"type": "text", "text": json.dumps(res)}]
+                }
+            }
+
+        elif tool_name == "triage_symptom":
+            from src.care.triage import evaluate_triage
+            complaint = args.get("chief_complaint") or args.get("symptoms", "General malaise")
+            description = args.get("symptom_description") or complaint
+            severity = int(args.get("severity", 5))
+            trajectory = args.get("trajectory", "stable")
+            onset = args.get("onset_duration", "")
+            res = evaluate_triage(
+                chief_complaint=complaint,
+                symptom_description=description,
+                severity=severity,
+                trajectory=trajectory,
+                onset_duration=onset
+            )
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {
+                    "content": [{"type": "text", "text": json.dumps(res, default=str)}]
+                }
+            }
+
+        elif tool_name == "calculate_insulin_correction":
+            from src.care.chronic_care import analyze_meal_and_calculate_insulin
+            res = analyze_meal_and_calculate_insulin(
+                current_glucose=float(args.get("current_bg", args.get("current_glucose", 125.0))),
+                target_glucose=float(args.get("target_bg", args.get("target_glucose", 100.0))),
+                isf=float(args.get("isf", 50.0)),
+                icr=float(args.get("icr", 10.0)),
+                iob=float(args.get("iob", 0.0)),
+                glucose_unit=str(args.get("glucose_unit", "mg/dL")),
+                clinician_confirmed_parameters=bool(args.get("clinician_confirmed_parameters", True))
+            )
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {
+                    "content": [{"type": "text", "text": json.dumps(res, default=str)}]
+                }
+            }
+
+        elif tool_name in ("check_polypharmacy", "check_drug_interactions"):
+            from src.care.chronic_care import check_openfda_polypharmacy_interactions
+            meds = args.get("medications", [])
+            if isinstance(meds, str):
+                meds = [m.strip() for m in meds.split(",") if m.strip()]
+            res = check_openfda_polypharmacy_interactions(meds)
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {
+                    "content": [{"type": "text", "text": json.dumps(res, default=str)}]
+                }
+            }
+
+        elif tool_name == "chat_assistive_agent":
+            from src.chatbot.ai_chatbot import TransifyAIChatbot
+            chatbot = TransifyAIChatbot()
+            res = chatbot.get_response(args.get("message", ""))
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {
+                    "content": [{"type": "text", "text": json.dumps(res)}]
+                }
+            }
+
+        else:
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "error": {
+                    "code": -32601,
+                    "message": f"Method or tool '{tool_name}' not found."
+                }
+            }
+
+    elif method == "ping":
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "result": {}
+        }
+
+    else:
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "error": {
+                "code": -32601,
+                "message": f"Unsupported MCP method '{req.method}'."
+            }
+        }
 
 
 @app.get("/api/sign/categories", tags=["Sign Language"])

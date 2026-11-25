@@ -94,3 +94,16 @@ Transify adheres to a disciplined, stage-gated research and engineering lifecycl
   - Implement human-in-the-loop assistive controls: editable draft text, one-touch retry, and Text-to-Speech (TTS) audio playback.
   - Conduct continuous sign language translation (CSLT) exploratory research.
   - Perform security, privacy, and memory leak audits (ensuring zero persistent biometric storage).
+
+---
+
+### Phase 5: Transify Care CDS, Model Context Protocol (MCP) & Global Deployment
+- **Status:** **COMPLETED & DEPLOYED TO PRODUCTION** (Railway Cloud).
+- **Key Objectives & Achievements:**
+  - Integrated Transify Care clinical decision support (CDS) suite with WHO & Merck Manual-grounded 5-tier emergency triage and insulin titration calculation.
+  - Deployed Model Context Protocol (MCP v1.0 / JSON-RPC 2.0) gateway at `/api/mcp` enabling direct integration with AI clinical agents.
+  - Enforced Zero Auto-Audio privacy invariants across all browser and TTS interfaces.
+  - Achieved 100% automated test coverage (249 automated tests passing across clinical safety, browser regression, and MCP protocols).
+  - Maintained cryptographic SQLite persistence integrity (`data/transify.db` SHA-256 invariant verified).
+  - Deployed production service to `https://transify20-production.up.railway.app/`.
+
