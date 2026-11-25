@@ -222,15 +222,29 @@ window.copySystemDiagnostics = function () {
 
 window.submitDeveloperFeedback = function () {
   const contactMsg = document.getElementById('contact-message');
+  const statusEl = document.getElementById('contact-feedback-status');
   if (!contactMsg) return;
   const text = contactMsg.value.trim();
   if (!text) {
+    contactMsg.classList.add('input-error');
+    if (statusEl) {
+      statusEl.className = 'form-feedback-card error';
+      statusEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Please enter a message before submitting.</span>';
+      statusEl.style.display = 'flex';
+    }
     if (window.TransifyApp && window.TransifyApp.showToast) {
-      window.TransifyApp.showToast('Please type a message before sending', 'info');
+      window.TransifyApp.showToast('Please type a message before sending', 'warning');
     }
     return;
   }
+  contactMsg.classList.remove('input-error');
   contactMsg.value = '';
+  if (statusEl) {
+    statusEl.className = 'form-feedback-card success';
+    statusEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Thank you! Your feedback has been received and logged.</span>';
+    statusEl.style.display = 'flex';
+    setTimeout(() => { if (statusEl) statusEl.style.display = 'none'; }, 4000);
+  }
   if (window.TransifyApp && window.TransifyApp.showToast) {
     window.TransifyApp.showToast('Message sent! Developer Safin has received your feedback.', 'success');
   }
@@ -5528,6 +5542,7 @@ const EditorialController = {
     this.setupPhrasesScreen();
     this.setupBrailleInteractiveCell();
     this.setupSettingsScreen();
+    this.setupNewFeaturesSuite();
     if (window.ChatbotPage && window.ChatbotPage.init) {
       window.ChatbotPage.init();
     }
@@ -6745,16 +6760,8 @@ const EditorialController = {
 
     if (contactSubmitBtn && contactMsg) {
       contactSubmitBtn.addEventListener('click', () => {
-        const text = contactMsg.value.trim();
-        if (!text) {
-          if (window.TransifyApp && window.TransifyApp.showToast) {
-            window.TransifyApp.showToast('Please type a message before sending', 'info');
-          }
-          return;
-        }
-        contactMsg.value = '';
-        if (window.TransifyApp && window.TransifyApp.showToast) {
-          window.TransifyApp.showToast('Message sent! Developer Safin has received your feedback.', 'success');
+        if (typeof window.submitDeveloperFeedback === 'function') {
+          window.submitDeveloperFeedback();
         }
       });
     }
@@ -7062,16 +7069,29 @@ const EditorialController = {
     // 12. Clear Activity History
     const clearHistBtn = document.getElementById('btn-settings-clear-history');
     if (clearHistBtn) {
-      clearHistBtn.addEventListener('click', async () => {
-        const recentList = document.getElementById('home-recent-list');
-        if (recentList) {
-          recentList.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-2); font-size: 14px; font-weight: 600;">No recent translations yet.</div>';
-        }
-        try { await fetch('/api/history', { method: 'DELETE' }); } catch (e) { }
-        const storageDesc = document.getElementById('settings-storage-size');
-        if (storageDesc) storageDesc.textContent = '0 local activity logs';
-        if (window.TransifyApp && window.TransifyApp.showToast) {
-          window.TransifyApp.showToast('Activity history cleared successfully', 'success');
+      clearHistBtn.addEventListener('click', () => {
+        const performClear = async () => {
+          const recentList = document.getElementById('home-recent-list');
+          if (recentList) {
+            recentList.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-2); font-size: 14px; font-weight: 600;">No recent translations yet.</div>';
+          }
+          try { await fetch('/api/history', { method: 'DELETE' }); } catch (e) { }
+          const storageDesc = document.getElementById('settings-storage-size');
+          if (storageDesc) storageDesc.textContent = '0 local activity logs';
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast('Activity history cleared successfully', 'success');
+          }
+        };
+        if (window.showConfirmDialog) {
+          window.showConfirmDialog({
+            title: 'Clear Activity History',
+            message: 'Are you sure you want to delete all cached translation records and logs from this device? This cannot be undone.',
+            confirmText: 'Clear History',
+            danger: true,
+            onConfirm: performClear
+          });
+        } else {
+          performClear();
         }
       });
     }
@@ -7080,62 +7100,76 @@ const EditorialController = {
     const resetBtn = document.getElementById('btn-settings-reset-defaults');
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
-        this.applyTheme('light');
-        this.applyFontScale('normal');
-        try {
-          localStorage.removeItem('transify_theme');
-          localStorage.removeItem('transify_font_scale');
-          localStorage.removeItem('transify_focus_rings');
-          localStorage.removeItem('transify_reduce_motion');
-          localStorage.removeItem('transify_reduced_motion');
-          localStorage.removeItem('transify_speech_rate');
-          localStorage.removeItem('transify_default_sign_lang');
-          localStorage.removeItem('transify_braille_standard');
-          localStorage.removeItem('transify_confidence_gate');
-          localStorage.removeItem('transify_audio_chimes');
-          localStorage.removeItem('transify_lang');
-        } catch (e) { }
+        const performReset = () => {
+          this.applyTheme('light');
+          this.applyFontScale('normal');
+          try {
+            localStorage.removeItem('transify_theme');
+            localStorage.removeItem('transify_font_scale');
+            localStorage.removeItem('transify_focus_rings');
+            localStorage.removeItem('transify_reduce_motion');
+            localStorage.removeItem('transify_reduced_motion');
+            localStorage.removeItem('transify_speech_rate');
+            localStorage.removeItem('transify_default_sign_lang');
+            localStorage.removeItem('transify_braille_standard');
+            localStorage.removeItem('transify_confidence_gate');
+            localStorage.removeItem('transify_audio_chimes');
+            localStorage.removeItem('transify_lang');
+          } catch (e) { }
 
-        // Reset UI Toggles
-        if (reduceMotionCheck) reduceMotionCheck.checked = false;
-        if (focusRingToggle) focusRingToggle.checked = false;
-        if (audioChimesToggle) audioChimesToggle.checked = true;
-        document.documentElement.removeAttribute('data-motion');
-        document.body.classList.remove('enhanced-focus');
+          // Reset UI Toggles
+          if (reduceMotionCheck) reduceMotionCheck.checked = false;
+          if (focusRingToggle) focusRingToggle.checked = false;
+          if (audioChimesToggle) audioChimesToggle.checked = true;
+          document.documentElement.removeAttribute('data-motion');
+          document.body.classList.remove('enhanced-focus');
 
-        // Reset Speech Rate segmented buttons
-        if (speechRateGroup) {
-          speechRateGroup.querySelectorAll('.segmented-btn').forEach(b => {
-            b.classList.toggle('active', b.dataset.rate === '1.0');
+          // Reset Speech Rate segmented buttons
+          if (speechRateGroup) {
+            speechRateGroup.querySelectorAll('.segmented-btn').forEach(b => {
+              b.classList.toggle('active', b.dataset.rate === '1.0');
+            });
+            if (window.TransifyApp) window.TransifyApp.speechRate = 1.0;
+          }
+
+          // Reset Sign Language segmented buttons
+          if (signLangGroup) {
+            signLangGroup.querySelectorAll('.segmented-btn').forEach(b => {
+              b.classList.toggle('active', b.dataset.sign === 'asl');
+            });
+          }
+
+          // Reset Braille Standard segmented buttons
+          if (brailleGroup) {
+            brailleGroup.querySelectorAll('.segmented-btn').forEach(b => {
+              b.classList.toggle('active', b.dataset.braille === 'grade1');
+            });
+          }
+
+          // Reset Confidence Gate
+          const defConfRadio = document.getElementById('confidence-gate-85');
+          if (defConfRadio) defConfRadio.checked = true;
+          if (confGate) confGate.value = '85';
+
+          // Reset Interface Language
+          if (langSelect) langSelect.value = 'en';
+          if (typeof applyLocale === 'function') applyLocale('en');
+
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast('All settings reset to defaults', 'info');
+          }
+        };
+
+        if (window.showConfirmDialog) {
+          window.showConfirmDialog({
+            title: 'Reset Preferences to Defaults',
+            message: 'Are you sure you want to restore all accessibility dials, thresholds, and theme settings to their original factory values?',
+            confirmText: 'Reset to Defaults',
+            danger: false,
+            onConfirm: performReset
           });
-          if (window.TransifyApp) window.TransifyApp.speechRate = 1.0;
-        }
-
-        // Reset Sign Language segmented buttons
-        if (signLangGroup) {
-          signLangGroup.querySelectorAll('.segmented-btn').forEach(b => {
-            b.classList.toggle('active', b.dataset.sign === 'asl');
-          });
-        }
-
-        // Reset Braille Standard segmented buttons
-        if (brailleGroup) {
-          brailleGroup.querySelectorAll('.segmented-btn').forEach(b => {
-            b.classList.toggle('active', b.dataset.braille === 'grade1');
-          });
-        }
-
-        // Reset Confidence Gate
-        const defConfRadio = document.getElementById('confidence-gate-85');
-        if (defConfRadio) defConfRadio.checked = true;
-        if (confGate) confGate.value = '85';
-
-        // Reset Interface Language
-        if (langSelect) langSelect.value = 'en';
-        if (typeof applyLocale === 'function') applyLocale('en');
-
-        if (window.TransifyApp && window.TransifyApp.showToast) {
-          window.TransifyApp.showToast('All settings reset to defaults', 'info');
+        } else {
+          performReset();
         }
       });
     }
@@ -7298,6 +7332,253 @@ const EditorialController = {
         window.TransifyApp.openAuthSheet('login');
       }
     }
+  },
+
+  setupNewFeaturesSuite() {
+    // 1. Quick Dark Mode Toggle in Header
+    const themeToggleBtn = document.getElementById('btn-quick-theme-toggle');
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = cur === 'dark' ? 'light' : 'dark';
+        if (window.TransifyApp && window.TransifyApp.applyTheme) {
+          window.TransifyApp.applyTheme(next);
+        } else if (this.applyTheme) {
+          this.applyTheme(next);
+        } else {
+          document.documentElement.setAttribute('data-theme', next);
+          if (document.body) document.body.setAttribute('data-theme', next);
+          try { localStorage.setItem('transify_theme', next); } catch (e) { }
+        }
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast(`Theme switched to ${next === 'dark' ? 'Dark Mode' : 'Light Mode'}`, 'info');
+        }
+      });
+    }
+
+    // 2. Scroll Progress Bar & Back to Top Trigger
+    const scrollBar = document.getElementById('scroll-progress-bar');
+    const bttBtn = document.getElementById('btn-back-to-top');
+    const contentFrame = document.querySelector('.content-frame');
+
+    const updateScrollMetrics = () => {
+      const scrollY = contentFrame ? contentFrame.scrollTop : (window.pageYOffset || document.documentElement.scrollTop);
+      const totalH = contentFrame ? (contentFrame.scrollHeight - contentFrame.clientHeight) : (document.documentElement.scrollHeight - window.innerHeight);
+      const pct = totalH > 0 ? Math.min(100, Math.max(0, (scrollY / totalH) * 100)) : 0;
+      if (scrollBar) scrollBar.style.width = pct + '%';
+      if (bttBtn) {
+        if (scrollY > 260) {
+          bttBtn.classList.add('show');
+        } else {
+          bttBtn.classList.remove('show');
+        }
+      }
+    };
+
+    window.addEventListener('scroll', updateScrollMetrics, { passive: true });
+    if (contentFrame) contentFrame.addEventListener('scroll', updateScrollMetrics, { passive: true });
+
+    if (bttBtn) {
+      bttBtn.addEventListener('click', () => {
+        if (contentFrame) {
+          contentFrame.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    // 3. Global Site Search & Command Palette (Ctrl+K)
+    const searchModal = document.getElementById('site-search-modal');
+    const searchBackdrop = document.getElementById('site-search-backdrop');
+    const searchInput = document.getElementById('site-search-input');
+    const searchResults = document.getElementById('site-search-results');
+    const searchToggle = document.getElementById('btn-site-search-toggle');
+
+    const searchableIndex = [
+      { title: 'Home Dashboard', cat: 'Navigation', route: 'home', desc: 'Main accessibility dashboard & quick actions' },
+      { title: 'Sign Language Translator', cat: 'Modality', route: 'sign', desc: 'Real-time ASL & BdSL camera hand tracking' },
+      { title: 'Braille Scanner & Studio', cat: 'Modality', route: 'braille', desc: 'Optical 6-dot matrix scanner & tactile generator' },
+      { title: 'Voice Hub & Captions', cat: 'Modality', route: 'stt', desc: 'Speech-to-text live decibel meter & speech synthesis' },
+      { title: 'Expressive AAC Phrases', cat: 'Modality', route: 'phrases', desc: '50+ clinical emergency phrases & soundboard' },
+      { title: 'Transify Care Triage', cat: 'Clinical', route: 'care-intake', desc: 'WHO/Merck emergency symptom intake protocol' },
+      { title: 'ChronicCare Management', cat: 'Clinical', route: 'care-chronic', desc: 'Insulin dosing calculators & vital monitoring' },
+      { title: 'AI Assistant & Training', cat: 'Intelligence', route: 'chat', desc: 'Clinical consultation & model pattern training' },
+      { title: 'Settings & Compliance', cat: 'Preferences', route: 'settings', desc: 'Zero auto-audio, contrast & privacy preferences' },
+      { title: 'Privacy Policy', cat: 'Legal', route: 'privacy', desc: 'Edge processing, zero tracker guarantees & GDPR' },
+      { title: 'Cookie Policy', cat: 'Legal', route: 'cookies', desc: 'Essential storage transparency & functional cookies' },
+      { title: 'Terms of Service', cat: 'Legal', route: 'terms', desc: 'Platform usage rules & non-diagnostic disclaimer' },
+      { title: 'Refund Policy & Transparency', cat: 'Legal', route: 'refund', desc: '100% free open-source assistive platform guarantees' }
+    ];
+
+    const renderSearchResults = (query) => {
+      if (!searchResults) return;
+      const q = (query || '').toLowerCase().trim();
+      const filtered = q
+        ? searchableIndex.filter(item => item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q) || item.cat.toLowerCase().includes(q))
+        : searchableIndex.slice(0, 7);
+
+      if (filtered.length === 0) {
+        searchResults.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-2); font-size: 14px;">No matching features or tools found.</div>';
+        return;
+      }
+
+      searchResults.innerHTML = filtered.map((item, idx) => `
+        <div class="site-search-item ${idx === 0 ? 'selected' : ''}" data-route="${item.route}" role="option">
+          <div>
+            <div class="site-search-item-title">${item.title}</div>
+            <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">${item.desc}</div>
+          </div>
+          <span class="site-search-item-cat">${item.cat}</span>
+        </div>
+      `).join('');
+
+      searchResults.querySelectorAll('.site-search-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const r = el.getAttribute('data-route');
+          closeSearchModal();
+          if (r) this.routeTo(r);
+        });
+      });
+    };
+
+    const openSearchModal = () => {
+      if (!searchModal) return;
+      searchModal.style.display = 'flex';
+      renderSearchResults('');
+      setTimeout(() => { if (searchInput) searchInput.focus(); }, 40);
+    };
+
+    const closeSearchModal = () => {
+      if (!searchModal) return;
+      searchModal.style.display = 'none';
+      if (searchInput) searchInput.value = '';
+    };
+
+    if (searchToggle) searchToggle.addEventListener('click', openSearchModal);
+    if (searchBackdrop) searchBackdrop.addEventListener('click', closeSearchModal);
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        renderSearchResults(e.target.value);
+      });
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeSearchModal();
+        if (e.key === 'Enter') {
+          const selected = searchResults.querySelector('.site-search-item.selected') || searchResults.querySelector('.site-search-item');
+          if (selected) {
+            const r = selected.getAttribute('data-route');
+            closeSearchModal();
+            if (r) this.routeTo(r);
+          }
+        }
+      });
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (searchModal && searchModal.style.display === 'flex') {
+          closeSearchModal();
+        } else {
+          openSearchModal();
+        }
+      }
+      if (e.key === 'Escape' && searchModal && searchModal.style.display === 'flex') {
+        closeSearchModal();
+      }
+    });
+
+    // 4. Reusable Confirmation Dialog System
+    const confirmModal = document.getElementById('confirmation-modal');
+    const confirmTitle = document.getElementById('confirmation-modal-title');
+    const confirmDesc = document.getElementById('confirmation-modal-desc');
+    const confirmCancelBtn = document.getElementById('btn-confirmation-cancel');
+    const confirmActionBtn = document.getElementById('btn-confirmation-confirm');
+    const confirmBackdrop = document.getElementById('confirmation-backdrop');
+    let activeConfirmCallback = null;
+
+    window.showConfirmDialog = ({ title, message, confirmText = 'Confirm', danger = false, onConfirm }) => {
+      if (!confirmModal) {
+        if (onConfirm && window.confirm(`${title}\n\n${message}`)) onConfirm();
+        return;
+      }
+      if (confirmTitle) confirmTitle.textContent = title;
+      if (confirmDesc) confirmDesc.textContent = message;
+      if (confirmActionBtn) {
+        confirmActionBtn.textContent = confirmText;
+        confirmActionBtn.classList.toggle('danger', !!danger);
+      }
+      activeConfirmCallback = onConfirm;
+      confirmModal.style.display = 'flex';
+    };
+
+    const closeConfirmDialog = () => {
+      if (confirmModal) confirmModal.style.display = 'none';
+      activeConfirmCallback = null;
+    };
+
+    if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', closeConfirmDialog);
+    if (confirmBackdrop) confirmBackdrop.addEventListener('click', closeConfirmDialog);
+    if (confirmActionBtn) {
+      confirmActionBtn.addEventListener('click', () => {
+        const cb = activeConfirmCallback;
+        closeConfirmDialog();
+        if (typeof cb === 'function') cb();
+      });
+    }
+
+    // 5. UTM Tracking Engine
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+      const extractedUtm = {};
+      let hasUtm = false;
+      utmKeys.forEach(k => {
+        const val = urlParams.get(k);
+        if (val) {
+          extractedUtm[k] = val;
+          hasUtm = true;
+        }
+      });
+      if (hasUtm) {
+        extractedUtm.captured_at = new Date().toISOString();
+        sessionStorage.setItem('transify_utm', JSON.stringify(extractedUtm));
+        localStorage.setItem('transify_last_utm', JSON.stringify(extractedUtm));
+      }
+    } catch (_) { }
+
+    window.getUTMParams = () => {
+      try {
+        return JSON.parse(sessionStorage.getItem('transify_utm') || localStorage.getItem('transify_last_utm') || '{}');
+      } catch (_) {
+        return {};
+      }
+    };
+
+    // 6. Interactive Copy Buttons Delegation
+    document.addEventListener('click', (e) => {
+      const copyBtn = e.target.closest('.btn-copy-interactive');
+      if (!copyBtn) return;
+      const targetText = copyBtn.getAttribute('data-copy') || copyBtn.textContent.trim();
+      if (!targetText) return;
+
+      navigator.clipboard.writeText(targetText).then(() => {
+        copyBtn.classList.add('copied');
+        const originalHtml = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('Copied to clipboard!', 'success');
+        }
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          copyBtn.innerHTML = originalHtml;
+        }, 2000);
+      }).catch(() => {
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('Failed to copy to clipboard', 'danger');
+        }
+      });
+    });
   }
 };
 

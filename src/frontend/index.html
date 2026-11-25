@@ -422,6 +422,30 @@
           <button type="button" aria-pressed="true" data-l="en" id="btn-lang-en">EN</button>
           <button type="button" aria-pressed="false" data-l="bn" id="btn-lang-bn" lang="bn">বাংলা</button>
         </div>
+        <div class="header-action-group">
+          <button type="button" class="btn-header-action press" id="btn-site-search-toggle" aria-label="Search site (Ctrl+K)" title="Search site (Ctrl+K)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+          <button type="button" class="btn-header-action press" id="btn-quick-theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: none;">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+        </div>
         <button type="button" class="sos" id="sosb" aria-label="Emergency Medical Assistance">
           <svg class="i" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 3 2 21h20zM12 10v5M12 18v.01" />
@@ -657,7 +681,7 @@
            VIEW 2: HOME SCREEN (#home)
            ====================================================================== -->
       <section id="view-home" class="page-view" aria-label="Transify Home">
-        <main class="home-main">
+        <main class="home-main" id="main" tabindex="-1">
           <!-- Header Row -->
           <header class="home-header">
             <div>
@@ -822,6 +846,66 @@
             </div>
           </div>
 
+          <!-- Expandable FAQ Section (Assistive & Clinical Architecture) -->
+          <section class="home-faq-section" id="home-faq-section" aria-label="Frequently Asked Questions">
+            <div class="faq-section-header">
+              <div class="faq-badge">KNOWLEDGE &amp; TRANSPARENCY</div>
+              <h2 class="faq-title">Frequently Asked Questions</h2>
+              <p class="faq-subtitle">Everything you need to know about Transify's multimodal edge AI, clinical triage safety, and privacy protections.</p>
+            </div>
+            <div class="faq-accordion-wrap">
+              <details class="faq-item" open>
+                <summary class="faq-summary">
+                  <span class="faq-question">How does real-time Sign Language Translation work without uploading my camera feed?</span>
+                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </summary>
+                <div class="faq-answer">
+                  <p>Transify executes lightweight MediaPipe WebAssembly models directly inside your local browser sandbox. 21 hand landmarks and 3D spatial vectors are extracted on client silicon—your video stream never leaves your device or touches an external server.</p>
+                </div>
+              </details>
+
+              <details class="faq-item">
+                <summary class="faq-summary">
+                  <span class="faq-question">Which tactile Braille standards are supported in the Optical Scanner?</span>
+                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </summary>
+                <div class="faq-answer">
+                  <p>Our optical engine inspects 6-dot matrix patterns for Unified English Braille (UEB Grade 1 and Grade 2 contractions) as well as Bengali Bharati Braille standards with real-time character-level tactile mapping and downloadable BRF/TXT transcriptions.</p>
+                </div>
+              </details>
+
+              <details class="faq-item">
+                <summary class="faq-summary">
+                  <span class="faq-question">What is the Zero Auto-Audio Privacy Invariant and how does it safeguard users?</span>
+                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </summary>
+                <div class="faq-answer">
+                  <p>Speech synthesis is never triggered automatically on page load, navigation, or language switching. Audio playback occurs exclusively after an explicit, intentional user action (such as clicking 'Speak Aloud' or 'Pronounce'), protecting hearing-impaired users from unexpected blaring audio.</p>
+                </div>
+              </details>
+
+              <details class="faq-item">
+                <summary class="faq-summary">
+                  <span class="faq-question">Can I access Emergency AAC phrases and hotlines offline?</span>
+                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </summary>
+                <div class="faq-answer">
+                  <p>Yes. 50+ emergency phrases across 6 clinical categories, full-screen red emergency flashes, and direct tel-links (999 and 16263) are cached offline in browser memory, ensuring rapid communication during power or network outages.</p>
+                </div>
+              </details>
+
+              <details class="faq-item">
+                <summary class="faq-summary">
+                  <span class="faq-question">How do I export my data or submit a self-service deletion request?</span>
+                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </summary>
+                <div class="faq-answer">
+                  <p>Under Settings &gt; Compliance Center, you can click 'Export Profile &amp; Settings' to download your full configuration JSON, or click 'Self-Service Data Erasure' (GDPR Art. 17) to purge all local activity history, tokens, and preferences instantly.</p>
+                </div>
+              </details>
+            </div>
+          </section>
+
           <!-- Team Alpha Nexus Platform Footer -->
           <footer class="alpha-nexus-footer" role="contentinfo" aria-label="Alpha Nexus Platform Copyright">
             <div class="an-footer-inner">
@@ -837,6 +921,9 @@
                   <div class="an-team-title">Team <span class="an-highlight">Alpha Nexus</span></div>
                   <div class="an-copy-claim">© 2026 <strong>Alpha Nexus</strong>. All rights reserved. • Engineered with
                     pride for Transify 2.0</div>
+                  <div class="last-updated-row" style="margin-top: 4px;">
+                    <span class="last-updated-badge"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Last updated: November 25, 2026</span>
+                  </div>
                   <div class="an-links-row" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px;">
                     <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener">Source on GitHub</a>
                     <a href="mailto:support@transify.nexus" class="footer-legal-link">support@transify.nexus</a>
@@ -1564,9 +1651,9 @@
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                   <button type="button" id="speak-braille-btn" class="btn-braille-toolbar-primary press"
                     style="height: 40px; font-size: 14px; padding: 0 16px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg> Speak aloud</button>
-                  <button type="button" id="copy-braille-btn" class="btn-outline-dark press"
+                  <button type="button" id="copy-braille-btn" class="btn-outline-dark btn-copy-interactive press"
                     style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg> Copy text</button>
-                  <button type="button" id="copy-braille-unicode-btn" class="btn-outline-dark press"
+                  <button type="button" id="copy-braille-unicode-btn" class="btn-outline-dark btn-copy-interactive press"
                     data-action="braille-copy-unicode"
                     style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="7" cy="6" r="2.2"/><circle cx="7" cy="12" r="2.2"/><circle cx="17" cy="6" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg> Copy Braille</button>
                   <button type="button" id="download-braille-btn" class="btn-outline-dark press"
@@ -2081,7 +2168,7 @@
                     style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg><span>Stop</span></button>
                   <button type="button" id="tts-clear-btn" class="btn-outline-dark press"
                     style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span>Clear</span></button>
-                  <button type="button" id="tts-copy-btn" class="btn-outline-dark press" data-action="voice-copy-tts"
+                  <button type="button" id="tts-copy-btn" class="btn-outline-dark btn-copy-interactive press" data-action="voice-copy-tts"
                     style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><span>Copy text</span></button>
                 </div>
               </div>
@@ -4403,6 +4490,7 @@
                     <textarea id="contact-message" class="settings-textarea" rows="3"
                       placeholder="Describe the issue, suggestions, or notes..."></textarea>
                   </div>
+                  <div id="contact-feedback-status" class="form-feedback-card" style="display: none;" role="status"></div>
                 </div>
 
                 <div
@@ -5114,6 +5202,63 @@
     <span id="splash-percent-text"></span>
   </div>
   <div id="transify-auth-screen" style="display: none;"></div>
+
+  <!-- Dynamic Viewport Scroll Progress Track -->
+  <div id="scroll-progress-bar" class="scroll-progress-bar" aria-hidden="true"></div>
+
+  <!-- Floating Back to Top Button -->
+  <button type="button" id="btn-back-to-top" class="btn-back-to-top press" aria-label="Back to top of page" title="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
+
+  <!-- Floating Support & Contact Button -->
+  <a href="mailto:support@transify.nexus" class="floating-contact-btn press" id="floating-contact-btn" aria-label="Contact Support" title="Contact Support">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+      <polyline points="22,6 12,13 2,6"></polyline>
+    </svg>
+    <span class="floating-contact-label">Contact</span>
+  </a>
+
+  <!-- Global Site Command & Search Palette Modal (Ctrl+K) -->
+  <div id="site-search-modal" class="site-search-modal" role="dialog" aria-modal="true" aria-label="Search Transify Platform" style="display: none;">
+    <div class="site-search-backdrop" id="site-search-backdrop"></div>
+    <div class="site-search-card" role="document">
+      <div class="site-search-header">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="search" id="site-search-input" class="site-search-input" placeholder="Search features, phrases, clinical tools, policies... (Esc to close)" autocomplete="off" spellcheck="false">
+        <span class="site-search-kbd">ESC</span>
+      </div>
+      <div class="site-search-results" id="site-search-results" role="listbox">
+        <!-- Results dynamically populated -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Accessible Reusable Confirmation Dialog Modal -->
+  <div id="confirmation-modal" class="confirmation-modal" role="dialog" aria-modal="true" aria-labelledby="confirmation-modal-title" aria-describedby="confirmation-modal-desc" style="display: none;">
+    <div class="confirmation-backdrop" id="confirmation-backdrop"></div>
+    <div class="confirmation-card" role="document">
+      <div class="confirmation-icon-wrap" id="confirmation-icon-wrap" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFCB05" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <h3 id="confirmation-modal-title" class="confirmation-title">Confirm Action</h3>
+      <p id="confirmation-modal-desc" class="confirmation-desc">Are you sure you want to proceed with this operation?</p>
+      <div class="confirmation-actions">
+        <button type="button" class="btn-confirm-secondary press" id="btn-confirmation-cancel">Cancel</button>
+        <button type="button" class="btn-confirm-primary press" id="btn-confirmation-confirm">Confirm</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Client Application Scripts -->
   <script src="/static/app.js?v=20261125_pro_ui_v16"></script>
