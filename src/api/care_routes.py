@@ -1298,7 +1298,7 @@ def chronic_wearable_telemetry_endpoint(req: WearableTelemetryRequest):
     or CGM devices (HRV RMSSD, resting HR, sleep staging, nocturnal dipping, and steps).
     """
     try:
-        return ingest_wearable_telemetry(req.dict())
+        return ingest_wearable_telemetry(req.model_dump())
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

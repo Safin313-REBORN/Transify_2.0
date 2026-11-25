@@ -10,8 +10,8 @@
   // Reduced motion query
   const isReducedMotion = () => {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-           document.documentElement.classList.contains('rm') ||
-           document.body.classList.contains('rm');
+      document.documentElement.classList.contains('rm') ||
+      document.body.classList.contains('rm');
   };
 
   // 1. Sliding Navigation Indicator
@@ -248,7 +248,7 @@
   }
 
   // 10. Replay Intro Trigger (Settings)
-  window.replayIntro = function() {
+  window.replayIntro = function () {
     sessionStorage.removeItem('transify_boot_played');
     window.location.hash = '#home';
     const bootEl = document.getElementById('boot') || document.getElementById('transify-boot-screen');
@@ -286,7 +286,7 @@
         utter.rate = 1.0;
         utter.lang = 'en-US';
         window.speechSynthesis.speak(utter);
-      } catch (e) {}
+      } catch (e) { }
     };
 
     if (sosBtn && emModal) {
@@ -435,7 +435,7 @@
   });
 
   // 12. Hero Sign Hand Skeleton & Typing Loop
-  const BRL_MAP = {a:'1',b:'12',c:'14',d:'145',e:'15',f:'124',g:'1245',h:'125',i:'24',j:'245',k:'13',l:'123',m:'134',n:'1345',o:'135',p:'1234',q:'12345',r:'1235',s:'234',t:'2345',u:'136',v:'1236',w:'2456',x:'1346',y:'13456',z:'1356'};
+  const BRL_MAP = { a: '1', b: '12', c: '14', d: '145', e: '15', f: '124', g: '1245', h: '125', i: '24', j: '245', k: '13', l: '123', m: '134', n: '1345', o: '135', p: '1234', q: '12345', r: '1235', s: '234', t: '2345', u: '136', v: '1236', w: '2456', x: '1346', y: '13456', z: '1356' };
   function makeCell(dots) {
     const span = document.createElement('span');
     span.className = 'cell';
@@ -458,8 +458,8 @@
   function initHeroSignCard() {
     const hh = document.getElementById('hh');
     if (hh && !hh.children.length) {
-      const PT = [[150,310],[118,285],[92,255],[78,225],[68,198],[125,205],[122,160],[120,128],[118,100],[150,200],[152,150],[153,115],[154,82],[175,205],[182,160],[186,128],[190,102],[197,222],[210,190],[220,166],[228,144]];
-      const LN = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+      const PT = [[150, 310], [118, 285], [92, 255], [78, 225], [68, 198], [125, 205], [122, 160], [120, 128], [118, 100], [150, 200], [152, 150], [153, 115], [154, 82], [175, 205], [182, 160], [186, 128], [190, 102], [197, 222], [210, 190], [220, 166], [228, 144]];
+      const LN = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12], [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [17, 18], [18, 19], [19, 20], [0, 17]];
       const NS = 'http://www.w3.org/2000/svg';
       LN.forEach(([a, b]) => {
         const l = document.createElementNS(NS, 'line');

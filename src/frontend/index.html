@@ -14,19 +14,29 @@
   <link rel="apple-touch-icon" href="/static/icon-192.png">
   <meta name="theme-color" content="#14111F">
 
-  <!-- Open Graph & Social Sharing -->
+  <!-- Open Graph & Social Sharing (WhatsApp, Twitter, LinkedIn & Search Engine Ready) -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Transify 2.0">
   <meta property="og:url" content="https://transify20-production.up.railway.app/">
   <meta property="og:title" content="Transify 2.0 — Multimodal Accessible AI &amp; Clinical Triage">
-  <meta property="og:description" content="Edge-native Sign Language translation, Optical Braille OCR, Neural Voice captions, and WHO/Merck grounded clinical symptom triage.">
-  <meta property="og:image" content="https://transify20-production.up.railway.app/static/photos/voice-bg-wide.jpg">
+  <meta property="og:description"
+    content="Edge-native Sign Language translation, Optical Braille OCR, Neural Voice captions, and WHO/Merck grounded clinical symptom triage.">
+  <meta property="og:image" content="https://transify20-production.up.railway.app/static/photos/og-share-1200x630.jpg">
+  <meta property="og:image:secure_url" content="https://transify20-production.up.railway.app/static/photos/og-share-1200x630.jpg">
+  <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Transify 2.0 — Multimodal Accessible AI Platform Interface">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Transify 2.0 — Multimodal Accessible AI &amp; Clinical Triage">
-  <meta name="twitter:description" content="Edge-native Sign Language, Optical Braille OCR, Speech Hub, and Accessible Clinical Triage.">
-  <meta name="twitter:image" content="https://transify20-production.up.railway.app/static/photos/voice-bg-wide.jpg">
+  <meta name="twitter:description"
+    content="Edge-native Sign Language, Optical Braille OCR, Speech Hub, and Accessible Clinical Triage.">
+  <meta name="twitter:image" content="https://transify20-production.up.railway.app/static/photos/og-share-1200x630.jpg">
+  <meta name="google-site-verification" content="transify_google_search_console_verification_token_production">
+
+  <!-- Google Analytics 4 (GA4) with Consent Mode Guard -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRANSIFY20"></script>
+  <script src="/static/analytics.js"></script>
 
   <!-- Schema.org JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -243,38 +253,46 @@
         title="Transify Home" style="text-decoration: none;">
         <div class="transify-logo-mark" aria-hidden="true">
           <div class="logo-aura"></div>
-          <svg class="logo-svg" width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="logo-svg" width="36" height="36" viewBox="0 0 36 36" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="logoBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#9D4EDD"/>
-                <stop offset="45%" stop-color="#8338EC"/>
-                <stop offset="100%" stop-color="#5A189A"/>
+                <stop offset="0%" stop-color="#9D4EDD" />
+                <stop offset="45%" stop-color="#8338EC" />
+                <stop offset="100%" stop-color="#5A189A" />
               </linearGradient>
               <linearGradient id="logoSignalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#FFF275"/>
-                <stop offset="50%" stop-color="#FFCB05"/>
-                <stop offset="100%" stop-color="#FF9E00"/>
+                <stop offset="0%" stop-color="#FFF275" />
+                <stop offset="50%" stop-color="#FFCB05" />
+                <stop offset="100%" stop-color="#FF9E00" />
               </linearGradient>
               <linearGradient id="logoSheen" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.45"/>
-                <stop offset="45%" stop-color="#FFFFFF" stop-opacity="0.08"/>
-                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.45" />
+                <stop offset="45%" stop-color="#FFFFFF" stop-opacity="0.08" />
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
               </linearGradient>
               <filter id="dotGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="1" result="blur"/>
-                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                <feGaussianBlur stdDeviation="1" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
               </filter>
             </defs>
-            <rect x="1" y="1" width="34" height="34" rx="10" fill="url(#logoBgGrad)" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
-            <rect x="1" y="1" width="34" height="17" rx="10" fill="url(#logoSheen)" opacity="0.6"/>
-            <path class="logo-wave-arc wave-1" d="M12 9 C15 13, 21 13, 24 9" stroke="url(#logoSignalGrad)" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.85"/>
-            <path class="logo-wave-arc wave-2" d="M12 27 C15 23, 21 23, 24 27" stroke="#D8B4FE" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.6"/>
-            <circle cx="12" cy="10" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
-            <circle cx="12" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-1" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-            <circle cx="12" cy="26" r="2.8" class="logo-dot dot-active dot-pulse-2" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-            <circle cx="24" cy="10" r="2.8" class="logo-dot dot-active dot-pulse-3" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-            <circle cx="24" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-4" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-            <circle cx="24" cy="26" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
+            <rect x="1" y="1" width="34" height="34" rx="10" fill="url(#logoBgGrad)" stroke="rgba(255,255,255,0.25)"
+              stroke-width="1.2" />
+            <rect x="1" y="1" width="34" height="17" rx="10" fill="url(#logoSheen)" opacity="0.6" />
+            <path class="logo-wave-arc wave-1" d="M12 9 C15 13, 21 13, 24 9" stroke="url(#logoSignalGrad)"
+              stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.85" />
+            <path class="logo-wave-arc wave-2" d="M12 27 C15 23, 21 23, 24 27" stroke="#D8B4FE" stroke-width="1.4"
+              stroke-linecap="round" fill="none" opacity="0.6" />
+            <circle cx="12" cy="10" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)" />
+            <circle cx="12" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-1" fill="url(#logoSignalGrad)"
+              filter="url(#dotGlow)" />
+            <circle cx="12" cy="26" r="2.8" class="logo-dot dot-active dot-pulse-2" fill="url(#logoSignalGrad)"
+              filter="url(#dotGlow)" />
+            <circle cx="24" cy="10" r="2.8" class="logo-dot dot-active dot-pulse-3" fill="url(#logoSignalGrad)"
+              filter="url(#dotGlow)" />
+            <circle cx="24" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-4" fill="url(#logoSignalGrad)"
+              filter="url(#dotGlow)" />
+            <circle cx="24" cy="26" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)" />
           </svg>
         </div>
         <div class="logo-brand-lockup">
@@ -410,8 +428,11 @@
 
       <!-- Sticky Top Bar (Page Title, Language Toggle, Emergency SOS) -->
       <header class="top" aria-label="Transify Header" data-approved-overlay="true">
-        <button type="button" class="btn-mobile-menu press" id="btn-mobile-menu-toggle" aria-label="Open Navigation Menu" aria-expanded="false" aria-controls="app-nav-drawer" title="Toggle Navigation Menu">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <button type="button" class="btn-mobile-menu press" id="btn-mobile-menu-toggle"
+          aria-label="Open Navigation Menu" aria-expanded="false" aria-controls="app-nav-drawer"
+          title="Toggle Navigation Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -423,14 +444,18 @@
           <button type="button" aria-pressed="false" data-l="bn" id="btn-lang-bn" lang="bn">বাংলা</button>
         </div>
         <div class="header-action-group">
-          <button type="button" class="btn-header-action press" id="btn-site-search-toggle" aria-label="Search site (Ctrl+K)" title="Search site (Ctrl+K)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <button type="button" class="btn-header-action press" id="btn-site-search-toggle"
+            aria-label="Search site (Ctrl+K)" title="Search site (Ctrl+K)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </button>
-          <button type="button" class="btn-header-action press" id="btn-quick-theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-            <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <button type="button" class="btn-header-action press" id="btn-quick-theme-toggle"
+            aria-label="Toggle dark mode" title="Toggle dark mode">
+            <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="5"></circle>
               <line x1="12" y1="1" x2="12" y2="3"></line>
               <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -441,7 +466,9 @@
               <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
             </svg>
-            <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: none;">
+            <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+              style="display: none;">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
           </button>
@@ -588,20 +615,29 @@
         <!-- Right Side Panel -->
         <aside class="welcome-aside">
           <header class="welcome-header">
-            <a href="#home" class="welcome-brand press" aria-label="Transify Home" style="text-decoration: none; cursor: pointer;">
+            <a href="#home" class="welcome-brand press" aria-label="Transify Home"
+              style="text-decoration: none; cursor: pointer;">
               <div class="transify-logo-mark large" aria-hidden="true">
                 <div class="logo-aura"></div>
-                <svg class="logo-svg" width="42" height="42" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="1" y="1" width="34" height="34" rx="10" fill="url(#logoBgGrad)" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
-                  <rect x="1" y="1" width="34" height="17" rx="10" fill="url(#logoSheen)" opacity="0.6"/>
-                  <path class="logo-wave-arc wave-1" d="M12 9 C15 13, 21 13, 24 9" stroke="url(#logoSignalGrad)" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.85"/>
-                  <path class="logo-wave-arc wave-2" d="M12 27 C15 23, 21 23, 24 27" stroke="#D8B4FE" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.6"/>
-                  <circle cx="12" cy="10" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
-                  <circle cx="12" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-1" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-                  <circle cx="12" cy="26" r="2.8" class="logo-dot dot-active dot-pulse-2" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-                  <circle cx="24" cy="10" r="2.8" class="logo-dot dot-active dot-pulse-3" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-                  <circle cx="24" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-4" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-                  <circle cx="24" cy="26" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
+                <svg class="logo-svg" width="42" height="42" viewBox="0 0 36 36" fill="none"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <rect x="1" y="1" width="34" height="34" rx="10" fill="url(#logoBgGrad)"
+                    stroke="rgba(255,255,255,0.25)" stroke-width="1.2" />
+                  <rect x="1" y="1" width="34" height="17" rx="10" fill="url(#logoSheen)" opacity="0.6" />
+                  <path class="logo-wave-arc wave-1" d="M12 9 C15 13, 21 13, 24 9" stroke="url(#logoSignalGrad)"
+                    stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.85" />
+                  <path class="logo-wave-arc wave-2" d="M12 27 C15 23, 21 23, 24 27" stroke="#D8B4FE" stroke-width="1.4"
+                    stroke-linecap="round" fill="none" opacity="0.6" />
+                  <circle cx="12" cy="10" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)" />
+                  <circle cx="12" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-1" fill="url(#logoSignalGrad)"
+                    filter="url(#dotGlow)" />
+                  <circle cx="12" cy="26" r="2.8" class="logo-dot dot-active dot-pulse-2" fill="url(#logoSignalGrad)"
+                    filter="url(#dotGlow)" />
+                  <circle cx="24" cy="10" r="2.8" class="logo-dot dot-active dot-pulse-3" fill="url(#logoSignalGrad)"
+                    filter="url(#dotGlow)" />
+                  <circle cx="24" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-4" fill="url(#logoSignalGrad)"
+                    filter="url(#dotGlow)" />
+                  <circle cx="24" cy="26" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)" />
                 </svg>
               </div>
               <div class="logo-brand-lockup">
@@ -655,18 +691,20 @@
               </button>
               <button type="button" class="btn-welcome-secondary press" id="btn-open-login" data-action="open-auth"
                 data-mode="login">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align: -2px; margin-right: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                  style="vertical-align: -2px; margin-right: 6px;">
                   <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                   <polyline points="10 17 15 12 10 7"></polyline>
                   <line x1="15" y1="12" x2="3" y2="12"></line>
                 </svg><span>Log in</span></button>
             </div>
             <div class="welcome-links-row">
-              <button type="button" class="welcome-guest-link" id="btn-demo-guest"
-                data-route="home" data-after-route="demo-login">Skip for now</button>
+              <button type="button" class="welcome-guest-link" id="btn-demo-guest" data-route="home"
+                data-after-route="demo-login">Skip for now</button>
               <span class="welcome-links-dot" aria-hidden="true">•</span>
-              <button type="button" class="welcome-guest-link" id="btn-open-register"
-                data-action="open-auth" data-mode="signup">Create account</button>
+              <button type="button" class="welcome-guest-link" id="btn-open-register" data-action="open-auth"
+                data-mode="signup">Create account</button>
             </div>
 
             <!-- Team Alpha Nexus Copyright Claim -->
@@ -676,7 +714,9 @@
                 <img src="/static/photos/alpha-nexus-logo.jpg" alt="Team Alpha Nexus Emblem" class="an-emblem-mini"
                   width="24" height="24" loading="lazy">
               </picture>
-              <span>© 2026 <strong>Team Alpha Nexus</strong>. All rights reserved. • <a href="mailto:support@transify.nexus" style="color: inherit; text-decoration: underline;">Support</a></span>
+              <span>© 2026 <strong>Team Alpha Nexus</strong>. All rights reserved. • <a
+                  href="mailto:support@transify.nexus"
+                  style="color: inherit; text-decoration: underline;">Support</a></span>
             </div>
           </div>
         </aside>
@@ -745,7 +785,8 @@
               <div class="tile-bg-image-wrap" style="opacity: 0.25;">
                 <picture>
                   <source srcset="/static/photos/sign-bg-wide.webp" type="image/webp">
-                  <img src="/static/photos/sign-bg-wide.jpg" alt="Sign language communication tile background" class="tile-bg-img" loading="lazy">
+                  <img src="/static/photos/sign-bg-wide.jpg" alt="Sign language communication tile background"
+                    class="tile-bg-img" loading="lazy">
                 </picture>
               </div>
               <span class="go" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -832,7 +873,15 @@
                 <span class="care-badge online">Healthcare Intake</span>
                 <span class="care-badge">Offline-First</span>
                 <span class="care-badge"
-                  style="background: rgba(131,56,236,0.18); color: #C49CFF; border: 1px solid rgba(131,56,236,0.35);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -1px; margin-right: 4px;"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4 11a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7z"></path><circle cx="9" cy="15" r="1"></circle><circle cx="15" cy="15" r="1"></circle></svg>AI Trained</span>
+                  style="background: rgba(131,56,236,0.18); color: #C49CFF; border: 1px solid rgba(131,56,236,0.35);"><svg
+                    width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    style="vertical-align: -1px; margin-right: 4px;">
+                    <path
+                      d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM4 11a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7z">
+                    </path>
+                    <circle cx="9" cy="15" r="1"></circle>
+                    <circle cx="15" cy="15" r="1"></circle>
+                  </svg>AI Trained</span>
               </div>
               <div class="care-title" style="margin-top: 6px;">Transify Care &amp; AI Assistant</div>
               <div class="care-desc">Accessible clinical symptom triage, WHO/Merck guidelines &amp; AI consultation.
@@ -840,13 +889,21 @@
             </div>
             <div class="care-actions">
               <a href="#chat" class="btn-care-tile-primary press" id="btn-open-ai-chat">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> AI Chatbot
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg> AI Chatbot
               </a>
-              <a href="#care-chronic" class="btn-care-tile-primary press" id="btn-open-care-chronic">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="7"></circle><polyline points="12 9 12 12 13.5 13.5"></polyline><path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"></path></svg> ChronicCare
+              <a href="#chronic" class="btn-care-tile-primary press" id="btn-open-care-chronic">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <circle cx="12" cy="12" r="7"></circle>
+                  <polyline points="12 9 12 12 13.5 13.5"></polyline>
+                  <path
+                    d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83">
+                  </path>
+                </svg> ChronicCare
               </a>
-              <a href="#care-intake" class="btn-care-tile-secondary press" id="btn-open-care-intake">Symptom Intake</a>
-              <a href="#clinician" class="btn-care-tile-secondary press" id="btn-open-clinician-portal">Clinician
+              <a href="#care" class="btn-care-tile-secondary press" id="btn-open-care-intake">Symptom Intake</a>
+              <a href="#care" class="btn-care-tile-secondary press" id="btn-open-clinician-portal">Clinician
                 Portal</a>
             </div>
           </div>
@@ -856,56 +913,85 @@
             <div class="faq-section-header">
               <div class="faq-badge">KNOWLEDGE &amp; TRANSPARENCY</div>
               <h2 class="faq-title">Frequently Asked Questions</h2>
-              <p class="faq-subtitle">Everything you need to know about Transify's multimodal edge AI, clinical triage safety, and privacy protections.</p>
+              <p class="faq-subtitle">Everything you need to know about Transify's multimodal edge AI, clinical triage
+                safety, and privacy protections.</p>
             </div>
             <div class="faq-accordion-wrap">
               <details class="faq-item" open>
                 <summary class="faq-summary">
-                  <span class="faq-question">How does real-time Sign Language Translation work without uploading my camera feed?</span>
-                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <span class="faq-question">How does real-time Sign Language Translation work without uploading my
+                    camera feed?</span>
+                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 </summary>
                 <div class="faq-answer">
-                  <p>Transify executes lightweight MediaPipe WebAssembly models directly inside your local browser sandbox. 21 hand landmarks and 3D spatial vectors are extracted on client silicon—your video stream never leaves your device or touches an external server.</p>
+                  <p>Transify executes lightweight MediaPipe WebAssembly models directly inside your local browser
+                    sandbox. 21 hand landmarks and 3D spatial vectors are extracted on client silicon—your video stream
+                    never leaves your device or touches an external server.</p>
                 </div>
               </details>
 
               <details class="faq-item">
                 <summary class="faq-summary">
-                  <span class="faq-question">Which tactile Braille standards are supported in the Optical Scanner?</span>
-                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <span class="faq-question">Which tactile Braille standards are supported in the Optical
+                    Scanner?</span>
+                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 </summary>
                 <div class="faq-answer">
-                  <p>Our optical engine inspects 6-dot matrix patterns for Unified English Braille (UEB Grade 1 and Grade 2 contractions) as well as Bengali Bharati Braille standards with real-time character-level tactile mapping and downloadable BRF/TXT transcriptions.</p>
+                  <p>Our optical engine inspects 6-dot matrix patterns for Unified English Braille (UEB Grade 1 and
+                    Grade 2 contractions) as well as Bengali Bharati Braille standards with real-time character-level
+                    tactile mapping and downloadable BRF/TXT transcriptions.</p>
                 </div>
               </details>
 
               <details class="faq-item">
                 <summary class="faq-summary">
-                  <span class="faq-question">What is the Zero Auto-Audio Privacy Invariant and how does it safeguard users?</span>
-                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <span class="faq-question">What is the Zero Auto-Audio Privacy Invariant and how does it safeguard
+                    users?</span>
+                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 </summary>
                 <div class="faq-answer">
-                  <p>Speech synthesis is never triggered automatically on page load, navigation, or language switching. Audio playback occurs exclusively after an explicit, intentional user action (such as clicking 'Speak Aloud' or 'Pronounce'), protecting hearing-impaired users from unexpected blaring audio.</p>
+                  <p>Speech synthesis is never triggered automatically on page load, navigation, or language switching.
+                    Audio playback occurs exclusively after an explicit, intentional user action (such as clicking
+                    'Speak Aloud' or 'Pronounce'), protecting hearing-impaired users from unexpected blaring audio.</p>
                 </div>
               </details>
 
               <details class="faq-item">
                 <summary class="faq-summary">
                   <span class="faq-question">Can I access Emergency AAC phrases and hotlines offline?</span>
-                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 </summary>
                 <div class="faq-answer">
-                  <p>Yes. 50+ emergency phrases across 6 clinical categories, full-screen red emergency flashes, and direct tel-links (999 and 16263) are cached offline in browser memory, ensuring rapid communication during power or network outages.</p>
+                  <p>Yes. 50+ emergency phrases across 6 clinical categories, full-screen red emergency flashes, and
+                    direct tel-links (999 and 16263) are cached offline in browser memory, ensuring rapid communication
+                    during power or network outages.</p>
                 </div>
               </details>
 
               <details class="faq-item">
                 <summary class="faq-summary">
                   <span class="faq-question">How do I export my data or submit a self-service deletion request?</span>
-                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <svg class="faq-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 </summary>
                 <div class="faq-answer">
-                  <p>Under Settings &gt; Compliance Center, you can click 'Export Profile &amp; Settings' to download your full configuration JSON, or click 'Self-Service Data Erasure' (GDPR Art. 17) to purge all local activity history, tokens, and preferences instantly.</p>
+                  <p>Under Settings &gt; Compliance Center, you can click 'Export Profile &amp; Settings' to download
+                    your full configuration JSON, or click 'Self-Service Data Erasure' (GDPR Art. 17) to purge all local
+                    activity history, tokens, and preferences instantly.</p>
                 </div>
               </details>
             </div>
@@ -927,17 +1013,26 @@
                   <div class="an-copy-claim">© 2026 <strong>Alpha Nexus</strong>. All rights reserved. • Engineered with
                     pride for Transify 2.0</div>
                   <div class="last-updated-row" style="margin-top: 4px;">
-                    <span class="last-updated-badge"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Last updated: November 25, 2026</span>
+                    <span class="last-updated-badge"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                        style="vertical-align: -2px; margin-right: 4px;">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                      </svg>Last updated: November 25, 2026</span>
                   </div>
                   <div class="an-links-row" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px;">
-                    <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener">Source on GitHub</a>
+                    <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener">Source on
+                      GitHub</a>
                     <a href="mailto:support@transify.nexus" class="footer-legal-link">support@transify.nexus</a>
                     <a href="tel:16263" class="footer-legal-link">Health Helpline: 16263</a>
-                    <a href="#settings-privacy" class="footer-legal-link">Privacy Policy</a>
-                    <a href="#settings-terms" class="footer-legal-link">Terms of Service</a>
-                    <a href="#settings-cookies" class="footer-legal-link">Cookie Policy</a>
-                    <a href="#settings-refund" class="footer-legal-link">Refund &amp; Fee Transparency</a>
-                    <a href="#settings-legal" class="footer-legal-link">Compliance Center</a>
+                    <a href="#privacy" class="footer-legal-link">Privacy Policy</a>
+                    <a href="#terms" class="footer-legal-link">Terms of Service</a>
+                    <a href="#cookies" class="footer-legal-link">Cookie Policy</a>
+                    <a href="#refund" class="footer-legal-link">Refund &amp; Fee Transparency</a>
+                    <a href="#legal" class="footer-legal-link">Compliance Center</a>
+                    <a href="#payment" class="footer-legal-link" id="footer-donate-link">Support &amp; Donate</a>
                     <button type="button" class="btn-rep-intro">Replay intro</button>
                   </div>
                 </div>
@@ -1078,7 +1173,8 @@
             <div class="sign-header-right">
               <button type="button" id="toggle-roi-focus-btn" class="btn-focus-mode press"
                 data-action="toggle-roi-focus" aria-label="Toggle camera focus mode">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
                   <circle cx="12" cy="12" r="10"></circle>
                   <circle cx="12" cy="12" r="3"></circle>
                   <line x1="12" y1="2" x2="12" y2="6"></line>
@@ -1088,12 +1184,15 @@
                 </svg><span>Center Focus</span></button>
               <button type="button" id="btn-toggle-cam-fullscreen" class="btn-fullscreen-cam press"
                 data-action="toggle-cam-fullscreen" aria-label="Toggle camera fullscreen">
-                <svg class="fs-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
-                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                <svg class="fs-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                  style="vertical-align: -2px; margin-right: 4px;">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
                 </svg><span>Fullscreen</span></button>
               <button type="button" id="stop-camera-btn" class="btn-stop-cam press" data-action="stop-camera"
                 style="display: none;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"
+                  style="vertical-align: -2px; margin-right: 4px;">
                   <rect x="4" y="4" width="16" height="16" rx="2"></rect>
                 </svg><span>Stop camera</span></button>
               <div role="group" aria-label="Sign language" class="lang-segmented" id="sign-lang-segmented-group">
@@ -1213,7 +1312,13 @@
             <div id="alphabet-grid" class="alphabet-grid"></div>
             <div class="spell-actions-row">
               <button type="button" id="spell-space-btn" class="btn-spell-action press">Space</button>
-              <button type="button" id="spell-backspace-btn" class="btn-spell-action press"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>Back</button>
+              <button type="button" id="spell-backspace-btn" class="btn-spell-action press"><svg width="14" height="14"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  style="vertical-align: -1px; margin-right: 4px;">
+                  <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+                  <line x1="18" y1="9" x2="12" y2="15"></line>
+                  <line x1="12" y1="9" x2="18" y2="15"></line>
+                </svg>Back</button>
               <button type="button" id="spell-send-to-sentence-btn" class="btn-spell-action primary press">Add
                 Word</button>
               <button type="button" id="spell-clear-btn" class="btn-spell-action danger press">Clear</button>
@@ -1293,7 +1398,12 @@
               <button type="button" id="btn-phrase-emergency-mode" class="btn-outline-dark press"
                 data-action="editorial-toggle-flash"
                 style="height: 48px; border-color: rgba(239,68,68,0.4); color: #dc2626; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg><span>Emergency Siren Mode</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg><span>Emergency Siren Mode</span>
               </button>
 
               <div class="tts-speed-selector-wrap"
@@ -1311,7 +1421,12 @@
 
               <button type="button" class="btn-outline-dark press" data-action="editorial-export-json"
                 style="height: 48px; font-size: 13px; color: var(--ink); border-color: var(--line-2);">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>Export JSON</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg><span>Export JSON</span>
               </button>
             </div>
           </header>
@@ -1384,7 +1499,13 @@
               <button type="button" role="tab" class="phrase-cat-tab" data-cat="Assistive"
                 aria-selected="false">Assistive
                 <span class="phrase-cat-count" id="count-assistive">0</span></button>
-              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Favorites" aria-selected="false"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -1px; margin-right: 4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Favorites
+              <button type="button" role="tab" class="phrase-cat-tab" data-cat="Favorites" aria-selected="false"><svg
+                  width="13" height="13" viewBox="0 0 24 24" fill="currentColor"
+                  style="vertical-align: -1px; margin-right: 4px;">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                  </polygon>
+                </svg>Favorites
                 <span class="phrase-cat-count" id="count-favorites">0</span></button>
             </div>
           </div>
@@ -1408,14 +1529,33 @@
           <div id="phrase-flash-overlay" class="phrase-flash-overlay" style="display: none;"
             data-action="editorial-dismiss-flash">
             <div class="phrase-flash-modal" data-action="stop-propagation">
-              <div class="phrase-flash-siren"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>URGENT MEDICAL EMERGENCY</div>
+              <div class="phrase-flash-siren"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                  style="vertical-align: -2px; margin-right: 6px;">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>URGENT MEDICAL EMERGENCY</div>
               <div id="phrase-flash-text" class="phrase-flash-text">EMERGENCY ASSISTANCE NEEDED</div>
               <div id="phrase-flash-bn" class="phrase-flash-bn">জরুরি চিকিৎসা সহায়তা প্রয়োজন</div>
               <div class="phrase-flash-hotlines">
-                <a href="tel:999" class="hotline-pill press" style="text-decoration: none; color: inherit;" aria-label="Call National Emergency 999"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>National Emergency: 999</a>
-                <a href="tel:16263" class="hotline-pill press" style="text-decoration: none; color: inherit;" aria-label="Call Health Triage 16263"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M12 2v20M2 12h20"/></svg>Health Triage: 16263</a>
+                <a href="tel:999" class="hotline-pill press" style="text-decoration: none; color: inherit;"
+                  aria-label="Call National Emergency 999"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    style="vertical-align: -2px; margin-right: 4px;">
+                    <path
+                      d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>National Emergency: 999</a>
+                <a href="tel:16263" class="hotline-pill press" style="text-decoration: none; color: inherit;"
+                  aria-label="Call Health Triage 16263"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    style="vertical-align: -2px; margin-right: 4px;">
+                    <path d="M12 2v20M2 12h20" />
+                  </svg>Health Triage: 16263</a>
               </div>
-              <p style="margin: 12px 0 0; color: #fee2e2; font-size: 14px;">Please assist this individual or call <a href="tel:999" style="color: #fff; text-decoration: underline; font-weight: 700;">999</a> emergency services immediately.</p>
+              <p style="margin: 12px 0 0; color: #fee2e2; font-size: 14px;">Please assist this individual or call <a
+                  href="tel:999" style="color: #fff; text-decoration: underline; font-weight: 700;">999</a> emergency
+                services immediately.</p>
               <button type="button" class="btn-welcome-primary press" data-action="editorial-dismiss-flash"
                 style="margin-top: 18px; background: #ffffff; color: #b91c1c; font-weight: 800; border: none; padding: 0 24px;">
                 Dismiss Emergency Alert
@@ -1544,11 +1684,18 @@
 
               <div class="braille-dropzone-actions">
                 <button type="button" class="btn-braille-action primary press" id="braille-select-file-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> Browse Image
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg> Browse Image
                 </button>
                 <button type="button" class="btn-braille-action secondary press" id="braille-open-camera-btn"
                   data-action="braille-open-camera">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> Snap with Camera
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                  </svg> Snap with Camera
                 </button>
               </div>
 
@@ -1582,11 +1729,20 @@
               <div class="braille-toolbar-right">
                 <button type="button" id="check-iqa-btn-visible" class="btn-braille-toolbar-secondary press"
                   data-action="braille-run-iqa">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Check Quality (IQA)
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg> Check Quality (IQA)
                 </button>
                 <button type="button" id="translate-braille-btn-visible" class="btn-braille-toolbar-primary press"
                   data-action="braille-run-translation">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Translate Image
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                    </polygon>
+                  </svg> Translate Image
                 </button>
               </div>
             </div>
@@ -1630,10 +1786,33 @@
 
                 <!-- Explorer Utility Controls -->
                 <div class="braille-explorer-actions">
-                  <button type="button" class="btn-micro press" data-action="braille-clear-cell-dots"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Clear</button>
-                  <button type="button" class="btn-micro press" data-action="braille-speak-active-cell"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Pronounce</button>
-                  <button type="button" class="btn-micro press" data-action="braille-invert-cell-dots"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Invert</button>
-                  <button type="button" class="btn-micro press" data-action="braille-random-cell-pattern"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><circle cx="15.5" cy="15.5" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle></svg> Random</button>
+                  <button type="button" class="btn-micro press" data-action="braille-clear-cell-dots"><svg width="13"
+                      height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg> Clear</button>
+                  <button type="button" class="btn-micro press" data-action="braille-speak-active-cell"><svg width="13"
+                      height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg> Pronounce</button>
+                  <button type="button" class="btn-micro press" data-action="braille-invert-cell-dots"><svg width="13"
+                      height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="23 4 23 10 17 10"></polyline>
+                      <polyline points="1 20 1 14 7 14"></polyline>
+                      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg> Invert</button>
+                  <button type="button" class="btn-micro press" data-action="braille-random-cell-pattern"><svg
+                      width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                      <circle cx="15.5" cy="15.5" r="1.5"></circle>
+                      <circle cx="12" cy="12" r="1.5"></circle>
+                    </svg> Random</button>
                 </div>
               </div>
 
@@ -1655,17 +1834,47 @@
 
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                   <button type="button" id="speak-braille-btn" class="btn-braille-toolbar-primary press"
-                    style="height: 40px; font-size: 14px; padding: 0 16px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg> Speak aloud</button>
+                    style="height: 40px; font-size: 14px; padding: 0 16px;"><svg width="15" height="15"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                      stroke-linejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                    </svg> Speak aloud</button>
                   <button type="button" id="copy-braille-btn" class="btn-outline-dark btn-copy-interactive press"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg> Copy text</button>
-                  <button type="button" id="copy-braille-unicode-btn" class="btn-outline-dark btn-copy-interactive press"
-                    data-action="braille-copy-unicode"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="7" cy="6" r="2.2"/><circle cx="7" cy="12" r="2.2"/><circle cx="17" cy="6" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg> Copy Braille</button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg
+                      width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+                    </svg> Copy text</button>
+                  <button type="button" id="copy-braille-unicode-btn"
+                    class="btn-outline-dark btn-copy-interactive press" data-action="braille-copy-unicode"
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg
+                      width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="7" cy="6" r="2.2" />
+                      <circle cx="7" cy="12" r="2.2" />
+                      <circle cx="17" cy="6" r="2.2" />
+                      <circle cx="17" cy="18" r="2.2" />
+                    </svg> Copy Braille</button>
                   <button type="button" id="download-braille-btn" class="btn-outline-dark press"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg> Download TXT</button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg
+                      width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg> Download TXT</button>
                   <button type="button" id="download-brf-btn" class="btn-outline-dark press"
                     data-action="braille-download-brf"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download BRF</button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg
+                      width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg> Download BRF</button>
                 </div>
               </div>
             </div>
@@ -1816,7 +2025,8 @@
                 </div>
                 <button type="button" class="btn-camera-close press" data-action="braille-close-camera"
                   aria-label="Close Camera">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                   </svg>
@@ -1844,11 +2054,20 @@
               <div class="braille-camera-controls">
                 <button type="button" class="btn-outline-dark press" data-action="braille-switch-camera-facing"
                   style="color: #fff; border-color: rgba(255,255,255,0.3); height: 44px; padding: 0 16px;">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8c0 1.954.702 3.744 1.868 5.132L4 17h6v-6l-1.868 1.868A5.965 5.965 0 0 1 6 10c0-3.314 2.686-6 6-6s6 2.686 6 6c0 1.258-.387 2.426-1.047 3.393l1.458 1.458A7.957 7.957 0 0 0 20 10z"></path></svg> Flip Camera
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8c0 1.954.702 3.744 1.868 5.132L4 17h6v-6l-1.868 1.868A5.965 5.965 0 0 1 6 10c0-3.314 2.686-6 6-6s6 2.686 6 6c0 1.258-.387 2.426-1.047 3.393l1.458 1.458A7.957 7.957 0 0 0 20 10z">
+                    </path>
+                  </svg> Flip Camera
                 </button>
                 <button type="button" class="btn-welcome-primary press" data-action="braille-capture-camera"
                   style="height: 48px; font-size: 16px; padding: 0 24px;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> Capture &amp; Translate
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                  </svg> Capture &amp; Translate
                 </button>
               </div>
             </div>
@@ -1943,7 +2162,13 @@
               <div class="voice-samples-grid">
                 <button type="button" class="voice-sample-chip press" data-action="voice-load-sample"
                   data-sample="Emergency: I need medical assistance immediately" data-lang="en-US">
-                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E63946" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></span>
+                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                      stroke="#E63946" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2">
+                      </polygon>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg></span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">Emergency Assistance</span>
                     <span class="sample-chip-meta">English • Urgent Triage</span>
@@ -1951,7 +2176,10 @@
                 </button>
                 <button type="button" class="voice-sample-chip press" data-action="voice-load-sample"
                   data-sample="Clinical: Please check patient pulse and oxygen saturation" data-lang="en-US">
-                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2A9D8F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg></span>
+                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                      stroke="#2A9D8F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg></span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">Clinical Checkup</span>
                     <span class="sample-chip-meta">English • Vitals Triage</span>
@@ -1959,7 +2187,14 @@
                 </button>
                 <button type="button" class="voice-sample-chip press" data-action="voice-load-sample"
                   data-sample="জরুরি: আমার তীব্র শ্বাসকষ্ট হচ্ছে, দয়া করে সাহায্য করুন" data-lang="bn-BD">
-                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006A4E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></span>
+                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                      stroke="#006A4E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <path
+                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                      </path>
+                    </svg></span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">জরুরি শ্বাসকষ্ট (বাংলা)</span>
                     <span class="sample-chip-meta">বাংলা • হাসপাতাল জরুরি</span>
@@ -1968,7 +2203,12 @@
                 <button type="button" class="voice-sample-chip press" data-action="voice-load-sample"
                   data-sample="Accessibility: Where is the nearest wheelchair ramp and tactile pathway?"
                   data-lang="en-US">
-                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8338EC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="4" r="2"></circle><path d="M5 19a5 5 0 0 0 9.8-1.5L14 13h4l2 4"></path><path d="M10 8.5v5l4 1"></path></svg></span>
+                  <span class="voice-sample-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                      stroke="#8338EC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="9" cy="4" r="2"></circle>
+                      <path d="M5 19a5 5 0 0 0 9.8-1.5L14 13h4l2 4"></path>
+                      <path d="M10 8.5v5l4 1"></path>
+                    </svg></span>
                   <div class="sample-chip-info">
                     <span class="sample-chip-name">Wheelchair Wayfinding</span>
                     <span class="sample-chip-meta">Accessibility • Direction</span>
@@ -2068,10 +2308,26 @@
                     SRT</button>
                   <button type="button" id="stt-bridge-sign-btn" class="btn-outline-dark press"
                     data-action="voice-bridge-sign"
-                    style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg><span>Bridge to Signs</span></button>
+                    style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);"><svg
+                      width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                      <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
+                      <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
+                      <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
+                      <path
+                        d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15">
+                      </path>
+                    </svg><span>Bridge to Signs</span></button>
                   <button type="button" id="stt-bridge-braille-btn" class="btn-outline-dark press"
                     data-action="voice-bridge-braille"
-                    style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><circle cx="7" cy="6" r="2.2"/><circle cx="7" cy="12" r="2.2"/><circle cx="7" cy="18" r="2.2"/><circle cx="17" cy="6" r="2.2"/></svg><span>Bridge to Braille</span></button>
+                    style="height: 42px; font-size: 14px; color: var(--violet); border-color: rgba(131,56,236,0.3);"><svg
+                      width="15" height="15" viewBox="0 0 24 24" fill="currentColor"
+                      style="vertical-align: -2px; margin-right: 4px;">
+                      <circle cx="7" cy="6" r="2.2" />
+                      <circle cx="7" cy="12" r="2.2" />
+                      <circle cx="7" cy="18" r="2.2" />
+                      <circle cx="17" cy="6" r="2.2" />
+                    </svg><span>Bridge to Braille</span></button>
                 </div>
               </div>
 
@@ -2128,20 +2384,52 @@
 
                 <!-- Quick Phrases Bar -->
                 <div class="voice-quick-phrases">
-                  <span class="voice-toolbar-label" style="margin-bottom: 4px; display: block;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>Quick Medical &amp; Everyday Phrases:</span>
+                  <span class="voice-toolbar-label" style="margin-bottom: 4px; display: block;"><svg width="14"
+                      height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>Quick Medical &amp; Everyday Phrases:</span>
                   <div class="voice-chips-scroll">
                     <button type="button" class="voice-quick-chip press" data-action="voice-insert-phrase"
-                      data-phrase="Emergency! Please call 999 immediately."><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Emergency 999</button>
+                      data-phrase="Emergency! Please call 999 immediately."><svg width="13" height="13"
+                        viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.2" stroke-linecap="round"
+                        stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                        <path
+                          d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                      </svg>Emergency 999</button>
                     <button type="button" class="voice-quick-chip press" data-action="voice-insert-phrase"
-                      data-phrase="I need to take my prescribed medication now."><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>Take Medication</button>
+                      data-phrase="I need to take my prescribed medication now."><svg width="13" height="13"
+                        viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.2" stroke-linecap="round"
+                        stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                        <path d="M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
+                        <path d="m8.5 8.5 7 7" />
+                      </svg>Take Medication</button>
                     <button type="button" class="voice-quick-chip press" data-action="voice-insert-phrase"
-                      data-phrase="Please hold the door, I require wheelchair access."><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="4" r="2"/><path d="M5 19a4 4 0 0 0 8 0v-4.5a2.5 2.5 0 0 0-5 0V18"/><path d="M9 13h5l3 7"/></svg>Wheelchair Access</button>
+                      data-phrase="Please hold the door, I require wheelchair access."><svg width="13" height="13"
+                        viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2.2" stroke-linecap="round"
+                        stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                        <circle cx="12" cy="4" r="2" />
+                        <path d="M5 19a4 4 0 0 0 8 0v-4.5a2.5 2.5 0 0 0-5 0V18" />
+                        <path d="M9 13h5l3 7" />
+                      </svg>Wheelchair Access</button>
                     <button type="button" class="voice-quick-chip press" data-action="voice-insert-phrase"
-                      data-phrase="আমার রক্তের গ্রুপ ও-পজিটিভ, জরুরি রক্ত প্রয়োজন।"><span class="chip-lang-badge">বাংলা</span>রক্তের গ্রুপ ও-পজিটিভ</button>
+                      data-phrase="আমার রক্তের গ্রুপ ও-পজিটিভ, জরুরি রক্ত প্রয়োজন।"><span
+                        class="chip-lang-badge">বাংলা</span>রক্তের গ্রুপ ও-পজিটিভ</button>
                     <button type="button" class="voice-quick-chip press" data-action="voice-insert-phrase"
-                      data-phrase="আমার কথা বলতে কষ্ট হচ্ছে, আমাকে সাহায্য করুন।"><span class="chip-lang-badge">বাংলা</span>কথা বলতে কষ্ট হচ্ছে</button>
+                      data-phrase="আমার কথা বলতে কষ্ট হচ্ছে, আমাকে সাহায্য করুন।"><span
+                        class="chip-lang-badge">বাংলা</span>কথা বলতে কষ্ট হচ্ছে</button>
                     <button type="button" class="voice-quick-chip press" data-action="voice-insert-phrase"
-                      data-phrase="Hello, nice to meet you. Thank you for your support."><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>Hello &amp; Thank you</button>
+                      data-phrase="Hello, nice to meet you. Thank you for your support."><svg width="13" height="13"
+                        viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"
+                        stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                        <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
+                        <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" />
+                        <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
+                        <path
+                          d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+                      </svg>Hello &amp; Thank you</button>
                   </div>
                 </div>
 
@@ -2171,15 +2459,41 @@
                 <!-- Action Buttons -->
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                   <button type="button" id="tts-speak-btn" class="btn-braille-toolbar-primary press"
-                    style="height: 40px; font-size: 14px; padding: 0 18px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg><span>Speak text</span></button>
+                    style="height: 40px; font-size: 14px; padding: 0 18px;"><svg width="15" height="15"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                      stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                    </svg><span>Speak text</span></button>
                   <button type="button" id="tts-pause-btn" class="btn-outline-dark press" data-action="voice-pause-tts"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg><span>Pause / Resume</span></button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg
+                      width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                      <rect x="6" y="4" width="4" height="16"></rect>
+                      <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg><span>Pause / Resume</span></button>
                   <button type="button" id="tts-stop-btn" class="btn-outline-dark press"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg><span>Stop</span></button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg
+                      width="13" height="13" viewBox="0 0 24 24" fill="currentColor"
+                      style="vertical-align: -2px; margin-right: 4px;">
+                      <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                    </svg><span>Stop</span></button>
                   <button type="button" id="tts-clear-btn" class="btn-outline-dark press"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span>Clear</span></button>
-                  <button type="button" id="tts-copy-btn" class="btn-outline-dark btn-copy-interactive press" data-action="voice-copy-tts"
-                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><span>Copy text</span></button>
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg
+                      width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg><span>Clear</span></button>
+                  <button type="button" id="tts-copy-btn" class="btn-outline-dark btn-copy-interactive press"
+                    data-action="voice-copy-tts"
+                    style="height: 40px; font-size: 14px; padding: 0 14px; color: var(--ink); border-color: var(--line-2);"><svg
+                      width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                      <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+                    </svg><span>Copy text</span></button>
                 </div>
               </div>
             </div>
@@ -2201,7 +2515,12 @@
                 <div style="display: flex; gap: 8px;">
                   <button type="button" class="btn-welcome-primary press" data-action="voice-sync-bridge"
                     style="height: 38px; font-size: 13px; padding: 0 14px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg><span>Sync Current Voice</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                      <polyline points="23 4 23 10 17 10"></polyline>
+                      <polyline points="1 20 1 14 7 14"></polyline>
+                      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg><span>Sync Current Voice</span>
                   </button>
                 </div>
               </div>
@@ -2211,7 +2530,15 @@
               <!-- Bridge Left: ASL Fingerspelling Translation -->
               <div class="voice-captions-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>ASL Fingerspelling Stream</h3>
+                  <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;"><svg
+                      width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;">
+                      <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
+                      <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" />
+                      <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
+                      <path
+                        d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+                    </svg>ASL Fingerspelling Stream</h3>
                   <button type="button" class="btn-micro press" data-route="sign">Open Sign
                     Translator</button>
                 </div>
@@ -2255,7 +2582,14 @@
             <div class="voice-grid-layout">
               <!-- Acoustic VU Meter & Microphone Health -->
               <div class="voice-captions-card">
-                <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Microphone Decibel Meter (VU)</h3>
+                <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;"><svg
+                    width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                    <line x1="8" y1="23" x2="16" y2="23" />
+                  </svg>Microphone Decibel Meter (VU)</h3>
                 <p style="margin: 0; color: var(--text-2); font-size: 13px;">Real-time acoustic input pressure level
                   with ambient noise threshold detection.</p>
 
@@ -2288,7 +2622,11 @@
 
               <!-- Speech Fluency & Biomarker Tracking -->
               <div class="voice-tts-card">
-                <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Speech Fluency &amp; Biomarkers</h3>
+                <h3 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800;"><svg
+                    width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                  </svg>Speech Fluency &amp; Biomarkers</h3>
                 <p style="margin: 0; color: var(--text-2); font-size: 13px;">Clinical speech rate indicator for
                   assistive evaluation of dysarthria or respiratory effort.</p>
 
@@ -2309,7 +2647,11 @@
 
                 <div
                   style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); border-radius: 10px; padding: 12px; font-size: 13px; color: #15803d;">
-                  <strong style="display: flex; align-items: center; gap: 6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg> Acoustic Environment Optimal:</strong> Low reverberation, ambient SNR &gt; 22 dB. Speech
+                  <strong style="display: flex; align-items: center; gap: 6px;"><svg width="15" height="15"
+                      viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round"
+                      stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg> Acoustic Environment Optimal:</strong> Low reverberation, ambient SNR &gt; 22 dB. Speech
                   recognition operates at peak neural accuracy.
                 </div>
               </div>
@@ -2360,7 +2702,12 @@
             <div class="care-emergency-banner"
               style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; background: rgba(225, 29, 72, 0.08); border: 1px solid rgba(225, 29, 72, 0.22); border-radius: 8px; padding: 10px 14px; margin-top: 10px; font-size: 13px;">
               <span style="font-weight: 700; color: #E11D48; display: flex; align-items: center; gap: 6px;">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E11D48" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E11D48" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
                 Immediate Life Threat or Critical Emergency?
               </span>
               <div style="display: flex; gap: 14px; font-weight: 600;">
@@ -2376,53 +2723,97 @@
               style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; margin-bottom: 4px;">
               <label for="care-photo-input" class="btn-outline-dark press"
                 style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
                 <span>Scan Lesion / Eye</span>
                 <input type="file" id="care-photo-input" accept="image/*" class="sr-only">
               </label>
               <button type="button" id="btn-care-voice-dialect" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <rect x="9" y="3" width="6" height="11" rx="3"></rect>
+                  <path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path>
+                </svg>
                 <span>Voice Dialect</span>
               </button>
               <button type="button" id="btn-care-outbreak-alert" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: #E65100; border-color: #FFE082; background: #FFF8E1;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
                 <span>Outbreak Alert (Dhaka)</span>
               </button>
               <button type="button" id="btn-care-nearby-facilities" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
                 <span>Nearest Clinics (OSM)</span>
               </button>
               <button type="button" id="btn-care-ada-diff" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
                 <span>Differential (Ada)</span>
               </button>
               <button type="button" id="btn-care-k-health" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
                 <span>People Like Me (K Health)</span>
               </button>
               <button type="button" id="btn-care-healthy-io" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"></path></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"></path>
+                </svg>
                 <span>Urine &amp; Wound (Healthy.io)</span>
               </button>
               <button type="button" id="btn-care-mimic-hmd" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
                 <span>Shock &amp; Risk (MIMIC/HMD)</span>
               </button>
               <button type="button" id="btn-care-zipline" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polygon points="12 2 19 21 12 17 5 21 12 2"></polygon></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <polygon points="12 2 19 21 12 17 5 21 12 2"></polygon>
+                </svg>
                 <span>Drone Supply (Zipline)</span>
               </button>
               <button type="button" id="btn-care-who-gho" class="btn-outline-dark press"
                 style="height: 38px; padding: 0 14px; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--ink); border-color: var(--line-2); background: var(--surface);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                  </path>
+                </svg>
                 <span>Infrastructure (WHO GHO)</span>
               </button>
             </div>
@@ -2476,7 +2867,13 @@
             <div id="care-ada-modal"
               style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid var(--violet); margin-bottom: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 15px; color: var(--violet);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Ada Health-Inspired Probabilistic
+                <strong style="font-size: 15px; color: var(--violet);"><svg width="15" height="15" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    style="vertical-align: -2px; margin-right: 6px;">
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="12" cy="12" r="6" />
+                    <circle cx="12" cy="12" r="2" />
+                  </svg>Ada Health-Inspired Probabilistic
                   Differential</strong>
                 <button type="button" id="btn-close-ada-modal"
                   style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
@@ -2490,7 +2887,13 @@
             <div id="care-khealth-modal"
               style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid #0F9D74; margin-bottom: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 15px; color: #0F9D74;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>K Health 'People Like Me' Comparative
+                <strong style="font-size: 15px; color: #0F9D74;"><svg width="15" height="15" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    style="vertical-align: -2px; margin-right: 6px;">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                  </svg>K Health 'People Like Me' Comparative
                   Encounters</strong>
                 <button type="button" id="btn-close-khealth-modal"
                   style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
@@ -2504,7 +2907,11 @@
             <div id="care-healthy-modal"
               style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid #0284C7; margin-bottom: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 15px; color: #0284C7;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/></svg>Healthy.io Smartphone Urinalysis &amp; Wound
+                <strong style="font-size: 15px; color: #0284C7;"><svg width="15" height="15" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    style="vertical-align: -2px; margin-right: 6px;">
+                    <path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0" />
+                  </svg>Healthy.io Smartphone Urinalysis &amp; Wound
                   Staging</strong>
                 <button type="button" id="btn-close-healthy-modal"
                   style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
@@ -2524,7 +2931,12 @@
             <div id="care-mimic-hmd-modal"
               style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid #EA580C; margin-bottom: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 15px; color: #EA580C;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>MIMIC-IV Shock Index &amp; HMD Actuarial Hazard
+                <strong style="font-size: 15px; color: #EA580C;"><svg width="15" height="15" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    style="vertical-align: -2px; margin-right: 6px;">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                    <polyline points="17 6 23 6 23 12" />
+                  </svg>MIMIC-IV Shock Index &amp; HMD Actuarial Hazard
                   Model</strong>
                 <button type="button" id="btn-close-mimic-hmd-modal"
                   style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
@@ -2538,7 +2950,12 @@
             <div id="care-zipline-modal"
               style="display: none; padding: 14px; border-radius: 10px; background: #EEF2FF; border: 1.5px solid #4F46E5; color: #1E1B4B; margin-bottom: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 15px; color: #4F46E5;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><circle cx="12" cy="12" r="3"/><path d="M12 2a10 10 0 0 0-9.95 9h19.9A10 10 0 0 0 12 2z"/></svg>Zipline Autonomous Medical Drone Logistics</strong>
+                <strong style="font-size: 15px; color: #4F46E5;"><svg width="15" height="15" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    style="vertical-align: -2px; margin-right: 6px;">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 2a10 10 0 0 0-9.95 9h19.9A10 10 0 0 0 12 2z" />
+                  </svg>Zipline Autonomous Medical Drone Logistics</strong>
                 <button type="button" id="btn-close-zipline-modal"
                   style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
               </div>
@@ -2546,11 +2963,14 @@
                 <button type="button" class="btn-zipline-req press" data-supply="antivenom"
                   style="font-size: 12px; padding: 6px 12px; border-radius: 6px; background: #fff; border: 1px solid #4F46E5; cursor: pointer; font-weight: 600;">Anti-venom</button>
                 <button type="button" class="btn-zipline-req press" data-supply="blood_o_neg"
-                  style="font-size: 12px; padding: 6px 12px; border-radius: 6px; background: #fff; border: 1px solid #4F46E5; cursor: pointer; font-weight: 600;">O-Neg Blood</button>
+                  style="font-size: 12px; padding: 6px 12px; border-radius: 6px; background: #fff; border: 1px solid #4F46E5; cursor: pointer; font-weight: 600;">O-Neg
+                  Blood</button>
                 <button type="button" class="btn-zipline-req press" data-supply="rabies_immunoglobulin"
-                  style="font-size: 12px; padding: 6px 12px; border-radius: 6px; background: #fff; border: 1px solid #4F46E5; cursor: pointer; font-weight: 600;">Rabies Vaccine</button>
+                  style="font-size: 12px; padding: 6px 12px; border-radius: 6px; background: #fff; border: 1px solid #4F46E5; cursor: pointer; font-weight: 600;">Rabies
+                  Vaccine</button>
                 <button type="button" class="btn-zipline-req press" data-supply="ors_packets"
-                  style="font-size: 12px; padding: 6px 12px; border-radius: 6px; background: #fff; border: 1px solid #4F46E5; cursor: pointer; font-weight: 600;">Bulk ORS</button>
+                  style="font-size: 12px; padding: 6px 12px; border-radius: 6px; background: #fff; border: 1px solid #4F46E5; cursor: pointer; font-weight: 600;">Bulk
+                  ORS</button>
               </div>
               <div id="care-zipline-content" style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
                 Select emergency medical supply to coordinate autonomous cold-chain aerial dispatch.
@@ -2561,7 +2981,14 @@
             <div id="care-who-gho-modal"
               style="display: none; padding: 14px; border-radius: 10px; background: var(--surface-2); border: 1.5px solid #2563EB; margin-bottom: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 15px; color: #2563EB;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>WHO Global Health Observatory Infrastructure
+                <strong style="font-size: 15px; color: #2563EB;"><svg width="15" height="15" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                    style="vertical-align: -2px; margin-right: 6px;">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <path
+                      d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                  </svg>WHO Global Health Observatory Infrastructure
                   Profile</strong>
                 <button type="button" id="btn-close-who-gho-modal"
                   style="background: none; border: none; font-size: 16px; cursor: pointer;">×</button>
@@ -2808,17 +3235,47 @@
             <div class="chronic-module-nav"
               style="display: flex; gap: 8px; flex-wrap: wrap; background: var(--surface-2); padding: 8px; border-radius: 12px; border: 1px solid var(--line);">
               <button type="button" class="chronic-nav-btn active btn-uiverse" data-target="chronic-sec-telemetry"
-                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><circle cx="12" cy="12" r="7"></circle><polyline points="12 9 12 12 13.5 13.5"></polyline><path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"></path></svg>Wearables &amp; 24h Crisis</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;">
+                  <circle cx="12" cy="12" r="7"></circle>
+                  <polyline points="12 9 12 12 13.5 13.5"></polyline>
+                  <path
+                    d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83">
+                  </path>
+                </svg>Wearables &amp; 24h Crisis</button>
               <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-nutrition"
-                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M12 2a9 9 0 0 1 9 9c0 4.97-4.03 9-9 9A9 9 0 0 1 3 11c0-4.97 4.03-9 9-9z"></path><path d="M12 6v6l4 2"></path></svg>Nutrition CV &amp; Insulin</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;">
+                  <path d="M12 2a9 9 0 0 1 9 9c0 4.97-4.03 9-9 9A9 9 0 0 1 3 11c0-4.97 4.03-9 9-9z"></path>
+                  <path d="M12 6v6l4 2"></path>
+                </svg>Nutrition CV &amp; Insulin</button>
               <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-labcoach"
-                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Culturally Tailored Lab Coaching</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                </svg>Culturally Tailored Lab Coaching</button>
               <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-elderly"
-                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10a7 7 0 0 0 14 0"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>Elderly Voice &amp; Cognition</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;">
+                  <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+                  <path d="M5 10a7 7 0 0 0 14 0"></path>
+                  <line x1="12" y1="19" x2="12" y2="22"></line>
+                </svg>Elderly Voice &amp; Cognition</button>
               <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-polypharmacy"
-                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg>OpenFDA Drug Interactions</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;">
+                  <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path>
+                  <path d="m8.5 8.5 7 7"></path>
+                </svg>OpenFDA Drug Interactions</button>
               <button type="button" class="chronic-nav-btn btn-uiverse" data-target="chronic-sec-federated"
-                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>Federated Learning</button>
+                style="font-size: 13px; height: 38px; padding: 0 14px;"><svg width="14" height="14" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                  </path>
+                </svg>Federated Learning</button>
             </div>
 
             <!-- SECTION 1: Wearables & 24-Hour Crisis Forecasting -->
@@ -2889,7 +3346,10 @@
               </div>
 
               <button type="button" id="btn-run-crisis-forecast" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>Run 24h Predictive Crisis Forecast</button>
+                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>Run 24h Predictive Crisis Forecast</button>
 
               <!-- Crisis Forecast Output Card -->
               <div id="chronic-forecast-result"
@@ -2957,7 +3417,12 @@
 
                   <label for="chronic-food-photo-input" class="btn-outline-dark press"
                     style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 38px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg><span>Upload Custom Meal Photo</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
+                      </path>
+                      <circle cx="12" cy="13" r="4"></circle>
+                    </svg><span>Upload Custom Meal Photo</span>
                     <input type="file" id="chronic-food-photo-input" accept="image/*" class="sr-only">
                   </label>
                   <div id="chronic-food-preview-box" style="display: none; align-items: center; gap: 10px;">
@@ -3001,7 +3466,15 @@
               </div>
 
               <button type="button" id="btn-calc-insulin" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 320px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><path d="m18 2 4 4"></path><path d="m17 7 3-3"></path><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"></path><path d="m9 11 4 4"></path><path d="m5 19-3 3"></path><path d="m14 4 6 6"></path></svg>Analyze Meal &amp; Compute Insulin
+                style="height: 48px; max-width: 320px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;">
+                  <path d="m18 2 4 4"></path>
+                  <path d="m17 7 3-3"></path>
+                  <path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"></path>
+                  <path d="m9 11 4 4"></path>
+                  <path d="m5 19-3 3"></path>
+                  <path d="m14 4 6 6"></path>
+                </svg>Analyze Meal &amp; Compute Insulin
                 Dose</button>
 
               <!-- Nutrition & Insulin Output -->
@@ -3103,7 +3576,11 @@
               </div>
 
               <button type="button" id="btn-translate-lab" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>Translate Lab Results &amp; Generate Diet
+                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                </svg>Translate Lab Results &amp; Generate Diet
                 Plan</button>
 
               <!-- Lab Translation Results -->
@@ -3178,7 +3655,12 @@
               </div>
 
               <button type="button" id="btn-analyze-elderly-voice" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10a7 7 0 0 0 14 0"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>Analyze Adherence &amp; Vocal
+                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;">
+                  <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+                  <path d="M5 10a7 7 0 0 0 14 0"></path>
+                  <line x1="12" y1="19" x2="12" y2="22"></line>
+                </svg>Analyze Adherence &amp; Vocal
                 Biomarkers</button>
 
               <!-- Elderly Adherence & Cognition Output -->
@@ -3260,7 +3742,11 @@
               </div>
 
               <button type="button" id="btn-check-polypharmacy" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg>Cross-Check OpenFDA Drug
+                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;">
+                  <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path>
+                  <path d="m8.5 8.5 7 7"></path>
+                </svg>Cross-Check OpenFDA Drug
                 Interactions</button>
 
               <!-- Polypharmacy Results -->
@@ -3328,7 +3814,13 @@
               </div>
 
               <button type="button" id="btn-run-federated-round" class="btn-uiverse btn-welcome-primary"
-                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>Execute Federated Training Round
+                style="height: 48px; max-width: 340px; font-size: 14px;"><svg width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 6px;">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                  </path>
+                </svg>Execute Federated Training Round
                 (FedAvg)</button>
 
               <!-- Federated Results -->
@@ -3381,11 +3873,12 @@
             <header class="chat-header">
               <div class="chat-header-info">
                 <div class="chat-avatar-glow" aria-hidden="true">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
-                    <path d="M4 11a8 8 0 0 1 16 0c0 3.2-1.5 5.5-3.5 7.2L17 21l-3.5-1.5A7.9 7.9 0 0 1 4 11z"/>
-                    <circle cx="9" cy="11" r="1.2" fill="#FFFFFF"/>
-                    <circle cx="15" cy="11" r="1.2" fill="#FFFFFF"/>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" />
+                    <path d="M4 11a8 8 0 0 1 16 0c0 3.2-1.5 5.5-3.5 7.2L17 21l-3.5-1.5A7.9 7.9 0 0 1 4 11z" />
+                    <circle cx="9" cy="11" r="1.2" fill="#FFFFFF" />
+                    <circle cx="15" cy="11" r="1.2" fill="#FFFFFF" />
                   </svg>
                 </div>
                 <div>
@@ -3420,7 +3913,14 @@
             <!-- Messages Stream -->
             <div class="chat-stream-container" id="chat-stream-container">
               <div class="chat-message-item bot">
-                <div class="chat-msg-avatar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line></svg></div>
+                <div class="chat-msg-avatar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                    <circle cx="12" cy="5" r="2"></circle>
+                    <path d="M12 7v4"></path>
+                    <line x1="8" y1="16" x2="8.01" y2="16"></line>
+                    <line x1="16" y1="16" x2="16.01" y2="16"></line>
+                  </svg></div>
                 <div class="chat-msg-content">
                   <div class="chat-msg-bubble">
                     <p><strong>Hello! I am Transify AI</strong>, your accessible healthcare and communication
@@ -3438,7 +3938,11 @@
                     </ul>
                     <p>Ask a question below or choose a quick topic to start:</p>
                   </div>
-                  <div class="chat-source-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 16 12 12 8"></polygon></svg>Trained Knowledge Engine • Safe Triage Grounded</div>
+                  <div class="chat-source-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polygon points="12 8 8 12 12 16 16 12 12 8"></polygon>
+                    </svg>Trained Knowledge Engine • Safe Triage Grounded</div>
                 </div>
               </div>
             </div>
@@ -3453,7 +3957,8 @@
                 data-prompt="Explain Grade 1 vs Grade 2 contracted Braille">Grade 1 vs 2 Braille</button>
               <button type="button" class="chat-suggestion-chip press"
                 data-prompt="How does CareAnywhere offline triage work?">Offline Triage &amp; Sync</button>
-              <button type="button" class="chat-suggestion-chip press" data-prompt="আমার জ্বর হয়েছে কি করব">বাংলায় পরামর্শ (Fever in Bengali)</button>
+              <button type="button" class="chat-suggestion-chip press" data-prompt="আমার জ্বর হয়েছে কি করব">বাংলায়
+                পরামর্শ (Fever in Bengali)</button>
             </div>
 
             <!-- Input Bar -->
@@ -3486,9 +3991,12 @@
             <header class="chat-modal-header">
               <div>
                 <h2 class="chat-modal-title">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFCB05" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              AI Training Hub &amp; Fine-Tuning
-            </h2>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFCB05" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 6px;">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                  </svg>
+                  AI Training Hub &amp; Fine-Tuning
+                </h2>
                 <p class="chat-modal-sub">Iteratively train and fine-tune Transify's local neural semantic model.</p>
               </div>
               <button type="button" id="btn-close-training-modal" class="chat-modal-close press"
@@ -3543,7 +4051,10 @@
                     </select>
                   </label>
                   <button type="button" id="btn-start-training" class="btn-start-train press">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Train AI Model Now</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg><span>Train AI Model Now</span>
                   </button>
                 </div>
                 <!-- Training Progress Bar -->
@@ -3685,8 +4196,8 @@
               </button>
 
               <button type="button" class="settings-nav-tab press" data-settings-tab="legal" role="tab"
-                id="tab-btn-legal" aria-selected="false" aria-controls="settings-pane-legal"
-                data-action="settings-tab" data-tab="legal">
+                id="tab-btn-legal" aria-selected="false" aria-controls="settings-pane-legal" data-action="settings-tab"
+                data-tab="legal">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                   stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -4342,7 +4853,8 @@
               <div class="settings-card" style="border: 1.5px solid rgba(239, 68, 68, 0.35);">
                 <div class="settings-card-header">
                   <div class="settings-card-icon-wrap" style="background: rgba(239, 68, 68, 0.15); color: #EF4444;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="3 6 5 6 21 6"></polyline>
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                       <line x1="10" y1="11" x2="10" y2="17"></line>
@@ -4351,18 +4863,27 @@
                   </div>
                   <div>
                     <h2 class="settings-card-title">Right to Erasure &amp; Data Deletion (GDPR Art. 17)</h2>
-                    <p class="settings-card-subtitle">Self-service permanent purge of all stored records and device data</p>
+                    <p class="settings-card-subtitle">Self-service permanent purge of all stored records and device data
+                    </p>
                   </div>
                 </div>
 
                 <div class="settings-card-body" style="padding-top: 6px;">
                   <p style="font-size: 13.5px; line-height: 1.55; color: var(--text-2); margin: 0 0 14px;">
-                    Under GDPR Article 17 and CCPA guidelines, you retain the permanent right to purge all personal data, clinical drafts, translation logs, and session identifiers. Clicking the button below immediately purges your local storage, session storage, and database activity logs.
+                    Under GDPR Article 17 and CCPA guidelines, you retain the permanent right to purge all personal
+                    data, clinical drafts, translation logs, and session identifiers. Clicking the button below
+                    immediately purges your local storage, session storage, and database activity logs.
                   </p>
                   <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
                     <button type="button" id="btn-request-data-deletion" class="btn-settings-action press"
-                      style="background: #EF4444; color: #FFFFFF; border-color: #DC2626;" data-action="settings-request-data-deletion">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                      style="background: #EF4444; color: #FFFFFF; border-color: #DC2626;"
+                      data-action="settings-request-data-deletion">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                        style="vertical-align: -2px; margin-right: 4px;">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
                       Delete All My Data &amp; Reset App
                     </button>
                     <span style="font-size: 12px; color: var(--text-3);">Permanent action • Irreversible</span>
@@ -4445,6 +4966,22 @@
                 </div>
               </div>
 
+              <!-- Chat on WhatsApp Card -->
+              <a href="https://wa.me/8801700000000?text=Hello%20Transify%20Team%2C%20I%20have%20an%20inquiry%20regarding%20Transify%202.0"
+                target="_blank" rel="noopener noreferrer" class="card card-uiverse contact-card whatsapp-contact-card"
+                id="settings-whatsapp-card" aria-label="Chat with Support on WhatsApp">
+                <div class="go-corner" aria-hidden="true"><span class="go-arrow">→</span></div>
+                <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.456 5.712 1.457h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                  <span style="color: #25D366; font-weight: 800;">Instant WhatsApp Chat</span>
+                </div>
+                <p class="small-desc">
+                  Chat directly with the engineering &amp; clinical accessibility triage team on WhatsApp. Response time typically &lt; 15 minutes.
+                </p>
+              </a>
+
               <!-- Contact Developer & GitHub Repository -->
               <a href="https://github.com/Safin313-REBORN/Transify_2.0" target="_blank" rel="noopener noreferrer"
                 class="card card-uiverse contact-card" id="settings-contact-card"
@@ -4492,19 +5029,30 @@
                   </div>
 
                   <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                    <label for="contact-email"
+                      style="font-size: 13px; font-weight: 700; color: var(--ink);">Your Email (Optional, for response)</label>
+                    <input type="email" id="contact-email" class="settings-input" placeholder="e.g. user@example.com" style="width: 100%;">
+                  </div>
+
+                  <div class="settings-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
                     <label for="contact-message"
                       style="font-size: 13px; font-weight: 700; color: var(--ink);">Message</label>
                     <textarea id="contact-message" class="settings-textarea" rows="3"
                       placeholder="Describe the issue, suggestions, or notes..."></textarea>
                   </div>
-                  <div id="contact-feedback-status" class="form-feedback-card" style="display: none;" role="status"></div>
+                  <div id="contact-feedback-status" class="form-feedback-card" style="display: none;" role="status">
+                  </div>
                 </div>
 
                 <div
                   style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 6px;">
                   <button type="button" id="btn-contact-diagnostics" class="btn-settings-action press"
                     data-action="settings-copy-diagnostics">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>Copy System Diagnostics
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      style="vertical-align: -1px; margin-right: 4px;">
+                      <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+                    </svg>Copy System Diagnostics
                   </button>
                   <button type="button" id="btn-contact-submit" class="btn-settings-action press"
                     style="background: var(--violet); color: #FFFFFF; border-color: var(--violet);"
@@ -4522,27 +5070,35 @@
           <div id="settings-pane-legal" class="settings-tab-pane" role="tabpanel" aria-labelledby="tab-btn-legal"
             style="display: none;">
             <div class="settings-grid">
-              
+
               <!-- 1. Privacy Policy Card -->
               <div class="settings-card" id="legal-privacy-section">
                 <div class="settings-card-header">
                   <div class="settings-card-icon-wrap shield-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
                   </div>
                   <div>
                     <h2 class="settings-card-title">Privacy Policy</h2>
-                    <p class="settings-card-subtitle">Zero auto-audio, edge-native compute, and minimal data collection</p>
+                    <p class="settings-card-subtitle">Zero auto-audio, edge-native compute, and minimal data collection
+                    </p>
                   </div>
                 </div>
                 <div class="settings-card-body" style="font-size: 13.5px; line-height: 1.6; color: var(--text-2);">
-                  <p><strong>Last Updated: November 25, 2026.</strong> Team Alpha Nexus built Transify 2.0 with a foundational privacy-first architecture. We guarantee:</p>
+                  <p><strong>Last Updated: November 25, 2026.</strong> Team Alpha Nexus built Transify 2.0 with a
+                    foundational privacy-first architecture. We guarantee:</p>
                   <ul style="margin: 6px 0 12px 18px; padding: 0;">
-                    <li><strong>Edge-Native Processing:</strong> Real-time Sign Language and Braille OCR inference execute directly on device silicon via WebAssembly and TFLite. Video frames and raw camera feeds never leave your browser memory.</li>
-                    <li><strong>Zero Auto-Audio:</strong> Voice synthesis and sound effects strictly require explicit user gesture triggers, preventing accidental audio emissions in sensitive environments.</li>
-                    <li><strong>Data Minimization:</strong> We only collect information strictly required to render translations and process authorized clinical triage requests.</li>
-                    <li><strong>No Sale of Data:</strong> We never monetize, sell, or rent user data, health intake submissions, or device metrics.</li>
+                    <li><strong>Edge-Native Processing:</strong> Real-time Sign Language and Braille OCR inference
+                      execute directly on device silicon via WebAssembly and TFLite. Video frames and raw camera feeds
+                      never leave your browser memory.</li>
+                    <li><strong>Zero Auto-Audio:</strong> Voice synthesis and sound effects strictly require explicit
+                      user gesture triggers, preventing accidental audio emissions in sensitive environments.</li>
+                    <li><strong>Data Minimization:</strong> We only collect information strictly required to render
+                      translations and process authorized clinical triage requests.</li>
+                    <li><strong>No Sale of Data:</strong> We never monetize, sell, or rent user data, health intake
+                      submissions, or device metrics.</li>
                   </ul>
                 </div>
               </div>
@@ -4551,7 +5107,8 @@
               <div class="settings-card" id="legal-terms-section">
                 <div class="settings-card-header">
                   <div class="settings-card-icon-wrap user-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                       <polyline points="14 2 14 8 20 8"></polyline>
                       <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -4560,15 +5117,23 @@
                   </div>
                   <div>
                     <h2 class="settings-card-title">Terms of Service</h2>
-                    <p class="settings-card-subtitle">Permitted assistive use and clinical decision-support limitations</p>
+                    <p class="settings-card-subtitle">Permitted assistive use and clinical decision-support limitations
+                    </p>
                   </div>
                 </div>
                 <div class="settings-card-body" style="font-size: 13.5px; line-height: 1.6; color: var(--text-2);">
                   <p>By using Transify 2.0, you agree to these terms:</p>
                   <ul style="margin: 6px 0 12px 18px; padding: 0;">
-                    <li><strong>Permitted Use:</strong> Transify is intended for assistive communication (Sign, Braille, Voice) and clinical decision support. You agree not to misuse the platform or reverse-engineer security safeguards.</li>
-                    <li><strong>Clinical Grounding &amp; Emergency Disclaimer:</strong> Transify Care triage algorithms are decision-support aids grounded in WHO and Merck Clinical Guidelines. They do NOT constitute primary diagnostic conclusions or replace consultation with a licensed medical practitioner. In acute emergencies, immediately dial national emergency services (999 in Bangladesh, 911 in North America, 112 in the EU).</li>
-                    <li><strong>Limitation of Liability:</strong> Team Alpha Nexus provides Transify 2.0 on an "as is" and "as available" basis without warranty of any kind.</li>
+                    <li><strong>Permitted Use:</strong> Transify is intended for assistive communication (Sign, Braille,
+                      Voice) and clinical decision support. You agree not to misuse the platform or reverse-engineer
+                      security safeguards.</li>
+                    <li><strong>Clinical Grounding &amp; Emergency Disclaimer:</strong> Transify Care triage algorithms
+                      are decision-support aids grounded in WHO and Merck Clinical Guidelines. They do NOT constitute
+                      primary diagnostic conclusions or replace consultation with a licensed medical practitioner. In
+                      acute emergencies, immediately dial national emergency services (999 in Bangladesh, 911 in North
+                      America, 112 in the EU).</li>
+                    <li><strong>Limitation of Liability:</strong> Team Alpha Nexus provides Transify 2.0 on an "as is"
+                      and "as available" basis without warranty of any kind.</li>
                   </ul>
                 </div>
               </div>
@@ -4577,7 +5142,8 @@
               <div class="settings-card" id="legal-refund-section">
                 <div class="settings-card-header">
                   <div class="settings-card-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="10"></circle>
                       <line x1="12" y1="8" x2="12" y2="12"></line>
                       <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -4589,11 +5155,15 @@
                   </div>
                 </div>
                 <div class="settings-card-body" style="font-size: 13.5px; line-height: 1.6; color: var(--text-2);">
-                  <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
+                  <div
+                    style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
                     <strong style="color: #10B981;">100% Free Public Accessibility Software:</strong>
-                    Transify 2.0 does not charge any subscription fees, paywalls, or in-app purchases. All accessibility and triage features are completely free.
+                    Transify 2.0 does not charge any subscription fees, paywalls, or in-app purchases. All accessibility
+                    and triage features are completely free.
                   </div>
-                  <p>Because Transify 2.0 is completely free, there are no recurrent billing charges, auto-renewals, or payment processing fees. In the event of optional voluntary donations or grants, 100% of proceeds support edge ML model development and accessibility training.</p>
+                  <p>Because Transify 2.0 is completely free, there are no recurrent billing charges, auto-renewals, or
+                    payment processing fees. In the event of optional voluntary donations or grants, 100% of proceeds
+                    support edge ML model development and accessibility training.</p>
                 </div>
               </div>
 
@@ -4601,7 +5171,8 @@
               <div class="settings-card" id="legal-cookies-section">
                 <div class="settings-card-header">
                   <div class="settings-card-icon-wrap" style="background: rgba(255, 203, 5, 0.15); color: #FFCB05;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="10"></circle>
                       <path d="M12 2a10 10 0 0 0-1.5 19.9M8 9h.01M16 11h.01M11 15h.01M16 16h.01"></path>
                     </svg>
@@ -4612,7 +5183,9 @@
                   </div>
                 </div>
                 <div class="settings-card-body" style="font-size: 13.5px; line-height: 1.6; color: var(--text-2);">
-                  <p>Transify uses strictly functional local storage keys and essential cookies to retain user preferences across visits. We do NOT use third-party tracking, advertising, or cross-site profiling cookies.</p>
+                  <p>Transify uses strictly functional local storage keys and essential cookies to retain user
+                    preferences across visits. We do NOT use third-party tracking, advertising, or cross-site profiling
+                    cookies.</p>
                   <div style="overflow-x: auto; margin-top: 10px;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
                       <thead>
@@ -4635,7 +5208,8 @@
                         </tr>
                         <tr style="border-bottom: 1px solid var(--line);">
                           <td style="padding: 6px 8px; font-family: monospace;">transify_session</td>
-                          <td style="padding: 6px 8px;">Secure HTTP-only session cookie for authenticated clinicians</td>
+                          <td style="padding: 6px 8px;">Secure HTTP-only session cookie for authenticated clinicians
+                          </td>
                           <td style="padding: 6px 8px;">Essential / Secure Cookie</td>
                         </tr>
                       </tbody>
@@ -4647,8 +5221,10 @@
               <!-- 5. Third-Party SDK Audit & Child Data Policy -->
               <div class="settings-card">
                 <div class="settings-card-header">
-                  <div class="settings-card-icon-wrap" style="background: rgba(131, 56, 236, 0.15); color: var(--violet);">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <div class="settings-card-icon-wrap"
+                    style="background: rgba(131, 56, 236, 0.15); color: var(--violet);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="10"></circle>
                       <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                       <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -4656,12 +5232,18 @@
                   </div>
                   <div>
                     <h2 class="settings-card-title">SDK Audit &amp; COPPA Minor Protection</h2>
-                    <p class="settings-card-subtitle">Zero commercial ad trackers and strict pediatric consent protocols</p>
+                    <p class="settings-card-subtitle">Zero commercial ad trackers and strict pediatric consent protocols
+                    </p>
                   </div>
                 </div>
                 <div class="settings-card-body" style="font-size: 13.5px; line-height: 1.6; color: var(--text-2);">
-                  <p><strong>Third-Party SDK Audit:</strong> Certified 0 tracking SDKs, 0 social pixels, and 0 behavioral advertising beacons. All scripts are strictly open-source application assets served directly from the Transify origin.</p>
-                  <p style="margin-top: 8px;"><strong>Age Consent (COPPA / GDPR-K):</strong> Transify is intended for general audiences. In accordance with COPPA and GDPR-K regulations, children under 13 (or under 16 in the European Union) may only submit clinical triage assessments under the direct consent and supervision of a parent or legal guardian.</p>
+                  <p><strong>Third-Party SDK Audit:</strong> Certified 0 tracking SDKs, 0 social pixels, and 0
+                    behavioral advertising beacons. All scripts are strictly open-source application assets served
+                    directly from the Transify origin.</p>
+                  <p style="margin-top: 8px;"><strong>Age Consent (COPPA / GDPR-K):</strong> Transify is intended for
+                    general audiences. In accordance with COPPA and GDPR-K regulations, children under 13 (or under 16
+                    in the European Union) may only submit clinical triage assessments under the direct consent and
+                    supervision of a parent or legal guardian.</p>
                 </div>
               </div>
 
@@ -4669,7 +5251,8 @@
               <div class="settings-card">
                 <div class="settings-card-header">
                   <div class="settings-card-icon-wrap" style="background: rgba(2, 132, 199, 0.15); color: #0284C7;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                       <circle cx="8.5" cy="8.5" r="1.5"></circle>
                       <polyline points="21 15 16 10 5 21"></polyline>
@@ -4682,10 +5265,14 @@
                 </div>
                 <div class="settings-card-body" style="font-size: 13.5px; line-height: 1.6; color: var(--text-2);">
                   <ul style="margin: 0 0 0 18px; padding: 0;">
-                    <li><strong>Typography:</strong> Outfit, Plus Jakarta Sans, Hind Siliguri, and JetBrains Mono are licensed under the SIL Open Font License 1.1.</li>
-                    <li><strong>Iconography:</strong> Lucide and Feather vector icons licensed under the MIT License.</li>
-                    <li><strong>Visual Imagery:</strong> Curated high-resolution accessibility photography licensed under commercial-use open licenses (Unsplash &amp; Freepik Attribution).</li>
-                    <li><strong>Clinical Knowledge Base:</strong> World Health Organization (WHO) and Merck Clinical Guidelines referenced under fair-use educational and clinical research guidelines.</li>
+                    <li><strong>Typography:</strong> Outfit, Plus Jakarta Sans, Hind Siliguri, and JetBrains Mono are
+                      licensed under the SIL Open Font License 1.1.</li>
+                    <li><strong>Iconography:</strong> Lucide and Feather vector icons licensed under the MIT License.
+                    </li>
+                    <li><strong>Visual Imagery:</strong> Curated high-resolution accessibility photography licensed
+                      under commercial-use open licenses (Unsplash &amp; Freepik Attribution).</li>
+                    <li><strong>Clinical Knowledge Base:</strong> World Health Organization (WHO) and Merck Clinical
+                      Guidelines referenced under fair-use educational and clinical research guidelines.</li>
                   </ul>
                 </div>
               </div>
@@ -4694,7 +5281,8 @@
               <div class="settings-card" style="border: 1.5px solid rgba(255, 203, 5, 0.4);">
                 <div class="settings-card-header">
                   <div class="settings-card-icon-wrap" style="background: rgba(255, 203, 5, 0.15); color: #FFCB05;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                       <circle cx="12" cy="7" r="4"></circle>
                     </svg>
@@ -4705,25 +5293,33 @@
                   </div>
                 </div>
                 <div class="settings-card-body" style="font-size: 13.5px; line-height: 1.6; color: var(--text-2);">
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 6px;">
+                  <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 6px;">
                     <div>
                       <div style="font-size: 12px; font-weight: 700; color: var(--ink);">Engineering Organization</div>
                       <div>Team Alpha Nexus</div>
                     </div>
                     <div>
-                      <div style="font-size: 12px; font-weight: 700; color: var(--ink);">Lead Engineering Maintainer</div>
-                      <div>Safin (<a href="https://github.com/Safin313-REBORN" target="_blank" rel="noopener" style="color: var(--violet);">@Safin313-REBORN</a>)</div>
+                      <div style="font-size: 12px; font-weight: 700; color: var(--ink);">Lead Engineering Maintainer
+                      </div>
+                      <div>Safin (<a href="https://github.com/Safin313-REBORN" target="_blank" rel="noopener"
+                          style="color: var(--violet);">@Safin313-REBORN</a>)</div>
                     </div>
                     <div>
-                      <div style="font-size: 12px; font-weight: 700; color: var(--ink);">Contact &amp; Support Email</div>
-                      <div><a href="mailto:support@transify.nexus" style="color: var(--violet); font-weight: 600;">support@transify.nexus</a></div>
+                      <div style="font-size: 12px; font-weight: 700; color: var(--ink);">Contact &amp; Support Email
+                      </div>
+                      <div><a href="mailto:support@transify.nexus"
+                          style="color: var(--violet); font-weight: 600;">support@transify.nexus</a></div>
                     </div>
                     <div>
-                      <div style="font-size: 12px; font-weight: 700; color: var(--ink);">Emergency &amp; Health Helplines</div>
-                      <div><a href="tel:16263" style="color: var(--violet); font-weight: 600;">16263 (Health)</a> • <a href="tel:999" style="color: var(--violet); font-weight: 600;">999 (Emergency)</a></div>
+                      <div style="font-size: 12px; font-weight: 700; color: var(--ink);">Emergency &amp; Health
+                        Helplines</div>
+                      <div><a href="tel:16263" style="color: var(--violet); font-weight: 600;">16263 (Health)</a> • <a
+                          href="tel:999" style="color: var(--violet); font-weight: 600;">999 (Emergency)</a></div>
                     </div>
                     <div>
-                      <div style="font-size: 12px; font-weight: 700; color: var(--ink);">Headquarters &amp; Jurisdiction</div>
+                      <div style="font-size: 12px; font-weight: 700; color: var(--ink);">Headquarters &amp; Jurisdiction
+                      </div>
                       <div>Dhaka, Bangladesh</div>
                     </div>
                   </div>
@@ -4773,20 +5369,29 @@
   <div id="nav-drawer-backdrop" class="nav-drawer-backdrop" aria-hidden="true"></div>
   <aside id="app-nav-drawer" class="nav-drawer" aria-label="Quick Navigation Menu">
     <div class="nav-drawer-header">
-      <a href="#home" class="nav-drawer-brand press" aria-label="Transify Home" style="text-decoration: none; cursor: pointer;">
+      <a href="#home" class="nav-drawer-brand press" aria-label="Transify Home"
+        style="text-decoration: none; cursor: pointer;">
         <div class="transify-logo-mark small" aria-hidden="true">
           <div class="logo-aura"></div>
-          <svg class="logo-svg" width="28" height="28" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="1" width="34" height="34" rx="10" fill="url(#logoBgGrad)" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
-            <rect x="1" y="1" width="34" height="17" rx="10" fill="url(#logoSheen)" opacity="0.6"/>
-            <path class="logo-wave-arc wave-1" d="M12 9 C15 13, 21 13, 24 9" stroke="url(#logoSignalGrad)" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.85"/>
-            <path class="logo-wave-arc wave-2" d="M12 27 C15 23, 21 23, 24 27" stroke="#D8B4FE" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.6"/>
-            <circle cx="12" cy="10" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
-            <circle cx="12" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-1" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-            <circle cx="12" cy="26" r="2.8" class="logo-dot dot-active dot-pulse-2" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-            <circle cx="24" cy="10" r="2.8" class="logo-dot dot-active dot-pulse-3" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-            <circle cx="24" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-4" fill="url(#logoSignalGrad)" filter="url(#dotGlow)"/>
-            <circle cx="24" cy="26" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)"/>
+          <svg class="logo-svg" width="28" height="28" viewBox="0 0 36 36" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="34" height="34" rx="10" fill="url(#logoBgGrad)" stroke="rgba(255,255,255,0.25)"
+              stroke-width="1.2" />
+            <rect x="1" y="1" width="34" height="17" rx="10" fill="url(#logoSheen)" opacity="0.6" />
+            <path class="logo-wave-arc wave-1" d="M12 9 C15 13, 21 13, 24 9" stroke="url(#logoSignalGrad)"
+              stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.85" />
+            <path class="logo-wave-arc wave-2" d="M12 27 C15 23, 21 23, 24 27" stroke="#D8B4FE" stroke-width="1.4"
+              stroke-linecap="round" fill="none" opacity="0.6" />
+            <circle cx="12" cy="10" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)" />
+            <circle cx="12" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-1" fill="url(#logoSignalGrad)"
+              filter="url(#dotGlow)" />
+            <circle cx="12" cy="26" r="2.8" class="logo-dot dot-active dot-pulse-2" fill="url(#logoSignalGrad)"
+              filter="url(#dotGlow)" />
+            <circle cx="24" cy="10" r="2.8" class="logo-dot dot-active dot-pulse-3" fill="url(#logoSignalGrad)"
+              filter="url(#dotGlow)" />
+            <circle cx="24" cy="18" r="2.8" class="logo-dot dot-active dot-pulse-4" fill="url(#logoSignalGrad)"
+              filter="url(#dotGlow)" />
+            <circle cx="24" cy="26" r="2.4" class="logo-dot dot-latent" fill="rgba(255,255,255,0.3)" />
           </svg>
         </div>
         <div class="logo-brand-lockup">
@@ -4986,8 +5591,9 @@
             <input type="checkbox" id="remember-me" checked>
             <span id="remember-label-text">Remember me</span>
           </label>
-          <a href="javascript:void(0)" id="forgot-password-link" role="button" style="font-size: 14px; color: var(--violet); font-weight: 600;"
-            data-action="auth-forgot-password">Forgot password?</a>
+          <a href="javascript:void(0)" id="forgot-password-link" role="button"
+            style="font-size: 14px; color: var(--violet); font-weight: 600;" data-action="auth-forgot-password">Forgot
+            password?</a>
         </div>
 
         <button type="submit" class="auth-submit-btn press" id="auth-submit-btn" style="width: 100%;">
@@ -5020,8 +5626,9 @@
 
         <div style="text-align: center; margin-top: 14px; font-size: 14px; color: var(--text-2);">
           <span id="switch-prompt-text">Don't have an account?</span>
-          <a href="javascript:void(0)" id="switch-prompt-link" role="button" style="color: var(--violet); font-weight: 700; margin-left: 4px;"
-            data-action="auth-switch-tab" data-tab-id="tab-signup">Create one</a>
+          <a href="javascript:void(0)" id="switch-prompt-link" role="button"
+            style="color: var(--violet); font-weight: 700; margin-left: 4px;" data-action="auth-switch-tab"
+            data-tab-id="tab-signup">Create one</a>
         </div>
       </form>
     </div>
@@ -5181,21 +5788,25 @@
   <!-- ======================================================================
        TRANSIFY ESSENTIAL COOKIE & LOCAL STORAGE CONSENT BANNER
        ====================================================================== -->
-  <aside id="transify-cookie-consent-banner" class="cookie-consent-banner" role="region" aria-label="Privacy and Cookie Preferences" style="display: none;">
+  <aside id="transify-cookie-consent-banner" class="cookie-consent-banner" role="region"
+    aria-label="Privacy and Cookie Preferences" style="display: none;">
     <div class="cookie-consent-inner">
       <div class="cookie-consent-text">
         <div class="cookie-consent-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFCB05" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFCB05" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
           <strong>Your Privacy &amp; Essential Storage Preferences</strong>
         </div>
         <p class="cookie-consent-desc">
-          Transify uses strictly essential local-storage and functional cookies to preserve your accessibility dials, theme selection, and speech synthesis rates. We never run third-party advertising trackers, sell personal data, or transmit your camera and microphone biometric coordinates.
+          Transify uses strictly essential local-storage and functional cookies to preserve your accessibility dials,
+          theme selection, and speech synthesis rates. We never run third-party advertising trackers, sell personal
+          data, or transmit your camera and microphone biometric coordinates.
         </p>
       </div>
       <div class="cookie-consent-actions">
-        <a href="#settings-cookies" class="cookie-btn link press" id="btn-cookie-policy-link">Cookie Policy</a>
+        <a href="#cookies" class="cookie-btn link press" id="btn-cookie-policy-link">Cookie Policy</a>
         <button type="button" class="cookie-btn secondary press" id="btn-cookie-decline">Essential Only</button>
         <button type="button" class="cookie-btn primary press" id="btn-cookie-accept">Accept All Functional</button>
       </div>
@@ -5214,31 +5825,49 @@
   <div id="scroll-progress-bar" class="scroll-progress-bar" aria-hidden="true"></div>
 
   <!-- Floating Back to Top Button -->
-  <button type="button" id="btn-back-to-top" class="btn-back-to-top press" aria-label="Back to top of page" title="Back to top">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <button type="button" id="btn-back-to-top" class="btn-back-to-top press" aria-label="Back to top of page"
+    title="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <polyline points="18 15 12 9 6 15"></polyline>
     </svg>
   </button>
 
-  <!-- Floating Support & Contact Button -->
-  <a href="mailto:support@transify.nexus" class="floating-contact-btn press" id="floating-contact-btn" aria-label="Contact Support" title="Contact Support">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-      <polyline points="22,6 12,13 2,6"></polyline>
-    </svg>
-    <span class="floating-contact-label">Contact</span>
-  </a>
+  <!-- Floating Quick Actions: WhatsApp & Email Support -->
+  <div class="floating-quick-actions" id="floating-quick-actions">
+    <a href="https://wa.me/8801700000000?text=Hello%20Transify%20Team%2C%20I%20have%20an%20inquiry%20regarding%20Transify%202.0"
+      target="_blank" rel="noopener noreferrer" class="floating-whatsapp-btn press" id="floating-whatsapp-btn"
+      aria-label="Chat with Support on WhatsApp" title="Chat on WhatsApp">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.456 5.712 1.457h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+      </svg>
+      <span class="floating-btn-label">WhatsApp</span>
+    </a>
+    <a href="mailto:support@transify.nexus" class="floating-contact-btn press" id="floating-contact-btn"
+      aria-label="Contact Support by Email" title="Contact Support">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <polyline points="22,6 12,13 2,6"></polyline>
+      </svg>
+      <span class="floating-contact-label">Email</span>
+    </a>
+  </div>
 
   <!-- Global Site Command & Search Palette Modal (Ctrl+K) -->
-  <div id="site-search-modal" class="site-search-modal" role="dialog" aria-modal="true" aria-label="Search Transify Platform" style="display: none;">
+  <div id="site-search-modal" class="site-search-modal" role="dialog" aria-modal="true"
+    aria-label="Search Transify Platform" style="display: none;">
     <div class="site-search-backdrop" id="site-search-backdrop"></div>
     <div class="site-search-card" role="document">
       <div class="site-search-header">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="search" id="site-search-input" class="site-search-input" placeholder="Search features, phrases, clinical tools, policies... (Esc to close)" autocomplete="off" spellcheck="false">
+        <input type="search" id="site-search-input" class="site-search-input"
+          placeholder="Search features, phrases, clinical tools, policies... (Esc to close)" autocomplete="off"
+          spellcheck="false">
         <span class="site-search-kbd">ESC</span>
       </div>
       <div class="site-search-results" id="site-search-results" role="listbox">
@@ -5248,21 +5877,172 @@
   </div>
 
   <!-- Accessible Reusable Confirmation Dialog Modal -->
-  <div id="confirmation-modal" class="confirmation-modal" role="dialog" aria-modal="true" aria-labelledby="confirmation-modal-title" aria-describedby="confirmation-modal-desc" style="display: none;">
+  <div id="confirmation-modal" class="confirmation-modal" role="dialog" aria-modal="true"
+    aria-labelledby="confirmation-modal-title" aria-describedby="confirmation-modal-desc" style="display: none;">
     <div class="confirmation-backdrop" id="confirmation-backdrop"></div>
     <div class="confirmation-card" role="document">
       <div class="confirmation-icon-wrap" id="confirmation-icon-wrap" aria-hidden="true">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFCB05" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-          <line x1="12" y1="9" x2="12" y2="13"/>
-          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFCB05" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
       </div>
       <h3 id="confirmation-modal-title" class="confirmation-title">Confirm Action</h3>
-      <p id="confirmation-modal-desc" class="confirmation-desc">Are you sure you want to proceed with this operation?</p>
+      <p id="confirmation-modal-desc" class="confirmation-desc">Are you sure you want to proceed with this operation?
+      </p>
       <div class="confirmation-actions">
         <button type="button" class="btn-confirm-secondary press" id="btn-confirmation-cancel">Cancel</button>
         <button type="button" class="btn-confirm-primary press" id="btn-confirmation-confirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       VOLUNTARY DONATION & PAYMENT MODAL DIALOG (256-BIT TLS PADLOCK)
+       ====================================================================== -->
+  <div id="payment-modal" class="payment-modal" role="dialog" aria-modal="true"
+    aria-labelledby="payment-modal-title" aria-describedby="payment-modal-desc" style="display: none;">
+    <div class="payment-backdrop" id="payment-backdrop"></div>
+    <div class="payment-card" role="document">
+      <div class="payment-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="payment-padlock-badge" aria-label="256-Bit TLS Padlock Verified">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span>256-Bit TLS Padlock</span>
+          </div>
+          <span class="payment-tag">Zero Fees</span>
+        </div>
+        <button type="button" class="btn-close-payment press" id="btn-close-payment" aria-label="Close Payment Dialog">✕</button>
+      </div>
+
+      <div id="payment-form-view">
+        <h2 id="payment-modal-title" class="payment-title">Support Transify 2.0 Open Accessibility</h2>
+        <p id="payment-modal-desc" class="payment-subtitle">
+          100% of voluntary contributions directly fund edge ML server hosting, Bengali sign datasets, and open hardware kits.
+        </p>
+
+        <!-- Preset Amount Pills -->
+        <div class="payment-amount-label">Select Contribution Amount</div>
+        <div class="payment-amount-presets" role="group" aria-label="Preset Contribution Amounts">
+          <button type="button" class="amount-preset-btn press" data-amount="5">$5</button>
+          <button type="button" class="amount-preset-btn press active" data-amount="15">$15</button>
+          <button type="button" class="amount-preset-btn press" data-amount="25">$25</button>
+          <button type="button" class="amount-preset-btn press" data-amount="50">$50</button>
+        </div>
+
+        <div class="payment-input-row" style="margin-top: 12px;">
+          <div style="flex: 1;">
+            <label for="payment-custom-amount" class="payment-input-label">Custom Amount</label>
+            <div class="payment-amount-input-wrap">
+              <span class="payment-currency-symbol" id="payment-currency-symbol">$</span>
+              <input type="number" id="payment-custom-amount" class="payment-input" min="1" max="10000" step="1" value="15">
+            </div>
+          </div>
+          <div style="width: 110px;">
+            <label for="payment-currency" class="payment-input-label">Currency</label>
+            <select id="payment-currency" class="payment-select">
+              <option value="USD">USD ($)</option>
+              <option value="BDT">BDT (৳)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Purpose of contribution -->
+        <div style="margin-top: 12px;">
+          <label for="payment-purpose" class="payment-input-label">Allocated Mission Goal</label>
+          <select id="payment-purpose" class="payment-select" style="width: 100%;">
+            <option value="Edge ML Inference &amp; Cloud Server Hosting">Edge ML Inference &amp; Railway Cloud Server Hosting</option>
+            <option value="Tactile Braille Display Open-Hardware Kits">Tactile Braille Display Open-Hardware Kits</option>
+            <option value="BdSL 38-Sign Language Dataset Field Curation">BdSL 38-Sign Language Dataset Field Curation</option>
+            <option value="Low-Bandwidth Clinic Triage Infrastructure">Low-Bandwidth Clinic Triage Infrastructure</option>
+          </select>
+        </div>
+
+        <!-- Payment Method Selection Tabs -->
+        <div class="payment-method-label" style="margin-top: 14px;">Payment Method</div>
+        <div class="payment-methods-grid" role="group" aria-label="Payment Methods">
+          <label class="payment-method-chip active" id="method-card-label">
+            <input type="radio" name="payment_method" value="card" checked>
+            <span>💳 Card / Stripe Test</span>
+          </label>
+          <label class="payment-method-chip" id="method-bkash-label">
+            <input type="radio" name="payment_method" value="bkash">
+            <span>📱 bKash / Wallet</span>
+          </label>
+          <label class="payment-method-chip" id="method-wire-label">
+            <input type="radio" name="payment_method" value="wire">
+            <span>🏦 Bank Grant</span>
+          </label>
+        </div>
+
+        <!-- Card / Payment Details -->
+        <div class="payment-details-box" style="margin-top: 12px;">
+          <div class="payment-input-row">
+            <div style="flex: 1;">
+              <label for="payment-donor-name" class="payment-input-label">Name / Organization</label>
+              <input type="text" id="payment-donor-name" class="payment-input" placeholder="Anonymous or Supporter Name">
+            </div>
+            <div style="flex: 1;">
+              <label for="payment-donor-email" class="payment-input-label">Receipt Email</label>
+              <input type="email" id="payment-donor-email" class="payment-input" placeholder="donor@example.com">
+            </div>
+          </div>
+          <div style="margin-top: 10px;" id="card-fields-container">
+            <label for="payment-card-number" class="payment-input-label">Card Number (Test Mode Supported: 4242...)</label>
+            <input type="text" id="payment-card-number" class="payment-input" placeholder="4242 4242 4242 4242" maxlength="19">
+          </div>
+        </div>
+
+        <div id="payment-feedback-status" class="form-feedback-card" style="display: none; margin-top: 10px;" role="status"></div>
+
+        <div class="payment-actions-row" style="margin-top: 16px;">
+          <button type="button" id="btn-cancel-payment" class="btn-payment-secondary press">Cancel</button>
+          <button type="button" id="btn-submit-payment" class="btn-payment-primary press">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: -2px; margin-right: 4px;">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <span id="btn-submit-payment-text">Complete $15.00 Contribution</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Instant Confirmation Receipt View (Hidden Initially) -->
+      <div id="payment-receipt-view" style="display: none; text-align: center; padding: 12px 0;">
+        <div class="receipt-success-badge">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h3 class="receipt-title">Contribution Confirmed!</h3>
+        <p class="receipt-subtitle">Thank you for powering accessible AI for the deaf and visually impaired.</p>
+
+        <div class="receipt-summary-card">
+          <div class="receipt-row"><span>Transaction ID:</span><strong id="receipt-txn-id">—</strong></div>
+          <div class="receipt-row"><span>Receipt Reference:</span><strong id="receipt-rec-id">—</strong></div>
+          <div class="receipt-row"><span>Amount Contributed:</span><strong id="receipt-amount">—</strong></div>
+          <div class="receipt-row"><span>Payment Method:</span><strong id="receipt-method">—</strong></div>
+          <div class="receipt-row"><span>Allocated Mission:</span><strong id="receipt-purpose">—</strong></div>
+          <div class="receipt-row"><span>Verification:</span><strong style="color: #10B981;">256-Bit TLS Padlock Confirmed</strong></div>
+        </div>
+
+        <div class="payment-actions-row" style="margin-top: 18px; justify-content: center; gap: 10px;">
+          <button type="button" id="btn-print-receipt" class="btn-payment-secondary press">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;">
+              <polyline points="6 9 6 2 18 2 18 9"></polyline>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+              <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>Print Receipt
+          </button>
+          <button type="button" id="btn-done-payment" class="btn-payment-primary press">Back to Transify</button>
+        </div>
       </div>
     </div>
   </div>

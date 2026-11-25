@@ -92,7 +92,8 @@ def test_no_audio_on_initial_page_load(audio_server):
             }
         """)
 
-        page.goto(f"{audio_server}/", wait_until="networkidle")
+        page.goto(f"{audio_server}/", wait_until="domcontentloaded")
+        page.wait_for_load_state("load")
         time.sleep(0.5)
 
         # Check DOM for any autoplay audio/video tags
@@ -127,7 +128,8 @@ def test_no_audio_on_route_switching(audio_server):
             }
         """)
 
-        page.goto(f"{audio_server}/", wait_until="networkidle")
+        page.goto(f"{audio_server}/", wait_until="domcontentloaded")
+        page.wait_for_load_state("load")
 
         # Navigate through workspaces
         for route in ['home', 'sign', 'braille', 'care', 'settings', 'chat', 'phrases']:
@@ -156,7 +158,8 @@ def test_no_audio_on_language_switch(audio_server):
             }
         """)
 
-        page.goto(f"{audio_server}/", wait_until="networkidle")
+        page.goto(f"{audio_server}/", wait_until="domcontentloaded")
+        page.wait_for_load_state("load")
 
         # Switch language to bn then back to en
         page.evaluate("if (window.setAppLanguage) window.setAppLanguage('bn')")
@@ -184,7 +187,8 @@ def test_explicit_user_speech_works(audio_server):
             }
         """)
 
-        page.goto(f"{audio_server}/", wait_until="networkidle")
+        page.goto(f"{audio_server}/", wait_until="domcontentloaded")
+        page.wait_for_load_state("load")
 
         # Explicit user action
         page.evaluate("if (window.TransifyTTS && window.TransifyTTS.speak) window.TransifyTTS.speak('Hello Transify')")

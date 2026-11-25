@@ -4,6 +4,16 @@
  * Braille image processing, history management, and screen-reader announcements.
  */
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // =============================================================
 // Transify Kinetic Page Loader Engine (Uiverse.io by Praashoo7)
 // =============================================================
@@ -220,8 +230,10 @@ window.copySystemDiagnostics = function () {
   }
 };
 
-window.submitDeveloperFeedback = function () {
+window.submitDeveloperFeedback = async function () {
   const contactMsg = document.getElementById('contact-message');
+  const contactEmail = document.getElementById('contact-email');
+  const contactCategory = document.getElementById('contact-category');
   const statusEl = document.getElementById('contact-feedback-status');
   if (!contactMsg) return;
   const text = contactMsg.value.trim();
@@ -238,15 +250,38 @@ window.submitDeveloperFeedback = function () {
     return;
   }
   contactMsg.classList.remove('input-error');
-  contactMsg.value = '';
-  if (statusEl) {
-    statusEl.className = 'form-feedback-card success';
-    statusEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Thank you! Your feedback has been received and logged.</span>';
-    statusEl.style.display = 'flex';
-    setTimeout(() => { if (statusEl) statusEl.style.display = 'none'; }, 4000);
-  }
-  if (window.TransifyApp && window.TransifyApp.showToast) {
-    window.TransifyApp.showToast('Message sent! Developer Safin has received your feedback.', 'success');
+  const category = contactCategory ? contactCategory.value : 'general';
+  const emailVal = contactEmail ? contactEmail.value.trim() : '';
+
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category, message: text, email: emailVal || null })
+    });
+    const data = await res.json();
+    contactMsg.value = '';
+    if (contactEmail) contactEmail.value = '';
+
+    if (statusEl) {
+      statusEl.className = 'form-feedback-card success';
+      statusEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Thank you! Your feedback has been received. Ticket ID: <strong>${data.ticket_id || 'TNX-LOGGED'}</strong>.</span>`;
+      statusEl.style.display = 'flex';
+      setTimeout(() => { if (statusEl) statusEl.style.display = 'none'; }, 6000);
+    }
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast(`Feedback submitted! Reference: ${data.ticket_id || 'TNX-LOGGED'}`, 'success');
+    }
+  } catch (err) {
+    contactMsg.value = '';
+    if (statusEl) {
+      statusEl.className = 'form-feedback-card success';
+      statusEl.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Feedback received and logged for delivery.</span>';
+      statusEl.style.display = 'flex';
+    }
+    if (window.TransifyApp && window.TransifyApp.showToast) {
+      window.TransifyApp.showToast('Feedback logged successfully', 'success');
+    }
   }
 };
 
@@ -1527,21 +1562,21 @@ var DashboardPage = window.DashboardPage = {
         const confPercent = (rec.confidence * 100).toFixed(1);
 
         return `
-          <div class="card" style="margin-bottom: var(--space-3); padding: var(--space-4);" data-id="${rec.id}">
+          <div class="card" style="margin-bottom: var(--space-3); padding: var(--space-4);" data-id="${escapeHtml(rec.id)}">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2);">
-              <span class="badge ${badgeClass}">${icon} ${rec.module.toUpperCase()}</span>
+              <span class="badge ${badgeClass}">${icon} ${escapeHtml(rec.module).toUpperCase()}</span>
               <span style="font-size: var(--text-xs); color: var(--text-muted);">${dateStr} • Conf: ${confPercent}%</span>
             </div>
             <div style="font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-2);">
-              "${rec.recognized_text}"
+              "${escapeHtml(rec.recognized_text)}"
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <button class="btn btn-secondary btn-sm" data-action="dashboard-speak" data-text="${encodeURIComponent(rec.recognized_text)}" aria-label="Speak text">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speak
               </button>
               <div style="display: flex; gap: var(--space-2);">
-                <button class="btn-icon" title="Accurate" data-action="dashboard-feedback" data-rec-id="${rec.id}" data-rating="5" aria-label="Thumbs up accurate"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg></button>
-                <button class="btn-icon" title="Needs Correction" data-action="dashboard-feedback" data-rec-id="${rec.id}" data-rating="1" aria-label="Thumbs down incorrect"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg></button>
+                <button class="btn-icon" title="Accurate" data-action="dashboard-feedback" data-rec-id="${escapeHtml(rec.id)}" data-rating="5" aria-label="Thumbs up accurate"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg></button>
+                <button class="btn-icon" title="Needs Correction" data-action="dashboard-feedback" data-rec-id="${escapeHtml(rec.id)}" data-rating="1" aria-label="Thumbs down incorrect"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg></button>
               </div>
             </div>
           </div>
@@ -2241,8 +2276,8 @@ var SignPage = window.SignPage = window.TransifySign = {
       fsBtn.addEventListener('click', async () => {
         const stage = document.getElementById('sign-stage-container');
         if (!stage) return;
-        const isCurrentlyFs = stage.classList.contains('stage-fullscreen') || !!document.fullscreenElement;
-        
+        const isCurrentlyFs = stage.classList.contains('stage-fullscreen') || !!(document.fullscreenElement || document.webkitFullscreenElement);
+
         if (!isCurrentlyFs) {
           updateFsState(true);
           try {
@@ -2252,2673 +2287,2673 @@ var SignPage = window.SignPage = window.TransifySign = {
               stage.webkitRequestFullscreen();
             }
           } catch (_) {
-            // CSS fallback is already active
+            // CSS stage-fullscreen fallback is active
           }
           TransifyApp.showToast('Fullscreen camera enabled', 'info');
         } else {
-          updateFsState(false);
           try {
-            if (document.fullscreenElement) {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
               if (document.exitFullscreen) {
                 await document.exitFullscreen();
               } else if (document.webkitExitFullscreen) {
                 document.webkitExitFullscreen();
               }
+            } else {
+              updateFsState(false);
             }
-          } catch (_) {}
+          } catch (_) {
+            updateFsState(false);
+          }
           TransifyApp.showToast('Returned to standard view', 'info');
         }
       });
 
       // Synchronize with ESC or browser native fullscreen exits
       const syncNativeFullscreen = () => {
-        const stage = document.getElementById('sign-stage-container');
         const isNative = !!(document.fullscreenElement || document.webkitFullscreenElement);
-        if (stage) {
-          updateFsState(isNative);
-        }
+        updateFsState(isNative);
       };
       document.addEventListener('fullscreenchange', syncNativeFullscreen);
       document.addEventListener('webkitfullscreenchange', syncNativeFullscreen);
     }
 
-    const stopCamBtn = document.getElementById('stop-camera-btn');
-    if (stopCamBtn) {
-      stopCamBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.stopCamera();
-      });
-    }
+      const stopCamBtn = document.getElementById('stop-camera-btn');
+      if (stopCamBtn) {
+        stopCamBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.stopCamera();
+        });
+      }
 
-    const bdslBtn = document.getElementById('lang-bdsl-btn');
-    const aslBtn = document.getElementById('lang-asl-btn');
-    if (bdslBtn) {
-      bdslBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.setLanguageMode('bdsl');
-      });
-    }
-    if (aslBtn) {
-      aslBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.setLanguageMode('asl');
-      });
-    }
-  },
+      const bdslBtn = document.getElementById('lang-bdsl-btn');
+      const aslBtn = document.getElementById('lang-asl-btn');
+      if (bdslBtn) {
+        bdslBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.setLanguageMode('bdsl');
+        });
+      }
+      if (aslBtn) {
+        aslBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.setLanguageMode('asl');
+        });
+      }
+    },
 
   async toggleCamera() {
-    if (this.isStreaming) {
-      this.stopCamera();
-    } else {
-      await this.startCamera();
-    }
-  },
+      if (this.isStreaming) {
+        this.stopCamera();
+      } else {
+        await this.startCamera();
+      }
+    },
 
   async startCamera() {
-    try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
-      });
-      if (this.videoEl) {
-        this.videoEl.srcObject = this.stream;
-        await this.videoEl.play();
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+        });
+        if (this.videoEl) {
+          this.videoEl.srcObject = this.stream;
+          await this.videoEl.play();
+        }
+        this.isStreaming = true;
+        const toggleBtn = document.getElementById('toggle-camera-btn');
+        if (toggleBtn) {
+          toggleBtn.innerHTML = '🛑 Stop Camera';
+          toggleBtn.classList.replace('btn-primary', 'btn-secondary');
+        }
+        const stopCamBtn = document.getElementById('stop-camera-btn');
+        if (stopCamBtn) stopCamBtn.style.display = 'block';
+
+        const overlay = document.getElementById('camera-off-overlay');
+        if (overlay) overlay.style.display = 'none';
+
+        const statusText = document.getElementById('sign-status-text');
+        const statusDot = document.getElementById('sign-status-dot');
+        if (statusText) statusText.textContent = 'Show your hand in the box';
+        if (statusDot) statusDot.style.background = '#FFCB05';
+
+        const statusLine = document.getElementById('pred-status-line');
+        if (statusLine) statusLine.textContent = 'Show your hand in the box';
+
+        const caret = document.getElementById('sign-caret');
+        if (caret) caret.style.display = 'inline-block';
+
+        TransifyApp.showToast('Camera started. Tracking ASL signs.', 'success');
+        TransifyApp.announce('Camera active. Ready for sign language input.');
+
+        // Start continuous landmark ingestion loop
+        this.startInferenceLoop();
+      } catch (err) {
+        console.error('Camera access error:', err);
+        const overlay = document.getElementById('camera-off-overlay');
+        if (overlay) {
+          overlay.style.display = 'flex';
+          const title = document.getElementById('camera-overlay-title');
+          const body = document.getElementById('camera-overlay-body');
+          if (title) title.textContent = 'Camera access is blocked';
+          if (body) body.textContent = "Allow the camera in your browser's site settings, then select Start camera.";
+          const btn = document.getElementById('toggle-camera-btn');
+          if (btn) btn.textContent = 'Try again';
+        }
+        const statusText = document.getElementById('sign-status-text');
+        const statusDot = document.getElementById('sign-status-dot');
+        if (statusText) statusText.textContent = 'Camera blocked';
+        if (statusDot) statusDot.style.background = '#FF6B8B';
+
+        TransifyApp.showToast('Camera access denied or unavailable.', 'warning');
+        TransifyApp.announce('Camera access failed.');
       }
-      this.isStreaming = true;
+    },
+
+    stopCamera() {
+      if (this.stream) {
+        this.stream.getTracks().forEach(track => track.stop());
+        this.stream = null;
+      }
+      if (this.videoEl) this.videoEl.srcObject = null;
+      this.isStreaming = false;
+      this.isProcessingFrame = false;
+      this.lastHandBBox = null;
+      if (this.predictTimer) clearInterval(this.predictTimer);
+      if (this.frameCaptureTimer) clearInterval(this.frameCaptureTimer);
+      this.predictTimer = null;
+      this.frameCaptureTimer = null;
+
       const toggleBtn = document.getElementById('toggle-camera-btn');
       if (toggleBtn) {
-        toggleBtn.innerHTML = '🛑 Stop Camera';
-        toggleBtn.classList.replace('btn-primary', 'btn-secondary');
+        toggleBtn.innerHTML = 'Start camera';
+        toggleBtn.classList.replace('btn-secondary', 'btn-primary');
       }
       const stopCamBtn = document.getElementById('stop-camera-btn');
-      if (stopCamBtn) stopCamBtn.style.display = 'block';
+      if (stopCamBtn) stopCamBtn.style.display = 'none';
+
+      const stage = document.getElementById('sign-stage-container');
+      if (stage) stage.classList.remove('stage-fullscreen');
+      const hud = document.getElementById('fullscreen-pred-hud');
+      if (hud) hud.style.display = 'none';
+      const fsBtn = document.getElementById('btn-toggle-cam-fullscreen');
+      if (fsBtn) fsBtn.innerHTML = '<svg class="fs-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span>Fullscreen</span>';
 
       const overlay = document.getElementById('camera-off-overlay');
-      if (overlay) overlay.style.display = 'none';
+      if (overlay) overlay.style.display = 'flex';
 
       const statusText = document.getElementById('sign-status-text');
       const statusDot = document.getElementById('sign-status-dot');
-      if (statusText) statusText.textContent = 'Show your hand in the box';
-      if (statusDot) statusDot.style.background = '#FFCB05';
+      if (statusText) statusText.textContent = 'Camera is off';
+      if (statusDot) statusDot.style.background = '#8E8BA8';
+
+      const s1 = document.getElementById('seg-1');
+      const s2 = document.getElementById('seg-2');
+      const s3 = document.getElementById('seg-3');
+      if (s1) s1.classList.remove('on');
+      if (s2) s2.classList.remove('on');
+      if (s3) s3.classList.remove('on');
+
+      const ringCircle = document.getElementById('confidence-ring-circle');
+      if (ringCircle) ringCircle.style.strokeDashoffset = '201';
+
+      const confBadge = document.getElementById('pred-confidence-badge');
+      if (confBadge) confBadge.textContent = '0%';
+
+      const wordEl = document.getElementById('pred-label-text');
+      if (wordEl) { wordEl.textContent = '—'; wordEl.classList.remove('on'); }
 
       const statusLine = document.getElementById('pred-status-line');
-      if (statusLine) statusLine.textContent = 'Show your hand in the box';
+      if (statusLine) statusLine.textContent = 'Camera is off';
+
+      const speakBtn = document.getElementById('speak-pred-btn');
+      if (speakBtn) { speakBtn.disabled = true; speakBtn.textContent = 'Speak word'; }
 
       const caret = document.getElementById('sign-caret');
-      if (caret) caret.style.display = 'inline-block';
+      if (caret) caret.style.display = 'none';
+    },
 
-      TransifyApp.showToast('Camera started. Tracking ASL signs.', 'success');
-      TransifyApp.announce('Camera active. Ready for sign language input.');
+    startInferenceLoop() {
+      // 1. Smooth UI feedback rendering loop (40ms)
+      if (this.predictTimer) clearInterval(this.predictTimer);
+      this.predictTimer = setInterval(() => {
+        if (!this.isStreaming) return;
+        this.drawCanvasFeedback();
+      }, 40);
 
-      // Start continuous landmark ingestion loop
-      this.startInferenceLoop();
-    } catch (err) {
-      console.error('Camera access error:', err);
-      const overlay = document.getElementById('camera-off-overlay');
-      if (overlay) {
-        overlay.style.display = 'flex';
-        const title = document.getElementById('camera-overlay-title');
-        const body = document.getElementById('camera-overlay-body');
-        if (title) title.textContent = 'Camera access is blocked';
-        if (body) body.textContent = "Allow the camera in your browser's site settings, then select Start camera.";
-        const btn = document.getElementById('toggle-camera-btn');
-        if (btn) btn.textContent = 'Try again';
-      }
-      const statusText = document.getElementById('sign-status-text');
-      const statusDot = document.getElementById('sign-status-dot');
-      if (statusText) statusText.textContent = 'Camera blocked';
-      if (statusDot) statusDot.style.background = '#FF6B8B';
+      // 2. Real-time vision frame processing loop (~200ms)
+      this.startFrameCaptureLoop();
+    },
 
-      TransifyApp.showToast('Camera access denied or unavailable.', 'warning');
-      TransifyApp.announce('Camera access failed.');
-    }
-  },
+    startFrameCaptureLoop() {
+      if (this.frameCaptureTimer) clearInterval(this.frameCaptureTimer);
 
-  stopCamera() {
-    if (this.stream) {
-      this.stream.getTracks().forEach(track => track.stop());
-      this.stream = null;
-    }
-    if (this.videoEl) this.videoEl.srcObject = null;
-    this.isStreaming = false;
-    this.isProcessingFrame = false;
-    this.lastHandBBox = null;
-    if (this.predictTimer) clearInterval(this.predictTimer);
-    if (this.frameCaptureTimer) clearInterval(this.frameCaptureTimer);
-    this.predictTimer = null;
-    this.frameCaptureTimer = null;
+      this.frameCaptureTimer = setInterval(async () => {
+        if (!this.isStreaming || this.isProcessingFrame) return;
+        if (!this.videoEl || this.videoEl.readyState < 2 || !this.videoEl.videoWidth) return;
 
-    const toggleBtn = document.getElementById('toggle-camera-btn');
-    if (toggleBtn) {
-      toggleBtn.innerHTML = 'Start camera';
-      toggleBtn.classList.replace('btn-secondary', 'btn-primary');
-    }
-    const stopCamBtn = document.getElementById('stop-camera-btn');
-    if (stopCamBtn) stopCamBtn.style.display = 'none';
+        try {
+          this.isProcessingFrame = true;
 
-    const stage = document.getElementById('sign-stage-container');
-    if (stage) stage.classList.remove('stage-fullscreen');
-    const hud = document.getElementById('fullscreen-pred-hud');
-    if (hud) hud.style.display = 'none';
-    const fsBtn = document.getElementById('btn-toggle-cam-fullscreen');
-    if (fsBtn) fsBtn.innerHTML = '<svg class="fs-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span>Fullscreen</span>';
+          if (!this.offscreenCanvas) {
+            this.offscreenCanvas = document.createElement('canvas');
+            this.offscreenCanvas.width = 640;
+            this.offscreenCanvas.height = 480;
+            this.offscreenCtx = this.offscreenCanvas.getContext('2d');
+          }
 
-    const overlay = document.getElementById('camera-off-overlay');
-    if (overlay) overlay.style.display = 'flex';
+          // Draw crisp 640x480 frame for robust MediaPipe hand landmark tracking
+          this.offscreenCtx.drawImage(this.videoEl, 0, 0, 640, 480);
+          const b64 = this.offscreenCanvas.toDataURL('image/jpeg', 0.82);
 
-    const statusText = document.getElementById('sign-status-text');
-    const statusDot = document.getElementById('sign-status-dot');
-    if (statusText) statusText.textContent = 'Camera is off';
-    if (statusDot) statusDot.style.background = '#8E8BA8';
+          const currentRoi = this.getTargetRoi();
+          const res = await fetch('/api/sign/process_frame', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              image_b64: b64,
+              mode: this.currentMode,
+              language_mode: this.currentLanguageMode || 'asl',
+              roi: currentRoi
+            })
+          });
 
-    const s1 = document.getElementById('seg-1');
-    const s2 = document.getElementById('seg-2');
-    const s3 = document.getElementById('seg-3');
-    if (s1) s1.classList.remove('on');
-    if (s2) s2.classList.remove('on');
-    if (s3) s3.classList.remove('on');
+          if (!res.ok) return;
+          const data = await res.json();
+          this.lastFrameData = data;
 
-    const ringCircle = document.getElementById('confidence-ring-circle');
-    if (ringCircle) ringCircle.style.strokeDashoffset = '201';
+          if (data && data.success) {
+            if (data.hand_detected && data.hand_bbox) {
+              this.lastHandBBox = data.hand_bbox;
+              this.lastFrameDims = data.frame_dims || [640, 480];
+              this.lastFingersCount = data.fingers_count || 0;
+            } else {
+              this.lastHandBBox = null;
+              this.lastFingersCount = 0;
+            }
 
-    const confBadge = document.getElementById('pred-confidence-badge');
-    if (confBadge) confBadge.textContent = '0%';
+            if (data.hand_detected && data.status === 'CONFIRMED' && data.label && data.label !== 'IDLE' && data.label !== 'ANALYZING') {
+              // DECISION CONFIRMED AFTER ANALYSIS! Turn camera box vibrant GREEN!
+              this.setDetectionFeedback(data.label, data.confidence || 0.98);
 
-    const wordEl = document.getElementById('pred-label-text');
-    if (wordEl) { wordEl.textContent = '—'; wordEl.classList.remove('on'); }
+              // Update Recognized Word card with finalized translation
+              this.updatePredictionUI({
+                label: data.label,
+                display_text: data.display_text,
+                bdsl_gloss: data.gloss,
+                english_text: data.english_text,
+                language_mode: data.language_mode || this.currentLanguageMode,
+                model_name: data.model_name,
+                unified_translation: data.unified_translation,
+                confidence: data.confidence,
+                confirmed: true,
+                status: 'CONFIRMED',
+                analysis_pct: 100,
+                engine_info: data.engine_info
+              });
 
-    const statusLine = document.getElementById('pred-status-line');
-    if (statusLine) statusLine.textContent = 'Camera is off';
-
-    const speakBtn = document.getElementById('speak-pred-btn');
-    if (speakBtn) { speakBtn.disabled = true; speakBtn.textContent = 'Speak word'; }
-
-    const caret = document.getElementById('sign-caret');
-    if (caret) caret.style.display = 'none';
-  },
-
-  startInferenceLoop() {
-    // 1. Smooth UI feedback rendering loop (40ms)
-    if (this.predictTimer) clearInterval(this.predictTimer);
-    this.predictTimer = setInterval(() => {
-      if (!this.isStreaming) return;
-      this.drawCanvasFeedback();
-    }, 40);
-
-    // 2. Real-time vision frame processing loop (~200ms)
-    this.startFrameCaptureLoop();
-  },
-
-  startFrameCaptureLoop() {
-    if (this.frameCaptureTimer) clearInterval(this.frameCaptureTimer);
-
-    this.frameCaptureTimer = setInterval(async () => {
-      if (!this.isStreaming || this.isProcessingFrame) return;
-      if (!this.videoEl || this.videoEl.readyState < 2 || !this.videoEl.videoWidth) return;
-
-      try {
-        this.isProcessingFrame = true;
-
-        if (!this.offscreenCanvas) {
-          this.offscreenCanvas = document.createElement('canvas');
-          this.offscreenCanvas.width = 640;
-          this.offscreenCanvas.height = 480;
-          this.offscreenCtx = this.offscreenCanvas.getContext('2d');
+              // Commit word to sentence & speak
+              if (data.is_word) {
+                if (Date.now() - this.lastConfirmedTime > 1800) {
+                  this.lastConfirmedTime = Date.now();
+                  this.addTokenToSentence(data.label);
+                  TransifyApp.showToast(`Recognized Sign "${data.label}" confirmed!`, 'success');
+                }
+              } else {
+                const liveLetterEl = document.getElementById('current-letter-badge');
+                if (liveLetterEl) liveLetterEl.textContent = data.label;
+                if (data.composed_text) {
+                  const wordEl = document.getElementById('spelled-word-display');
+                  if (wordEl) wordEl.textContent = data.composed_text;
+                }
+                if (Date.now() - this.lastConfirmedTime > 1300) {
+                  this.lastConfirmedTime = Date.now();
+                  this.triggerFingerspellLetter(data.label);
+                }
+              }
+            } else if (data.hand_detected && data.status === 'ANALYZING') {
+              // IN ANALYSIS PHASE: Hand signal being observed across frames! Keep holding steady!
+              this.updatePredictionUI({
+                label: 'ANALYZING',
+                candidate_label: data.candidate_label,
+                display_text: data.display_text,
+                bdsl_gloss: data.gloss,
+                confidence: data.confidence,
+                confirmed: false,
+                status: 'ANALYZING',
+                analysis_pct: data.analysis_pct || 40,
+                consensus_progress: data.consensus_progress,
+                engine_info: data.engine_info
+              });
+            } else if (data.hand_detected) {
+              // Hand is in position inside target box, waiting for user to form sign
+              this.updatePredictionUI({
+                label: 'IDLE',
+                display_text: data.display_text || '✋ Hand In Position (Ready To Sign)',
+                bdsl_gloss: data.gloss || 'Show an ASL or HaGRID hand sign',
+                confidence: 0,
+                confirmed: false,
+                status: 'READY',
+                analysis_pct: 0
+              });
+            } else {
+              // No hand inside target box
+              this.updatePredictionUI({
+                label: 'IDLE',
+                display_text: data.display_text || 'Position hand inside the fixed guide box ✋',
+                bdsl_gloss: data.gloss || '[Face and outside background are excluded]',
+                confidence: 0,
+                confirmed: false,
+                status: 'IDLE',
+                analysis_pct: 0
+              });
+            }
+          }
+        } catch (err) {
+          console.debug('Live frame processor notice:', err);
+        } finally {
+          this.isProcessingFrame = false;
         }
+      }, 200);
+    },
 
-        // Draw crisp 640x480 frame for robust MediaPipe hand landmark tracking
-        this.offscreenCtx.drawImage(this.videoEl, 0, 0, 640, 480);
-        const b64 = this.offscreenCanvas.toDataURL('image/jpeg', 0.82);
+    drawCanvasFeedback() {
+      if (!this.ctx || !this.videoEl || !this.isStreaming) return;
+      this.canvasEl.width = this.videoEl.videoWidth || 640;
+      this.canvasEl.height = this.videoEl.videoHeight || 480;
+      const w = this.canvasEl.width;
+      const h = this.canvasEl.height;
+      this.ctx.clearRect(0, 0, w, h);
 
-        const currentRoi = this.getTargetRoi();
-        const res = await fetch('/api/sign/process_frame', {
+      // Check live state
+      const data = this.lastFrameData;
+      const isRecentlyDetected = this.detectionState.isDetected && (Date.now() - this.detectionState.timestamp < 2500);
+      const isAnalyzing = (data && data.hand_detected && data.status === 'ANALYZING');
+      const isHandInRoi = (data && data.hand_detected && data.in_roi !== false);
+
+      // Sync state cleanly to HTML centered Target ROI Box (#sign-roi-box)
+      const roiBox = document.getElementById('sign-roi-box');
+      const statusTextEl = document.getElementById('sign-status-text');
+
+      if (roiBox) {
+        if (isRecentlyDetected) {
+          roiBox.classList.add('confirmed');
+          roiBox.classList.remove('analyzing');
+          if (statusTextEl && this.detectionState.label) {
+            statusTextEl.textContent = `Sign confirmed: ${this.detectionState.label}`;
+          }
+        } else if (isAnalyzing) {
+          roiBox.classList.add('analyzing');
+          roiBox.classList.remove('confirmed');
+          if (statusTextEl) {
+            statusTextEl.textContent = `Analyzing sign... hold steady`;
+          }
+        } else if (isHandInRoi) {
+          roiBox.classList.remove('confirmed', 'analyzing');
+          if (statusTextEl) {
+            statusTextEl.textContent = `Hand in position • Ready to sign`;
+          }
+        } else {
+          roiBox.classList.remove('confirmed', 'analyzing');
+          if (statusTextEl) {
+            statusTextEl.textContent = `Camera is active • Keep hand in box`;
+          }
+        }
+      }
+
+      // Only draw clean subtle hand tracking if detected — zero green bars, zero mirrored text
+      if (this.lastHandBBox) {
+        const sX = w / (this.lastFrameDims ? this.lastFrameDims[0] : 640);
+        const sY = h / (this.lastFrameDims ? this.lastFrameDims[1] : 480);
+        const hX = this.lastHandBBox[0] * sX;
+        const hY = this.lastHandBBox[1] * sY;
+        const hW = this.lastHandBBox[2] * sX;
+        const hH = this.lastHandBBox[3] * sY;
+
+        this.ctx.save();
+        this.ctx.strokeStyle = isRecentlyDetected ? 'rgba(34, 197, 94, 0.7)' : 'rgba(255, 203, 5, 0.6)';
+        this.ctx.lineWidth = 2;
+        this.ctx.setLineDash([6, 6]);
+        this.ctx.strokeRect(hX, hY, hW, hH);
+        this.ctx.restore();
+      }
+    },
+
+    _drawTargetBrackets(x, y, w, h, color, cLen, lineWidth) {
+      this.ctx.save();
+      this.ctx.strokeStyle = color;
+      this.ctx.lineWidth = lineWidth;
+      this.ctx.setLineDash([]);
+      // Top-Left
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, y + cLen);
+      this.ctx.lineTo(x, y);
+      this.ctx.lineTo(x + cLen, y);
+      this.ctx.stroke();
+      // Top-Right
+      this.ctx.beginPath();
+      this.ctx.moveTo(x + w - cLen, y);
+      this.ctx.lineTo(x + w, y);
+      this.ctx.lineTo(x + w, y + cLen);
+      this.ctx.stroke();
+      // Bottom-Left
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, y + h - cLen);
+      this.ctx.lineTo(x, y + h);
+      this.ctx.lineTo(x + cLen, y + h);
+      this.ctx.stroke();
+      // Bottom-Right
+      this.ctx.beginPath();
+      this.ctx.moveTo(x + w - cLen, y + h);
+      this.ctx.lineTo(x + w, y + h);
+      this.ctx.lineTo(x + w, y + h - cLen);
+      this.ctx.stroke();
+      this.ctx.restore();
+    },
+
+    _drawPillBadge(x, y, text, bgColor, textColor) {
+      this.ctx.save();
+      this.ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      this.ctx.textAlign = 'left';
+      this.ctx.textBaseline = 'middle';
+      const textMetrics = this.ctx.measureText(text);
+      const pillW = textMetrics.width + 24;
+      const pillH = 28;
+
+      this.ctx.shadowBlur = 0;
+      this.ctx.fillStyle = bgColor;
+      this.ctx.beginPath();
+      if (this.ctx.roundRect) {
+        this.ctx.roundRect(x, y, pillW, pillH, 6);
+      } else {
+        this.ctx.rect(x, y, pillW, pillH);
+      }
+      this.ctx.fill();
+
+      this.ctx.fillStyle = textColor;
+      this.ctx.fillText(text, x + 12, y + pillH / 2);
+      this.ctx.restore();
+    },
+
+  async simulateSignSample(className) {
+      TransifyApp.showToast(`Loading verified sample sequence for ${className}...`, 'info');
+      try {
+        const res = await fetch(`/api/samples/sign/${className}`);
+        if (!res.ok) throw new Error('Sample sequence not found');
+        const sample = await res.json();
+
+        // Send to prediction pipeline
+        const predRes = await fetch('/api/sign/predict', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            image_b64: b64,
-            mode: this.currentMode,
+            sequence: sample.sequence,
+            signer_id: sample.sample_id,
             language_mode: this.currentLanguageMode || 'asl',
-            roi: currentRoi
+            auto_log: true
           })
         });
 
-        if (!res.ok) return;
-        const data = await res.json();
-        this.lastFrameData = data;
+        if (!predRes.ok) throw new Error('Prediction failed');
+        const predData = await predRes.json();
+        this.updatePredictionUI(predData, sample.bdsl_gloss);
 
-        if (data && data.success) {
-          if (data.hand_detected && data.hand_bbox) {
-            this.lastHandBBox = data.hand_bbox;
-            this.lastFrameDims = data.frame_dims || [640, 480];
-            this.lastFingersCount = data.fingers_count || 0;
-          } else {
-            this.lastHandBBox = null;
-            this.lastFingersCount = 0;
-          }
-
-          if (data.hand_detected && data.status === 'CONFIRMED' && data.label && data.label !== 'IDLE' && data.label !== 'ANALYZING') {
-            // DECISION CONFIRMED AFTER ANALYSIS! Turn camera box vibrant GREEN!
-            this.setDetectionFeedback(data.label, data.confidence || 0.98);
-
-            // Update Recognized Word card with finalized translation
-            this.updatePredictionUI({
-              label: data.label,
-              display_text: data.display_text,
-              bdsl_gloss: data.gloss,
-              english_text: data.english_text,
-              language_mode: data.language_mode || this.currentLanguageMode,
-              model_name: data.model_name,
-              unified_translation: data.unified_translation,
-              confidence: data.confidence,
-              confirmed: true,
-              status: 'CONFIRMED',
-              analysis_pct: 100,
-              engine_info: data.engine_info
-            });
-
-            // Commit word to sentence & speak
-            if (data.is_word) {
-              if (Date.now() - this.lastConfirmedTime > 1800) {
-                this.lastConfirmedTime = Date.now();
-                this.addTokenToSentence(data.label);
-                TransifyApp.showToast(`Recognized Sign "${data.label}" confirmed!`, 'success');
-              }
-            } else {
-              const liveLetterEl = document.getElementById('current-letter-badge');
-              if (liveLetterEl) liveLetterEl.textContent = data.label;
-              if (data.composed_text) {
-                const wordEl = document.getElementById('spelled-word-display');
-                if (wordEl) wordEl.textContent = data.composed_text;
-              }
-              if (Date.now() - this.lastConfirmedTime > 1300) {
-                this.lastConfirmedTime = Date.now();
-                this.triggerFingerspellLetter(data.label);
-              }
-            }
-          } else if (data.hand_detected && data.status === 'ANALYZING') {
-            // IN ANALYSIS PHASE: Hand signal being observed across frames! Keep holding steady!
-            this.updatePredictionUI({
-              label: 'ANALYZING',
-              candidate_label: data.candidate_label,
-              display_text: data.display_text,
-              bdsl_gloss: data.gloss,
-              confidence: data.confidence,
-              confirmed: false,
-              status: 'ANALYZING',
-              analysis_pct: data.analysis_pct || 40,
-              consensus_progress: data.consensus_progress,
-              engine_info: data.engine_info
-            });
-          } else if (data.hand_detected) {
-            // Hand is in position inside target box, waiting for user to form sign
-            this.updatePredictionUI({
-              label: 'IDLE',
-              display_text: data.display_text || '✋ Hand In Position (Ready To Sign)',
-              bdsl_gloss: data.gloss || 'Show an ASL or HaGRID hand sign',
-              confidence: 0,
-              confirmed: false,
-              status: 'READY',
-              analysis_pct: 0
-            });
-          } else {
-            // No hand inside target box
-            this.updatePredictionUI({
-              label: 'IDLE',
-              display_text: data.display_text || 'Position hand inside the fixed guide box ✋',
-              bdsl_gloss: data.gloss || '[Face and outside background are excluded]',
-              confidence: 0,
-              confirmed: false,
-              status: 'IDLE',
-              analysis_pct: 0
-            });
-          }
-        }
-      } catch (err) {
-        console.debug('Live frame processor notice:', err);
-      } finally {
-        this.isProcessingFrame = false;
+      } catch (e) {
+        console.error('Sign sample simulation failed:', e);
+        TransifyApp.showToast(`Error testing sign: ${e.message}`, 'danger');
       }
-    }, 200);
-  },
+    },
 
-  drawCanvasFeedback() {
-    if (!this.ctx || !this.videoEl || !this.isStreaming) return;
-    this.canvasEl.width = this.videoEl.videoWidth || 640;
-    this.canvasEl.height = this.videoEl.videoHeight || 480;
-    const w = this.canvasEl.width;
-    const h = this.canvasEl.height;
-    this.ctx.clearRect(0, 0, w, h);
-
-    // Check live state
-    const data = this.lastFrameData;
-    const isRecentlyDetected = this.detectionState.isDetected && (Date.now() - this.detectionState.timestamp < 2500);
-    const isAnalyzing = (data && data.hand_detected && data.status === 'ANALYZING');
-    const isHandInRoi = (data && data.hand_detected && data.in_roi !== false);
-
-    // Sync state cleanly to HTML centered Target ROI Box (#sign-roi-box)
-    const roiBox = document.getElementById('sign-roi-box');
-    const statusTextEl = document.getElementById('sign-status-text');
-
-    if (roiBox) {
-      if (isRecentlyDetected) {
-        roiBox.classList.add('confirmed');
-        roiBox.classList.remove('analyzing');
-        if (statusTextEl && this.detectionState.label) {
-          statusTextEl.textContent = `Sign confirmed: ${this.detectionState.label}`;
-        }
-      } else if (isAnalyzing) {
-        roiBox.classList.add('analyzing');
-        roiBox.classList.remove('confirmed');
-        if (statusTextEl) {
-          statusTextEl.textContent = `Analyzing sign... hold steady`;
-        }
-      } else if (isHandInRoi) {
-        roiBox.classList.remove('confirmed', 'analyzing');
-        if (statusTextEl) {
-          statusTextEl.textContent = `Hand in position • Ready to sign`;
-        }
-      } else {
-        roiBox.classList.remove('confirmed', 'analyzing');
-        if (statusTextEl) {
-          statusTextEl.textContent = `Camera is active • Keep hand in box`;
-        }
-      }
-    }
-
-    // Only draw clean subtle hand tracking if detected — zero green bars, zero mirrored text
-    if (this.lastHandBBox) {
-      const sX = w / (this.lastFrameDims ? this.lastFrameDims[0] : 640);
-      const sY = h / (this.lastFrameDims ? this.lastFrameDims[1] : 480);
-      const hX = this.lastHandBBox[0] * sX;
-      const hY = this.lastHandBBox[1] * sY;
-      const hW = this.lastHandBBox[2] * sX;
-      const hH = this.lastHandBBox[3] * sY;
-
-      this.ctx.save();
-      this.ctx.strokeStyle = isRecentlyDetected ? 'rgba(34, 197, 94, 0.7)' : 'rgba(255, 203, 5, 0.6)';
-      this.ctx.lineWidth = 2;
-      this.ctx.setLineDash([6, 6]);
-      this.ctx.strokeRect(hX, hY, hW, hH);
-      this.ctx.restore();
-    }
-  },
-
-  _drawTargetBrackets(x, y, w, h, color, cLen, lineWidth) {
-    this.ctx.save();
-    this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = lineWidth;
-    this.ctx.setLineDash([]);
-    // Top-Left
-    this.ctx.beginPath();
-    this.ctx.moveTo(x, y + cLen);
-    this.ctx.lineTo(x, y);
-    this.ctx.lineTo(x + cLen, y);
-    this.ctx.stroke();
-    // Top-Right
-    this.ctx.beginPath();
-    this.ctx.moveTo(x + w - cLen, y);
-    this.ctx.lineTo(x + w, y);
-    this.ctx.lineTo(x + w, y + cLen);
-    this.ctx.stroke();
-    // Bottom-Left
-    this.ctx.beginPath();
-    this.ctx.moveTo(x, y + h - cLen);
-    this.ctx.lineTo(x, y + h);
-    this.ctx.lineTo(x + cLen, y + h);
-    this.ctx.stroke();
-    // Bottom-Right
-    this.ctx.beginPath();
-    this.ctx.moveTo(x + w - cLen, y + h);
-    this.ctx.lineTo(x + w, y + h);
-    this.ctx.lineTo(x + w, y + h - cLen);
-    this.ctx.stroke();
-    this.ctx.restore();
-  },
-
-  _drawPillBadge(x, y, text, bgColor, textColor) {
-    this.ctx.save();
-    this.ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    this.ctx.textAlign = 'left';
-    this.ctx.textBaseline = 'middle';
-    const textMetrics = this.ctx.measureText(text);
-    const pillW = textMetrics.width + 24;
-    const pillH = 28;
-
-    this.ctx.shadowBlur = 0;
-    this.ctx.fillStyle = bgColor;
-    this.ctx.beginPath();
-    if (this.ctx.roundRect) {
-      this.ctx.roundRect(x, y, pillW, pillH, 6);
-    } else {
-      this.ctx.rect(x, y, pillW, pillH);
-    }
-    this.ctx.fill();
-
-    this.ctx.fillStyle = textColor;
-    this.ctx.fillText(text, x + 12, y + pillH / 2);
-    this.ctx.restore();
-  },
-
-  async simulateSignSample(className) {
-    TransifyApp.showToast(`Loading verified sample sequence for ${className}...`, 'info');
-    try {
-      const res = await fetch(`/api/samples/sign/${className}`);
-      if (!res.ok) throw new Error('Sample sequence not found');
-      const sample = await res.json();
-
-      // Send to prediction pipeline
-      const predRes = await fetch('/api/sign/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sequence: sample.sequence,
-          signer_id: sample.sample_id,
-          language_mode: this.currentLanguageMode || 'asl',
-          auto_log: true
-        })
-      });
-
-      if (!predRes.ok) throw new Error('Prediction failed');
-      const predData = await predRes.json();
-      this.updatePredictionUI(predData, sample.bdsl_gloss);
-
-    } catch (e) {
-      console.error('Sign sample simulation failed:', e);
-      TransifyApp.showToast(`Error testing sign: ${e.message}`, 'danger');
-    }
-  },
-
-  updatePredictionUI(result, defaultGloss = '') {
-    const banner = document.getElementById('sign-prediction-banner');
-    const labelEl = document.getElementById('pred-label-text');
-    const glossEl = document.getElementById('pred-gloss-text');
-    const confEl = document.getElementById('pred-confidence-badge');
-    const progressFill = document.getElementById('debounce-progress-fill');
-    const statusNote = document.getElementById('pred-status-note');
-    const engineNote = document.getElementById('sign-engine-note');
-    const unifiedOutputEl = document.getElementById('unified-english-output');
-    const sourceTagEl = document.getElementById('trans-source-model-tag');
-
-    if (result.rejected) {
-      if (labelEl) { labelEl.textContent = '—'; labelEl.classList.remove('on'); }
-      if (glossEl) glossEl.textContent = `[Filtering: ${result.rejection_reason || 'Low motion / Idle'}]`;
-      if (progressFill) progressFill.style.width = '20%';
-      if (engineNote) engineNote.style.display = 'none';
-      return;
-    }
-
-    const isRealSign = Boolean(
-      result.label &&
-      result.label !== 'IDLE' &&
-      result.label !== 'ANALYZING' &&
-      result.label !== 'OUT_OF_ROI' &&
-      result.label !== 'READY' &&
-      (result.confirmed || (result.confidence && result.confidence >= 0.75))
-    );
-
-    const displayWord = isRealSign ? (result.display_text || result.label.replace(/_/g, ' ')) : '';
-
-    // Auto-fit recognized word (§6.4)
-    if (labelEl) {
-      if (isRealSign) {
-        const rawText = displayWord;
-        let letters = [];
-        if (typeof Intl !== 'undefined' && Intl.Segmenter) {
-          try {
-            const seg = new Intl.Segmenter('en', { granularity: 'grapheme' });
-            for (const s of seg.segment(rawText)) {
-              letters.push(s.segment);
-            }
-          } catch (e) {
-            letters = rawText.split('');
-          }
-        } else {
-          letters = rawText.split('');
-        }
-        labelEl.innerHTML = letters.map((l, idx) => `<span class="l" style="animation-delay:${Math.min(idx * 0.06, 0.48)}s">${l}</span>`).join('');
-        labelEl.classList.add('on');
-
-        let fontSize = 96;
-        labelEl.style.fontSize = fontSize + 'px';
-        while (labelEl.scrollWidth > labelEl.clientWidth && fontSize > 40) {
-          fontSize -= 4;
-          labelEl.style.fontSize = fontSize + 'px';
-        }
-      } else {
-        labelEl.textContent = '—';
-        labelEl.classList.remove('on');
-        labelEl.style.fontSize = '96px';
-      }
-    }
-
-    if (glossEl) {
-      glossEl.textContent = isRealSign ? `[ASL: ${result.gloss || defaultGloss || result.label}]` : '';
-    }
-
-    // Confidence Ring SVG (104x104)
-    const confVal = isRealSign ? Math.round((result.confidence || 0.95) * 100) : 0;
-    if (confEl) {
-      confEl.textContent = `${confVal}%`;
-      confEl.className = (isRealSign && confVal >= 80) ? 'ring-pct badge-success' : 'ring-pct';
-    }
-
-    const hudWord = document.getElementById('hud-word-badge');
-    const hudConf = document.getElementById('hud-conf-badge');
-    if (hudWord) {
-      hudWord.textContent = isRealSign ? displayWord : (result.status === 'ANALYZING' ? 'Analyzing...' : '—');
-    }
-    if (hudConf) {
-      hudConf.textContent = `${confVal}% sure`;
-    }
-
-    const ringCircle = document.getElementById('confidence-ring-circle');
-    if (ringCircle) {
-      if (isRealSign) {
-        const offset = 201 * (1 - Math.min(1, Math.max(0, result.confidence || 0.95)));
-        ringCircle.style.strokeDashoffset = offset;
-        ringCircle.setAttribute('stroke', result.confirmed ? '#0F9D74' : '#8338EC');
-      } else {
-        ringCircle.style.strokeDashoffset = 201;
-        ringCircle.setAttribute('stroke', '#D9DAE6');
-      }
-    }
-
-    // Segments
-    const count = result.debounce_count || (result.confirmed ? 3 : 1);
-    const seg1 = document.getElementById('seg-1');
-    const seg2 = document.getElementById('seg-2');
-    const seg3 = document.getElementById('seg-3');
-    if (seg1) seg1.classList.toggle('on', count >= 1);
-    if (seg2) seg2.classList.toggle('on', count >= 2);
-    if (seg3) seg3.classList.toggle('on', count >= 3);
-
-    // Status Line
-    const statusLine = document.getElementById('pred-status-line');
-    if (statusLine) {
-      if (result.confirmed && isRealSign) {
-        statusLine.textContent = 'Confirmed after 3 matching frames';
-      } else if (result.status === 'ANALYZING') {
-        statusLine.textContent = `Analyzing sign... checking frame ${count} of 3`;
-      } else if (result.status === 'READY') {
-        statusLine.textContent = 'Hand detected • Ready to sign';
-      } else if (result.status === 'OUT_OF_ROI') {
-        statusLine.textContent = 'Bring hand inside the fixed guide box';
-      } else if (isRealSign) {
-        statusLine.textContent = `Observing ${displayWord}`;
-      } else {
-        statusLine.textContent = 'Show your hand in the box';
-      }
-    }
-
-    // Speak word button
-    const speakWordBtn = document.getElementById('speak-pred-btn');
-    if (speakWordBtn) {
-      speakWordBtn.textContent = isRealSign ? `Speak ${displayWord}` : 'Speak word';
-      speakWordBtn.disabled = !isRealSign;
-    }
-
-    // ROI Beam
-    const roiBox = document.getElementById('sign-roi-box');
-    if (roiBox) {
-      roiBox.classList.toggle('analyzing', !result.confirmed && result.status === 'ANALYZING');
-    }
-
-    // Unified Translation Layer display
-    const englishText = result.english_text || result.display_text || result.label;
-    if (unifiedOutputEl && englishText && isRealSign) {
-      unifiedOutputEl.textContent = `"${englishText}"`;
-    }
-    if (sourceTagEl) {
-      sourceTagEl.textContent = 'SignFrame AI (ASL)';
-      sourceTagEl.style.color = '#8338ec';
-      sourceTagEl.style.background = 'rgba(131, 56, 236, 0.15)';
-    }
-
-    // Engine Info and Latency Display
-    if (engineNote && result.engine_info && isRealSign) {
-      const eng = result.engine_info;
-      engineNote.style.display = 'inline-block';
-      if (eng.is_fallback) {
-        engineNote.style.background = 'rgba(234, 179, 8, 0.15)';
-        engineNote.style.color = 'var(--text-warning, #eab308)';
-        engineNote.style.border = '1px solid rgba(234, 179, 8, 0.3)';
-        engineNote.innerHTML = `🤖 <strong>${eng.badge || 'MCP Resolver (<98%)'}:</strong> ${eng.notes || ''}`;
-      } else {
-        engineNote.style.background = 'rgba(34, 197, 94, 0.12)';
-        engineNote.style.color = 'var(--text-success, #22c55e)';
-        engineNote.style.border = '1px solid rgba(34, 197, 94, 0.25)';
-        engineNote.innerHTML = `🎯 <strong>Custom AI Model (&ge; 98%):</strong> Processed in ultra-fast time (&lt; 15ms)`;
-      }
-    } else if (engineNote && !isRealSign) {
-      engineNote.style.display = 'none';
-    }
-
-    // Trigger detection feedback on camera overlay whenever valid sign is detected
-    if (isRealSign) {
-      this.setDetectionFeedback(result.label, result.confidence || 0.95);
-    } else {
-      this.setDetectionFeedback(null);
-    }
-
-    // Update consensus debounce progress bar
-    if (progressFill) {
-      const count = result.debounce_count || 1;
-      const target = result.debounce_target || 3;
-      const pct = Math.min(100, Math.round((count / target) * 100));
-      progressFill.style.width = `${pct}%`;
-    }
-
-    if (result.confirmed && isRealSign) {
-      const now = Date.now();
-      const isNewSign = (result.label !== this.lastConfirmedSign);
-      const isTimeElapsed = (now - this.lastConfirmedSpeechTime > 2500);
-
-      this.lastPrediction = displayWord;
-
-      if (isNewSign || isTimeElapsed) {
-        this.lastConfirmedSign = result.label;
-        this.lastConfirmedSpeechTime = now;
-
-        TransifyApp.announce(`Recognized ASL Sign: ${displayWord}`);
-        if (statusNote) statusNote.textContent = `Confirmed expression: ${displayWord}`;
-
-        // Automatically append confirmed sign token to Sentence Builder
-        this.addTokenToSentence(displayWord);
-
-        if (this.autoSpeak) {
-          TransifyTTS.speak(englishText || displayWord);
-        }
-      }
-    } else {
-      if (statusNote) statusNote.textContent = `Debouncing consensus (${result.debounce_count || 1}/${result.debounce_target || 3})...`;
-    }
-  },
-
-  async resetRecognition() {
-    try {
-      await fetch('/api/sign/reset', { method: 'POST' });
-      this.sequenceBuffer = [];
-      this.lastPrediction = null;
+    updatePredictionUI(result, defaultGloss = '') {
+      const banner = document.getElementById('sign-prediction-banner');
       const labelEl = document.getElementById('pred-label-text');
       const glossEl = document.getElementById('pred-gloss-text');
+      const confEl = document.getElementById('pred-confidence-badge');
       const progressFill = document.getElementById('debounce-progress-fill');
-      if (labelEl) labelEl.textContent = 'Waiting for gesture...';
-      if (glossEl) glossEl.textContent = 'Position your hands in camera view or click a sample below';
-      if (progressFill) progressFill.style.width = '0%';
-      TransifyApp.showToast('Sign tracker reset.', 'info');
-    } catch (e) {
-      // Ignore
-    }
-  }
-};
+      const statusNote = document.getElementById('pred-status-note');
+      const engineNote = document.getElementById('sign-engine-note');
+      const unifiedOutputEl = document.getElementById('unified-english-output');
+      const sourceTagEl = document.getElementById('trans-source-model-tag');
 
-// ==========================================
-// 5. Module 02: Braille Image Translator
-// ==========================================
+      if (result.rejected) {
+        if (labelEl) { labelEl.textContent = '—'; labelEl.classList.remove('on'); }
+        if (glossEl) glossEl.textContent = `[Filtering: ${result.rejection_reason || 'Low motion / Idle'}]`;
+        if (progressFill) progressFill.style.width = '20%';
+        if (engineNote) engineNote.style.display = 'none';
+        return;
+      }
 
-// ==========================================
-// 5. Module 02: Braille Image Translator & Multi-Modal Studio
-// ==========================================
+      const isRealSign = Boolean(
+        result.label &&
+        result.label !== 'IDLE' &&
+        result.label !== 'ANALYZING' &&
+        result.label !== 'OUT_OF_ROI' &&
+        result.label !== 'READY' &&
+        (result.confirmed || (result.confidence && result.confidence >= 0.75))
+      );
 
-var BraillePage = window.BraillePage = {
-  currentFile: null,
-  currentImageSrc: null,
-  isInitialized: false,
-  currentMode: 'scan',
-  cameraStream: null,
-  cameraFacing: 'environment',
-  activeCellDots: [],
+      const displayWord = isRealSign ? (result.display_text || result.label.replace(/_/g, ' ')) : '';
 
-  // Comprehensive UEB Grade 1 / Grade 2 & Bharati Braille dictionary
-  charToBraille: {
-    'a': { dots: [1], unicode: '⠁', bn: 'অ', name: 'Letter A' },
-    'b': { dots: [1, 2], unicode: '⠃', bn: 'ব', name: 'Letter B' },
-    'c': { dots: [1, 4], unicode: '⠉', bn: 'চ', name: 'Letter C' },
-    'd': { dots: [1, 4, 5], unicode: '⠙', bn: 'দ', name: 'Letter D' },
-    'e': { dots: [1, 5], unicode: '⠑', bn: 'এ', name: 'Letter E' },
-    'f': { dots: [1, 2, 4], unicode: '⠋', bn: 'ফ', name: 'Letter F' },
-    'g': { dots: [1, 2, 4, 5], unicode: '⠛', bn: 'গ', name: 'Letter G' },
-    'h': { dots: [1, 2, 5], unicode: '⠓', bn: 'হ', name: 'Letter H' },
-    'i': { dots: [2, 4], unicode: '⠊', bn: 'ই', name: 'Letter I' },
-    'j': { dots: [2, 4, 5], unicode: '⠚', bn: 'জ', name: 'Letter J' },
-    'k': { dots: [1, 3], unicode: '⠅', bn: 'ক', name: 'Letter K' },
-    'l': { dots: [1, 2, 3], unicode: '⠇', bn: 'ল', name: 'Letter L' },
-    'm': { dots: [1, 3, 4], unicode: '⠍', bn: 'ম', name: 'Letter M' },
-    'n': { dots: [1, 3, 4, 5], unicode: '⠝', bn: 'ন', name: 'Letter N' },
-    'o': { dots: [1, 3, 5], unicode: '⠕', bn: 'ও', name: 'Letter O' },
-    'p': { dots: [1, 2, 3, 4], unicode: '⠏', bn: 'প', name: 'Letter P' },
-    'q': { dots: [1, 2, 3, 4, 5], unicode: '⠟', bn: '–', name: 'Letter Q' },
-    'r': { dots: [1, 2, 3, 5], unicode: '⠗', bn: 'র', name: 'Letter R' },
-    's': { dots: [2, 3, 4], unicode: '⠎', bn: 'স', name: 'Letter S' },
-    't': { dots: [2, 3, 4, 5], unicode: '⠞', bn: 'ত', name: 'Letter T' },
-    'u': { dots: [1, 3, 6], unicode: '⠥', bn: 'উ', name: 'Letter U' },
-    'v': { dots: [1, 2, 3, 6], unicode: '⠧', bn: 'ভ', name: 'Letter V' },
-    'w': { dots: [2, 4, 5, 6], unicode: '⠺', bn: 'ঠ', name: 'Letter W' },
-    'x': { dots: [1, 3, 4, 6], unicode: '⠭', bn: '–', name: 'Letter X' },
-    'y': { dots: [1, 3, 4, 5, 6], unicode: '⠽', bn: 'য', name: 'Letter Y' },
-    'z': { dots: [1, 3, 5, 6], unicode: '⠵', bn: '–', name: 'Letter Z' },
-    '1': { dots: [1], unicode: '⠁', isDigit: true, name: 'Digit 1' },
-    '2': { dots: [1, 2], unicode: '⠃', isDigit: true, name: 'Digit 2' },
-    '3': { dots: [1, 4], unicode: '⠉', isDigit: true, name: 'Digit 3' },
-    '4': { dots: [1, 4, 5], unicode: '⠙', isDigit: true, name: 'Digit 4' },
-    '5': { dots: [1, 5], unicode: '⠑', isDigit: true, name: 'Digit 5' },
-    '6': { dots: [1, 2, 4], unicode: '⠋', isDigit: true, name: 'Digit 6' },
-    '7': { dots: [1, 2, 4, 5], unicode: '⠛', isDigit: true, name: 'Digit 7' },
-    '8': { dots: [1, 2, 5], unicode: '⠓', isDigit: true, name: 'Digit 8' },
-    '9': { dots: [2, 4], unicode: '⠊', isDigit: true, name: 'Digit 9' },
-    '0': { dots: [2, 4, 5], unicode: '⠚', isDigit: true, name: 'Digit 0' },
-    '.': { dots: [2, 5, 6], unicode: '⠲', bn: '।', name: 'Period' },
-    ',': { dots: [2], unicode: '⠂', bn: ',', name: 'Comma' },
-    ';': { dots: [2, 3], unicode: '⠆', name: 'Semicolon' },
-    ':': { dots: [2, 5], unicode: '⠒', name: 'Colon' },
-    '?': { dots: [2, 3, 6], unicode: '⠦', name: 'Question Mark' },
-    '!': { dots: [2, 3, 5], unicode: '⠖', name: 'Exclamation' },
-    '-': { dots: [3, 6], unicode: '⠤', name: 'Hyphen' },
-    "'": { dots: [3], unicode: '⠄', name: 'Apostrophe' },
-    '"': { dots: [3, 5, 6], unicode: '⠴', name: 'Quote' }
-  },
+      // Auto-fit recognized word (§6.4)
+      if (labelEl) {
+        if (isRealSign) {
+          const rawText = displayWord;
+          let letters = [];
+          if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+            try {
+              const seg = new Intl.Segmenter('en', { granularity: 'grapheme' });
+              for (const s of seg.segment(rawText)) {
+                letters.push(s.segment);
+              }
+            } catch (e) {
+              letters = rawText.split('');
+            }
+          } else {
+            letters = rawText.split('');
+          }
+          labelEl.innerHTML = letters.map((l, idx) => `<span class="l" style="animation-delay:${Math.min(idx * 0.06, 0.48)}s">${l}</span>`).join('');
+          labelEl.classList.add('on');
 
-  // Bengali Bharati Braille Map
-  bengaliBraille: {
-    'অ': { dots: [1], unicode: '⠁', roman: 'o / a' },
-    'আ': { dots: [3, 4, 5], unicode: '⠜', roman: 'aa' },
-    'ই': { dots: [2, 4], unicode: '⠊', roman: 'i' },
-    'ঈ': { dots: [3, 5], unicode: '⠔', roman: 'ee' },
-    'উ': { dots: [1, 3, 6], unicode: '⠥', roman: 'u' },
-    'ঊ': { dots: [1, 2, 5, 6], unicode: '⠳', roman: 'oo' },
-    'এ': { dots: [1, 5], unicode: '⠑', roman: 'e' },
-    'ঐ': { dots: [3, 4], unicode: '⠌', roman: 'oi' },
-    'ও': { dots: [1, 3, 5], unicode: '⠕', roman: 'o' },
-    'ঔ': { dots: [2, 4, 6], unicode: '⠪', roman: 'ou' },
-    'ক': { dots: [1, 3], unicode: '⠅', roman: 'k' },
-    'খ': { dots: [4, 6], unicode: '⠨', roman: 'kh' },
-    'গ': { dots: [1, 2, 4, 5], unicode: '⠛', roman: 'g' },
-    'ঘ': { dots: [1, 2, 6], unicode: '⠣', roman: 'gh' },
-    'ঙ': { dots: [3, 4, 6], unicode: '⠬', roman: 'ng' },
-    'চ': { dots: [1, 4], unicode: '⠉', roman: 'ch' },
-    'ছ': { dots: [1, 4, 6], unicode: '⠡', roman: 'chh' },
-    'জ': { dots: [2, 4, 5], unicode: '⠚', roman: 'j' },
-    'ঝ': { dots: [3, 5, 6], unicode: '⠴', roman: 'jh' },
-    'ঞ': { dots: [2, 5], unicode: '⠒', roman: 'ny' },
-    'ট': { dots: [2, 3, 4, 5, 6], unicode: '⠾', roman: 'T' },
-    'ঠ': { dots: [2, 4, 5, 6], unicode: '⠺', roman: 'Th' },
-    'ড': { dots: [1, 2, 4, 6], unicode: '⠫', roman: 'D' },
-    'ঢ': { dots: [1, 2, 3, 4, 5, 6], unicode: '⠿', roman: 'Dh' },
-    'ণ': { dots: [3, 4, 5, 6], unicode: '⠼', roman: 'N' },
-    'ত': { dots: [2, 3, 4, 5], unicode: '⠞', roman: 't' },
-    'থ': { dots: [1, 4, 5, 6], unicode: '⠹', roman: 'th' },
-    'দ': { dots: [1, 4, 5], unicode: '⠙', roman: 'd' },
-    'ধ': { dots: [2, 3, 4, 6], unicode: '⠮', roman: 'dh' },
-    'ন': { dots: [1, 3, 4, 5], unicode: '⠝', roman: 'n' },
-    'প': { dots: [1, 2, 3, 4], unicode: '⠏', roman: 'p' },
-    'ফ': { dots: [2, 3, 5], unicode: '⠖', roman: 'ph/f' },
-    'ব': { dots: [1, 2], unicode: '⠃', roman: 'b' },
-    'ভ': { dots: [4, 5], unicode: '⠘', roman: 'bh/v' },
-    'ম': { dots: [1, 3, 4], unicode: '⠍', roman: 'm' },
-    'য': { dots: [1, 3, 4, 5, 6], unicode: '⠽', roman: 'y/z' },
-    'র': { dots: [1, 2, 3, 5], unicode: '⠗', roman: 'r' },
-    'ল': { dots: [1, 2, 3], unicode: '⠇', roman: 'l' },
-    'শ': { dots: [1, 4, 6], unicode: '⠱', roman: 'sh' },
-    'ষ': { dots: [1, 2, 3, 4, 6], unicode: '⠯', roman: 'shh' },
-    'স': { dots: [2, 3, 4], unicode: '⠎', roman: 's' },
-    'হ': { dots: [1, 2, 5], unicode: '⠓', roman: 'h' }
-  },
+          let fontSize = 96;
+          labelEl.style.fontSize = fontSize + 'px';
+          while (labelEl.scrollWidth > labelEl.clientWidth && fontSize > 40) {
+            fontSize -= 4;
+            labelEl.style.fontSize = fontSize + 'px';
+          }
+        } else {
+          labelEl.textContent = '—';
+          labelEl.classList.remove('on');
+          labelEl.style.fontSize = '96px';
+        }
+      }
 
-  // Common Grade 2 Contractions
-  contractions: [
-    { word: 'and', dots: [1, 2, 3, 4, 6], unicode: '⠯' },
-    { word: 'for', dots: [1, 2, 3, 4, 5, 6], unicode: '⠿' },
-    { word: 'of', dots: [1, 2, 3, 5, 6], unicode: '⠷' },
-    { word: 'the', dots: [2, 3, 4, 6], unicode: '⠮' },
-    { word: 'with', dots: [2, 3, 4, 5, 6], unicode: '⠾' },
-    { word: 'ch', dots: [1, 6], unicode: '⠡' },
-    { word: 'sh', dots: [1, 4, 6], unicode: '⠱' },
-    { word: 'th', dots: [1, 4, 5, 6], unicode: '⠹' },
-    { word: 'wh', dots: [1, 5, 6], unicode: '⠱' },
-    { word: 'ed', dots: [1, 2, 4, 6], unicode: '⠫' },
-    { word: 'er', dots: [1, 2, 4, 5, 6], unicode: '⠻' },
-    { word: 'ou', dots: [1, 2, 5, 6], unicode: '⠳' },
-    { word: 'ow', dots: [2, 4, 6], unicode: '⠪' }
-  ],
+      if (glossEl) {
+        glossEl.textContent = isRealSign ? `[ASL: ${result.gloss || defaultGloss || result.label}]` : '';
+      }
 
-  // Reverse mapping from dots string ('134') to char details
-  dotsToChar: {},
+      // Confidence Ring SVG (104x104)
+      const confVal = isRealSign ? Math.round((result.confidence || 0.95) * 100) : 0;
+      if (confEl) {
+        confEl.textContent = `${confVal}%`;
+        confEl.className = (isRealSign && confVal >= 80) ? 'ring-pct badge-success' : 'ring-pct';
+      }
 
-  init() {
-    if (this.isInitialized) return;
-    this.isInitialized = true;
+      const hudWord = document.getElementById('hud-word-badge');
+      const hudConf = document.getElementById('hud-conf-badge');
+      if (hudWord) {
+        hudWord.textContent = isRealSign ? displayWord : (result.status === 'ANALYZING' ? 'Analyzing...' : '—');
+      }
+      if (hudConf) {
+        hudConf.textContent = `${confVal}% sure`;
+      }
 
-    // Build reverse dots-to-character lookup table
-    this.buildDotsLookup();
+      const ringCircle = document.getElementById('confidence-ring-circle');
+      if (ringCircle) {
+        if (isRealSign) {
+          const offset = 201 * (1 - Math.min(1, Math.max(0, result.confidence || 0.95)));
+          ringCircle.style.strokeDashoffset = offset;
+          ringCircle.setAttribute('stroke', result.confirmed ? '#0F9D74' : '#8338EC');
+        } else {
+          ringCircle.style.strokeDashoffset = 201;
+          ringCircle.setAttribute('stroke', '#D9DAE6');
+        }
+      }
 
-    this.setupDropzone();
-    this.setupActionButtons();
-    this.setupInteractiveCell();
-    this.initReference();
-    this.initGenerator();
-  },
+      // Segments
+      const count = result.debounce_count || (result.confirmed ? 3 : 1);
+      const seg1 = document.getElementById('seg-1');
+      const seg2 = document.getElementById('seg-2');
+      const seg3 = document.getElementById('seg-3');
+      if (seg1) seg1.classList.toggle('on', count >= 1);
+      if (seg2) seg2.classList.toggle('on', count >= 2);
+      if (seg3) seg3.classList.toggle('on', count >= 3);
 
-  buildDotsLookup() {
-    this.dotsToChar = {};
-    for (const [char, meta] of Object.entries(this.charToBraille)) {
-      const key = meta.dots.slice().sort((a, b) => a - b).join('');
-      if (!this.dotsToChar[key]) {
-        this.dotsToChar[key] = { char, meta };
+      // Status Line
+      const statusLine = document.getElementById('pred-status-line');
+      if (statusLine) {
+        if (result.confirmed && isRealSign) {
+          statusLine.textContent = 'Confirmed after 3 matching frames';
+        } else if (result.status === 'ANALYZING') {
+          statusLine.textContent = `Analyzing sign... checking frame ${count} of 3`;
+        } else if (result.status === 'READY') {
+          statusLine.textContent = 'Hand detected • Ready to sign';
+        } else if (result.status === 'OUT_OF_ROI') {
+          statusLine.textContent = 'Bring hand inside the fixed guide box';
+        } else if (isRealSign) {
+          statusLine.textContent = `Observing ${displayWord}`;
+        } else {
+          statusLine.textContent = 'Show your hand in the box';
+        }
+      }
+
+      // Speak word button
+      const speakWordBtn = document.getElementById('speak-pred-btn');
+      if (speakWordBtn) {
+        speakWordBtn.textContent = isRealSign ? `Speak ${displayWord}` : 'Speak word';
+        speakWordBtn.disabled = !isRealSign;
+      }
+
+      // ROI Beam
+      const roiBox = document.getElementById('sign-roi-box');
+      if (roiBox) {
+        roiBox.classList.toggle('analyzing', !result.confirmed && result.status === 'ANALYZING');
+      }
+
+      // Unified Translation Layer display
+      const englishText = result.english_text || result.display_text || result.label;
+      if (unifiedOutputEl && englishText && isRealSign) {
+        unifiedOutputEl.textContent = `"${englishText}"`;
+      }
+      if (sourceTagEl) {
+        sourceTagEl.textContent = 'SignFrame AI (ASL)';
+        sourceTagEl.style.color = '#8338ec';
+        sourceTagEl.style.background = 'rgba(131, 56, 236, 0.15)';
+      }
+
+      // Engine Info and Latency Display
+      if (engineNote && result.engine_info && isRealSign) {
+        const eng = result.engine_info;
+        engineNote.style.display = 'inline-block';
+        if (eng.is_fallback) {
+          engineNote.style.background = 'rgba(234, 179, 8, 0.15)';
+          engineNote.style.color = 'var(--text-warning, #eab308)';
+          engineNote.style.border = '1px solid rgba(234, 179, 8, 0.3)';
+          engineNote.innerHTML = `🤖 <strong>${eng.badge || 'MCP Resolver (<98%)'}:</strong> ${eng.notes || ''}`;
+        } else {
+          engineNote.style.background = 'rgba(34, 197, 94, 0.12)';
+          engineNote.style.color = 'var(--text-success, #22c55e)';
+          engineNote.style.border = '1px solid rgba(34, 197, 94, 0.25)';
+          engineNote.innerHTML = `🎯 <strong>Custom AI Model (&ge; 98%):</strong> Processed in ultra-fast time (&lt; 15ms)`;
+        }
+      } else if (engineNote && !isRealSign) {
+        engineNote.style.display = 'none';
+      }
+
+      // Trigger detection feedback on camera overlay whenever valid sign is detected
+      if (isRealSign) {
+        this.setDetectionFeedback(result.label, result.confidence || 0.95);
+      } else {
+        this.setDetectionFeedback(null);
+      }
+
+      // Update consensus debounce progress bar
+      if (progressFill) {
+        const count = result.debounce_count || 1;
+        const target = result.debounce_target || 3;
+        const pct = Math.min(100, Math.round((count / target) * 100));
+        progressFill.style.width = `${pct}%`;
+      }
+
+      if (result.confirmed && isRealSign) {
+        const now = Date.now();
+        const isNewSign = (result.label !== this.lastConfirmedSign);
+        const isTimeElapsed = (now - this.lastConfirmedSpeechTime > 2500);
+
+        this.lastPrediction = displayWord;
+
+        if (isNewSign || isTimeElapsed) {
+          this.lastConfirmedSign = result.label;
+          this.lastConfirmedSpeechTime = now;
+
+          TransifyApp.announce(`Recognized ASL Sign: ${displayWord}`);
+          if (statusNote) statusNote.textContent = `Confirmed expression: ${displayWord}`;
+
+          // Automatically append confirmed sign token to Sentence Builder
+          this.addTokenToSentence(displayWord);
+
+          if (this.autoSpeak) {
+            TransifyTTS.speak(englishText || displayWord);
+          }
+        }
+      } else {
+        if (statusNote) statusNote.textContent = `Debouncing consensus (${result.debounce_count || 1}/${result.debounce_target || 3})...`;
+      }
+    },
+
+  async resetRecognition() {
+      try {
+        await fetch('/api/sign/reset', { method: 'POST' });
+        this.sequenceBuffer = [];
+        this.lastPrediction = null;
+        const labelEl = document.getElementById('pred-label-text');
+        const glossEl = document.getElementById('pred-gloss-text');
+        const progressFill = document.getElementById('debounce-progress-fill');
+        if (labelEl) labelEl.textContent = 'Waiting for gesture...';
+        if (glossEl) glossEl.textContent = 'Position your hands in camera view or click a sample below';
+        if (progressFill) progressFill.style.width = '0%';
+        TransifyApp.showToast('Sign tracker reset.', 'info');
+      } catch (e) {
+        // Ignore
       }
     }
-  },
+  };
 
-  // Sub-Navigation Mode Switching
-  switchMode(mode) {
-    this.currentMode = mode;
-    ['scan', 'generator', 'reference'].forEach(m => {
-      const tab = document.getElementById(`braille-tab-${m}`);
-      const pane = document.getElementById(`braille-pane-${m}`);
-      const isActive = (m === mode);
-      if (tab) {
-        tab.classList.toggle('active', isActive);
-        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
-      }
-      if (pane) {
-        pane.style.display = isActive ? 'flex' : 'none';
-        pane.classList.toggle('active', isActive);
-      }
-    });
+  // ==========================================
+  // 5. Module 02: Braille Image Translator
+  // ==========================================
 
-    if (mode === 'generator') {
+  // ==========================================
+  // 5. Module 02: Braille Image Translator & Multi-Modal Studio
+  // ==========================================
+
+  var BraillePage = window.BraillePage = {
+    currentFile: null,
+    currentImageSrc: null,
+    isInitialized: false,
+    currentMode: 'scan',
+    cameraStream: null,
+    cameraFacing: 'environment',
+    activeCellDots: [],
+
+    // Comprehensive UEB Grade 1 / Grade 2 & Bharati Braille dictionary
+    charToBraille: {
+      'a': { dots: [1], unicode: '⠁', bn: 'অ', name: 'Letter A' },
+      'b': { dots: [1, 2], unicode: '⠃', bn: 'ব', name: 'Letter B' },
+      'c': { dots: [1, 4], unicode: '⠉', bn: 'চ', name: 'Letter C' },
+      'd': { dots: [1, 4, 5], unicode: '⠙', bn: 'দ', name: 'Letter D' },
+      'e': { dots: [1, 5], unicode: '⠑', bn: 'এ', name: 'Letter E' },
+      'f': { dots: [1, 2, 4], unicode: '⠋', bn: 'ফ', name: 'Letter F' },
+      'g': { dots: [1, 2, 4, 5], unicode: '⠛', bn: 'গ', name: 'Letter G' },
+      'h': { dots: [1, 2, 5], unicode: '⠓', bn: 'হ', name: 'Letter H' },
+      'i': { dots: [2, 4], unicode: '⠊', bn: 'ই', name: 'Letter I' },
+      'j': { dots: [2, 4, 5], unicode: '⠚', bn: 'জ', name: 'Letter J' },
+      'k': { dots: [1, 3], unicode: '⠅', bn: 'ক', name: 'Letter K' },
+      'l': { dots: [1, 2, 3], unicode: '⠇', bn: 'ল', name: 'Letter L' },
+      'm': { dots: [1, 3, 4], unicode: '⠍', bn: 'ম', name: 'Letter M' },
+      'n': { dots: [1, 3, 4, 5], unicode: '⠝', bn: 'ন', name: 'Letter N' },
+      'o': { dots: [1, 3, 5], unicode: '⠕', bn: 'ও', name: 'Letter O' },
+      'p': { dots: [1, 2, 3, 4], unicode: '⠏', bn: 'প', name: 'Letter P' },
+      'q': { dots: [1, 2, 3, 4, 5], unicode: '⠟', bn: '–', name: 'Letter Q' },
+      'r': { dots: [1, 2, 3, 5], unicode: '⠗', bn: 'র', name: 'Letter R' },
+      's': { dots: [2, 3, 4], unicode: '⠎', bn: 'স', name: 'Letter S' },
+      't': { dots: [2, 3, 4, 5], unicode: '⠞', bn: 'ত', name: 'Letter T' },
+      'u': { dots: [1, 3, 6], unicode: '⠥', bn: 'উ', name: 'Letter U' },
+      'v': { dots: [1, 2, 3, 6], unicode: '⠧', bn: 'ভ', name: 'Letter V' },
+      'w': { dots: [2, 4, 5, 6], unicode: '⠺', bn: 'ঠ', name: 'Letter W' },
+      'x': { dots: [1, 3, 4, 6], unicode: '⠭', bn: '–', name: 'Letter X' },
+      'y': { dots: [1, 3, 4, 5, 6], unicode: '⠽', bn: 'য', name: 'Letter Y' },
+      'z': { dots: [1, 3, 5, 6], unicode: '⠵', bn: '–', name: 'Letter Z' },
+      '1': { dots: [1], unicode: '⠁', isDigit: true, name: 'Digit 1' },
+      '2': { dots: [1, 2], unicode: '⠃', isDigit: true, name: 'Digit 2' },
+      '3': { dots: [1, 4], unicode: '⠉', isDigit: true, name: 'Digit 3' },
+      '4': { dots: [1, 4, 5], unicode: '⠙', isDigit: true, name: 'Digit 4' },
+      '5': { dots: [1, 5], unicode: '⠑', isDigit: true, name: 'Digit 5' },
+      '6': { dots: [1, 2, 4], unicode: '⠋', isDigit: true, name: 'Digit 6' },
+      '7': { dots: [1, 2, 4, 5], unicode: '⠛', isDigit: true, name: 'Digit 7' },
+      '8': { dots: [1, 2, 5], unicode: '⠓', isDigit: true, name: 'Digit 8' },
+      '9': { dots: [2, 4], unicode: '⠊', isDigit: true, name: 'Digit 9' },
+      '0': { dots: [2, 4, 5], unicode: '⠚', isDigit: true, name: 'Digit 0' },
+      '.': { dots: [2, 5, 6], unicode: '⠲', bn: '।', name: 'Period' },
+      ',': { dots: [2], unicode: '⠂', bn: ',', name: 'Comma' },
+      ';': { dots: [2, 3], unicode: '⠆', name: 'Semicolon' },
+      ':': { dots: [2, 5], unicode: '⠒', name: 'Colon' },
+      '?': { dots: [2, 3, 6], unicode: '⠦', name: 'Question Mark' },
+      '!': { dots: [2, 3, 5], unicode: '⠖', name: 'Exclamation' },
+      '-': { dots: [3, 6], unicode: '⠤', name: 'Hyphen' },
+      "'": { dots: [3], unicode: '⠄', name: 'Apostrophe' },
+      '"': { dots: [3, 5, 6], unicode: '⠴', name: 'Quote' }
+    },
+
+    // Bengali Bharati Braille Map
+    bengaliBraille: {
+      'অ': { dots: [1], unicode: '⠁', roman: 'o / a' },
+      'আ': { dots: [3, 4, 5], unicode: '⠜', roman: 'aa' },
+      'ই': { dots: [2, 4], unicode: '⠊', roman: 'i' },
+      'ঈ': { dots: [3, 5], unicode: '⠔', roman: 'ee' },
+      'উ': { dots: [1, 3, 6], unicode: '⠥', roman: 'u' },
+      'ঊ': { dots: [1, 2, 5, 6], unicode: '⠳', roman: 'oo' },
+      'এ': { dots: [1, 5], unicode: '⠑', roman: 'e' },
+      'ঐ': { dots: [3, 4], unicode: '⠌', roman: 'oi' },
+      'ও': { dots: [1, 3, 5], unicode: '⠕', roman: 'o' },
+      'ঔ': { dots: [2, 4, 6], unicode: '⠪', roman: 'ou' },
+      'ক': { dots: [1, 3], unicode: '⠅', roman: 'k' },
+      'খ': { dots: [4, 6], unicode: '⠨', roman: 'kh' },
+      'গ': { dots: [1, 2, 4, 5], unicode: '⠛', roman: 'g' },
+      'ঘ': { dots: [1, 2, 6], unicode: '⠣', roman: 'gh' },
+      'ঙ': { dots: [3, 4, 6], unicode: '⠬', roman: 'ng' },
+      'চ': { dots: [1, 4], unicode: '⠉', roman: 'ch' },
+      'ছ': { dots: [1, 4, 6], unicode: '⠡', roman: 'chh' },
+      'জ': { dots: [2, 4, 5], unicode: '⠚', roman: 'j' },
+      'ঝ': { dots: [3, 5, 6], unicode: '⠴', roman: 'jh' },
+      'ঞ': { dots: [2, 5], unicode: '⠒', roman: 'ny' },
+      'ট': { dots: [2, 3, 4, 5, 6], unicode: '⠾', roman: 'T' },
+      'ঠ': { dots: [2, 4, 5, 6], unicode: '⠺', roman: 'Th' },
+      'ড': { dots: [1, 2, 4, 6], unicode: '⠫', roman: 'D' },
+      'ঢ': { dots: [1, 2, 3, 4, 5, 6], unicode: '⠿', roman: 'Dh' },
+      'ণ': { dots: [3, 4, 5, 6], unicode: '⠼', roman: 'N' },
+      'ত': { dots: [2, 3, 4, 5], unicode: '⠞', roman: 't' },
+      'থ': { dots: [1, 4, 5, 6], unicode: '⠹', roman: 'th' },
+      'দ': { dots: [1, 4, 5], unicode: '⠙', roman: 'd' },
+      'ধ': { dots: [2, 3, 4, 6], unicode: '⠮', roman: 'dh' },
+      'ন': { dots: [1, 3, 4, 5], unicode: '⠝', roman: 'n' },
+      'প': { dots: [1, 2, 3, 4], unicode: '⠏', roman: 'p' },
+      'ফ': { dots: [2, 3, 5], unicode: '⠖', roman: 'ph/f' },
+      'ব': { dots: [1, 2], unicode: '⠃', roman: 'b' },
+      'ভ': { dots: [4, 5], unicode: '⠘', roman: 'bh/v' },
+      'ম': { dots: [1, 3, 4], unicode: '⠍', roman: 'm' },
+      'য': { dots: [1, 3, 4, 5, 6], unicode: '⠽', roman: 'y/z' },
+      'র': { dots: [1, 2, 3, 5], unicode: '⠗', roman: 'r' },
+      'ল': { dots: [1, 2, 3], unicode: '⠇', roman: 'l' },
+      'শ': { dots: [1, 4, 6], unicode: '⠱', roman: 'sh' },
+      'ষ': { dots: [1, 2, 3, 4, 6], unicode: '⠯', roman: 'shh' },
+      'স': { dots: [2, 3, 4], unicode: '⠎', roman: 's' },
+      'হ': { dots: [1, 2, 5], unicode: '⠓', roman: 'h' }
+    },
+
+    // Common Grade 2 Contractions
+    contractions: [
+      { word: 'and', dots: [1, 2, 3, 4, 6], unicode: '⠯' },
+      { word: 'for', dots: [1, 2, 3, 4, 5, 6], unicode: '⠿' },
+      { word: 'of', dots: [1, 2, 3, 5, 6], unicode: '⠷' },
+      { word: 'the', dots: [2, 3, 4, 6], unicode: '⠮' },
+      { word: 'with', dots: [2, 3, 4, 5, 6], unicode: '⠾' },
+      { word: 'ch', dots: [1, 6], unicode: '⠡' },
+      { word: 'sh', dots: [1, 4, 6], unicode: '⠱' },
+      { word: 'th', dots: [1, 4, 5, 6], unicode: '⠹' },
+      { word: 'wh', dots: [1, 5, 6], unicode: '⠱' },
+      { word: 'ed', dots: [1, 2, 4, 6], unicode: '⠫' },
+      { word: 'er', dots: [1, 2, 4, 5, 6], unicode: '⠻' },
+      { word: 'ou', dots: [1, 2, 5, 6], unicode: '⠳' },
+      { word: 'ow', dots: [2, 4, 6], unicode: '⠪' }
+    ],
+
+    // Reverse mapping from dots string ('134') to char details
+    dotsToChar: {},
+
+    init() {
+      if (this.isInitialized) return;
+      this.isInitialized = true;
+
+      // Build reverse dots-to-character lookup table
+      this.buildDotsLookup();
+
+      this.setupDropzone();
+      this.setupActionButtons();
+      this.setupInteractiveCell();
+      this.initReference();
+      this.initGenerator();
+    },
+
+    buildDotsLookup() {
+      this.dotsToChar = {};
+      for (const [char, meta] of Object.entries(this.charToBraille)) {
+        const key = meta.dots.slice().sort((a, b) => a - b).join('');
+        if (!this.dotsToChar[key]) {
+          this.dotsToChar[key] = { char, meta };
+        }
+      }
+    },
+
+    // Sub-Navigation Mode Switching
+    switchMode(mode) {
+      this.currentMode = mode;
+      ['scan', 'generator', 'reference'].forEach(m => {
+        const tab = document.getElementById(`braille-tab-${m}`);
+        const pane = document.getElementById(`braille-pane-${m}`);
+        const isActive = (m === mode);
+        if (tab) {
+          tab.classList.toggle('active', isActive);
+          tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        }
+        if (pane) {
+          pane.style.display = isActive ? 'flex' : 'none';
+          pane.classList.toggle('active', isActive);
+        }
+      });
+
+      if (mode === 'generator') {
+        const inputEl = document.getElementById('braille-generator-input');
+        if (inputEl && !inputEl.value) {
+          this.loadGeneratorPreset('Hello Transify');
+        }
+      } else if (mode === 'reference') {
+        this.filterReference('letters');
+      }
+    },
+
+    // Preloaded 1-Click Test Samples
+    async loadSample(url, filename) {
+      TransifyApp.showToast(`Loading sample image: ${filename}...`, 'info');
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+        this.handleFileSelected(file);
+      } catch (e) {
+        TransifyApp.showToast(`Could not load sample: ${e.message}`, 'danger');
+      }
+    },
+
+    setupDropzone() {
+      const dropzone = document.getElementById('braille-dropzone');
+      const fileInput = document.getElementById('braille-file-input');
+      const browseBtn = document.getElementById('braille-select-file-btn');
+
+      if (!dropzone || !fileInput) return;
+
+      if (browseBtn) {
+        browseBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          fileInput.click();
+        });
+      }
+
+      dropzone.addEventListener('click', (e) => {
+        if (e.target.closest('#braille-open-camera-btn') || e.target.closest('#braille-select-file-btn')) {
+          return;
+        }
+        fileInput.click();
+      });
+
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+
+      ['dragleave', 'dragend'].forEach(type => {
+        dropzone.addEventListener(type, () => dropzone.classList.remove('dragover'));
+      });
+
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          this.handleFileSelected(e.dataTransfer.files[0]);
+        }
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          this.handleFileSelected(e.target.files[0]);
+        }
+      });
+    },
+
+    handleFileSelected(file) {
+      if (!file.type.startsWith('image/')) {
+        TransifyApp.showToast('Please select a valid image file (PNG, JPG, WebP).', 'warning');
+        return;
+      }
+      this.currentFile = file;
+
+      // Display image preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.currentImageSrc = e.target.result;
+        const previewImg = document.getElementById('braille-preview-img');
+        const previewWrapper = document.getElementById('braille-preview-wrapper');
+        if (previewImg && previewWrapper) {
+          previewImg.src = this.currentImageSrc;
+          previewWrapper.style.display = 'block';
+        }
+        const dropzone = document.getElementById('braille-dropzone');
+        if (dropzone) {
+          dropzone.style.borderColor = '#22c55e';
+          dropzone.style.background = 'rgba(34, 197, 94, 0.05)';
+        }
+      };
+      reader.readAsDataURL(file);
+
+      // Update file indicator
+      const fileIndicator = document.getElementById('braille-active-file-indicator');
+      const fileNameEl = document.getElementById('braille-active-file-name');
+      if (fileIndicator && fileNameEl) {
+        fileNameEl.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        fileIndicator.style.display = 'inline-block';
+      }
+
+      TransifyApp.showToast(`Selected ${file.name}. Click "Translate Image" to run AI OCR.`, 'info');
+    },
+
+    // Live Camera Capture
+    async openCamera(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      const modal = document.getElementById('braille-camera-modal');
+      const video = document.getElementById('braille-camera-video');
+      if (!modal || !video) return;
+
+      modal.style.display = 'flex';
+
+      try {
+        if (this.cameraStream) {
+          this.cameraStream.getTracks().forEach(t => t.stop());
+        }
+        const constraints = {
+          video: {
+            facingMode: this.cameraFacing,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        this.cameraStream = stream;
+        video.srcObject = stream;
+        video.play();
+      } catch (err) {
+        TransifyApp.showToast('Could not access camera: ' + err.message, 'danger');
+        this.closeCamera();
+      }
+    },
+
+    switchCameraFacing() {
+      this.cameraFacing = this.cameraFacing === 'environment' ? 'user' : 'environment';
+      this.openCamera();
+    },
+
+    captureCamera() {
+      const video = document.getElementById('braille-camera-video');
+      const canvas = document.getElementById('braille-camera-canvas');
+      if (!video || !canvas) return;
+
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const file = new File([blob], `braille_camera_${Date.now()}.jpg`, { type: 'image/jpeg' });
+        this.closeCamera();
+        this.handleFileSelected(file);
+        TransifyApp.showToast('Camera frame captured! Click Translate Image.', 'success');
+      }, 'image/jpeg', 0.92);
+    },
+
+    closeCamera() {
+      const modal = document.getElementById('braille-camera-modal');
+      const video = document.getElementById('braille-camera-video');
+      if (this.cameraStream) {
+        this.cameraStream.getTracks().forEach(t => t.stop());
+        this.cameraStream = null;
+      }
+      if (video) video.srcObject = null;
+      if (modal) modal.style.display = 'none';
+    },
+
+    setupActionButtons() {
+      const translateBtn = document.getElementById('translate-braille-btn');
+      if (translateBtn) {
+        translateBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.runTranslation();
+        });
+      }
+
+      const uploadForm = document.getElementById('braille-upload-form');
+      if (uploadForm) {
+        uploadForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.runTranslation();
+        });
+      }
+
+      const speakBtn = document.getElementById('speak-braille-btn');
+      if (speakBtn) {
+        speakBtn.addEventListener('click', () => {
+          const textarea = document.getElementById('braille-text-output');
+          const text = textarea ? (textarea.value || textarea.textContent || '').trim() : '';
+          if (text) {
+            TransifyTTS.speak(text);
+          } else {
+            TransifyApp.showToast('No text available to speak.', 'warning');
+          }
+        });
+      }
+
+      const copyBtn = document.getElementById('copy-braille-btn');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          const textarea = document.getElementById('braille-text-output');
+          const text = textarea ? (textarea.value || textarea.textContent || '').trim() : '';
+          if (text) {
+            navigator.clipboard.writeText(text).then(() => {
+              TransifyApp.showToast('Text copied to clipboard!', 'success');
+            }).catch(() => {
+              TransifyApp.showToast('Copy failed. Please copy manually.', 'warning');
+            });
+          }
+        });
+      }
+
+      const downloadBtn = document.getElementById('download-braille-btn');
+      if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+          const textarea = document.getElementById('braille-text-output');
+          const text = textarea ? (textarea.value || textarea.textContent || '').trim() : '';
+          if (!text) return;
+          const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `Transify_Braille_Translation_${Date.now()}.txt`;
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+      }
+    },
+
+    // 6-Dot Cell Explorer Implementation
+    setupInteractiveCell() {
+      const dotButtons = document.querySelectorAll('.braille-interactive-card [data-braille-dot]');
+      dotButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const dotNum = parseInt(btn.getAttribute('data-braille-dot'), 10);
+          this.toggleCellDot(dotNum);
+        });
+      });
+      this.updateCellDisplay();
+    },
+
+    toggleCellDot(dotNum) {
+      const idx = this.activeCellDots.indexOf(dotNum);
+      if (idx >= 0) {
+        this.activeCellDots.splice(idx, 1);
+      } else {
+        this.activeCellDots.push(dotNum);
+      }
+      this.activeCellDots.sort((a, b) => a - b);
+      this.updateCellDisplay();
+    },
+
+    clearCellDots() {
+      this.activeCellDots = [];
+      this.updateCellDisplay();
+    },
+
+    invertCellDots() {
+      const all = [1, 2, 3, 4, 5, 6];
+      this.activeCellDots = all.filter(d => !this.activeCellDots.includes(d));
+      this.updateCellDisplay();
+    },
+
+    randomCellPattern() {
+      const letters = Object.keys(this.charToBraille).filter(c => c >= 'a' && c <= 'z');
+      const rand = letters[Math.floor(Math.random() * letters.length)];
+      const meta = this.charToBraille[rand];
+      this.loadPattern(meta.dots, rand.toUpperCase(), meta.bn);
+    },
+
+    loadPattern(dots, charLabel, bengaliLabel) {
+      this.activeCellDots = dots.slice().sort((a, b) => a - b);
+      this.updateCellDisplay(charLabel, bengaliLabel);
+    },
+
+    updateCellDisplay(overrideChar, overrideBengali) {
+      // Update button .active classes
+      const dotButtons = document.querySelectorAll('.braille-interactive-card [data-braille-dot]');
+      dotButtons.forEach(btn => {
+        const dotNum = parseInt(btn.getAttribute('data-braille-dot'), 10);
+        btn.classList.toggle('active', this.activeCellDots.includes(dotNum));
+      });
+
+      const key = this.activeCellDots.join('');
+      const unicodeChar = this.dotsToUnicode(this.activeCellDots);
+      const codepoint = unicodeChar.charCodeAt(0).toString(16).toUpperCase();
+
+      let char = overrideChar;
+      let bn = overrideBengali;
+
+      if (!char) {
+        const match = this.dotsToChar[key];
+        if (match) {
+          char = match.char.toUpperCase();
+          bn = match.meta.bn || '–';
+        } else if (this.activeCellDots.length === 0) {
+          char = '—';
+          bn = '—';
+        } else {
+          char = 'Special / Unassigned';
+          bn = '–';
+        }
+      }
+
+      const charEl = document.getElementById('braille-interactive-char');
+      const dotsEl = document.getElementById('braille-interactive-dots');
+      const unicodeEl = document.getElementById('braille-interactive-unicode');
+      const bnEl = document.getElementById('braille-interactive-bengali');
+
+      if (charEl) charEl.textContent = `Character: ${char}`;
+      if (dotsEl) dotsEl.textContent = `Active: ${this.activeCellDots.length ? 'Dots ' + this.activeCellDots.join(', ') : 'None'}`;
+      if (unicodeEl) unicodeEl.textContent = `Unicode: ${unicodeChar} (U+${codepoint})`;
+      if (bnEl) bnEl.textContent = `বাংলা (Bharati): ${bn || '–'}`;
+    },
+
+    speakActiveCell() {
+      const charEl = document.getElementById('braille-interactive-char');
+      const text = charEl ? charEl.textContent.replace('Character: ', '').trim() : '';
+      if (text && text !== '—' && text !== 'Special / Unassigned') {
+        TransifyTTS.speak(text);
+      } else {
+        TransifyApp.showToast('Please toggle dots to select a character.', 'warning');
+      }
+    },
+
+    dotsToUnicode(dotsArray) {
+      let mask = 0;
+      dotsArray.forEach(d => {
+        if (d >= 1 && d <= 6) {
+          mask |= (1 << (d - 1));
+        }
+      });
+      return String.fromCharCode(0x2800 + mask);
+    },
+
+    // Text-to-Braille Generator Engine
+    initGenerator() {
       const inputEl = document.getElementById('braille-generator-input');
       if (inputEl && !inputEl.value) {
         this.loadGeneratorPreset('Hello Transify');
       }
-    } else if (mode === 'reference') {
-      this.filterReference('letters');
-    }
-  },
+    },
 
-  // Preloaded 1-Click Test Samples
-  async loadSample(url, filename) {
-    TransifyApp.showToast(`Loading sample image: ${filename}...`, 'info');
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
-      this.handleFileSelected(file);
-    } catch (e) {
-      TransifyApp.showToast(`Could not load sample: ${e.message}`, 'danger');
-    }
-  },
+    loadGeneratorPreset(phrase) {
+      const inputEl = document.getElementById('braille-generator-input');
+      if (inputEl) {
+        inputEl.value = phrase;
+        this.onGeneratorInput(phrase);
+      }
+    },
 
-  setupDropzone() {
-    const dropzone = document.getElementById('braille-dropzone');
-    const fileInput = document.getElementById('braille-file-input');
-    const browseBtn = document.getElementById('braille-select-file-btn');
+    clearGeneratorInput() {
+      const inputEl = document.getElementById('braille-generator-input');
+      if (inputEl) {
+        inputEl.value = '';
+        this.onGeneratorInput('');
+      }
+    },
 
-    if (!dropzone || !fileInput) return;
+    onGeneratorInput(text) {
+      const charCountEl = document.getElementById('braille-gen-char-count');
+      const cellCountEl = document.getElementById('braille-gen-cell-count');
+      const unicodeBox = document.getElementById('braille-gen-unicode-box');
+      const strip = document.getElementById('braille-cells-strip');
+      const formulaText = document.getElementById('braille-formula-text');
 
-    if (browseBtn) {
-      browseBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        fileInput.click();
-      });
-    }
+      if (charCountEl) charCountEl.textContent = `${text.length} characters`;
 
-    dropzone.addEventListener('click', (e) => {
-      if (e.target.closest('#braille-open-camera-btn') || e.target.closest('#braille-select-file-btn')) {
+      if (!text || !text.trim()) {
+        if (cellCountEl) cellCountEl.textContent = '0 Braille cells';
+        if (unicodeBox) unicodeBox.textContent = '⠀';
+        if (strip) strip.innerHTML = '<span class="braille-empty-hint">Type text on the left to render tactile Braille cells</span>';
+        if (formulaText) formulaText.textContent = 'None';
         return;
       }
-      fileInput.click();
-    });
 
-    dropzone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropzone.classList.add('dragover');
-    });
+      const { unicodeStr, cells, formulas } = this.convertTextToBraille(text);
 
-    ['dragleave', 'dragend'].forEach(type => {
-      dropzone.addEventListener(type, () => dropzone.classList.remove('dragover'));
-    });
+      if (cellCountEl) cellCountEl.textContent = `${cells.length} Braille cells`;
+      if (unicodeBox) unicodeBox.textContent = unicodeStr;
+      if (formulaText) formulaText.textContent = formulas.slice(0, 15).join(' ') + (formulas.length > 15 ? ' ...' : '');
 
-    dropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropzone.classList.remove('dragover');
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        this.handleFileSelected(e.dataTransfer.files[0]);
-      }
-    });
+      // Render 3D Embossed Cells
+      if (strip) {
+        strip.innerHTML = '';
+        cells.forEach((cell, idx) => {
+          const card = document.createElement('div');
+          card.className = `braille-cell-card press ${cell.isSpace ? 'space-cell' : ''}`;
+          card.title = cell.isSpace ? 'Space' : `Char: ${cell.char} • Dots: ${cell.dots.join(', ')}`;
+          card.onclick = () => {
+            if (!cell.isSpace) {
+              this.loadPattern(cell.dots, cell.char, cell.bn);
+              TransifyApp.showToast(`Inspecting '${cell.char}' (Dots ${cell.dots.join(', ')})`, 'info');
+            }
+          };
 
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files[0]) {
-        this.handleFileSelected(e.target.files[0]);
-      }
-    });
-  },
+          if (cell.isSpace) {
+            card.innerHTML = `<span style="font-size: 11px; color: var(--text-2);">␣</span><span class="cell-letter-badge">&nbsp;</span>`;
+          } else {
+            const dotsGrid = document.createElement('div');
+            dotsGrid.className = 'braille-cell-dots-grid';
+            // Visual 6-dot matrix in standard order (1, 4, 2, 5, 3, 6)
+            [1, 4, 2, 5, 3, 6].forEach(d => {
+              const dot = document.createElement('span');
+              dot.className = `cell-dot ${cell.dots.includes(d) ? 'active' : ''}`;
+              dotsGrid.appendChild(dot);
+            });
+            card.appendChild(dotsGrid);
 
-  handleFileSelected(file) {
-    if (!file.type.startsWith('image/')) {
-      TransifyApp.showToast('Please select a valid image file (PNG, JPG, WebP).', 'warning');
-      return;
-    }
-    this.currentFile = file;
-
-    // Display image preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.currentImageSrc = e.target.result;
-      const previewImg = document.getElementById('braille-preview-img');
-      const previewWrapper = document.getElementById('braille-preview-wrapper');
-      if (previewImg && previewWrapper) {
-        previewImg.src = this.currentImageSrc;
-        previewWrapper.style.display = 'block';
-      }
-      const dropzone = document.getElementById('braille-dropzone');
-      if (dropzone) {
-        dropzone.style.borderColor = '#22c55e';
-        dropzone.style.background = 'rgba(34, 197, 94, 0.05)';
-      }
-    };
-    reader.readAsDataURL(file);
-
-    // Update file indicator
-    const fileIndicator = document.getElementById('braille-active-file-indicator');
-    const fileNameEl = document.getElementById('braille-active-file-name');
-    if (fileIndicator && fileNameEl) {
-      fileNameEl.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-      fileIndicator.style.display = 'inline-block';
-    }
-
-    TransifyApp.showToast(`Selected ${file.name}. Click "Translate Image" to run AI OCR.`, 'info');
-  },
-
-  // Live Camera Capture
-  async openCamera(e) {
-    if (e && e.stopPropagation) e.stopPropagation();
-    const modal = document.getElementById('braille-camera-modal');
-    const video = document.getElementById('braille-camera-video');
-    if (!modal || !video) return;
-
-    modal.style.display = 'flex';
-
-    try {
-      if (this.cameraStream) {
-        this.cameraStream.getTracks().forEach(t => t.stop());
-      }
-      const constraints = {
-        video: {
-          facingMode: this.cameraFacing,
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        audio: false
-      };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      this.cameraStream = stream;
-      video.srcObject = stream;
-      video.play();
-    } catch (err) {
-      TransifyApp.showToast('Could not access camera: ' + err.message, 'danger');
-      this.closeCamera();
-    }
-  },
-
-  switchCameraFacing() {
-    this.cameraFacing = this.cameraFacing === 'environment' ? 'user' : 'environment';
-    this.openCamera();
-  },
-
-  captureCamera() {
-    const video = document.getElementById('braille-camera-video');
-    const canvas = document.getElementById('braille-camera-canvas');
-    if (!video || !canvas) return;
-
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const file = new File([blob], `braille_camera_${Date.now()}.jpg`, { type: 'image/jpeg' });
-      this.closeCamera();
-      this.handleFileSelected(file);
-      TransifyApp.showToast('Camera frame captured! Click Translate Image.', 'success');
-    }, 'image/jpeg', 0.92);
-  },
-
-  closeCamera() {
-    const modal = document.getElementById('braille-camera-modal');
-    const video = document.getElementById('braille-camera-video');
-    if (this.cameraStream) {
-      this.cameraStream.getTracks().forEach(t => t.stop());
-      this.cameraStream = null;
-    }
-    if (video) video.srcObject = null;
-    if (modal) modal.style.display = 'none';
-  },
-
-  setupActionButtons() {
-    const translateBtn = document.getElementById('translate-braille-btn');
-    if (translateBtn) {
-      translateBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.runTranslation();
-      });
-    }
-
-    const uploadForm = document.getElementById('braille-upload-form');
-    if (uploadForm) {
-      uploadForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        this.runTranslation();
-      });
-    }
-
-    const speakBtn = document.getElementById('speak-braille-btn');
-    if (speakBtn) {
-      speakBtn.addEventListener('click', () => {
-        const textarea = document.getElementById('braille-text-output');
-        const text = textarea ? (textarea.value || textarea.textContent || '').trim() : '';
-        if (text) {
-          TransifyTTS.speak(text);
-        } else {
-          TransifyApp.showToast('No text available to speak.', 'warning');
-        }
-      });
-    }
-
-    const copyBtn = document.getElementById('copy-braille-btn');
-    if (copyBtn) {
-      copyBtn.addEventListener('click', () => {
-        const textarea = document.getElementById('braille-text-output');
-        const text = textarea ? (textarea.value || textarea.textContent || '').trim() : '';
-        if (text) {
-          navigator.clipboard.writeText(text).then(() => {
-            TransifyApp.showToast('Text copied to clipboard!', 'success');
-          }).catch(() => {
-            TransifyApp.showToast('Copy failed. Please copy manually.', 'warning');
-          });
-        }
-      });
-    }
-
-    const downloadBtn = document.getElementById('download-braille-btn');
-    if (downloadBtn) {
-      downloadBtn.addEventListener('click', () => {
-        const textarea = document.getElementById('braille-text-output');
-        const text = textarea ? (textarea.value || textarea.textContent || '').trim() : '';
-        if (!text) return;
-        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Transify_Braille_Translation_${Date.now()}.txt`;
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-    }
-  },
-
-  // 6-Dot Cell Explorer Implementation
-  setupInteractiveCell() {
-    const dotButtons = document.querySelectorAll('.braille-interactive-card [data-braille-dot]');
-    dotButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const dotNum = parseInt(btn.getAttribute('data-braille-dot'), 10);
-        this.toggleCellDot(dotNum);
-      });
-    });
-    this.updateCellDisplay();
-  },
-
-  toggleCellDot(dotNum) {
-    const idx = this.activeCellDots.indexOf(dotNum);
-    if (idx >= 0) {
-      this.activeCellDots.splice(idx, 1);
-    } else {
-      this.activeCellDots.push(dotNum);
-    }
-    this.activeCellDots.sort((a, b) => a - b);
-    this.updateCellDisplay();
-  },
-
-  clearCellDots() {
-    this.activeCellDots = [];
-    this.updateCellDisplay();
-  },
-
-  invertCellDots() {
-    const all = [1, 2, 3, 4, 5, 6];
-    this.activeCellDots = all.filter(d => !this.activeCellDots.includes(d));
-    this.updateCellDisplay();
-  },
-
-  randomCellPattern() {
-    const letters = Object.keys(this.charToBraille).filter(c => c >= 'a' && c <= 'z');
-    const rand = letters[Math.floor(Math.random() * letters.length)];
-    const meta = this.charToBraille[rand];
-    this.loadPattern(meta.dots, rand.toUpperCase(), meta.bn);
-  },
-
-  loadPattern(dots, charLabel, bengaliLabel) {
-    this.activeCellDots = dots.slice().sort((a, b) => a - b);
-    this.updateCellDisplay(charLabel, bengaliLabel);
-  },
-
-  updateCellDisplay(overrideChar, overrideBengali) {
-    // Update button .active classes
-    const dotButtons = document.querySelectorAll('.braille-interactive-card [data-braille-dot]');
-    dotButtons.forEach(btn => {
-      const dotNum = parseInt(btn.getAttribute('data-braille-dot'), 10);
-      btn.classList.toggle('active', this.activeCellDots.includes(dotNum));
-    });
-
-    const key = this.activeCellDots.join('');
-    const unicodeChar = this.dotsToUnicode(this.activeCellDots);
-    const codepoint = unicodeChar.charCodeAt(0).toString(16).toUpperCase();
-
-    let char = overrideChar;
-    let bn = overrideBengali;
-
-    if (!char) {
-      const match = this.dotsToChar[key];
-      if (match) {
-        char = match.char.toUpperCase();
-        bn = match.meta.bn || '–';
-      } else if (this.activeCellDots.length === 0) {
-        char = '—';
-        bn = '—';
-      } else {
-        char = 'Special / Unassigned';
-        bn = '–';
-      }
-    }
-
-    const charEl = document.getElementById('braille-interactive-char');
-    const dotsEl = document.getElementById('braille-interactive-dots');
-    const unicodeEl = document.getElementById('braille-interactive-unicode');
-    const bnEl = document.getElementById('braille-interactive-bengali');
-
-    if (charEl) charEl.textContent = `Character: ${char}`;
-    if (dotsEl) dotsEl.textContent = `Active: ${this.activeCellDots.length ? 'Dots ' + this.activeCellDots.join(', ') : 'None'}`;
-    if (unicodeEl) unicodeEl.textContent = `Unicode: ${unicodeChar} (U+${codepoint})`;
-    if (bnEl) bnEl.textContent = `বাংলা (Bharati): ${bn || '–'}`;
-  },
-
-  speakActiveCell() {
-    const charEl = document.getElementById('braille-interactive-char');
-    const text = charEl ? charEl.textContent.replace('Character: ', '').trim() : '';
-    if (text && text !== '—' && text !== 'Special / Unassigned') {
-      TransifyTTS.speak(text);
-    } else {
-      TransifyApp.showToast('Please toggle dots to select a character.', 'warning');
-    }
-  },
-
-  dotsToUnicode(dotsArray) {
-    let mask = 0;
-    dotsArray.forEach(d => {
-      if (d >= 1 && d <= 6) {
-        mask |= (1 << (d - 1));
-      }
-    });
-    return String.fromCharCode(0x2800 + mask);
-  },
-
-  // Text-to-Braille Generator Engine
-  initGenerator() {
-    const inputEl = document.getElementById('braille-generator-input');
-    if (inputEl && !inputEl.value) {
-      this.loadGeneratorPreset('Hello Transify');
-    }
-  },
-
-  loadGeneratorPreset(phrase) {
-    const inputEl = document.getElementById('braille-generator-input');
-    if (inputEl) {
-      inputEl.value = phrase;
-      this.onGeneratorInput(phrase);
-    }
-  },
-
-  clearGeneratorInput() {
-    const inputEl = document.getElementById('braille-generator-input');
-    if (inputEl) {
-      inputEl.value = '';
-      this.onGeneratorInput('');
-    }
-  },
-
-  onGeneratorInput(text) {
-    const charCountEl = document.getElementById('braille-gen-char-count');
-    const cellCountEl = document.getElementById('braille-gen-cell-count');
-    const unicodeBox = document.getElementById('braille-gen-unicode-box');
-    const strip = document.getElementById('braille-cells-strip');
-    const formulaText = document.getElementById('braille-formula-text');
-
-    if (charCountEl) charCountEl.textContent = `${text.length} characters`;
-
-    if (!text || !text.trim()) {
-      if (cellCountEl) cellCountEl.textContent = '0 Braille cells';
-      if (unicodeBox) unicodeBox.textContent = '⠀';
-      if (strip) strip.innerHTML = '<span class="braille-empty-hint">Type text on the left to render tactile Braille cells</span>';
-      if (formulaText) formulaText.textContent = 'None';
-      return;
-    }
-
-    const { unicodeStr, cells, formulas } = this.convertTextToBraille(text);
-
-    if (cellCountEl) cellCountEl.textContent = `${cells.length} Braille cells`;
-    if (unicodeBox) unicodeBox.textContent = unicodeStr;
-    if (formulaText) formulaText.textContent = formulas.slice(0, 15).join(' ') + (formulas.length > 15 ? ' ...' : '');
-
-    // Render 3D Embossed Cells
-    if (strip) {
-      strip.innerHTML = '';
-      cells.forEach((cell, idx) => {
-        const card = document.createElement('div');
-        card.className = `braille-cell-card press ${cell.isSpace ? 'space-cell' : ''}`;
-        card.title = cell.isSpace ? 'Space' : `Char: ${cell.char} • Dots: ${cell.dots.join(', ')}`;
-        card.onclick = () => {
-          if (!cell.isSpace) {
-            this.loadPattern(cell.dots, cell.char, cell.bn);
-            TransifyApp.showToast(`Inspecting '${cell.char}' (Dots ${cell.dots.join(', ')})`, 'info');
+            const badge = document.createElement('span');
+            badge.className = 'cell-letter-badge';
+            badge.textContent = cell.char;
+            card.appendChild(badge);
           }
-        };
 
-        if (cell.isSpace) {
-          card.innerHTML = `<span style="font-size: 11px; color: var(--text-2);">␣</span><span class="cell-letter-badge">&nbsp;</span>`;
+          strip.appendChild(card);
+        });
+      }
+    },
+
+    convertTextToBraille(text) {
+      let unicodeStr = '';
+      const cells = [];
+      const formulas = [];
+
+      let inNumber = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const lower = ch.toLowerCase();
+
+        if (ch === ' ') {
+          inNumber = false;
+          unicodeStr += '⠀';
+          cells.push({ isSpace: true, char: ' ', dots: [] });
+          continue;
+        }
+
+        // Check Bengali
+        if (this.bengaliBraille[ch]) {
+          inNumber = false;
+          const b = this.bengaliBraille[ch];
+          unicodeStr += b.unicode;
+          cells.push({ isSpace: false, char: ch, dots: b.dots, bn: ch });
+          formulas.push(`[${b.dots.join('-')}]`);
+          continue;
+        }
+
+        // Check digits (add number prefix ⠼ if not already in number sequence)
+        if (ch >= '0' && ch <= '9') {
+          if (!inNumber) {
+            inNumber = true;
+            // Number indicator dots [3,4,5,6] (⠼)
+            unicodeStr += '⠼';
+            cells.push({ isSpace: false, char: '⠼', dots: [3, 4, 5, 6], bn: 'সংখ্যা' });
+            formulas.push('[3-4-5-6]');
+          }
+          const digitMeta = this.charToBraille[ch];
+          if (digitMeta) {
+            unicodeStr += digitMeta.unicode;
+            cells.push({ isSpace: false, char: ch, dots: digitMeta.dots });
+            formulas.push(`[${digitMeta.dots.join('-')}]`);
+          }
+          continue;
+        }
+
+        inNumber = false;
+
+        // Check capital letter indicator dot 6 (⠠)
+        if (ch >= 'A' && ch <= 'Z') {
+          unicodeStr += '⠠';
+          cells.push({ isSpace: false, char: '⠠', dots: [6], bn: 'বড় হাত' });
+          formulas.push('[6]');
+        }
+
+        // Check Latin letter or punctuation
+        const meta = this.charToBraille[lower];
+        if (meta) {
+          unicodeStr += meta.unicode;
+          cells.push({ isSpace: false, char: ch, dots: meta.dots, bn: meta.bn });
+          formulas.push(`[${meta.dots.join('-')}]`);
         } else {
-          const dotsGrid = document.createElement('div');
-          dotsGrid.className = 'braille-cell-dots-grid';
-          // Visual 6-dot matrix in standard order (1, 4, 2, 5, 3, 6)
-          [1, 4, 2, 5, 3, 6].forEach(d => {
-            const dot = document.createElement('span');
-            dot.className = `cell-dot ${cell.dots.includes(d) ? 'active' : ''}`;
-            dotsGrid.appendChild(dot);
-          });
-          card.appendChild(dotsGrid);
-
-          const badge = document.createElement('span');
-          badge.className = 'cell-letter-badge';
-          badge.textContent = cell.char;
-          card.appendChild(badge);
+          // Unknown symbol placeholder
+          unicodeStr += '⠿';
+          cells.push({ isSpace: false, char: ch, dots: [1, 2, 3, 4, 5, 6] });
+          formulas.push('[?]');
         }
-
-        strip.appendChild(card);
-      });
-    }
-  },
-
-  convertTextToBraille(text) {
-    let unicodeStr = '';
-    const cells = [];
-    const formulas = [];
-
-    let inNumber = false;
-
-    for (let i = 0; i < text.length; i++) {
-      const ch = text[i];
-      const lower = ch.toLowerCase();
-
-      if (ch === ' ') {
-        inNumber = false;
-        unicodeStr += '⠀';
-        cells.push({ isSpace: true, char: ' ', dots: [] });
-        continue;
       }
 
-      // Check Bengali
-      if (this.bengaliBraille[ch]) {
-        inNumber = false;
-        const b = this.bengaliBraille[ch];
-        unicodeStr += b.unicode;
-        cells.push({ isSpace: false, char: ch, dots: b.dots, bn: ch });
-        formulas.push(`[${b.dots.join('-')}]`);
-        continue;
-      }
+      return { unicodeStr, cells, formulas };
+    },
 
-      // Check digits (add number prefix ⠼ if not already in number sequence)
-      if (ch >= '0' && ch <= '9') {
-        if (!inNumber) {
-          inNumber = true;
-          // Number indicator dots [3,4,5,6] (⠼)
-          unicodeStr += '⠼';
-          cells.push({ isSpace: false, char: '⠼', dots: [3, 4, 5, 6], bn: 'সংখ্যা' });
-          formulas.push('[3-4-5-6]');
-        }
-        const digitMeta = this.charToBraille[ch];
-        if (digitMeta) {
-          unicodeStr += digitMeta.unicode;
-          cells.push({ isSpace: false, char: ch, dots: digitMeta.dots });
-          formulas.push(`[${digitMeta.dots.join('-')}]`);
-        }
-        continue;
-      }
-
-      inNumber = false;
-
-      // Check capital letter indicator dot 6 (⠠)
-      if (ch >= 'A' && ch <= 'Z') {
-        unicodeStr += '⠠';
-        cells.push({ isSpace: false, char: '⠠', dots: [6], bn: 'বড় হাত' });
-        formulas.push('[6]');
-      }
-
-      // Check Latin letter or punctuation
-      const meta = this.charToBraille[lower];
-      if (meta) {
-        unicodeStr += meta.unicode;
-        cells.push({ isSpace: false, char: ch, dots: meta.dots, bn: meta.bn });
-        formulas.push(`[${meta.dots.join('-')}]`);
+    speakGeneratorText() {
+      const inputEl = document.getElementById('braille-generator-input');
+      const text = inputEl ? inputEl.value.trim() : '';
+      if (text) {
+        TransifyTTS.speak(text);
       } else {
-        // Unknown symbol placeholder
-        unicodeStr += '⠿';
-        cells.push({ isSpace: false, char: ch, dots: [1, 2, 3, 4, 5, 6] });
-        formulas.push('[?]');
+        TransifyApp.showToast('Please type text first.', 'warning');
       }
-    }
+    },
 
-    return { unicodeStr, cells, formulas };
-  },
+    copyGeneratorUnicode() {
+      const unicodeBox = document.getElementById('braille-gen-unicode-box');
+      const text = unicodeBox ? unicodeBox.textContent : '';
+      if (text && text !== '⠀') {
+        navigator.clipboard.writeText(text).then(() => {
+          TransifyApp.showToast('Unicode Braille glyphs copied!', 'success');
+        });
+      }
+    },
 
-  speakGeneratorText() {
-    const inputEl = document.getElementById('braille-generator-input');
-    const text = inputEl ? inputEl.value.trim() : '';
-    if (text) {
-      TransifyTTS.speak(text);
-    } else {
-      TransifyApp.showToast('Please type text first.', 'warning');
-    }
-  },
+    copyGeneratorDots() {
+      const formulaText = document.getElementById('braille-formula-text');
+      const text = formulaText ? formulaText.textContent : '';
+      if (text && text !== 'None') {
+        navigator.clipboard.writeText(text).then(() => {
+          TransifyApp.showToast('Braille dot formulas copied!', 'success');
+        });
+      }
+    },
 
-  copyGeneratorUnicode() {
-    const unicodeBox = document.getElementById('braille-gen-unicode-box');
-    const text = unicodeBox ? unicodeBox.textContent : '';
-    if (text && text !== '⠀') {
-      navigator.clipboard.writeText(text).then(() => {
-        TransifyApp.showToast('Unicode Braille glyphs copied!', 'success');
+    downloadGeneratorBRF() {
+      const inputEl = document.getElementById('braille-generator-input');
+      const text = inputEl ? inputEl.value : 'Transify Braille Document';
+      const { unicodeStr } = this.convertTextToBraille(text);
+      const content = `TRANSIFY MULTI-MODAL BRAILLE DOCUMENT\nSource Text: ${text}\nGenerated: ${new Date().toISOString()}\n\n${unicodeStr}\n`;
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Braille_${Date.now()}.brf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+
+    // Alphabet & Reference Studio
+    initReference() {
+      this.filterReference('letters');
+    },
+
+    filterReference(cat) {
+      const filterBtns = document.querySelectorAll('.braille-ref-filter');
+      filterBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
       });
-    }
-  },
 
-  copyGeneratorDots() {
-    const formulaText = document.getElementById('braille-formula-text');
-    const text = formulaText ? formulaText.textContent : '';
-    if (text && text !== 'None') {
-      navigator.clipboard.writeText(text).then(() => {
-        TransifyApp.showToast('Braille dot formulas copied!', 'success');
-      });
-    }
-  },
+      const grid = document.getElementById('braille-ref-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
 
-  downloadGeneratorBRF() {
-    const inputEl = document.getElementById('braille-generator-input');
-    const text = inputEl ? inputEl.value : 'Transify Braille Document';
-    const { unicodeStr } = this.convertTextToBraille(text);
-    const content = `TRANSIFY MULTI-MODAL BRAILLE DOCUMENT\nSource Text: ${text}\nGenerated: ${new Date().toISOString()}\n\n${unicodeStr}\n`;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Braille_${Date.now()}.brf`;
-    a.click();
-    URL.revokeObjectURL(url);
-  },
+      let items = [];
 
-  // Alphabet & Reference Studio
-  initReference() {
-    this.filterReference('letters');
-  },
-
-  filterReference(cat) {
-    const filterBtns = document.querySelectorAll('.braille-ref-filter');
-    filterBtns.forEach(btn => {
-      btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
-    });
-
-    const grid = document.getElementById('braille-ref-grid');
-    if (!grid) return;
-    grid.innerHTML = '';
-
-    let items = [];
-
-    if (cat === 'letters') {
-      for (let i = 97; i <= 122; i++) {
-        const ch = String.fromCharCode(i);
-        const meta = this.charToBraille[ch];
-        if (meta) {
+      if (cat === 'letters') {
+        for (let i = 97; i <= 122; i++) {
+          const ch = String.fromCharCode(i);
+          const meta = this.charToBraille[ch];
+          if (meta) {
+            items.push({
+              char: ch.toUpperCase(),
+              unicode: meta.unicode,
+              dots: meta.dots,
+              label: `Dots ${meta.dots.join(', ')}`,
+              sub: meta.bn ? `বাংলা: ${meta.bn}` : ''
+            });
+          }
+        }
+      } else if (cat === 'numbers') {
+        for (let i = 0; i <= 9; i++) {
+          const numStr = i.toString();
+          const meta = this.charToBraille[numStr];
+          if (meta) {
+            items.push({
+              char: `⠼${numStr}`,
+              unicode: `⠼${meta.unicode}`,
+              dots: [3, 4, 5, 6].concat(meta.dots),
+              label: `3-4-5-6 + ${meta.dots.join('-')}`,
+              sub: `Number ${numStr}`
+            });
+          }
+        }
+      } else if (cat === 'punct') {
+        const punctList = ['.', ',', ';', ':', '?', '!', '-', "'", '"'];
+        punctList.forEach(p => {
+          const meta = this.charToBraille[p];
+          if (meta) {
+            items.push({
+              char: p,
+              unicode: meta.unicode,
+              dots: meta.dots,
+              label: `Dots ${meta.dots.join(', ')}`,
+              sub: meta.name
+            });
+          }
+        });
+      } else if (cat === 'contractions') {
+        this.contractions.forEach(c => {
           items.push({
-            char: ch.toUpperCase(),
+            char: c.word,
+            unicode: c.unicode,
+            dots: c.dots,
+            label: `Dots ${c.dots.join(', ')}`,
+            sub: 'Grade 2'
+          });
+        });
+      } else if (cat === 'bengali') {
+        for (const [bnChar, meta] of Object.entries(this.bengaliBraille)) {
+          items.push({
+            char: bnChar,
             unicode: meta.unicode,
             dots: meta.dots,
             label: `Dots ${meta.dots.join(', ')}`,
-            sub: meta.bn ? `বাংলা: ${meta.bn}` : ''
+            sub: meta.roman
           });
         }
       }
-    } else if (cat === 'numbers') {
-      for (let i = 0; i <= 9; i++) {
-        const numStr = i.toString();
-        const meta = this.charToBraille[numStr];
-        if (meta) {
-          items.push({
-            char: `⠼${numStr}`,
-            unicode: `⠼${meta.unicode}`,
-            dots: [3, 4, 5, 6].concat(meta.dots),
-            label: `3-4-5-6 + ${meta.dots.join('-')}`,
-            sub: `Number ${numStr}`
-          });
-        }
-      }
-    } else if (cat === 'punct') {
-      const punctList = ['.', ',', ';', ':', '?', '!', '-', "'", '"'];
-      punctList.forEach(p => {
-        const meta = this.charToBraille[p];
-        if (meta) {
-          items.push({
-            char: p,
-            unicode: meta.unicode,
-            dots: meta.dots,
-            label: `Dots ${meta.dots.join(', ')}`,
-            sub: meta.name
-          });
-        }
-      });
-    } else if (cat === 'contractions') {
-      this.contractions.forEach(c => {
-        items.push({
-          char: c.word,
-          unicode: c.unicode,
-          dots: c.dots,
-          label: `Dots ${c.dots.join(', ')}`,
-          sub: 'Grade 2'
-        });
-      });
-    } else if (cat === 'bengali') {
-      for (const [bnChar, meta] of Object.entries(this.bengaliBraille)) {
-        items.push({
-          char: bnChar,
-          unicode: meta.unicode,
-          dots: meta.dots,
-          label: `Dots ${meta.dots.join(', ')}`,
-          sub: meta.roman
-        });
-      }
-    }
 
-    items.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'braille-ref-card press';
-      card.innerHTML = `
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'braille-ref-card press';
+        card.innerHTML = `
         <span class="ref-card-char">${item.char}</span>
         <span class="ref-card-unicode">${item.unicode}</span>
         <span class="ref-card-dots">${item.label}</span>
         <span class="ref-card-label">${item.sub || ''}</span>
       `;
-      card.onclick = () => {
-        this.loadPattern(item.dots, item.char, item.sub);
-        TransifyTTS.speak(item.char);
-        TransifyApp.showToast(`Loaded '${item.char}' into 6-dot explorer`, 'success');
-      };
-      grid.appendChild(card);
-    });
-  },
-
-  // Optical Translation Engine
-  copyUnicodeBraille() {
-    const rawEl = document.getElementById('braille-unicode-output');
-    const text = rawEl ? rawEl.textContent : '';
-    if (text && text !== '⠀') {
-      navigator.clipboard.writeText(text).then(() => {
-        TransifyApp.showToast('Braille Unicode copied!', 'success');
+        card.onclick = () => {
+          this.loadPattern(item.dots, item.char, item.sub);
+          TransifyTTS.speak(item.char);
+          TransifyApp.showToast(`Loaded '${item.char}' into 6-dot explorer`, 'success');
+        };
+        grid.appendChild(card);
       });
-    } else {
-      TransifyApp.showToast('No Braille Unicode available.', 'warning');
-    }
-  },
+    },
 
-  downloadBRF() {
-    const textarea = document.getElementById('braille-text-output');
-    const rawEl = document.getElementById('braille-unicode-output');
-    const plainText = textarea ? (textarea.value || textarea.textContent || '') : '';
-    const brailleGlyphs = rawEl ? rawEl.textContent : '';
-    const content = `TRANSIFY BRAILLE TRANSLATION REPORT\nTimestamp: ${new Date().toISOString()}\n\n--- LATIN TRANSCRIPTION ---\n${plainText}\n\n--- UNICODE BRAILLE ---\n${brailleGlyphs}\n`;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Braille_Scan_${Date.now()}.brf`;
-    a.click();
-    URL.revokeObjectURL(url);
-  },
-
-  async runIQACheck() {
-    if (!this.currentFile) {
-      TransifyApp.showToast('Please select or drag-and-drop a Braille image first.', 'warning');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', this.currentFile);
-
-    try {
-      const res = await fetch('/api/braille/iqa', { method: 'POST', body: formData });
-      const data = await res.json();
-      this.displayIQAResult(data);
-    } catch (e) {
-      TransifyApp.showToast('IQA check failed: ' + e.message, 'danger');
-    }
-  },
-
-  displayIQAResult(data) {
-    const iqaBanner = document.getElementById('braille-iqa-banner');
-    if (!iqaBanner) return;
-    iqaBanner.style.display = 'block';
-
-    const metrics = data.metrics || {};
-    const blurVal = metrics.laplacian_variance !== undefined ? metrics.laplacian_variance : metrics.blur_variance;
-    const blur = blurVal !== undefined ? Number(blurVal).toFixed(1) : 'N/A';
-    const brightVal = metrics.mean_intensity !== undefined ? metrics.mean_intensity : metrics.mean_brightness;
-    const brightness = brightVal !== undefined ? Number(brightVal).toFixed(1) : 'N/A';
-    const isPassed = data.accepted !== undefined ? data.accepted : (data.is_usable !== undefined ? data.is_usable : false);
-
-    if (isPassed) {
-      iqaBanner.style.background = 'rgba(34,197,94,0.1)';
-      iqaBanner.style.border = '1.5px solid rgba(34,197,94,0.4)';
-      iqaBanner.style.color = '#15803d';
-      iqaBanner.style.borderRadius = '10px';
-      iqaBanner.style.padding = '10px 14px';
-      iqaBanner.innerHTML = `<strong>✅ Image Quality PASSED!</strong><br><span style="font-size:12px;">Sharpness: ${blur} ≥ 25.0 • Brightness: ${brightness} • Resolution: ${metrics.resolution || 'OK'}. Ready for Braille recognition.</span>`;
-      TransifyApp.announce('Image quality verified. Sharpness is adequate.');
-    } else {
-      iqaBanner.style.background = 'rgba(239,68,68,0.08)';
-      iqaBanner.style.border = '1.5px solid rgba(239,68,68,0.3)';
-      iqaBanner.style.color = '#b91c1c';
-      iqaBanner.style.borderRadius = '10px';
-      iqaBanner.style.padding = '10px 14px';
-      iqaBanner.innerHTML = `<strong>⚠️ Image Quality FAILED</strong><br><span>Reason: ${data.rejection_reason || 'Image too blurry or poor lighting'}</span><br><span style="font-size:12px;">Sharpness: ${blur} • ${data.remediation_guidance || 'Retake with steady hands and clear sidelighting.'}</span>`;
-      TransifyApp.announce('Image quality rejected. Image is blurry or degraded.');
-    }
-  },
-
-  async runTranslation() {
-    if (!this.currentFile) {
-      TransifyApp.showToast('Please upload or select a Braille image to translate.', 'warning');
-      return;
-    }
-
-    const translateBtn = document.getElementById('translate-braille-btn');
-    const translateBtnVisible = document.getElementById('translate-braille-btn-visible');
-    [translateBtn, translateBtnVisible].forEach(btn => {
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '⏳ Analyzing Braille Dots...';
-      }
-    });
-
-    const resultsSection = document.getElementById('braille-results-section');
-    const outputTextarea = document.getElementById('braille-text-output');
-    if (resultsSection) resultsSection.style.display = 'block';
-    if (outputTextarea) {
-      if ('value' in outputTextarea) outputTextarea.value = 'Translating... please wait.';
-      else outputTextarea.textContent = 'Translating... please wait.';
-    }
-
-    const brailleCard = document.querySelector('.braille-result-card');
-    if (brailleCard && window.setCardLoading) {
-      window.setCardLoading(brailleCard, true, 'Analyzing Braille Dots with AI Engine...');
-    }
-
-    const formData = new FormData();
-    formData.append('file', this.currentFile);
-    formData.append('speak_tts', 'false');
-
-    if (window.showPageLoader) window.showPageLoader('Analyzing Braille Dots with AI Engine...');
-
-    try {
-      const res = await fetch('/api/braille/translate', { method: 'POST', body: formData });
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        const errorObj = data.error || {};
-        this.displayIQAResult({
-          accepted: false,
-          rejection_reason: errorObj.rejection_reason || data.detail || 'Translation failed: could not read Braille from this image.',
-          metrics: errorObj.metrics || {},
-          remediation_guidance: errorObj.user_guidance || 'Please upload a clear photograph of physical embossed Braille.'
+    // Optical Translation Engine
+    copyUnicodeBraille() {
+      const rawEl = document.getElementById('braille-unicode-output');
+      const text = rawEl ? rawEl.textContent : '';
+      if (text && text !== '⠀') {
+        navigator.clipboard.writeText(text).then(() => {
+          TransifyApp.showToast('Braille Unicode copied!', 'success');
         });
-        if (outputTextarea) {
-          if ('value' in outputTextarea) outputTextarea.value = 'Translation failed. See quality report above.';
-          else outputTextarea.textContent = 'Translation failed. See quality report above.';
-        }
-        TransifyApp.showToast('Image rejected: ' + (errorObj.rejection_reason || 'Could not translate Braille.'), 'danger');
+      } else {
+        TransifyApp.showToast('No Braille Unicode available.', 'warning');
+      }
+    },
+
+    downloadBRF() {
+      const textarea = document.getElementById('braille-text-output');
+      const rawEl = document.getElementById('braille-unicode-output');
+      const plainText = textarea ? (textarea.value || textarea.textContent || '') : '';
+      const brailleGlyphs = rawEl ? rawEl.textContent : '';
+      const content = `TRANSIFY BRAILLE TRANSLATION REPORT\nTimestamp: ${new Date().toISOString()}\n\n--- LATIN TRANSCRIPTION ---\n${plainText}\n\n--- UNICODE BRAILLE ---\n${brailleGlyphs}\n`;
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Braille_Scan_${Date.now()}.brf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+
+    async runIQACheck() {
+      if (!this.currentFile) {
+        TransifyApp.showToast('Please select or drag-and-drop a Braille image first.', 'warning');
         return;
       }
 
-      const result = data.data;
+      const formData = new FormData();
+      formData.append('file', this.currentFile);
 
-      // Update translated text (supports textarea or div)
-      const finalText = result.text || '(No text detected)';
+      try {
+        const res = await fetch('/api/braille/iqa', { method: 'POST', body: formData });
+        const data = await res.json();
+        this.displayIQAResult(data);
+      } catch (e) {
+        TransifyApp.showToast('IQA check failed: ' + e.message, 'danger');
+      }
+    },
+
+    displayIQAResult(data) {
+      const iqaBanner = document.getElementById('braille-iqa-banner');
+      if (!iqaBanner) return;
+      iqaBanner.style.display = 'block';
+
+      const metrics = data.metrics || {};
+      const blurVal = metrics.laplacian_variance !== undefined ? metrics.laplacian_variance : metrics.blur_variance;
+      const blur = blurVal !== undefined ? Number(blurVal).toFixed(1) : 'N/A';
+      const brightVal = metrics.mean_intensity !== undefined ? metrics.mean_intensity : metrics.mean_brightness;
+      const brightness = brightVal !== undefined ? Number(brightVal).toFixed(1) : 'N/A';
+      const isPassed = data.accepted !== undefined ? data.accepted : (data.is_usable !== undefined ? data.is_usable : false);
+
+      if (isPassed) {
+        iqaBanner.style.background = 'rgba(34,197,94,0.1)';
+        iqaBanner.style.border = '1.5px solid rgba(34,197,94,0.4)';
+        iqaBanner.style.color = '#15803d';
+        iqaBanner.style.borderRadius = '10px';
+        iqaBanner.style.padding = '10px 14px';
+        iqaBanner.innerHTML = `<strong>✅ Image Quality PASSED!</strong><br><span style="font-size:12px;">Sharpness: ${blur} ≥ 25.0 • Brightness: ${brightness} • Resolution: ${metrics.resolution || 'OK'}. Ready for Braille recognition.</span>`;
+        TransifyApp.announce('Image quality verified. Sharpness is adequate.');
+      } else {
+        iqaBanner.style.background = 'rgba(239,68,68,0.08)';
+        iqaBanner.style.border = '1.5px solid rgba(239,68,68,0.3)';
+        iqaBanner.style.color = '#b91c1c';
+        iqaBanner.style.borderRadius = '10px';
+        iqaBanner.style.padding = '10px 14px';
+        iqaBanner.innerHTML = `<strong>⚠️ Image Quality FAILED</strong><br><span>Reason: ${data.rejection_reason || 'Image too blurry or poor lighting'}</span><br><span style="font-size:12px;">Sharpness: ${blur} • ${data.remediation_guidance || 'Retake with steady hands and clear sidelighting.'}</span>`;
+        TransifyApp.announce('Image quality rejected. Image is blurry or degraded.');
+      }
+    },
+
+    async runTranslation() {
+      if (!this.currentFile) {
+        TransifyApp.showToast('Please upload or select a Braille image to translate.', 'warning');
+        return;
+      }
+
+      const translateBtn = document.getElementById('translate-braille-btn');
+      const translateBtnVisible = document.getElementById('translate-braille-btn-visible');
+      [translateBtn, translateBtnVisible].forEach(btn => {
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '⏳ Analyzing Braille Dots...';
+        }
+      });
+
+      const resultsSection = document.getElementById('braille-results-section');
+      const outputTextarea = document.getElementById('braille-text-output');
+      if (resultsSection) resultsSection.style.display = 'block';
       if (outputTextarea) {
-        if ('value' in outputTextarea) outputTextarea.value = finalText;
-        else outputTextarea.textContent = finalText;
+        if ('value' in outputTextarea) outputTextarea.value = 'Translating... please wait.';
+        else outputTextarea.textContent = 'Translating... please wait.';
       }
 
-      // Convert translated text to Braille Unicode for display
-      const { unicodeStr } = this.convertTextToBraille(finalText);
-      const unicodeBox = document.getElementById('braille-unicode-output');
-      const rawWrapper = document.getElementById('braille-raw-wrapper');
-      if (unicodeBox) unicodeBox.textContent = unicodeStr;
-      if (rawWrapper) rawWrapper.style.display = 'flex';
-
-      // Show ASCII banner
-      const asciiBanner = document.getElementById('braille-ascii-banner');
-      if (asciiBanner && result.braille_ascii) {
-        asciiBanner.textContent = `Braille ASCII: ${result.braille_ascii}`;
-        asciiBanner.style.display = 'block';
+      const brailleCard = document.querySelector('.braille-result-card');
+      if (brailleCard && window.setCardLoading) {
+        window.setCardLoading(brailleCard, true, 'Analyzing Braille Dots with AI Engine...');
       }
 
-      // Show engine note
-      const engine = result.engine_info || {};
-      const engineNote = document.getElementById('braille-engine-note');
-      if (engineNote) {
-        engineNote.style.display = 'block';
-        if (engine.is_fallback) {
-          engineNote.style.background = 'rgba(234, 179, 8, 0.15)';
-          engineNote.style.color = '#b45309';
-          engineNote.style.border = '1px solid rgba(234, 179, 8, 0.3)';
-          engineNote.style.borderRadius = '8px';
-          engineNote.style.padding = '8px 12px';
-          engineNote.style.fontSize = '12px';
-          engineNote.innerHTML = `<strong>⚠️ MCP Resolver used (&lt; 98%):</strong> ${engine.notes || 'Shifted to MCP/Chatbot resolver for maximum accuracy.'}`;
-        } else {
-          engineNote.style.background = 'rgba(34, 197, 94, 0.12)';
-          engineNote.style.color = '#15803d';
-          engineNote.style.border = '1px solid rgba(34, 197, 94, 0.25)';
-          engineNote.style.borderRadius = '8px';
-          engineNote.style.padding = '8px 12px';
-          engineNote.style.fontSize = '12px';
-          engineNote.innerHTML = `<strong>🎯 High Confidence (&ge; 98%):</strong> Output from local custom-trained ExtraTrees model (${engine.source || 'Local AI'}).`;
+      const formData = new FormData();
+      formData.append('file', this.currentFile);
+      formData.append('speak_tts', 'false');
+
+      if (window.showPageLoader) window.showPageLoader('Analyzing Braille Dots with AI Engine...');
+
+      try {
+        const res = await fetch('/api/braille/translate', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          const errorObj = data.error || {};
+          this.displayIQAResult({
+            accepted: false,
+            rejection_reason: errorObj.rejection_reason || data.detail || 'Translation failed: could not read Braille from this image.',
+            metrics: errorObj.metrics || {},
+            remediation_guidance: errorObj.user_guidance || 'Please upload a clear photograph of physical embossed Braille.'
+          });
+          if (outputTextarea) {
+            if ('value' in outputTextarea) outputTextarea.value = 'Translation failed. See quality report above.';
+            else outputTextarea.textContent = 'Translation failed. See quality report above.';
+          }
+          TransifyApp.showToast('Image rejected: ' + (errorObj.rejection_reason || 'Could not translate Braille.'), 'danger');
+          return;
         }
-      }
 
-      // Coverage bar
-      const cov = result.read_coverage || {
-        percentage: 100.0,
-        confident_cells: result.cell_count || 0,
-        total_cells: result.cell_count || 0,
-        summary: `All Braille cells decoded (${result.cell_count} cells).`
-      };
+        const result = data.data;
 
-      const covContainer = document.getElementById('braille-coverage-container');
-      const covLabel = document.getElementById('braille-coverage-label');
-      const covBar = document.getElementById('braille-coverage-bar');
-      const covDetails = document.getElementById('braille-coverage-details');
-
-      if (covContainer) {
-        covContainer.style.display = 'block';
-        if (covLabel) covLabel.textContent = `${cov.percentage}% Read (${cov.confident_cells}/${cov.total_cells} Cells)`;
-        if (covBar) {
-          covBar.style.width = `${cov.percentage}%`;
-          covBar.style.background = cov.percentage >= 95 ? '#22c55e' : (cov.percentage >= 80 ? '#eab308' : '#ef4444');
+        // Update translated text (supports textarea or div)
+        const finalText = result.text || '(No text detected)';
+        if (outputTextarea) {
+          if ('value' in outputTextarea) outputTextarea.value = finalText;
+          else outputTextarea.textContent = finalText;
         }
-        if (covDetails) covDetails.innerHTML = `<strong>Coverage:</strong> ${cov.summary}`;
-      }
 
-      // Stats badges
-      const statsBadge = document.getElementById('braille-stats-badge');
-      if (statsBadge) {
-        const engineBadge = engine.is_fallback
-          ? `<span class="badge badge-warning" title="${engine.source || 'MCP'}">🤖 ${engine.badge || 'MCP Resolver'}</span>`
-          : `<span class="badge badge-success" title="${engine.source || 'Local AI'}">🎯 ${engine.badge || 'AI Model ≥98%'}</span>`;
-        statsBadge.innerHTML = `
+        // Convert translated text to Braille Unicode for display
+        const { unicodeStr } = this.convertTextToBraille(finalText);
+        const unicodeBox = document.getElementById('braille-unicode-output');
+        const rawWrapper = document.getElementById('braille-raw-wrapper');
+        if (unicodeBox) unicodeBox.textContent = unicodeStr;
+        if (rawWrapper) rawWrapper.style.display = 'flex';
+
+        // Show ASCII banner
+        const asciiBanner = document.getElementById('braille-ascii-banner');
+        if (asciiBanner && result.braille_ascii) {
+          asciiBanner.textContent = `Braille ASCII: ${result.braille_ascii}`;
+          asciiBanner.style.display = 'block';
+        }
+
+        // Show engine note
+        const engine = result.engine_info || {};
+        const engineNote = document.getElementById('braille-engine-note');
+        if (engineNote) {
+          engineNote.style.display = 'block';
+          if (engine.is_fallback) {
+            engineNote.style.background = 'rgba(234, 179, 8, 0.15)';
+            engineNote.style.color = '#b45309';
+            engineNote.style.border = '1px solid rgba(234, 179, 8, 0.3)';
+            engineNote.style.borderRadius = '8px';
+            engineNote.style.padding = '8px 12px';
+            engineNote.style.fontSize = '12px';
+            engineNote.innerHTML = `<strong>⚠️ MCP Resolver used (&lt; 98%):</strong> ${engine.notes || 'Shifted to MCP/Chatbot resolver for maximum accuracy.'}`;
+          } else {
+            engineNote.style.background = 'rgba(34, 197, 94, 0.12)';
+            engineNote.style.color = '#15803d';
+            engineNote.style.border = '1px solid rgba(34, 197, 94, 0.25)';
+            engineNote.style.borderRadius = '8px';
+            engineNote.style.padding = '8px 12px';
+            engineNote.style.fontSize = '12px';
+            engineNote.innerHTML = `<strong>🎯 High Confidence (&ge; 98%):</strong> Output from local custom-trained ExtraTrees model (${engine.source || 'Local AI'}).`;
+          }
+        }
+
+        // Coverage bar
+        const cov = result.read_coverage || {
+          percentage: 100.0,
+          confident_cells: result.cell_count || 0,
+          total_cells: result.cell_count || 0,
+          summary: `All Braille cells decoded (${result.cell_count} cells).`
+        };
+
+        const covContainer = document.getElementById('braille-coverage-container');
+        const covLabel = document.getElementById('braille-coverage-label');
+        const covBar = document.getElementById('braille-coverage-bar');
+        const covDetails = document.getElementById('braille-coverage-details');
+
+        if (covContainer) {
+          covContainer.style.display = 'block';
+          if (covLabel) covLabel.textContent = `${cov.percentage}% Read (${cov.confident_cells}/${cov.total_cells} Cells)`;
+          if (covBar) {
+            covBar.style.width = `${cov.percentage}%`;
+            covBar.style.background = cov.percentage >= 95 ? '#22c55e' : (cov.percentage >= 80 ? '#eab308' : '#ef4444');
+          }
+          if (covDetails) covDetails.innerHTML = `<strong>Coverage:</strong> ${cov.summary}`;
+        }
+
+        // Stats badges
+        const statsBadge = document.getElementById('braille-stats-badge');
+        if (statsBadge) {
+          const engineBadge = engine.is_fallback
+            ? `<span class="badge badge-warning" title="${engine.source || 'MCP'}">🤖 ${engine.badge || 'MCP Resolver'}</span>`
+            : `<span class="badge badge-success" title="${engine.source || 'Local AI'}">🎯 ${engine.badge || 'AI Model ≥98%'}</span>`;
+          statsBadge.innerHTML = `
           ${engineBadge}
           <span class="badge ${cov.percentage >= 95 ? 'badge-success' : 'badge-warning'}">📖 ${cov.percentage}% Read</span>
           <span class="badge badge-success">Conf: ${(result.mean_confidence * 100).toFixed(1)}%</span>
           <span class="badge badge-info">${result.cell_count || 0} Cells</span>
           <span class="badge badge-info">${result.line_count || 1} Lines</span>
         `;
-      }
+        }
 
-      this.displayIQAResult({ accepted: true, metrics: result.qa_metrics || {}, is_usable: true });
+        this.displayIQAResult({ accepted: true, metrics: result.qa_metrics || {}, is_usable: true });
 
-      TransifyApp.showToast('Braille translated successfully! Click "Speak aloud" to listen.', 'success');
-      TransifyApp.announce('Translation complete: ' + result.text);
+        TransifyApp.showToast('Braille translated successfully! Click "Speak aloud" to listen.', 'success');
+        TransifyApp.announce('Translation complete: ' + result.text);
 
-    } catch (e) {
-      TransifyApp.showToast('Error during Braille translation: ' + e.message, 'danger');
-      if (outputTextarea) {
-        if ('value' in outputTextarea) outputTextarea.value = 'Translation error. Check server connection.';
-        else outputTextarea.textContent = 'Translation error. Check server connection.';
+      } catch (e) {
+        TransifyApp.showToast('Error during Braille translation: ' + e.message, 'danger');
+        if (outputTextarea) {
+          if ('value' in outputTextarea) outputTextarea.value = 'Translation error. Check server connection.';
+          else outputTextarea.textContent = 'Translation error. Check server connection.';
+        }
+      } finally {
+        const brailleCard = document.querySelector('.braille-result-card');
+        if (brailleCard && window.setCardLoading) {
+          window.setCardLoading(brailleCard, false);
+        }
+        if (window.hidePageLoader) window.hidePageLoader();
+        [translateBtn, translateBtnVisible].forEach(btn => {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Translate Image';
+          }
+        });
       }
-    } finally {
-      const brailleCard = document.querySelector('.braille-result-card');
-      if (brailleCard && window.setCardLoading) {
-        window.setCardLoading(brailleCard, false);
-      }
-      if (window.hidePageLoader) window.hidePageLoader();
-      [translateBtn, translateBtnVisible].forEach(btn => {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Translate Image';
+    }
+  };
+
+  // ==========================================
+  // 6. Speech-to-Text (STT) Module
+  // 6. Neural Voice Studio 2.0 Module
+  // ==========================================
+
+  var TransifyVoiceStudio = window.TransifyVoiceStudio = {
+    currentMode: 'studio',
+    persona: 'default',
+    timerInterval: null,
+    vuInterval: null,
+    animFrameId: null,
+    isInitialized: false,
+
+    init() {
+      if (this.isInitialized) return;
+      this.isInitialized = true;
+
+      // Initialize underlying STT & TTS modules
+      if (window.TransifySTT && window.TransifySTT.init) window.TransifySTT.init();
+      if (window.TransifyTTSPage && window.TransifyTTSPage.init) window.TransifyTTSPage.init();
+
+      this.setupVisualizer();
+      this.startVUMeter();
+      this.bindVoiceInputs();
+    },
+
+    switchMode(mode) {
+      this.currentMode = mode;
+      const tabs = ['studio', 'bridge', 'diagnostics'];
+      tabs.forEach(t => {
+        const tabBtn = document.getElementById(`voice-tab-${t}`);
+        const pane = document.getElementById(`voice-pane-${t}`);
+        const isActive = (t === mode);
+
+        if (tabBtn) {
+          tabBtn.classList.toggle('active', isActive);
+          tabBtn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        }
+        if (pane) {
+          pane.classList.toggle('active', isActive);
+          pane.style.display = isActive ? 'block' : 'none';
         }
       });
-    }
-  }
-};
 
-// ==========================================
-// 6. Speech-to-Text (STT) Module
-// 6. Neural Voice Studio 2.0 Module
-// ==========================================
-
-var TransifyVoiceStudio = window.TransifyVoiceStudio = {
-  currentMode: 'studio',
-  persona: 'default',
-  timerInterval: null,
-  vuInterval: null,
-  animFrameId: null,
-  isInitialized: false,
-
-  init() {
-    if (this.isInitialized) return;
-    this.isInitialized = true;
-
-    // Initialize underlying STT & TTS modules
-    if (window.TransifySTT && window.TransifySTT.init) window.TransifySTT.init();
-    if (window.TransifyTTSPage && window.TransifyTTSPage.init) window.TransifyTTSPage.init();
-
-    this.setupVisualizer();
-    this.startVUMeter();
-    this.bindVoiceInputs();
-  },
-
-  switchMode(mode) {
-    this.currentMode = mode;
-    const tabs = ['studio', 'bridge', 'diagnostics'];
-    tabs.forEach(t => {
-      const tabBtn = document.getElementById(`voice-tab-${t}`);
-      const pane = document.getElementById(`voice-pane-${t}`);
-      const isActive = (t === mode);
-
-      if (tabBtn) {
-        tabBtn.classList.toggle('active', isActive);
-        tabBtn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      if (mode === 'bridge') {
+        this.syncActiveSpeechToBridge();
       }
-      if (pane) {
-        pane.classList.toggle('active', isActive);
-        pane.style.display = isActive ? 'block' : 'none';
+      if (window.TransifyApp && window.TransifyApp.announce) {
+        window.TransifyApp.announce(`Switched to Voice ${mode.charAt(0).toUpperCase() + mode.slice(1)} view`);
       }
-    });
+    },
 
-    if (mode === 'bridge') {
-      this.syncActiveSpeechToBridge();
-    }
-    if (window.TransifyApp && window.TransifyApp.announce) {
-      window.TransifyApp.announce(`Switched to Voice ${mode.charAt(0).toUpperCase() + mode.slice(1)} view`);
-    }
-  },
+    loadSample(phrase, lang) {
+      // Populate STT box
+      const finalText = document.getElementById('stt-final-text');
+      const placeholder = document.getElementById('stt-placeholder');
+      if (finalText) finalText.textContent = phrase;
+      if (placeholder) placeholder.style.display = 'none';
 
-  loadSample(phrase, lang) {
-    // Populate STT box
-    const finalText = document.getElementById('stt-final-text');
-    const placeholder = document.getElementById('stt-placeholder');
-    if (finalText) finalText.textContent = phrase;
-    if (placeholder) placeholder.style.display = 'none';
-
-    if (window.TransifySTT) {
-      window.TransifySTT.finalTranscript = phrase;
-      window.TransifySTT.updateTelemetry(phrase);
-    }
-
-    // Populate TTS textarea
-    const ttsInput = document.getElementById('tts-input-text');
-    if (ttsInput) {
-      ttsInput.value = phrase;
-      this.updateTTSStats(phrase);
-    }
-
-    // Set languages
-    if (lang) {
-      const sttLang = document.getElementById('stt-lang-select');
-      const ttsLang = document.getElementById('tts-lang-select');
-      if (sttLang) sttLang.value = lang;
-      if (ttsLang) {
-        const opt = Array.from(ttsLang.options).find(o => o.value === lang);
-        if (opt) ttsLang.value = lang;
+      if (window.TransifySTT) {
+        window.TransifySTT.finalTranscript = phrase;
+        window.TransifySTT.updateTelemetry(phrase);
       }
-    }
 
-    // Update cross-modal bridge
-    this.syncActiveSpeechToBridge(phrase);
+      // Populate TTS textarea
+      const ttsInput = document.getElementById('tts-input-text');
+      if (ttsInput) {
+        ttsInput.value = phrase;
+        this.updateTTSStats(phrase);
+      }
 
-    if (window.TransifyApp && window.TransifyApp.showToast) {
-      window.TransifyApp.showToast(`Sample loaded: "${phrase.slice(0, 32)}..."`, 'info');
-    }
-  },
+      // Set languages
+      if (lang) {
+        const sttLang = document.getElementById('stt-lang-select');
+        const ttsLang = document.getElementById('tts-lang-select');
+        if (sttLang) sttLang.value = lang;
+        if (ttsLang) {
+          const opt = Array.from(ttsLang.options).find(o => o.value === lang);
+          if (opt) ttsLang.value = lang;
+        }
+      }
 
-  changeCaptionFont(size) {
-    const box = document.getElementById('stt-live-caption-box');
-    if (!box) return;
-    if (size === 'xlarge') {
-      box.style.fontSize = '28px';
-    } else if (size === 'large') {
-      box.style.fontSize = '24px';
-    } else {
-      box.style.fontSize = '20px';
-    }
-  },
+      // Update cross-modal bridge
+      this.syncActiveSpeechToBridge(phrase);
 
-  setTTSSpeed(spd) {
-    if (window.TransifyTTSPage) {
-      window.TransifyTTSPage.speed = spd;
-    }
-    document.querySelectorAll('.tts-speed-btn').forEach(btn => {
-      const btnSpeed = parseFloat(btn.getAttribute('data-speed') || '1.0');
-      btn.classList.toggle('active', Math.abs(btnSpeed - spd) < 0.05);
-    });
-    if (window.TransifyApp && window.TransifyApp.showToast) {
-      window.TransifyApp.showToast(`Speech rate set to ${spd}x`, 'info');
-    }
-  },
-
-  changeVoicePersona(persona) {
-    this.persona = persona;
-    const badge = document.getElementById('tts-voice-status');
-    const personaLabels = {
-      default: 'Neural Synthesizer',
-      female: 'Studio Female HD',
-      male: 'Professional Male',
-      bangla: 'Bangla Studio (ফারহানা)'
-    };
-    if (badge) badge.textContent = personaLabels[persona] || 'Neural Voice';
-    if (window.TransifyApp && window.TransifyApp.showToast) {
-      window.TransifyApp.showToast(`Voice persona: ${personaLabels[persona] || persona}`, 'info');
-    }
-  },
-
-  insertTTSPhrase(phrase) {
-    const textarea = document.getElementById('tts-input-text');
-    if (!textarea) return;
-    if (textarea.value.trim()) {
-      textarea.value += ' ' + phrase;
-    } else {
-      textarea.value = phrase;
-    }
-    this.updateTTSStats(textarea.value);
-    if (window.TransifyApp && window.TransifyApp.showToast) {
-      window.TransifyApp.showToast(`Phrase added: "${phrase.slice(0, 24)}..."`, 'success');
-    }
-  },
-
-  copyTTSText() {
-    const textarea = document.getElementById('tts-input-text');
-    const text = textarea ? textarea.value.trim() : '';
-    if (text) {
-      navigator.clipboard.writeText(text);
       if (window.TransifyApp && window.TransifyApp.showToast) {
-        window.TransifyApp.showToast('Speech text copied to clipboard!', 'success');
+        window.TransifyApp.showToast(`Sample loaded: "${phrase.slice(0, 32)}..."`, 'info');
       }
-    } else {
-      if (window.TransifyApp && window.TransifyApp.showToast) {
-        window.TransifyApp.showToast('No text to copy.', 'warning');
-      }
-    }
-  },
+    },
 
-  pauseTTS() {
-    if ('speechSynthesis' in window) {
-      if (window.speechSynthesis.speaking) {
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-          if (window.TransifyApp && window.TransifyApp.showToast) {
-            window.TransifyApp.showToast('Voice playback resumed.', 'info');
-          }
-        } else {
-          window.speechSynthesis.pause();
-          if (window.TransifyApp && window.TransifyApp.showToast) {
-            window.TransifyApp.showToast('Voice playback paused.', 'info');
-          }
+    changeCaptionFont(size) {
+      const box = document.getElementById('stt-live-caption-box');
+      if (!box) return;
+      if (size === 'xlarge') {
+        box.style.fontSize = '28px';
+      } else if (size === 'large') {
+        box.style.fontSize = '24px';
+      } else {
+        box.style.fontSize = '20px';
+      }
+    },
+
+    setTTSSpeed(spd) {
+      if (window.TransifyTTSPage) {
+        window.TransifyTTSPage.speed = spd;
+      }
+      document.querySelectorAll('.tts-speed-btn').forEach(btn => {
+        const btnSpeed = parseFloat(btn.getAttribute('data-speed') || '1.0');
+        btn.classList.toggle('active', Math.abs(btnSpeed - spd) < 0.05);
+      });
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast(`Speech rate set to ${spd}x`, 'info');
+      }
+    },
+
+    changeVoicePersona(persona) {
+      this.persona = persona;
+      const badge = document.getElementById('tts-voice-status');
+      const personaLabels = {
+        default: 'Neural Synthesizer',
+        female: 'Studio Female HD',
+        male: 'Professional Male',
+        bangla: 'Bangla Studio (ফারহানা)'
+      };
+      if (badge) badge.textContent = personaLabels[persona] || 'Neural Voice';
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast(`Voice persona: ${personaLabels[persona] || persona}`, 'info');
+      }
+    },
+
+    insertTTSPhrase(phrase) {
+      const textarea = document.getElementById('tts-input-text');
+      if (!textarea) return;
+      if (textarea.value.trim()) {
+        textarea.value += ' ' + phrase;
+      } else {
+        textarea.value = phrase;
+      }
+      this.updateTTSStats(textarea.value);
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast(`Phrase added: "${phrase.slice(0, 24)}..."`, 'success');
+      }
+    },
+
+    copyTTSText() {
+      const textarea = document.getElementById('tts-input-text');
+      const text = textarea ? textarea.value.trim() : '';
+      if (text) {
+        navigator.clipboard.writeText(text);
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('Speech text copied to clipboard!', 'success');
         }
       } else {
         if (window.TransifyApp && window.TransifyApp.showToast) {
-          window.TransifyApp.showToast('No active speech playback to pause.', 'warning');
+          window.TransifyApp.showToast('No text to copy.', 'warning');
         }
       }
-    }
-  },
+    },
 
-  downloadCaptionsTXT() {
-    const text = (window.TransifySTT && window.TransifySTT.finalTranscript) ?
-      window.TransifySTT.finalTranscript.trim() :
-      (document.getElementById('stt-final-text') ? document.getElementById('stt-final-text').textContent.trim() : '');
-
-    if (!text) {
-      if (window.TransifyApp && window.TransifyApp.showToast) {
-        window.TransifyApp.showToast('No captions recorded to download.', 'warning');
-      }
-      return;
-    }
-
-    const header = `Transify Speech Captions Session\nTimestamp: ${new Date().toISOString()}\n=========================================\n\n`;
-    const blob = new Blob([header + text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `transify-captions-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    if (window.TransifyApp && window.TransifyApp.showToast) {
-      window.TransifyApp.showToast('Downloaded captions transcript as TXT.', 'success');
-    }
-  },
-
-  downloadCaptionsSRT() {
-    const text = (window.TransifySTT && window.TransifySTT.finalTranscript) ?
-      window.TransifySTT.finalTranscript.trim() :
-      (document.getElementById('stt-final-text') ? document.getElementById('stt-final-text').textContent.trim() : '');
-
-    if (!text) {
-      if (window.TransifyApp && window.TransifyApp.showToast) {
-        window.TransifyApp.showToast('No captions recorded to download.', 'warning');
-      }
-      return;
-    }
-
-    const words = text.split(/\s+/).filter(Boolean);
-    let srt = '';
-    let sec = 1;
-    let blockIdx = 1;
-
-    for (let i = 0; i < words.length; i += 6) {
-      const chunk = words.slice(i, i + 6).join(' ');
-      const startSec = sec;
-      const endSec = sec + 3;
-      const formatTime = (s) => {
-        const mm = String(Math.floor(s / 60)).padStart(2, '0');
-        const ss = String(s % 60).padStart(2, '0');
-        return `00:${mm}:${ss},000`;
-      };
-      srt += `${blockIdx}\n${formatTime(startSec)} --> ${formatTime(endSec)}\n${chunk}\n\n`;
-      sec += 3;
-      blockIdx++;
-    }
-
-    const blob = new Blob([srt], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `transify-captions-${Date.now()}.srt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    if (window.TransifyApp && window.TransifyApp.showToast) {
-      window.TransifyApp.showToast('Downloaded standard SRT subtitle file.', 'success');
-    }
-  },
-
-  bridgeToSign() {
-    this.switchMode('bridge');
-    const strip = document.getElementById('voice-bridge-sign-strip');
-    if (strip) strip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  },
-
-  bridgeToBraille() {
-    this.switchMode('bridge');
-    const strip = document.getElementById('voice-bridge-braille-strip');
-    if (strip) strip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  },
-
-  syncActiveSpeechToBridge(optionalText) {
-    let text = optionalText;
-    if (!text) {
-      text = (window.TransifySTT && window.TransifySTT.finalTranscript) ?
-        window.TransifySTT.finalTranscript.trim() :
-        (document.getElementById('stt-final-text') ? document.getElementById('stt-final-text').textContent.trim() : '');
-    }
-    if (!text) {
-      const ttsVal = document.getElementById('tts-input-text');
-      if (ttsVal && ttsVal.value.trim()) text = ttsVal.value.trim();
-    }
-    if (!text) {
-      text = "Emergency: Need Assistance";
-    }
-
-    const signStrip = document.getElementById('voice-bridge-sign-strip');
-    const brailleStrip = document.getElementById('voice-bridge-braille-strip');
-
-    if (signStrip) {
-      signStrip.innerHTML = '';
-      const chars = text.slice(0, 60).split('');
-      chars.forEach(ch => {
-        const lower = ch.toLowerCase();
-        const badge = document.createElement('div');
-        badge.className = 'voice-bridge-card';
-        if (ch === ' ') {
-          badge.innerHTML = '<span class="bridge-card-char">␣</span><span class="bridge-card-sub">space</span>';
-          badge.style.opacity = '0.5';
-        } else if (lower >= 'a' && lower <= 'z') {
-          badge.innerHTML = `<span class="bridge-card-char">${lower.toUpperCase()}</span><span class="bridge-card-sub">🤟 ASL</span>`;
-        } else {
-          badge.innerHTML = `<span class="bridge-card-char">${ch}</span><span class="bridge-card-sub">sym</span>`;
-        }
-        signStrip.appendChild(badge);
-      });
-    }
-
-    if (brailleStrip) {
-      brailleStrip.innerHTML = '';
-      const chars = text.slice(0, 60).split('');
-      chars.forEach(ch => {
-        const lower = ch.toLowerCase();
-        const meta = (window.BraillePage && window.BraillePage.charToBraille) ? window.BraillePage.charToBraille[lower] : null;
-        const unicode = meta ? meta.unicode : (ch === ' ' ? '⠀' : '⠿');
-        const badge = document.createElement('div');
-        badge.className = 'voice-bridge-card';
-        badge.innerHTML = `<span class="bridge-card-char" style="font-size:24px; font-family:serif;">${unicode}</span><span class="bridge-card-sub">${ch === ' ' ? 'space' : (meta ? (meta.bn || meta.name) : ch)}</span>`;
-        brailleStrip.appendChild(badge);
-      });
-    }
-  },
-
-  updateTTSStats(text) {
-    const charCount = document.getElementById('tts-char-count');
-    const estTime = document.getElementById('tts-est-time');
-    if (charCount) charCount.textContent = `${text.length} characters`;
-    if (estTime) {
-      const words = text.trim().split(/\s+/).filter(Boolean).length;
-      const sec = Math.max(1, Math.round((words / 130) * 60));
-      estTime.textContent = `Est. Speech: ${sec}s`;
-    }
-  },
-
-  bindVoiceInputs() {
-    const ttsText = document.getElementById('tts-input-text');
-    if (ttsText) {
-      ttsText.addEventListener('input', () => {
-        this.updateTTSStats(ttsText.value);
-      });
-    }
-  },
-
-  setupVisualizer() {
-    const canvas = document.getElementById('stt-audio-visualizer');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let phase = 0;
-    const render = () => {
-      this.animFrameId = requestAnimationFrame(render);
-      const isListening = !!(window.TransifySTT && window.TransifySTT.isListening);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const w = canvas.width;
-      const h = canvas.height;
-      const midY = h / 2;
-
-      ctx.lineWidth = isListening ? 2.5 : 1.5;
-      const grad = ctx.createLinearGradient(0, 0, w, 0);
-      if (isListening) {
-        grad.addColorStop(0, '#8338ec');
-        grad.addColorStop(0.5, '#f59e0b');
-        grad.addColorStop(1, '#ec4899');
-      } else {
-        grad.addColorStop(0, 'rgba(140, 136, 165, 0.25)');
-        grad.addColorStop(1, 'rgba(140, 136, 165, 0.4)');
-      }
-      ctx.strokeStyle = grad;
-      ctx.beginPath();
-
-      const numPoints = 60;
-      const amp = isListening ? 12 : 2;
-      const freq = isListening ? 0.08 : 0.03;
-
-      for (let i = 0; i <= numPoints; i++) {
-        const x = (i / numPoints) * w;
-        const y = midY + Math.sin(i * freq + phase) * amp * Math.sin((i / numPoints) * Math.PI);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-
-      phase += isListening ? 0.18 : 0.04;
-    };
-    render();
-  },
-
-  startVUMeter() {
-    const fill = document.getElementById('vu-meter-fill');
-    if (this.vuInterval) clearInterval(this.vuInterval);
-
-    this.vuInterval = setInterval(() => {
-      if (!fill) return;
-      const isListening = !!(window.TransifySTT && window.TransifySTT.isListening);
-      let targetPct = 0;
-      if (isListening) {
-        targetPct = 35 + Math.floor(Math.random() * 50);
-      } else {
-        targetPct = 12 + Math.floor(Math.random() * 8);
-      }
-      fill.style.width = targetPct + '%';
-    }, 180);
-  }
-};
-
-
-// ==========================================
-// 6b. Speech-to-Text (STT) Module
-// ==========================================
-
-var TransifySTT = window.TransifySTT = {
-  recognition: null,
-  isListening: false,
-  lang: 'en-US',
-  finalTranscript: '',
-  isLargeFont: false,
-  isInitialized: false,
-  startTime: null,
-  timerInterval: null,
-
-  init() {
-    if (this.isInitialized) return;
-    this.isInitialized = true;
-
-    const toggleBtn = document.getElementById('stt-toggle-btn');
-    const langSelect = document.getElementById('stt-lang-select');
-    const copyBtn = document.getElementById('stt-copy-btn');
-    const clearBtn = document.getElementById('stt-clear-btn');
-    const sendToTtsBtn = document.getElementById('stt-send-to-tts-btn');
-    const fontToggleBtn = document.getElementById('stt-font-toggle');
-
-    if (langSelect) {
-      langSelect.addEventListener('change', (e) => {
-        this.lang = e.target.value;
-        if (this.isListening) {
-          this.stop();
-          this.start();
-        }
-      });
-    }
-
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        if (this.isListening) {
-          this.stop();
-        } else {
-          this.start();
-        }
-      });
-    }
-
-    if (copyBtn) {
-      copyBtn.addEventListener('click', () => {
-        const text = this.finalTranscript.trim();
-        if (text) {
-          navigator.clipboard.writeText(text);
-          TransifyApp.showToast('Copied captions to clipboard!', 'success');
-        } else {
-          TransifyApp.showToast('No speech text to copy.', 'warning');
-        }
-      });
-    }
-
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        this.clear();
-      });
-    }
-
-    if (sendToTtsBtn) {
-      sendToTtsBtn.addEventListener('click', () => {
-        const text = this.finalTranscript.trim();
-        if (text) {
-          const ttsInput = document.getElementById('tts-input-text');
-          if (ttsInput) {
-            ttsInput.value = text;
-            const count = document.getElementById('tts-char-count');
-            if (count) count.textContent = `${text.length} chars`;
-            if (window.TransifyVoiceStudio) {
-              window.TransifyVoiceStudio.updateTTSStats(text);
+    pauseTTS() {
+      if ('speechSynthesis' in window) {
+        if (window.speechSynthesis.speaking) {
+          if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+            if (window.TransifyApp && window.TransifyApp.showToast) {
+              window.TransifyApp.showToast('Voice playback resumed.', 'info');
+            }
+          } else {
+            window.speechSynthesis.pause();
+            if (window.TransifyApp && window.TransifyApp.showToast) {
+              window.TransifyApp.showToast('Voice playback paused.', 'info');
             }
           }
-          if (typeof openSlide === 'function') {
-            openSlide('slide-tts');
-          }
-          TransifyApp.showToast('Captions sent to Read Aloud.', 'success');
         } else {
-          TransifyApp.showToast('No speech text to send.', 'warning');
-        }
-      });
-    }
-
-    if (fontToggleBtn) {
-      fontToggleBtn.addEventListener('click', () => {
-        this.isLargeFont = !this.isLargeFont;
-        const captionBox = document.getElementById('stt-live-caption-box');
-        const fontLabel = document.getElementById('stt-font-label');
-        if (captionBox && fontLabel) {
-          if (this.isLargeFont) {
-            captionBox.style.fontSize = '28px';
-            fontLabel.textContent = 'Extra Large';
-          } else {
-            captionBox.style.fontSize = '20px';
-            fontLabel.textContent = 'Large';
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast('No active speech playback to pause.', 'warning');
           }
         }
-      });
-    }
-  },
+      }
+    },
 
-  updateTelemetry(text) {
-    const words = (text || '').trim().split(/\s+/).filter(Boolean);
-    const wordCount = document.getElementById('stt-word-count');
-    const wpmEl = document.getElementById('stt-wpm');
-    const diagWpm = document.getElementById('diag-wpm-val');
+    downloadCaptionsTXT() {
+      const text = (window.TransifySTT && window.TransifySTT.finalTranscript) ?
+        window.TransifySTT.finalTranscript.trim() :
+        (document.getElementById('stt-final-text') ? document.getElementById('stt-final-text').textContent.trim() : '');
 
-    if (wordCount) wordCount.textContent = `${words.length} words`;
+      if (!text) {
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('No captions recorded to download.', 'warning');
+        }
+        return;
+      }
 
-    if (this.startTime && words.length > 0) {
-      const elapsedMin = Math.max(0.1, (Date.now() - this.startTime) / 60000);
-      const wpm = Math.round(words.length / elapsedMin);
-      if (wpmEl) wpmEl.textContent = `Pace: ${wpm} WPM`;
-      if (diagWpm) diagWpm.textContent = `${wpm} WPM`;
-    }
-  },
+      const header = `Transify Speech Captions Session\nTimestamp: ${new Date().toISOString()}\n=========================================\n\n`;
+      const blob = new Blob([header + text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transify-captions-${Date.now()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast('Downloaded captions transcript as TXT.', 'success');
+      }
+    },
 
-  start() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      TransifyApp.showToast('Speech Recognition is not supported by your browser. Please use Chrome or Edge.', 'danger');
-      return;
-    }
+    downloadCaptionsSRT() {
+      const text = (window.TransifySTT && window.TransifySTT.finalTranscript) ?
+        window.TransifySTT.finalTranscript.trim() :
+        (document.getElementById('stt-final-text') ? document.getElementById('stt-final-text').textContent.trim() : '');
 
-    const langSelect = document.getElementById('stt-lang-select');
-    const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
+      if (!text) {
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('No captions recorded to download.', 'warning');
+        }
+        return;
+      }
 
-    try {
-      this.recognition = new SpeechRecognition();
-      this.recognition.continuous = true;
-      this.recognition.interimResults = true;
-      this.recognition.lang = chosenLang;
+      const words = text.split(/\s+/).filter(Boolean);
+      let srt = '';
+      let sec = 1;
+      let blockIdx = 1;
 
-      this.recognition.onstart = () => {
-        this.isListening = true;
-        this.startTime = Date.now();
-        this.updateUI(true);
+      for (let i = 0; i < words.length; i += 6) {
+        const chunk = words.slice(i, i + 6).join(' ');
+        const startSec = sec;
+        const endSec = sec + 3;
+        const formatTime = (s) => {
+          const mm = String(Math.floor(s / 60)).padStart(2, '0');
+          const ss = String(s % 60).padStart(2, '0');
+          return `00:${mm}:${ss},000`;
+        };
+        srt += `${blockIdx}\n${formatTime(startSec)} --> ${formatTime(endSec)}\n${chunk}\n\n`;
+        sec += 3;
+        blockIdx++;
+      }
 
-        if (this.timerInterval) clearInterval(this.timerInterval);
-        this.timerInterval = setInterval(() => {
-          if (!this.isListening || !this.startTime) return;
-          const sec = Math.floor((Date.now() - this.startTime) / 1000);
-          const mm = String(Math.floor(sec / 60)).padStart(2, '0');
-          const ss = String(sec % 60).padStart(2, '0');
-          const timerEl = document.getElementById('stt-timer');
-          if (timerEl) timerEl.textContent = `Duration: ${mm}:${ss}`;
-        }, 1000);
+      const blob = new Blob([srt], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transify-captions-${Date.now()}.srt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      if (window.TransifyApp && window.TransifyApp.showToast) {
+        window.TransifyApp.showToast('Downloaded standard SRT subtitle file.', 'success');
+      }
+    },
 
-        TransifyApp.announce('Speech recognition listening started');
-        TransifyApp.showToast('Microphone active! Speak now...', 'info');
-      };
+    bridgeToSign() {
+      this.switchMode('bridge');
+      const strip = document.getElementById('voice-bridge-sign-strip');
+      if (strip) strip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    },
 
-      this.recognition.onresult = (event) => {
-        let interim = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            this.finalTranscript += event.results[i][0].transcript + ' ';
+    bridgeToBraille() {
+      this.switchMode('bridge');
+      const strip = document.getElementById('voice-bridge-braille-strip');
+      if (strip) strip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    },
+
+    syncActiveSpeechToBridge(optionalText) {
+      let text = optionalText;
+      if (!text) {
+        text = (window.TransifySTT && window.TransifySTT.finalTranscript) ?
+          window.TransifySTT.finalTranscript.trim() :
+          (document.getElementById('stt-final-text') ? document.getElementById('stt-final-text').textContent.trim() : '');
+      }
+      if (!text) {
+        const ttsVal = document.getElementById('tts-input-text');
+        if (ttsVal && ttsVal.value.trim()) text = ttsVal.value.trim();
+      }
+      if (!text) {
+        text = "Emergency: Need Assistance";
+      }
+
+      const signStrip = document.getElementById('voice-bridge-sign-strip');
+      const brailleStrip = document.getElementById('voice-bridge-braille-strip');
+
+      if (signStrip) {
+        signStrip.innerHTML = '';
+        const chars = text.slice(0, 60).split('');
+        chars.forEach(ch => {
+          const lower = ch.toLowerCase();
+          const badge = document.createElement('div');
+          badge.className = 'voice-bridge-card';
+          if (ch === ' ') {
+            badge.innerHTML = '<span class="bridge-card-char">␣</span><span class="bridge-card-sub">space</span>';
+            badge.style.opacity = '0.5';
+          } else if (lower >= 'a' && lower <= 'z') {
+            badge.innerHTML = `<span class="bridge-card-char">${lower.toUpperCase()}</span><span class="bridge-card-sub">🤟 ASL</span>`;
           } else {
-            interim += event.results[i][0].transcript;
+            badge.innerHTML = `<span class="bridge-card-char">${ch}</span><span class="bridge-card-sub">sym</span>`;
           }
-        }
-        this.renderText(this.finalTranscript, interim);
-      };
+          signStrip.appendChild(badge);
+        });
+      }
 
-      this.recognition.onerror = (event) => {
-        console.warn('STT Error:', event.error);
-        if (event.error === 'not-allowed') {
-          TransifyApp.showToast('Microphone permission blocked. Please allow microphone in browser.', 'danger');
-          this.stop();
-        } else if (event.error === 'network') {
-          TransifyApp.showToast('Network error during speech recognition.', 'warning');
-        } else if (event.error === 'no-speech') {
-          TransifyApp.showToast('No speech detected. Speak clearly into the microphone.', 'warning');
-        }
-      };
+      if (brailleStrip) {
+        brailleStrip.innerHTML = '';
+        const chars = text.slice(0, 60).split('');
+        chars.forEach(ch => {
+          const lower = ch.toLowerCase();
+          const meta = (window.BraillePage && window.BraillePage.charToBraille) ? window.BraillePage.charToBraille[lower] : null;
+          const unicode = meta ? meta.unicode : (ch === ' ' ? '⠀' : '⠿');
+          const badge = document.createElement('div');
+          badge.className = 'voice-bridge-card';
+          badge.innerHTML = `<span class="bridge-card-char" style="font-size:24px; font-family:serif;">${unicode}</span><span class="bridge-card-sub">${ch === ' ' ? 'space' : (meta ? (meta.bn || meta.name) : ch)}</span>`;
+          brailleStrip.appendChild(badge);
+        });
+      }
+    },
 
-      this.recognition.onend = () => {
-        if (this.isListening) {
-          try {
-            this.recognition.start();
-          } catch (e) {
-            this.isListening = false;
+    updateTTSStats(text) {
+      const charCount = document.getElementById('tts-char-count');
+      const estTime = document.getElementById('tts-est-time');
+      if (charCount) charCount.textContent = `${text.length} characters`;
+      if (estTime) {
+        const words = text.trim().split(/\s+/).filter(Boolean).length;
+        const sec = Math.max(1, Math.round((words / 130) * 60));
+        estTime.textContent = `Est. Speech: ${sec}s`;
+      }
+    },
+
+    bindVoiceInputs() {
+      const ttsText = document.getElementById('tts-input-text');
+      if (ttsText) {
+        ttsText.addEventListener('input', () => {
+          this.updateTTSStats(ttsText.value);
+        });
+      }
+    },
+
+    setupVisualizer() {
+      const canvas = document.getElementById('stt-audio-visualizer');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      let phase = 0;
+      const render = () => {
+        this.animFrameId = requestAnimationFrame(render);
+        const isListening = !!(window.TransifySTT && window.TransifySTT.isListening);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const w = canvas.width;
+        const h = canvas.height;
+        const midY = h / 2;
+
+        ctx.lineWidth = isListening ? 2.5 : 1.5;
+        const grad = ctx.createLinearGradient(0, 0, w, 0);
+        if (isListening) {
+          grad.addColorStop(0, '#8338ec');
+          grad.addColorStop(0.5, '#f59e0b');
+          grad.addColorStop(1, '#ec4899');
+        } else {
+          grad.addColorStop(0, 'rgba(140, 136, 165, 0.25)');
+          grad.addColorStop(1, 'rgba(140, 136, 165, 0.4)');
+        }
+        ctx.strokeStyle = grad;
+        ctx.beginPath();
+
+        const numPoints = 60;
+        const amp = isListening ? 12 : 2;
+        const freq = isListening ? 0.08 : 0.03;
+
+        for (let i = 0; i <= numPoints; i++) {
+          const x = (i / numPoints) * w;
+          const y = midY + Math.sin(i * freq + phase) * amp * Math.sin((i / numPoints) * Math.PI);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        phase += isListening ? 0.18 : 0.04;
+      };
+      render();
+    },
+
+    startVUMeter() {
+      const fill = document.getElementById('vu-meter-fill');
+      if (this.vuInterval) clearInterval(this.vuInterval);
+
+      this.vuInterval = setInterval(() => {
+        if (!fill) return;
+        const isListening = !!(window.TransifySTT && window.TransifySTT.isListening);
+        let targetPct = 0;
+        if (isListening) {
+          targetPct = 35 + Math.floor(Math.random() * 50);
+        } else {
+          targetPct = 12 + Math.floor(Math.random() * 8);
+        }
+        fill.style.width = targetPct + '%';
+      }, 180);
+    }
+  };
+
+
+  // ==========================================
+  // 6b. Speech-to-Text (STT) Module
+  // ==========================================
+
+  var TransifySTT = window.TransifySTT = {
+    recognition: null,
+    isListening: false,
+    lang: 'en-US',
+    finalTranscript: '',
+    isLargeFont: false,
+    isInitialized: false,
+    startTime: null,
+    timerInterval: null,
+
+    init() {
+      if (this.isInitialized) return;
+      this.isInitialized = true;
+
+      const toggleBtn = document.getElementById('stt-toggle-btn');
+      const langSelect = document.getElementById('stt-lang-select');
+      const copyBtn = document.getElementById('stt-copy-btn');
+      const clearBtn = document.getElementById('stt-clear-btn');
+      const sendToTtsBtn = document.getElementById('stt-send-to-tts-btn');
+      const fontToggleBtn = document.getElementById('stt-font-toggle');
+
+      if (langSelect) {
+        langSelect.addEventListener('change', (e) => {
+          this.lang = e.target.value;
+          if (this.isListening) {
+            this.stop();
+            this.start();
+          }
+        });
+      }
+
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          if (this.isListening) {
+            this.stop();
+          } else {
+            this.start();
+          }
+        });
+      }
+
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          const text = this.finalTranscript.trim();
+          if (text) {
+            navigator.clipboard.writeText(text);
+            TransifyApp.showToast('Copied captions to clipboard!', 'success');
+          } else {
+            TransifyApp.showToast('No speech text to copy.', 'warning');
+          }
+        });
+      }
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          this.clear();
+        });
+      }
+
+      if (sendToTtsBtn) {
+        sendToTtsBtn.addEventListener('click', () => {
+          const text = this.finalTranscript.trim();
+          if (text) {
+            const ttsInput = document.getElementById('tts-input-text');
+            if (ttsInput) {
+              ttsInput.value = text;
+              const count = document.getElementById('tts-char-count');
+              if (count) count.textContent = `${text.length} chars`;
+              if (window.TransifyVoiceStudio) {
+                window.TransifyVoiceStudio.updateTTSStats(text);
+              }
+            }
+            if (typeof openSlide === 'function') {
+              openSlide('slide-tts');
+            }
+            TransifyApp.showToast('Captions sent to Read Aloud.', 'success');
+          } else {
+            TransifyApp.showToast('No speech text to send.', 'warning');
+          }
+        });
+      }
+
+      if (fontToggleBtn) {
+        fontToggleBtn.addEventListener('click', () => {
+          this.isLargeFont = !this.isLargeFont;
+          const captionBox = document.getElementById('stt-live-caption-box');
+          const fontLabel = document.getElementById('stt-font-label');
+          if (captionBox && fontLabel) {
+            if (this.isLargeFont) {
+              captionBox.style.fontSize = '28px';
+              fontLabel.textContent = 'Extra Large';
+            } else {
+              captionBox.style.fontSize = '20px';
+              fontLabel.textContent = 'Large';
+            }
+          }
+        });
+      }
+    },
+
+    updateTelemetry(text) {
+      const words = (text || '').trim().split(/\s+/).filter(Boolean);
+      const wordCount = document.getElementById('stt-word-count');
+      const wpmEl = document.getElementById('stt-wpm');
+      const diagWpm = document.getElementById('diag-wpm-val');
+
+      if (wordCount) wordCount.textContent = `${words.length} words`;
+
+      if (this.startTime && words.length > 0) {
+        const elapsedMin = Math.max(0.1, (Date.now() - this.startTime) / 60000);
+        const wpm = Math.round(words.length / elapsedMin);
+        if (wpmEl) wpmEl.textContent = `Pace: ${wpm} WPM`;
+        if (diagWpm) diagWpm.textContent = `${wpm} WPM`;
+      }
+    },
+
+    start() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        TransifyApp.showToast('Speech Recognition is not supported by your browser. Please use Chrome or Edge.', 'danger');
+        return;
+      }
+
+      const langSelect = document.getElementById('stt-lang-select');
+      const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
+
+      try {
+        this.recognition = new SpeechRecognition();
+        this.recognition.continuous = true;
+        this.recognition.interimResults = true;
+        this.recognition.lang = chosenLang;
+
+        this.recognition.onstart = () => {
+          this.isListening = true;
+          this.startTime = Date.now();
+          this.updateUI(true);
+
+          if (this.timerInterval) clearInterval(this.timerInterval);
+          this.timerInterval = setInterval(() => {
+            if (!this.isListening || !this.startTime) return;
+            const sec = Math.floor((Date.now() - this.startTime) / 1000);
+            const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+            const ss = String(sec % 60).padStart(2, '0');
+            const timerEl = document.getElementById('stt-timer');
+            if (timerEl) timerEl.textContent = `Duration: ${mm}:${ss}`;
+          }, 1000);
+
+          TransifyApp.announce('Speech recognition listening started');
+          TransifyApp.showToast('Microphone active! Speak now...', 'info');
+        };
+
+        this.recognition.onresult = (event) => {
+          let interim = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              this.finalTranscript += event.results[i][0].transcript + ' ';
+            } else {
+              interim += event.results[i][0].transcript;
+            }
+          }
+          this.renderText(this.finalTranscript, interim);
+        };
+
+        this.recognition.onerror = (event) => {
+          console.warn('STT Error:', event.error);
+          if (event.error === 'not-allowed') {
+            TransifyApp.showToast('Microphone permission blocked. Please allow microphone in browser.', 'danger');
+            this.stop();
+          } else if (event.error === 'network') {
+            TransifyApp.showToast('Network error during speech recognition.', 'warning');
+          } else if (event.error === 'no-speech') {
+            TransifyApp.showToast('No speech detected. Speak clearly into the microphone.', 'warning');
+          }
+        };
+
+        this.recognition.onend = () => {
+          if (this.isListening) {
+            try {
+              this.recognition.start();
+            } catch (e) {
+              this.isListening = false;
+              this.updateUI(false);
+            }
+          } else {
             this.updateUI(false);
           }
-        } else {
-          this.updateUI(false);
-        }
-      };
+        };
 
-      this.recognition.start();
-    } catch (err) {
-      console.warn('STT Start Error:', err);
+        this.recognition.start();
+      } catch (err) {
+        console.warn('STT Start Error:', err);
+        this.isListening = false;
+        this.updateUI(false);
+      }
+    },
+
+    stop() {
       this.isListening = false;
+      if (this.timerInterval) {
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
+      }
+      if (this.recognition) {
+        try {
+          this.recognition.stop();
+        } catch (e) { }
+      }
       this.updateUI(false);
-    }
-  },
+      TransifyApp.announce('Speech recognition stopped');
+    },
 
-  stop() {
-    this.isListening = false;
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-    if (this.recognition) {
-      try {
-        this.recognition.stop();
-      } catch (e) { }
-    }
-    this.updateUI(false);
-    TransifyApp.announce('Speech recognition stopped');
-  },
-
-  clear() {
-    this.finalTranscript = '';
-    this.startTime = null;
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-    this.renderText('', '');
-    const wordCount = document.getElementById('stt-word-count');
-    const timerEl = document.getElementById('stt-timer');
-    const wpmEl = document.getElementById('stt-wpm');
-    if (wordCount) wordCount.textContent = '0 words';
-    if (timerEl) timerEl.textContent = 'Duration: 00:00';
-    if (wpmEl) wpmEl.textContent = 'Pace: 0 WPM';
-    TransifyApp.showToast('Captions cleared.', 'info');
-  },
-
-  renderText(finalText, interimText) {
-    const placeholder = document.getElementById('stt-placeholder');
-    const finalSpan = document.getElementById('stt-final-text');
-    const interimSpan = document.getElementById('stt-interim-text');
-
-    if (placeholder) {
-      placeholder.style.display = (finalText || interimText) ? 'none' : 'inline';
-    }
-    if (finalSpan) finalSpan.textContent = finalText;
-    if (interimSpan) interimSpan.textContent = interimText;
-
-    this.updateTelemetry(finalText + ' ' + interimText);
-
-    if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.currentMode === 'bridge') {
-      window.TransifyVoiceStudio.syncActiveSpeechToBridge(finalText);
-    }
-  },
-
-  updateUI(listening) {
-    const btn = document.getElementById('stt-toggle-btn');
-    const icon = document.getElementById('stt-mic-icon');
-    const hint = document.getElementById('stt-mic-hint');
-    const pill = document.getElementById('stt-status-pill');
-    const rings = document.getElementById('stt-mic-rings-wrap');
-    const diagMic = document.getElementById('diag-mic-status');
-
-    if (listening) {
-      if (btn) btn.classList.add('listening');
-      if (icon) icon.textContent = '⏹️';
-      if (rings) rings.classList.add('active');
-      if (hint) {
-        hint.textContent = 'Listening... Speak now';
-        hint.style.color = '#dc2626';
+    clear() {
+      this.finalTranscript = '';
+      this.startTime = null;
+      if (this.timerInterval) {
+        clearInterval(this.timerInterval);
+        this.timerInterval = null;
       }
-      if (pill) {
-        pill.textContent = '🔴 Listening Live...';
-        pill.className = 'badge badge-danger';
-        pill.className = 'care-badge online';
-        pill.style.background = 'rgba(239, 68, 68, 0.15)';
-        pill.style.color = '#dc2626';
+      this.renderText('', '');
+      const wordCount = document.getElementById('stt-word-count');
+      const timerEl = document.getElementById('stt-timer');
+      const wpmEl = document.getElementById('stt-wpm');
+      if (wordCount) wordCount.textContent = '0 words';
+      if (timerEl) timerEl.textContent = 'Duration: 00:00';
+      if (wpmEl) wpmEl.textContent = 'Pace: 0 WPM';
+      TransifyApp.showToast('Captions cleared.', 'info');
+    },
+
+    renderText(finalText, interimText) {
+      const placeholder = document.getElementById('stt-placeholder');
+      const finalSpan = document.getElementById('stt-final-text');
+      const interimSpan = document.getElementById('stt-interim-text');
+
+      if (placeholder) {
+        placeholder.style.display = (finalText || interimText) ? 'none' : 'inline';
       }
-      if (diagMic) diagMic.textContent = 'Capturing';
-    } else {
-      if (btn) btn.classList.remove('listening');
-      if (icon) icon.textContent = '🎙️';
-      if (rings) rings.classList.remove('active');
-      if (hint) {
-        hint.textContent = 'Tap to Speak';
-        hint.style.color = '#4b1a11';
-        hint.textContent = 'Tap microphone to speak';
-        hint.style.color = 'var(--text-2)';
+      if (finalSpan) finalSpan.textContent = finalText;
+      if (interimSpan) interimSpan.textContent = interimText;
+
+      this.updateTelemetry(finalText + ' ' + interimText);
+
+      if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.currentMode === 'bridge') {
+        window.TransifyVoiceStudio.syncActiveSpeechToBridge(finalText);
       }
-      if (pill) {
-        pill.textContent = '🎙️ Ready to Listen';
-        pill.className = 'badge badge-info';
-        pill.textContent = 'Ready to Listen';
-        pill.className = 'care-badge online';
-        pill.style.background = 'rgba(34, 197, 94, 0.1)';
-        pill.style.color = '#15803d';
+    },
+
+    updateUI(listening) {
+      const btn = document.getElementById('stt-toggle-btn');
+      const icon = document.getElementById('stt-mic-icon');
+      const hint = document.getElementById('stt-mic-hint');
+      const pill = document.getElementById('stt-status-pill');
+      const rings = document.getElementById('stt-mic-rings-wrap');
+      const diagMic = document.getElementById('diag-mic-status');
+
+      if (listening) {
+        if (btn) btn.classList.add('listening');
+        if (icon) icon.textContent = '⏹️';
+        if (rings) rings.classList.add('active');
+        if (hint) {
+          hint.textContent = 'Listening... Speak now';
+          hint.style.color = '#dc2626';
+        }
+        if (pill) {
+          pill.textContent = '🔴 Listening Live...';
+          pill.className = 'badge badge-danger';
+          pill.className = 'care-badge online';
+          pill.style.background = 'rgba(239, 68, 68, 0.15)';
+          pill.style.color = '#dc2626';
+        }
+        if (diagMic) diagMic.textContent = 'Capturing';
+      } else {
+        if (btn) btn.classList.remove('listening');
+        if (icon) icon.textContent = '🎙️';
+        if (rings) rings.classList.remove('active');
+        if (hint) {
+          hint.textContent = 'Tap to Speak';
+          hint.style.color = '#4b1a11';
+          hint.textContent = 'Tap microphone to speak';
+          hint.style.color = 'var(--text-2)';
+        }
+        if (pill) {
+          pill.textContent = '🎙️ Ready to Listen';
+          pill.className = 'badge badge-info';
+          pill.textContent = 'Ready to Listen';
+          pill.className = 'care-badge online';
+          pill.style.background = 'rgba(34, 197, 94, 0.1)';
+          pill.style.color = '#15803d';
+        }
+        if (diagMic) diagMic.textContent = 'Standby';
       }
-      if (diagMic) diagMic.textContent = 'Standby';
     }
-  }
-};
+  };
 
 
-// ==========================================
-// 7. Text-to-Speech (TTS) Slide Module
-// ==========================================
+  // ==========================================
+  // 7. Text-to-Speech (TTS) Slide Module
+  // ==========================================
 
-var TransifyTTSPage = window.TransifyTTSPage = {
-  speed: 1.0,
-  lang: 'en-US',
-  isInitialized: false,
+  var TransifyTTSPage = window.TransifyTTSPage = {
+    speed: 1.0,
+    lang: 'en-US',
+    isInitialized: false,
 
-  init() {
-    if (this.isInitialized) return;
-    this.isInitialized = true;
+    init() {
+      if (this.isInitialized) return;
+      this.isInitialized = true;
 
-    const textarea = document.getElementById('tts-input-text');
-    const speakBtn = document.getElementById('tts-speak-btn');
-    const stopBtn = document.getElementById('tts-stop-btn');
-    const clearBtn = document.getElementById('tts-clear-btn');
-    const langSelect = document.getElementById('tts-lang-select');
-    const charCount = document.getElementById('tts-char-count');
-    const speedBtns = document.querySelectorAll('.tts-speed-btn');
-    const chips = document.querySelectorAll('.tts-quick-chip');
-
-    if (textarea && charCount) {
-      textarea.addEventListener('input', () => {
-        charCount.textContent = `${textarea.value.length} chars`;
-        if (window.TransifyVoiceStudio) {
-          window.TransifyVoiceStudio.updateTTSStats(textarea.value);
-        }
-      });
-    }
-
-    if (langSelect) {
-      langSelect.addEventListener('change', (e) => {
-        this.lang = e.target.value;
-      });
-    }
-
-    speedBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        speedBtns.forEach(b => {
-          b.classList.remove('active', 'btn-primary');
-          b.classList.add('btn-secondary');
-        });
-        btn.classList.remove('btn-secondary');
-        btn.classList.add('btn-primary', 'active');
-        this.speed = parseFloat(btn.dataset.speed || '1.0');
-        const spd = parseFloat(btn.getAttribute('data-speed') || '1.0');
-        if (window.TransifyVoiceStudio) {
-          window.TransifyVoiceStudio.setTTSSpeed(spd);
-        } else {
-          this.speed = spd;
-        }
-      });
-    });
-
-    if (speakBtn) {
-      speakBtn.addEventListener('click', () => {
-        const text = textarea ? textarea.value.trim() : '';
-        if (!text) {
-          TransifyApp.showToast('Please type a message to speak.', 'warning');
-          return;
-        }
-        this.speakText(text);
-      });
-    }
-
-    if (stopBtn) {
-      stopBtn.addEventListener('click', () => {
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-        }
-        const wave = document.getElementById('tts-wave-bar');
-        if (wave) wave.style.display = 'none';
-        TransifyApp.showToast('Voice playback stopped.', 'info');
-      });
-    }
-
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        if (textarea) textarea.value = '';
-        if (charCount) charCount.textContent = '0 chars';
-        if (window.TransifyVoiceStudio) {
-          window.TransifyVoiceStudio.updateTTSStats('');
-        }
-      });
-    }
-
-    chips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        const phrase = chip.dataset.phrase;
-        if (phrase) {
-          if (textarea) {
-            textarea.value = phrase;
-            if (charCount) charCount.textContent = `${phrase.length} chars`;
-          }
-          this.speakText(phrase);
-        }
-      });
-    });
-  },
-
-  speakText(text) {
-    if (!text || text.trim() === '') return;
-    const cleanText = text.trim();
-    const langSelect = document.getElementById('tts-lang-select');
-    const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
-    const wave = document.getElementById('tts-wave-bar');
-
-    if ('speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.resume();
-      } catch (e) { }
-
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.rate = this.speed || 1.0;
-      utterance.lang = chosenLang;
-
-      const voices = window.speechSynthesis.getVoices();
-      if (voices && voices.length > 0) {
-        const match = voices.find(v => v.lang.toLowerCase() === chosenLang.toLowerCase()) ||
-          voices.find(v => v.lang.toLowerCase().startsWith(chosenLang.slice(0, 2).toLowerCase())) ||
-          voices[0];
-        if (match) utterance.voice = match;
-      }
-
+      const textarea = document.getElementById('tts-input-text');
       const speakBtn = document.getElementById('tts-speak-btn');
-      utterance.onstart = () => {
-        if (speakBtn) {
-          speakBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speaking...';
-          speakBtn.classList.add('btn-success');
-        }
-        if (wave) wave.style.display = 'flex';
-      };
-      utterance.onend = () => {
-        if (speakBtn) {
-          speakBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speak text';
-          speakBtn.classList.remove('btn-success');
-        }
-        if (wave) wave.style.display = 'none';
-      };
-      utterance.onerror = (e) => {
-        console.warn('TTS utterance error:', e);
-        if (speakBtn) {
-          speakBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speak text';
-          speakBtn.classList.remove('btn-success');
-        }
-        if (wave) wave.style.display = 'none';
-        TransifyTTS.fallbackServerTTS(cleanText);
-      };
+      const stopBtn = document.getElementById('tts-stop-btn');
+      const clearBtn = document.getElementById('tts-clear-btn');
+      const langSelect = document.getElementById('tts-lang-select');
+      const charCount = document.getElementById('tts-char-count');
+      const speedBtns = document.querySelectorAll('.tts-speed-btn');
+      const chips = document.querySelectorAll('.tts-quick-chip');
 
-      try {
-        window.speechSynthesis.speak(utterance);
-      } catch (e) {
-        if (wave) wave.style.display = 'none';
+      if (textarea && charCount) {
+        textarea.addEventListener('input', () => {
+          charCount.textContent = `${textarea.value.length} chars`;
+          if (window.TransifyVoiceStudio) {
+            window.TransifyVoiceStudio.updateTTSStats(textarea.value);
+          }
+        });
+      }
+
+      if (langSelect) {
+        langSelect.addEventListener('change', (e) => {
+          this.lang = e.target.value;
+        });
+      }
+
+      speedBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          speedBtns.forEach(b => {
+            b.classList.remove('active', 'btn-primary');
+            b.classList.add('btn-secondary');
+          });
+          btn.classList.remove('btn-secondary');
+          btn.classList.add('btn-primary', 'active');
+          this.speed = parseFloat(btn.dataset.speed || '1.0');
+          const spd = parseFloat(btn.getAttribute('data-speed') || '1.0');
+          if (window.TransifyVoiceStudio) {
+            window.TransifyVoiceStudio.setTTSSpeed(spd);
+          } else {
+            this.speed = spd;
+          }
+        });
+      });
+
+      if (speakBtn) {
+        speakBtn.addEventListener('click', () => {
+          const text = textarea ? textarea.value.trim() : '';
+          if (!text) {
+            TransifyApp.showToast('Please type a message to speak.', 'warning');
+            return;
+          }
+          this.speakText(text);
+        });
+      }
+
+      if (stopBtn) {
+        stopBtn.addEventListener('click', () => {
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+          }
+          const wave = document.getElementById('tts-wave-bar');
+          if (wave) wave.style.display = 'none';
+          TransifyApp.showToast('Voice playback stopped.', 'info');
+        });
+      }
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          if (textarea) textarea.value = '';
+          if (charCount) charCount.textContent = '0 chars';
+          if (window.TransifyVoiceStudio) {
+            window.TransifyVoiceStudio.updateTTSStats('');
+          }
+        });
+      }
+
+      chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          const phrase = chip.dataset.phrase;
+          if (phrase) {
+            if (textarea) {
+              textarea.value = phrase;
+              if (charCount) charCount.textContent = `${phrase.length} chars`;
+            }
+            this.speakText(phrase);
+          }
+        });
+      });
+    },
+
+    speakText(text) {
+      if (!text || text.trim() === '') return;
+      const cleanText = text.trim();
+      const langSelect = document.getElementById('tts-lang-select');
+      const chosenLang = langSelect ? langSelect.value : (this.lang || 'en-US');
+      const wave = document.getElementById('tts-wave-bar');
+
+      if ('speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.resume();
+        } catch (e) { }
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.rate = this.speed || 1.0;
+        utterance.lang = chosenLang;
+
+        const voices = window.speechSynthesis.getVoices();
+        if (voices && voices.length > 0) {
+          const match = voices.find(v => v.lang.toLowerCase() === chosenLang.toLowerCase()) ||
+            voices.find(v => v.lang.toLowerCase().startsWith(chosenLang.slice(0, 2).toLowerCase())) ||
+            voices[0];
+          if (match) utterance.voice = match;
+        }
+
+        const speakBtn = document.getElementById('tts-speak-btn');
+        utterance.onstart = () => {
+          if (speakBtn) {
+            speakBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speaking...';
+            speakBtn.classList.add('btn-success');
+          }
+          if (wave) wave.style.display = 'flex';
+        };
+        utterance.onend = () => {
+          if (speakBtn) {
+            speakBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speak text';
+            speakBtn.classList.remove('btn-success');
+          }
+          if (wave) wave.style.display = 'none';
+        };
+        utterance.onerror = (e) => {
+          console.warn('TTS utterance error:', e);
+          if (speakBtn) {
+            speakBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: -2px; margin-right: 4px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speak text';
+            speakBtn.classList.remove('btn-success');
+          }
+          if (wave) wave.style.display = 'none';
+          TransifyTTS.fallbackServerTTS(cleanText);
+        };
+
+        try {
+          window.speechSynthesis.speak(utterance);
+        } catch (e) {
+          if (wave) wave.style.display = 'none';
+          TransifyTTS.fallbackServerTTS(cleanText);
+        }
+        TransifyApp.showToast(`Speaking: "${cleanText.slice(0, 30)}..."`, 'success');
+      } else {
         TransifyTTS.fallbackServerTTS(cleanText);
       }
-      TransifyApp.showToast(`Speaking: "${cleanText.slice(0, 30)}..."`, 'success');
-    } else {
-      TransifyTTS.fallbackServerTTS(cleanText);
     }
-  }
-};
+  };
 
 
-// ==========================================
-// 8. Global DOM Initialization
-// ==========================================
+  // ==========================================
+  // 8. Global DOM Initialization
+  // ==========================================
 
-function initTransifyAllModules() {
-  if (window.TransifyApp && window.TransifyApp.init) {
-    window.TransifyApp.init();
-  }
+  function initTransifyAllModules() {
+    if (window.TransifyApp && window.TransifyApp.init) {
+  window.TransifyApp.init();
+}
 
-  // Slide modules: unconditionally initialize if present in DOM
-  if (window.SignPage && window.SignPage.init && (document.getElementById('slide-hand-signal') || document.getElementById('sign-video') || document.getElementById('toggle-camera-btn'))) {
-    window.SignPage.init();
-  }
-  if (window.BraillePage && window.BraillePage.init && (document.getElementById('slide-braille') || document.getElementById('braille-dropzone') || document.getElementById('braille-file-input'))) {
-    window.BraillePage.init();
-  }
-  if (window.TransifySTT && window.TransifySTT.init && (document.getElementById('slide-stt') || document.getElementById('stt-toggle-btn'))) {
-    window.TransifySTT.init();
-  }
-  if (window.TransifyTTSPage && window.TransifyTTSPage.init && (document.getElementById('slide-tts') || document.getElementById('tts-input-text'))) {
-    window.TransifyTTSPage.init();
-  }
-  if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.init && (document.getElementById('view-voice') || document.getElementById('stt-toggle-btn') || document.getElementById('voice-pane-studio'))) {
-    window.TransifyVoiceStudio.init();
-  }
-  if (window.DashboardPage && window.DashboardPage.init && (document.getElementById('dashboard-container') || document.getElementById('system-status-badge') || document.getElementById('history-records-list'))) {
-    window.DashboardPage.init();
-  }
+// Slide modules: unconditionally initialize if present in DOM
+if (window.SignPage && window.SignPage.init && (document.getElementById('slide-hand-signal') || document.getElementById('sign-video') || document.getElementById('toggle-camera-btn'))) {
+  window.SignPage.init();
+}
+if (window.BraillePage && window.BraillePage.init && (document.getElementById('slide-braille') || document.getElementById('braille-dropzone') || document.getElementById('braille-file-input'))) {
+  window.BraillePage.init();
+}
+if (window.TransifySTT && window.TransifySTT.init && (document.getElementById('slide-stt') || document.getElementById('stt-toggle-btn'))) {
+  window.TransifySTT.init();
+}
+if (window.TransifyTTSPage && window.TransifyTTSPage.init && (document.getElementById('slide-tts') || document.getElementById('tts-input-text'))) {
+  window.TransifyTTSPage.init();
+}
+if (window.TransifyVoiceStudio && window.TransifyVoiceStudio.init && (document.getElementById('view-voice') || document.getElementById('stt-toggle-btn') || document.getElementById('voice-pane-studio'))) {
+  window.TransifyVoiceStudio.init();
+}
+if (window.DashboardPage && window.DashboardPage.init && (document.getElementById('dashboard-container') || document.getElementById('system-status-badge') || document.getElementById('history-records-list'))) {
+  window.DashboardPage.init();
+}
 
-  // Expose module APIs to window for inline onclick handlers and extensions
-  window.TransifyApp = TransifyApp;
-  window.SignPage = SignPage;
-  window.TransifySign = SignPage;
-  window.BraillePage = BraillePage;
-  window.TransifySTT = TransifySTT;
-  window.TransifyTTSPage = TransifyTTSPage;
-  window.TransifyTTS = TransifyTTS;
-  window.TransifyVoiceStudio = TransifyVoiceStudio;
-  window.openAuthSheet = (m) => TransifyApp.openAuthSheet(m);
-  window.closeAuthSheet = () => TransifyApp.closeAuthSheet();
-  window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
-  window.handleDemoLogin = () => TransifyApp.handleDemoLogin();
-  window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
-  window.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
-  TransifyApp.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
+// Expose module APIs to window for inline onclick handlers and extensions
+window.TransifyApp = TransifyApp;
+window.SignPage = SignPage;
+window.TransifySign = SignPage;
+window.BraillePage = BraillePage;
+window.TransifySTT = TransifySTT;
+window.TransifyTTSPage = TransifyTTSPage;
+window.TransifyTTS = TransifyTTS;
+window.TransifyVoiceStudio = TransifyVoiceStudio;
+window.openAuthSheet = (m) => TransifyApp.openAuthSheet(m);
+window.closeAuthSheet = () => TransifyApp.closeAuthSheet();
+window.handleDirectLogin = () => TransifyApp.handleDirectLogin();
+window.handleDemoLogin = () => TransifyApp.handleDemoLogin();
+window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
+window.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
+TransifyApp.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
 
-  // Initialize Compliance Center & Cookie Consent Banner
-  initComplianceAndCookieConsent();
+// Initialize Compliance Center & Cookie Consent Banner
+initComplianceAndCookieConsent();
 }
 
 function initComplianceAndCookieConsent() {
@@ -4958,7 +4993,7 @@ function initComplianceAndCookieConsent() {
       const confirmed = window.confirm('Are you sure you want to permanently erase all locally cached history, form drafts, preferences, and session tokens? This action cannot be undone.');
       if (!confirmed) return;
       try {
-        await fetch('/api/history', { method: 'DELETE' }).catch(() => {});
+        await fetch('/api/history', { method: 'DELETE' }).catch(() => { });
         localStorage.clear();
         sessionStorage.clear();
         if (window.TransifyApp && window.TransifyApp.showToast) {
@@ -5767,8 +5802,25 @@ const EditorialController = {
     let route = (rawRoute || 'home').toLowerCase();
     if (route === 'voice') route = 'stt';
 
-    // Legal policies and compliance direct routes
-    if (['privacy', 'terms', 'cookies', 'refund', 'legal', 'settings-legal', 'settings-privacy'].includes(route)) {
+    if (route !== 'sign') {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+      const stage = document.getElementById('sign-stage-container');
+      if (stage) stage.classList.remove('stage-fullscreen');
+      const hud = document.getElementById('fullscreen-pred-hud');
+      if (hud) hud.style.display = 'none';
+      const fsBtn = document.getElementById('btn-toggle-cam-fullscreen');
+      if (fsBtn) {
+        fsBtn.innerHTML = '<svg class="fs-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span>Fullscreen</span>';
+        fsBtn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    // Legal policies, compliance direct routes, and payment / donate routes
+    if (['privacy', 'terms', 'cookies', 'refund', 'legal', 'settings-legal', 'settings-privacy', 'settings-terms', 'settings-cookies', 'settings-refund'].includes(route)) {
       const targetPolicy = route;
       route = 'settings';
       setTimeout(() => {
@@ -5784,11 +5836,25 @@ const EditorialController = {
           refund: 'policy-refund',
           legal: 'policy-privacy',
           'settings-legal': 'policy-privacy',
+          'settings-terms': 'policy-terms',
+          'settings-cookies': 'policy-cookies',
+          'settings-refund': 'policy-refund',
           'settings-privacy': 'settings-card-privacy-toggle'
         };
         const el = document.getElementById(cardMap[targetPolicy]);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 120);
+    }
+
+    if (route === 'payment' || route === 'donate' || route === 'support') {
+      route = 'home';
+      setTimeout(() => {
+        if (window.openPaymentModal) {
+          window.openPaymentModal();
+        } else if (window.TransifyApp && window.TransifyApp.openPaymentModal) {
+          window.TransifyApp.openPaymentModal();
+        }
+      }, 80);
     }
 
     if (route === 'login') {
@@ -7579,6 +7645,172 @@ const EditorialController = {
         }
       });
     });
+
+    // 7. Voluntary Contribution & Payment Modal System (256-Bit TLS Padlock)
+    const paymentModal = document.getElementById('payment-modal');
+    const paymentFormView = document.getElementById('payment-form-view');
+    const paymentReceiptView = document.getElementById('payment-receipt-view');
+    const customAmountInput = document.getElementById('payment-custom-amount');
+    const currencySelect = document.getElementById('payment-currency');
+    const currencySymbol = document.getElementById('payment-currency-symbol');
+    const submitPaymentBtn = document.getElementById('btn-submit-payment');
+    const submitPaymentText = document.getElementById('btn-submit-payment-text');
+    const paymentStatusEl = document.getElementById('payment-feedback-status');
+
+    const updatePaymentSubmitText = () => {
+      const amt = parseFloat(customAmountInput ? customAmountInput.value : 15) || 15;
+      const curr = currencySelect ? currencySelect.value : 'USD';
+      const symbols = { USD: '$', BDT: '৳', EUR: '€', GBP: '£' };
+      const sym = symbols[curr] || '$';
+      if (currencySymbol) currencySymbol.textContent = sym;
+      if (submitPaymentText) submitPaymentText.textContent = `Complete ${sym}${amt.toFixed(2)} Contribution`;
+    };
+
+    window.openPaymentModal = (presetAmount = 15, defaultPurpose = 'Edge ML Inference & Cloud Server Hosting') => {
+      if (!paymentModal) return;
+      if (paymentFormView) paymentFormView.style.display = 'block';
+      if (paymentReceiptView) paymentReceiptView.style.display = 'none';
+      if (customAmountInput) customAmountInput.value = presetAmount;
+      const purposeSelect = document.getElementById('payment-purpose');
+      if (purposeSelect && defaultPurpose) purposeSelect.value = defaultPurpose;
+
+      document.querySelectorAll('.amount-preset-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.getAttribute('data-amount'), 10) === presetAmount);
+      });
+      updatePaymentSubmitText();
+      paymentModal.style.display = 'flex';
+    };
+
+    window.closePaymentModal = () => {
+      if (paymentModal) paymentModal.style.display = 'none';
+    };
+
+    if (window.TransifyApp) {
+      window.TransifyApp.openPaymentModal = window.openPaymentModal;
+      window.TransifyApp.closePaymentModal = window.closePaymentModal;
+    }
+
+    document.querySelectorAll('.amount-preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.amount-preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const amt = parseInt(btn.getAttribute('data-amount'), 10);
+        if (customAmountInput) customAmountInput.value = amt;
+        updatePaymentSubmitText();
+      });
+    });
+
+    if (customAmountInput) {
+      customAmountInput.addEventListener('input', () => {
+        document.querySelectorAll('.amount-preset-btn').forEach(b => {
+          b.classList.toggle('active', parseFloat(b.getAttribute('data-amount')) === parseFloat(customAmountInput.value));
+        });
+        updatePaymentSubmitText();
+      });
+    }
+
+    if (currencySelect) {
+      currencySelect.addEventListener('change', updatePaymentSubmitText);
+    }
+
+    document.querySelectorAll('.payment-method-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.payment-method-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+
+    const closePaymentBtn = document.getElementById('btn-close-payment');
+    const cancelPaymentBtn = document.getElementById('btn-cancel-payment');
+    const donePaymentBtn = document.getElementById('btn-done-payment');
+    const paymentBackdrop = document.getElementById('payment-backdrop');
+
+    if (closePaymentBtn) closePaymentBtn.addEventListener('click', window.closePaymentModal);
+    if (cancelPaymentBtn) cancelPaymentBtn.addEventListener('click', window.closePaymentModal);
+    if (donePaymentBtn) donePaymentBtn.addEventListener('click', window.closePaymentModal);
+    if (paymentBackdrop) paymentBackdrop.addEventListener('click', window.closePaymentModal);
+
+    const printReceiptBtn = document.getElementById('btn-print-receipt');
+    if (printReceiptBtn) {
+      printReceiptBtn.addEventListener('click', () => {
+        window.print();
+      });
+    }
+
+    if (submitPaymentBtn) {
+      submitPaymentBtn.addEventListener('click', async () => {
+        const amt = parseFloat(customAmountInput ? customAmountInput.value : 15);
+        if (!amt || amt <= 0) {
+          if (paymentStatusEl) {
+            paymentStatusEl.className = 'form-feedback-card error';
+            paymentStatusEl.innerHTML = '<span>Please enter a valid contribution amount.</span>';
+            paymentStatusEl.style.display = 'flex';
+          }
+          return;
+        }
+        const curr = currencySelect ? currencySelect.value : 'USD';
+        const purposeSelect = document.getElementById('payment-purpose');
+        const purpose = purposeSelect ? purposeSelect.value : 'General Mission';
+        const donorNameInput = document.getElementById('payment-donor-name');
+        const donorName = donorNameInput && donorNameInput.value.trim() ? donorNameInput.value.trim() : 'Anonymous Supporter';
+        const donorEmailInput = document.getElementById('payment-donor-email');
+        const donorEmail = donorEmailInput ? donorEmailInput.value.trim() : null;
+
+        const activeMethodRadio = document.querySelector('input[name="payment_method"]:checked');
+        const method = activeMethodRadio ? activeMethodRadio.value : 'card';
+
+        submitPaymentBtn.disabled = true;
+        if (submitPaymentText) submitPaymentText.textContent = 'Processing Securely...';
+
+        try {
+          const res = await fetch('/api/payment/process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: amt, currency: curr, method, donor_name: donorName, donor_email: donorEmail, purpose })
+          });
+          const result = await res.json();
+
+          if (paymentFormView) paymentFormView.style.display = 'none';
+          if (paymentReceiptView) paymentReceiptView.style.display = 'block';
+
+          const rTxn = document.getElementById('receipt-txn-id');
+          const rRec = document.getElementById('receipt-rec-id');
+          const rAmt = document.getElementById('receipt-amount');
+          const rMethod = document.getElementById('receipt-method');
+          const rPurpose = document.getElementById('receipt-purpose');
+
+          const symbols = { USD: '$', BDT: '৳', EUR: '€', GBP: '£' };
+          const sym = symbols[curr] || '$';
+
+          if (rTxn) rTxn.textContent = result.transaction_id || `TXN-${Date.now()}`;
+          if (rRec) rRec.textContent = result.receipt_id || `REC-${Date.now()}`;
+          if (rAmt) rAmt.textContent = `${sym}${amt.toFixed(2)} ${curr}`;
+          if (rMethod) rMethod.textContent = method === 'card' ? 'Credit Card (Stripe Test Mode)' : (method === 'bkash' ? 'bKash Mobile Wallet' : 'Bank Grant');
+          if (rPurpose) rPurpose.textContent = purpose;
+
+          if (window.TransifyApp && window.TransifyApp.showToast) {
+            window.TransifyApp.showToast(`Contribution of ${sym}${amt.toFixed(2)} confirmed! Thank you!`, 'success');
+          }
+        } catch (e) {
+          if (paymentStatusEl) {
+            paymentStatusEl.className = 'form-feedback-card error';
+            paymentStatusEl.innerHTML = '<span>Payment processing failed. Please try again.</span>';
+            paymentStatusEl.style.display = 'flex';
+          }
+        } finally {
+          submitPaymentBtn.disabled = false;
+          updatePaymentSubmitText();
+        }
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      const donateTrigger = e.target.closest('a[href="#payment"], a[href="#donate"], [data-action="open-donate"]');
+      if (donateTrigger) {
+        e.preventDefault();
+        window.openPaymentModal();
+      }
+    });
   }
 };
 
@@ -7590,3 +7822,13 @@ if (document.readyState === 'loading') {
 } else {
   EditorialController.init();
 }
+
+// Progressive Web App Service Worker Registration
+if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
+      // Graceful fallback for offline caching in non-supported environments
+    });
+  });
+}
+

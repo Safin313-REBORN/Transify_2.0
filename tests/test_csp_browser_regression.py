@@ -76,7 +76,8 @@ def test_csp_no_unexpected_violations(live_server):
             });
         """)
 
-        response = page.goto(f"{live_server}/", wait_until="networkidle")
+        response = page.goto(f"{live_server}/", wait_until="domcontentloaded")
+        page.wait_for_load_state("load")
         assert response.status == 200
 
         # Verify CSP header is present

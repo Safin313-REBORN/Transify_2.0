@@ -12,6 +12,7 @@ Allow: /privacy
 Allow: /terms
 Allow: /cookies
 Allow: /refund
+Allow: /donate
 Allow: /sitemap.xml
 Allow: /llms.txt
 
