@@ -171,7 +171,8 @@ aside.rail .sp {
   background: linear-gradient(135deg, #8338EC, #6A24D0);
   box-shadow: 0 10px 26px -8px #8338EC;
   z-index: 0;
-  transition: transform 0.55s var(--ease-io), height 0.3s;
+  opacity: 0;
+  transition: transform 0.55s var(--ease-io), height 0.3s, opacity 0.2s ease;
   pointer-events: none;
 }
 

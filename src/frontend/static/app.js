@@ -4895,6 +4895,62 @@ function initTransifyAllModules() {
   window.handleAuthSubmit = (e) => TransifyApp.handleAuthSubmit(e);
   window.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
   TransifyApp.handleSettingsAuthAction = () => { if (typeof EditorialController !== 'undefined' && EditorialController.handleSettingsAuthAction) EditorialController.handleSettingsAuthAction(); };
+
+  // Initialize Compliance Center & Cookie Consent Banner
+  initComplianceAndCookieConsent();
+}
+
+function initComplianceAndCookieConsent() {
+  // 1. Cookie Consent Banner
+  const cookieBanner = document.getElementById('transify-cookie-consent-banner');
+  const existingConsent = localStorage.getItem('transify_cookie_consent');
+  if (cookieBanner && !existingConsent) {
+    cookieBanner.style.display = 'block';
+    const acceptBtn = document.getElementById('btn-cookie-accept');
+    if (acceptBtn) {
+      acceptBtn.addEventListener('click', () => {
+        localStorage.setItem('transify_cookie_consent', 'accepted');
+        cookieBanner.style.opacity = '0';
+        setTimeout(() => { cookieBanner.style.display = 'none'; }, 300);
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('Functional preferences saved', 'info');
+        }
+      });
+    }
+    const declineBtn = document.getElementById('btn-cookie-decline');
+    if (declineBtn) {
+      declineBtn.addEventListener('click', () => {
+        localStorage.setItem('transify_cookie_consent', 'essential_only');
+        cookieBanner.style.opacity = '0';
+        setTimeout(() => { cookieBanner.style.display = 'none'; }, 300);
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('Essential cookies only enabled', 'info');
+        }
+      });
+    }
+  }
+
+  // 2. Self-Service Data Deletion Request (GDPR Art. 17)
+  const delBtn = document.getElementById('btn-request-data-deletion');
+  if (delBtn) {
+    delBtn.addEventListener('click', async () => {
+      const confirmed = window.confirm('Are you sure you want to permanently erase all locally cached history, form drafts, preferences, and session tokens? This action cannot be undone.');
+      if (!confirmed) return;
+      try {
+        await fetch('/api/history', { method: 'DELETE' }).catch(() => {});
+        localStorage.clear();
+        sessionStorage.clear();
+        if (window.TransifyApp && window.TransifyApp.showToast) {
+          window.TransifyApp.showToast('All local data and session records erased. Reloading...', 'success');
+        }
+        setTimeout(() => window.location.reload(), 1200);
+      } catch (err) {
+        console.error('Data erasure error:', err);
+        localStorage.clear();
+        window.location.reload();
+      }
+    });
+  }
 }
 
 if (document.readyState === 'loading') {
@@ -5675,6 +5731,31 @@ const EditorialController = {
     if (this.closeNavDrawer) this.closeNavDrawer();
     let route = (rawRoute || 'home').toLowerCase();
     if (route === 'voice') route = 'stt';
+
+    // Legal policies and compliance direct routes
+    if (['privacy', 'terms', 'cookies', 'refund', 'legal', 'settings-legal', 'settings-privacy'].includes(route)) {
+      const targetPolicy = route;
+      route = 'settings';
+      setTimeout(() => {
+        if (window.TransifyApp && window.TransifyApp.switchSettingsTab) {
+          window.TransifyApp.switchSettingsTab(targetPolicy === 'settings-privacy' ? 'privacy' : 'legal');
+        } else if (this.switchSettingsTab) {
+          this.switchSettingsTab(targetPolicy === 'settings-privacy' ? 'privacy' : 'legal');
+        }
+        const cardMap = {
+          privacy: 'policy-privacy',
+          terms: 'policy-terms',
+          cookies: 'policy-cookies',
+          refund: 'policy-refund',
+          legal: 'policy-privacy',
+          'settings-legal': 'policy-privacy',
+          'settings-privacy': 'settings-card-privacy-toggle'
+        };
+        const el = document.getElementById(cardMap[targetPolicy]);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 120);
+    }
+
     if (route === 'login') {
       const welcomed = !!localStorage.getItem('transify.welcomed');
       route = welcomed ? 'home' : 'welcome';
@@ -5690,6 +5771,21 @@ const EditorialController = {
     if (route === 'care-intake' || route === 'intake') route = 'care';
     if (route === 'clinician' || route === 'care-clinician') route = 'care';
     if (route === 'care-chronic' || route === 'chronic') route = 'care';
+
+    // Dynamic browser tab title (No "Vite" or "React")
+    const pageTitles = {
+      home: 'Transify 2.0 | Multimodal Assistive Communication & Care',
+      sign: 'Sign Language Translator | Transify 2.0',
+      braille: 'Optical Braille Scanner & Studio | Transify 2.0',
+      stt: 'Voice Hub & Speech Studio | Transify 2.0',
+      tts: 'Voice Hub & Speech Studio | Transify 2.0',
+      phrases: 'Expressive Phrases & Emergency AAC | Transify 2.0',
+      care: 'Clinical Symptom Triage & Care | Transify 2.0',
+      chat: 'Transify AI Assistant & Clinical Knowledge | Transify 2.0',
+      settings: 'Settings & Compliance Center | Transify 2.0',
+      welcome: 'Welcome to Transify 2.0 | Accessible Communication'
+    };
+    document.title = pageTitles[route] || 'Transify 2.0 | Multimodal Assistive Platform';
 
     // Brief kinetic loader on view navigation
     if (window.showPageLoader && route !== this.activeRoute) {

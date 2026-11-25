@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+Allow: /sign
+Allow: /braille
+Allow: /voice
+Allow: /phrases
+Allow: /chat
+Allow: /care
+Allow: /chronic
+Allow: /settings
+Allow: /privacy
+Allow: /terms
+Allow: /cookies
+Allow: /refund
+Allow: /sitemap.xml
+Allow: /llms.txt
+
+Disallow: /api/
+Disallow: /data/
+
+Sitemap: https://transify20-production.up.railway.app/sitemap.xml

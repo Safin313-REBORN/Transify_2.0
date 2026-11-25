@@ -21,6 +21,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Respo
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, RedirectResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel, Field
 import numpy as np
 
@@ -985,4 +986,139 @@ def serve_sign_page():
 def serve_braille_page():
     """Redirects to the SPA braille translator view without CSP inline-script blocks."""
     return RedirectResponse(url="/#braille", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/voice", tags=["Frontend"])
+@app.get("/stt", tags=["Frontend"])
+def serve_voice_page():
+    """Redirects to the SPA voice hub & speech studio view."""
+    return RedirectResponse(url="/#stt", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/phrases", tags=["Frontend"])
+def serve_phrases_page():
+    """Redirects to the SPA quick emergency phrases board."""
+    return RedirectResponse(url="/#phrases", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/chat", tags=["Frontend"])
+def serve_chat_page():
+    """Redirects to the SPA Transify AI chatbot & consultation assistant."""
+    return RedirectResponse(url="/#chat", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/care", tags=["Frontend"])
+@app.get("/care-intake", tags=["Frontend"])
+def serve_care_page():
+    """Redirects to the SPA Transify Care clinical symptom triage portal."""
+    return RedirectResponse(url="/#care-intake", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/chronic", tags=["Frontend"])
+@app.get("/care-chronic", tags=["Frontend"])
+def serve_chronic_page():
+    """Redirects to the SPA ChronicCare remote telemetry monitor."""
+    return RedirectResponse(url="/#care-chronic", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/clinician", tags=["Frontend"])
+def serve_clinician_page():
+    """Redirects to the SPA Clinician Review Portal."""
+    return RedirectResponse(url="/#clinician", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/settings", tags=["Frontend"])
+def serve_settings_page():
+    """Redirects to the SPA Settings & Preferences view."""
+    return RedirectResponse(url="/#settings", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/privacy", tags=["Frontend"])
+def serve_privacy_page():
+    """Redirects to the SPA Privacy & Data Protection policy."""
+    return RedirectResponse(url="/#settings-privacy", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/terms", tags=["Frontend"])
+def serve_terms_page():
+    """Redirects to the SPA Terms of Service."""
+    return RedirectResponse(url="/#settings-terms", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/cookies", tags=["Frontend"])
+def serve_cookies_page():
+    """Redirects to the SPA Cookie Policy."""
+    return RedirectResponse(url="/#settings-cookies", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/refund", tags=["Frontend"])
+def serve_refund_page():
+    """Redirects to the SPA Refund & Fee Transparency Policy."""
+    return RedirectResponse(url="/#settings-refund", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+@app.get("/legal", tags=["Frontend"])
+def serve_legal_page():
+    """Redirects to the SPA Legal & Compliance Center."""
+    return RedirectResponse(url="/#settings-legal", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+
+
+# --------------------------------------------------------------------------
+# SEO & AI Crawlers: robots.txt, sitemap.xml, llms.txt, favicons
+# --------------------------------------------------------------------------
+@app.get("/robots.txt", tags=["SEO"])
+def serve_robots_txt():
+    robots_path = os.path.join(FRONTEND_DIR, "static", "robots.txt")
+    if os.path.exists(robots_path):
+        return FileResponse(robots_path, media_type="text/plain")
+    return Response(content="User-agent: *\nAllow: /\n", media_type="text/plain")
+
+
+@app.get("/sitemap.xml", tags=["SEO"])
+def serve_sitemap_xml():
+    sitemap_path = os.path.join(FRONTEND_DIR, "static", "sitemap.xml")
+    if os.path.exists(sitemap_path):
+        return FileResponse(sitemap_path, media_type="application/xml")
+    return Response(content="<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"></urlset>", media_type="application/xml")
+
+
+@app.get("/llms.txt", tags=["SEO"])
+def serve_llms_txt():
+    llms_path = os.path.join(FRONTEND_DIR, "static", "llms.txt")
+    if os.path.exists(llms_path):
+        return FileResponse(llms_path, media_type="text/plain")
+    return Response(content="# Transify 2.0\nAccessible AI and Clinical Triage Platform\n", media_type="text/plain")
+
+
+@app.get("/favicon.svg", tags=["SEO"])
+def serve_favicon_svg():
+    fav_svg = os.path.join(FRONTEND_DIR, "static", "favicon.svg")
+    if os.path.exists(fav_svg):
+        return FileResponse(fav_svg, media_type="image/svg+xml")
+    return Response(status_code=404)
+
+
+@app.get("/favicon.ico", tags=["SEO"])
+def serve_favicon_ico():
+    fav_ico = os.path.join(FRONTEND_DIR, "static", "favicon.ico")
+    if os.path.exists(fav_ico):
+        return FileResponse(fav_ico, media_type="image/x-icon")
+    return Response(status_code=404)
+
+
+# --------------------------------------------------------------------------
+# Custom 404 & HTTP Exception Handler (Branded & Accessible)
+# --------------------------------------------------------------------------
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        # If API or JSON client, return clean JSON
+        if request.url.path.startswith("/api/") or "application/json" in request.headers.get("accept", ""):
+            return JSONResponse(status_code=404, content={"detail": exc.detail or "Not Found", "status": 404})
+        # For browser navigation, return our branded 404.html page
+        page_404 = os.path.join(FRONTEND_DIR, "404.html")
+        if os.path.exists(page_404):
+            with open(page_404, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read(), status_code=404)
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 

@@ -25,8 +25,8 @@
 
   function updateNavIndicator() {
     if (!ind || window.innerWidth <= 760) return;
-    const activeLink = document.querySelector('aside a[aria-current="page"], .rail-item.active, aside a.active');
-    if (activeLink && activeLink.offsetParent !== null) {
+    const activeLink = document.querySelector('.rail-item.active, .rail a.active, aside a[aria-current="page"]');
+    if (activeLink && activeLink.offsetParent !== null && !activeLink.classList.contains('rail-logo-link') && activeLink.id !== 'rail-logo-btn') {
       ind.style.height = `${activeLink.offsetHeight}px`;
       ind.style.transform = `translateY(${activeLink.offsetTop}px)`;
       ind.style.opacity = '1';

@@ -1,0 +1,22 @@
+# Transify 2.0 — Accessible AI & Clinical Triage Platform
+
+> Transify 2.0 is an edge-native, zero-auto-audio accessible communication and healthcare triage platform engineered by Team Alpha Nexus. It provides real-time bidirectional translation across Sign Language (ASL and Bengali Sign Language / BdSL), Optical Braille (UEB Grade 1/2 and Bengali Bharati Braille), Neural Voice & Speech Captioning, and Accessible Clinical Symptom Intake grounded in World Health Organization (WHO) and Merck Clinical Guidelines.
+
+## Key Capabilities & Endpoints
+- Sign Language Translation: Real-time hand shape gesture recognition (ASL, BdSL) via MediaPipe and PyTorch models running directly in-browser.
+- Braille Optical OCR: Inverted contrast and embossed dot matrix segmentation with character mapping to Unicode Braille and text.
+- Speech Studio & Voice Hub: Web Speech API live captioning, neural text-to-speech, and cross-modal sign/Braille bridges with strictly zero unexpected automated playback (Zero Auto-Audio privacy invariant).
+- Care & Clinical Triage: Offline-first symptom intake, differential diagnosis aid (Ada-inspired Bayesian ranking), lesion and retinal computer vision inspection, and epidemic alert monitoring (Dhaka division dengue/chikungunya).
+- ChronicCare Telemetry: Continuous monitoring of cardiovascular and metabolic biometrics (SpO2, blood pressure, fasting glucose, HbA1c) with meal carbohydrate logging and clinical guideline alerts.
+
+## Architectural Principles
+- 100% On-Device Silicon Evaluation for Video and Audio: Camera frames and mic audio stay in browser volatile memory and are never transmitted or stored without consent.
+- Zero Dark Patterns & Transparent Public Access: 100% free, zero subscriptions, zero hidden fees, zero advertisements.
+- Standards Compliance: WCAG 2.1 AAA accessibility contrast, HIPAA & GDPR Article 17 self-service data erasure, COPPA parental consent safeguards.
+
+## Official Organization & Contacts
+- Organization: Team Alpha Nexus
+- Repository: https://github.com/Safin313-REBORN/Transify_2.0
+- Lead Developer: Safin (@Safin313-REBORN)
+- Contact Email: support@transify.nexus
+- Production URL: https://transify20-production.up.railway.app
