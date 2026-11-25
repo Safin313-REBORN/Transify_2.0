@@ -917,6 +917,25 @@ label.l {
   transform: translate(-50%, 0);
 }
 
+#toast.success {
+  background: #0B7A56 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 14px 34px -10px rgba(11, 122, 86, 0.5) !important;
+}
+
+#toast.error,
+#toast.danger {
+  background: #C81E4B !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 14px 34px -10px rgba(200, 30, 75, 0.5) !important;
+}
+
+#toast.warning {
+  background: #B35C00 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 14px 34px -10px rgba(179, 92, 0, 0.5) !important;
+}
+
 /* ==========================================================================
    BOOT & MODALS
    ========================================================================== */

@@ -91,7 +91,7 @@
 
   // 5. Toast System
   let toastTimer = null;
-  function showToast(message) {
+  function showToast(message, type) {
     let toast = document.getElementById('toast');
     if (!toast) {
       toast = document.createElement('div');
@@ -101,11 +101,11 @@
       document.body.appendChild(toast);
     }
     toast.textContent = message;
-    toast.classList.add('show');
+    toast.className = 'show' + (type ? ' ' + type : '');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
-      toast.classList.remove('show');
-    }, 2200);
+      toast.className = '';
+    }, 2400);
   }
   window.showToast = showToast;
 
