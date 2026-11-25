@@ -2274,8 +2274,8 @@ var SignPage = window.SignPage = window.TransifySign = {
       const syncNativeFullscreen = () => {
         const stage = document.getElementById('sign-stage-container');
         const isNative = !!(document.fullscreenElement || document.webkitFullscreenElement);
-        if (!isNative && stage && stage.classList.contains('stage-fullscreen')) {
-          updateFsState(false);
+        if (stage) {
+          updateFsState(isNative);
         }
       };
       document.addEventListener('fullscreenchange', syncNativeFullscreen);

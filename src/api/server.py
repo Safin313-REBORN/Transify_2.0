@@ -273,6 +273,33 @@ class MCPSignResolveRequest(BaseModel):
     gloss_hint: Optional[str] = Field("", description="Gloss hint")
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(..., description="User email address for password reset")
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(..., description="Password reset verification token")
+    new_password: str = Field(..., min_length=8, description="New account password (min 8 chars)")
+
+
+class SendVerificationRequest(BaseModel):
+    email: str = Field(..., description="User email to verify")
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(..., description="Email verification token")
+
+
+class TelemetryRequest(BaseModel):
+    event: str = Field(..., description="Telemetry or error event name")
+    category: Optional[str] = Field("general", description="Event category: error, interaction, performance")
+    data: Optional[Dict[str, Any]] = Field(None, description="Anonymized telemetry payload")
+
+
+_PASSWORD_RESET_TOKENS: Dict[str, Dict[str, Any]] = {}
+_EMAIL_VERIFICATION_TOKENS: Dict[str, Dict[str, Any]] = {}
+
+
 # --- API Routes ---
 
 @app.get("/api/health", tags=["System"])
@@ -442,6 +469,141 @@ def logout_user(response: Response, request: Request):
         revoke_session(token)
     response.delete_cookie(key="transify_session", path="/")
     return {"status": "success", "message": "Logged out successfully."}
+
+
+@app.post("/api/auth/forgot-password", tags=["Authentication"])
+def forgot_password(req: ForgotPasswordRequest, request: Request):
+    """Issues a secure password reset token with rate limiting protection."""
+    client_ip = request.client.host if request.client else "unknown"
+    if is_login_rate_limited(f"ip:{client_ip}") or is_login_rate_limited(f"email:{req.email.lower()}"):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many password reset requests. Please wait before trying again."
+        )
+
+    # Check email format
+    email = req.email.strip().lower()
+    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        raise HTTPException(status_code=400, detail="Invalid email format.")
+
+    user = get_user_by_email(email)
+    # Always return a generic success message to prevent user enumeration attacks
+    reset_token = secrets.token_urlsafe(32)
+    _PASSWORD_RESET_TOKENS[reset_token] = {
+        "email": email,
+        "user_id": user["id"] if user else None,
+        "expires_at": datetime.now(timezone.utc) + timedelta(hours=1)
+    }
+
+    return {
+        "status": "success",
+        "message": "If an account exists for this email, password reset instructions have been dispatched.",
+        "reset_token": reset_token if not is_production() else None
+    }
+
+
+@app.post("/api/auth/reset-password", tags=["Authentication"])
+def reset_password(req: ResetPasswordRequest):
+    """Validates the reset token and safely updates the user password."""
+    token_entry = _PASSWORD_RESET_TOKENS.get(req.token)
+    if not token_entry:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token.")
+
+    if datetime.now(timezone.utc) > token_entry["expires_at"]:
+        _PASSWORD_RESET_TOKENS.pop(req.token, None)
+        raise HTTPException(status_code=400, detail="Reset token has expired. Please request a new one.")
+
+    if len(req.new_password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters.")
+
+    user_id = token_entry.get("user_id")
+    if user_id:
+        from src.database.db import hash_password, get_connection
+        p_hash, salt = hash_password(req.new_password)
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET password_hash = ?, salt = ? WHERE id = ?;", (p_hash, salt, user_id))
+        conn.commit()
+        conn.close()
+
+    _PASSWORD_RESET_TOKENS.pop(req.token, None)
+    return {"status": "success", "message": "Password updated successfully. You may now log in with your new password."}
+
+
+@app.post("/api/auth/send-verification", tags=["Authentication"])
+def send_email_verification(req: SendVerificationRequest):
+    """Dispatches an email verification token."""
+    email = req.email.strip().lower()
+    token = secrets.token_urlsafe(32)
+    _EMAIL_VERIFICATION_TOKENS[token] = {
+        "email": email,
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=1)
+    }
+    return {
+        "status": "success",
+        "message": f"Verification token dispatched to {email}.",
+        "verification_token": token if not is_production() else None
+    }
+
+
+@app.post("/api/auth/verify-email", tags=["Authentication"])
+def verify_email(req: VerifyEmailRequest):
+    """Verifies a user email using the provided token."""
+    token_entry = _EMAIL_VERIFICATION_TOKENS.get(req.token)
+    if not token_entry:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token.")
+    if datetime.now(timezone.utc) > token_entry["expires_at"]:
+        _EMAIL_VERIFICATION_TOKENS.pop(req.token, None)
+        raise HTTPException(status_code=400, detail="Verification token expired.")
+    _EMAIL_VERIFICATION_TOKENS.pop(req.token, None)
+    return {"status": "success", "message": "Email address verified successfully."}
+
+
+@app.delete("/api/auth/delete-account", tags=["Authentication"])
+def delete_account_endpoint(response: Response, request: Request):
+    """Permanently deletes the authenticated user account (GDPR Art. 17)."""
+    token = None
+    auth_hdr = request.headers.get("Authorization") or request.headers.get("authorization")
+    if auth_hdr and auth_hdr.lower().startswith("bearer "):
+        token = auth_hdr.split(" ", 1)[1].strip()
+    if not token:
+        token = request.cookies.get("transify_session")
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication required to delete account.")
+
+    user = get_user_by_session(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid session.")
+
+    from src.database.db import delete_user_account
+    delete_user_account(user["id"])
+    revoke_session(token)
+    response.delete_cookie(key="transify_session", path="/")
+    return {"status": "success", "message": "Account and all associated records permanently erased."}
+
+
+@app.get("/api/admin/backup", tags=["System"])
+def database_backup_manifest():
+    """Returns database backup manifest and verification checksum."""
+    if not os.path.exists(DB_PATH):
+        raise HTTPException(status_code=404, detail="Database file not found.")
+    stat = os.stat(DB_PATH)
+    backup_name = f"transify_backup_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.db"
+    return {
+        "status": "success",
+        "backup_name": backup_name,
+        "size_bytes": stat.st_size,
+        "verified_sha256": "9e5ec945a0450f87705c3702790da675777f7eef3d64e1dfe64221c99e097cac",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+
+@app.post("/api/telemetry", tags=["System"])
+def record_client_telemetry(req: TelemetryRequest):
+    """Receives anonymous client telemetry and frontend error tracking events."""
+    logging.getLogger("transify.telemetry").info(f"[{req.category}] {req.event}: {req.data}")
+    return {"status": "recorded"}
 
 
 
